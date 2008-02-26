@@ -1,0 +1,35 @@
+
+#Use GNU C compiler
+CC = gcc
+CFLAGS = -O0 -I/usr/include -I ./include
+
+#Use Intel C compiler
+#CC = icc
+#CFLAGS = -O0 -I/usr/include -I ./include -traceback -Wcheck -Wall -wd981 #wd: disable: remark #981: operands are evaluated in unspecified order
+
+
+MCMCLFLAGS = -lm -lgsl -lgslcblas -lfftw3 -L ./lib -lFrame
+MCMCOBJ = mcmc_main.o mcmc_mcmc.o mcmc_templates.o mcmc_routines.o mcmc_data.o mcmc_parameters.o mcmc_signal.o mcmc_3rdparty.o
+
+WAVEOBJ = waveform_main.o mcmc_templates.o mcmc_routines.o waveform_data.o mcmc_parameters.o mcmc_signal.o mcmc_3rdparty.o
+WAVELFLAGS = -lfftw3
+
+
+
+.c.o:
+	$(CC) $(CFLAGS) -c $?
+
+exit:
+
+
+mcmc: $(MCMCOBJ) 
+	$(CC) $(MCMCLFLAGS) -o mcmc $(MCMCOBJ) 
+
+waveform: $(WAVEOBJ) 
+	$(CC) $(WAVELFLAGS) -o waveform $(WAVEOBJ) 
+
+clean:
+	rm -f *.o mcmc waveform
+
+
+
