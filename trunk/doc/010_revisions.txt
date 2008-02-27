@@ -2,7 +2,7 @@
   Revisions in the spinning_mcmc repository.  
   Please log changes here (and add a short comment using svn commit -m 'Comment').
      
-     9: sluys
+    11: sluys
      - removing plot code from this svn, will create a new one for that, moving 
        files around.
      

@@ -1107,8 +1107,9 @@ int prior(double *par, int p)
   ub[1] = 0.245;
   
   dt = 0.05; //This should be dt/2
-  lb[2] = prior_tc_mean-dt; //t_c
-  ub[2] = prior_tc_mean+dt;
+  //dt = 0.5; //This should be dt/2
+  lb[2] = prior_tc_mean - dt; //t_c
+  ub[2] = prior_tc_mean + dt;
   
   lb[3] = -6.9; //log(d_L)
   ub[3] = 4.6;

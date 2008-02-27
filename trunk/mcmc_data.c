@@ -67,6 +67,29 @@ void set_ifo_data(struct interferometer ifo[])
   ifo[0].noisedoubleprecision = 0;
   */
   
+  /*
+  // Trigger 845348295
+  sprintf(database[0].ch1name,       "H1:LSC-STRAIN");
+  sprintf(database[0].ch1filepath,   datadir);
+  sprintf(database[0].ch1fileprefix, "H-H1_RDS_C03_L2-");
+  sprintf(database[0].ch1filesuffix, "-128.gwf");
+  database[0].ch1filesize   = 128;
+  database[0].ch1fileoffset = 53;
+  database[0].ch1doubleprecision = 0;
+  database[0].add2channels    = 1;
+  
+  database[0].noiseGPSstart   = 845348534;
+  sprintf(database[0].noisechannel,    "H1:LSC-STRAIN");
+  sprintf(database[0].noisefilepath,   datadir);
+  sprintf(database[0].noisefileprefix, "H-H1_RDS_C03_L2-");
+  sprintf(database[0].noisefilesuffix, "-128.gwf");
+  database[0].noisefilesize   = 128;
+  database[0].noisefileoffset = 53;
+  database[0].noisedoubleprecision = 0;
+  */
+  
+  
+  
   
   // LIVINGSTON
   sprintf(ifo[1].name, "Livingston");
@@ -122,7 +145,26 @@ void set_ifo_data(struct interferometer ifo[])
   ifo[1].noisedoubleprecision = 0;
   */
   
+  /*
+  // Trigger 845348295
+  sprintf(database[1].ch1name,       "L1:LSC-STRAIN");
+  sprintf(database[1].ch1filepath,   datadir);
+  sprintf(database[1].ch1fileprefix, "L-L1_RDS_C03_L2-");
+  sprintf(database[1].ch1filesuffix, "-128.gwf");
+  database[1].ch1filesize   = 128;
+  database[1].ch1fileoffset = 92;
+  database[1].ch1doubleprecision = 0;
+  database[1].add2channels    = 1;
   
+  database[1].noiseGPSstart   = 845348573;
+  sprintf(database[1].noisechannel,    "L1:LSC-STRAIN");
+  sprintf(database[1].noisefilepath,   datadir);
+  sprintf(database[1].noisefileprefix, "L-L1_RDS_C03_L2-");
+  sprintf(database[1].noisefilesuffix, "-128.gwf");
+  database[1].noisefilesize   = 128;
+  database[1].noisefileoffset = 92;
+  database[1].noisedoubleprecision = 0;
+  */
   
   
   // PISA
