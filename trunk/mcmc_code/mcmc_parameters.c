@@ -5,71 +5,24 @@
 
 
 
-void settrueparameters(struct parset *par)  //Set the parameters for the 12-parameter spinning template to the 'true values'
-{
-  par->m1       = 10.0;                          // 10.0
-  par->m2       = 1.4;                           //  1.4
-  par->m        = par->m1+par->m2;
-  par->mu       = par->m1*par->m2/par->m;
-  par->eta      = par->mu/par->m;                // mass ratio                
-  par->mc       = par->m*pow(par->eta,0.6);      // chirp mass. in Mo         
-  par->tc       = prior_tc_mean;                 // coalescence time
-  par->logdl    = log(13.0);                      // log-distance (Mpc) (17.5)             
-  par->longi    = 91.0*d2r;                      // longitude (~"hour angle"?, saved as RA)     (120)
-  
-  par->sinlati  = sin(40.0*d2r);                 // sin latitude (sin(delta))  (40)     
-  par->phase    = 0.2;                           // orbital phase   (phi_c)   (0.2)
-  par->spin     = truespin;                      // magnitude of total spin   (0.1)
-  par->kappa    = cos(truetheta*d2r);            // L^.S^, cos of angle between L^ & S^  (0.819152)
-  par->sinthJ0  = sin(15.0*d2r);                 // sin Theta_J0 ~ polar, 0=NP    (15)
-  par->phiJ0    = 125.0*d2r;                     // Phi_J0 ~ azimuthal            (125)
-  par->alpha    = 0.9;                           // Alpha_c                       (0.9)
-  
-  par->loctc    = NULL;
-  par->localti  = NULL;
-  par->locazi   = NULL;
-  par->locpolar = NULL;
-}
 
 
-
-
-void setnullparameters(struct parset *par)  //Set the parameters for the 12-parameter spinning template to 'null values', to simulate absence of a signal
-{
-  par->mc       = 0.01;
-  par->eta      = 0.0001;
-  par->tc       = prior_tc_mean;
-  par->logdl    = 10000.0;
-  par->sinlati  = 0.0;
-  par->longi    = 0.0;
-  par->phase    = 0.0;
-  par->spin     = 0.000001;              // magnitude of total spin   
-  par->kappa    = 0.0;                   // L^.S^, cos of angle between L^ & S^
-  par->sinthJ0  = 0.000001;              // sin Theta_J0 ~ polar, 0=NP    
-  par->phiJ0    = 0.0;                   // Phi_J0 ~ azimuthal        
-  par->alpha    = 0.0;                   // Alpha_c                   
-  
-  par->loctc    = NULL;
-  par->localti  = NULL;
-  par->locazi   = NULL;
-  par->locpolar = NULL;
-}
-
-
-
-
-
-
-
-
-//Please keep this routine uptodate with writeinputfile() below
-void readinputfile()
+// Read the input file.
+// Please keep this routine in sync with writeinputfile() below.
+void readinputfile(struct runpar *run)
 {
   int i;
   double tmpdbl;
   char bla[500];
   FILE *fin;
-  fin = fopen("mcmc.input","r");   //In current dir
+  
+  if((fin = fopen(run->infilename,"r")) == NULL) {
+    printf("   Error reading file: %s, aborting.\n\n\n",run->infilename);
+    exit(1);
+  } else {
+    printf("   Using input file: %s.\n",run->infilename);
+  }
+  
   
   //Use and l for floats: %lf, %lg, etc, rather than %f, %g
   
@@ -79,15 +32,14 @@ void readinputfile()
   
   //Basic settings
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  //fgets(bla,500,fin);  sscanf(bla,"%ld",&iter);
   fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);
   iter = (int)tmpdbl;
   fgets(bla,500,fin);  sscanf(bla,"%d",&skip);
   fgets(bla,500,fin);  sscanf(bla,"%d",&screenoutput);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&mcmcseed);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->mcmcseed);
   fgets(bla,500,fin);  sscanf(bla,"%d",&inject);
   fgets(bla,500,fin);  sscanf(bla,"%d",&adapt);
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&blockfrac);  //without the l, it doesn't work...
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&blockfrac);
   for(i=0;i<npar;i++)  fscanf(fin,"%d",&fitpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
   fgets(bla,500,fin);  //Read the rest of this line
   
@@ -95,7 +47,7 @@ void readinputfile()
   //Start from offset values:
   fgets(bla,500,fin);  fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin);  sscanf(bla,"%d",&offsetmcmc);
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&offsetx);    //This time it works WITH OR WITHOUT the l...
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&offsetx);
   for(i=0;i<npar;i++)  fscanf(fin,"%d",&offsetpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
   fgets(bla,500,fin);  //Read the rest of this line
   
@@ -110,7 +62,7 @@ void readinputfile()
   
   //Annealing:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&temp0);    //This time we need the l
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&temp0);
   fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);
   nburn = (int)tmpdbl;
   fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);
@@ -120,7 +72,7 @@ void readinputfile()
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin);  sscanf(bla,"%d",&partemp);
   fgets(bla,500,fin);  sscanf(bla,"%d",&ntemps);
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&tempmax);    //This time...
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&tempmax);
   fgets(bla,500,fin);  sscanf(bla,"%d",&saveallchains);
   fgets(bla,500,fin);  sscanf(bla,"%d",&prpartempinfo);
   
@@ -135,46 +87,48 @@ void readinputfile()
   
   //Diverse:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&downsamplefactor);    //This time...
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&downsamplefactor);
   
   //True parameter values:
-  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&truespin);    //This time...
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&truetheta);    //This time...
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&prior_tc_mean);    //This time...
+  fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
+  for(i=0;i<npar;i++) fscanf(fin,"%lf",&truepar[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  prior_tc_mean = truepar[2];   //prior_tc_mean is used everywhere
   
   //Typical PDF widths:
-  fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin); for(i=0;i<npar;i++)  fscanf(fin,"%lf",&pdfsigs[i]);  //Read the array directly, because sscanf cannot be in a loop...
-  
-  //Data directory:
-  fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fscanf(fin, "%45s",datadir);
+  fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
+  for(i=0;i<npar;i++) fscanf(fin,"%lf",&pdfsigs[i]);  //Read the array directly, because sscanf cannot be in a loop...
   
   fclose(fin);
 }
 
 
 
-void writeinputfile()
-//Write an input file, nicely formatted.  Try to keep this in sync with readinput.
+
+
+
+
+// Write a copy of the input file.
+// This provides a nicely formatted copy, which may later be used to start a follow-up run.
+// Try to keep this in sync with readinputfile() above.
+void writeinputfile(struct runpar *run)
 {
   int i;
   FILE *fout;
-  char outfilename[99]; 
-  sprintf(outfilename,"mcmc.input.%6.6d",mcmcseed);
-  fout = fopen(outfilename,"w");   //In current dir
+  sprintf(run->outfilename,"%s.%6.6d",run->infilename,run->mcmcseed);
+  if((fout = fopen(run->outfilename,"w")) == NULL) {
+    printf("   Could not create file: %s, aborting.\n\n\n",run->outfilename);
+    exit(1);
+  }
   
   fprintf(fout, "  #Input file for spinning MCMC code\n\n");
   fprintf(fout, "  %-25s  %-18s  %-200s\n","#Value:","Variable:","Description:");
   
   
   fprintf(fout, "\n  #Basic settings:\n");
-  //fprintf(fout, "  %-25d  %-18s  %-200s\n",    iter,          "iter",           "Total number of iterations to be computed (e.g. 1e7).");
   fprintf(fout, "  %-25.3g  %-18s  %-200s\n",  (double)iter,  "iter",           "Total number of iterations to be computed (e.g. 1e7).");
   fprintf(fout, "  %-25d  %-18s  %-200s\n",    skip,          "skip",           "Number of iterations to be skipped between stored steps (100 for 1d).");
   fprintf(fout, "  %-25d  %-18s  %-200s\n",    screenoutput,  "screenoutput",   "Number of iterations between screen outputs im the MCMC (1000 for 1d).");
-  fprintf(fout, "  %-25d  %-18s  %-200s\n",    mcmcseed,      "mcmcseed",       "Random number seed to start the MCMC: 0-let system clock determine seed.");
+  fprintf(fout, "  %-25d  %-18s  %-200s\n",    run->mcmcseed, "mcmcseed",       "Random number seed to start the MCMC: 0-let system clock determine seed.");
   fprintf(fout, "  %-25d  %-18s  %-200s\n",    inject,        "inject",         "Inject a signal (1) or not (0).");
   fprintf(fout, "  %-25d  %-18s  %-200s\n",    adapt,         "adapt",          "Use adaptation: 0-no, 1-yes.");
   fprintf(fout, "  %-25.2f  %-18s  %-200s\n",  blockfrac,     "blockfrac",      "Fraction of uncorrelated updates that is updated as a block of all parameters (<=0.0: none, >=1.0: all).");
@@ -222,25 +176,27 @@ void writeinputfile()
   
   fprintf(fout, "\n  #Diverse:\n");
   fprintf(fout, "  %-25.1f  %-18s  %-200s\n",   downsamplefactor,"downsamplefactor","Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0, shouldn't be higher than 8 for BH-NS...");
-  
-  fprintf(fout, "\n  #True parameter values.  These are used to inject a signal and/or start the MCMC from.\n");
-  fprintf(fout, "  %-25.2f  %-18s  %-200s\n",   truespin,"truespin","True value of spin (0.0-1.0).");
-  fprintf(fout, "  %-25.1f  %-18s  %-200s\n",   truetheta,"truetheta","True value of theta_SL, degrees (0-180).");
-  fprintf(fout, "  %-25.3f  %-18s  %-200s\n",   prior_tc_mean,"prior_tc_mean","True GPS time of coalescence, seconds.  Simulated data: 700009012.345, S5 data1: 839366100.345, S5 data2: 846226100.345.");
   //fprintf(fout, "  %-25.1f  %-18s  %-200s\n",   cutoff_a,"cutoff_a","Low value of a/M where signal should be cut off, e.g. 7.5.");
   
   
-  fprintf(fout, "\n\n");
+  fprintf(fout, "\n");
+  fprintf(fout, "\n  #True parameter values, *not* the exact MCMC parameters and units!  These are used to inject a signal and/or start the MCMC from.\n");
+  fprintf(fout, "   M1(Mo)    M2(Mo)            t_c (GPS)   d_L(Mpc)    a_spin    th_SL(°)    H.A.(°)     dec(°)    phic(°)   th_Jo(°)   phi_Jo(°)  alpha(°)  \n");
+  for(i=0;i<npar;i++) {
+    if(i==2) {
+      fprintf(fout, "  %-18.6lf",truepar[i]);
+    } else {
+      fprintf(fout, "  %-9.4lf",truepar[i]);
+    }
+  }
+  
+  fprintf(fout, "\n");
   fprintf(fout, "\n  #Typical PDF widths:\n");
-  //for(i=0;i<npar;i++) fprintf(fout, "  %-25.4f  pdfsigs[%02d]\n",pdfsigs[i],i);
   for(i=0;i<npar;i++) fprintf(fout, "  %-7.4f",pdfsigs[i]);
   fprintf(fout, "\n");
   
-  fprintf(fout, "\n  #Data directory:\n");
-  fprintf(fout, "  %-45s  %-200s\n",datadir,"Fugu/laptop: /home/sluys/work/GW/programs/MCMC/data, Tsunami: /guest/sluys/work/GW/programs/MCMC/data, Typhoon: /attic/sluys/work/GW/programs/MCMC/data");
-  
-  
   /*
+  Formats used:
   fprintf(fout, "\n  #:\n");
   fprintf(fout, "  %-25d  %-18s  %-200s\n",    ,"","");
   fprintf(fout, "  %-25.1f  %-18s  %-200s\n",   ,"","");
@@ -253,16 +209,58 @@ void writeinputfile()
 
 
 
-void setconstants()
+
+
+//Read the input file for local (system-dependent) variables: mcmc.local
+void readlocalfile()
 {
+  int i;
+  char localfilename[99], bla[500];
+  FILE *fin;
+  
+  sprintf(localfilename,"mcmc.local");
+  if((fin = fopen(localfilename,"r")) == NULL) {
+    printf("   Error reading file: %s, aborting.\n\n\n",localfilename);
+    exit(1);
+  }
+  
+  //Use and l for floats: %lf, %lg, etc, rather than %f, %g
+  for(i=1;i<=3;i++) { //Read first 3 lines
+    fgets(bla,500,fin);
+  }  
+
+  //Data directory:
+  fscanf(fin, "%45s",datadir);
+  
+  fclose(fin);
+}
+
+
+
+
+
+
+
+
+
+
+// Set the global variables.
+// Many of these are now in the input file or unused.
+// This routine should eventually disappear.
+void setconstants(struct runpar *run)
+{
+  int i=0,j=0;
   npar           =  12;            // Number of parameters, not *really* a variable... (yet anyway)
   
+  i = run->mcmcseed;  //Keeps compiler from complaining:  parameter "run" was never referenced
+  j = i;              //Keeps compiler from complaining:  variable "i" was set but never used
+  i = j;
+  
   /*
-  int i=0;
   iter           =  1e1;           // Total number of iterations to be computed (~1e7)
   skip           =  10;             // Number of iterations to be skipped between stored steps (100 for 1d)
   screenoutput   =  10;            // Number of iterations between screen outputs im the MCMC (1000 for 1d)
-  mcmcseed       =  0;             // Random number seed to start the MCMC 0-let system clock determine seed
+  run->mcmcseed  =  0;             // Random number seed to start the MCMC 0-let system clock determine seed
   adapt          =  1;             // Use adaptation: 0-no, 1-yes
   blockfrac   =  0.1;           // Fraction of uncorrelated updates that is updated as a block of all parameters (<=0.0: none, >=1.0: all)
   
@@ -341,8 +339,21 @@ void setconstants()
   
   */
   
-  
-  
+  /*
+  //Not in MCMC units!
+  truepar[0]  = 10.0;              // M1
+  truepar[1]  = 1.4;               // M2
+  truepar[2]  = 700009012.345000;  // tc
+  truepar[3]  = 13.0;              // d_L
+  truepar[4]  = 0.8;               // spin
+  truepar[5]  = 55.0;              // theta (deg)
+  truepar[6]  = 91.0;              // 'hour angle' (saved as RA) (deg)
+  truepar[7]  = 40.0;              // declination (deg)
+  truepar[8]  = 11.459156;         // phase (deg)
+  truepar[9]  = 15.0;              // theta_J0 (deg)
+  truepar[10] = 125.0;             // phiJ0 (deg)
+  truepar[11] = 51.566202;         // alpha (deg)
+  */
   
   //--- Program control: --------------------------------------------------------------------------------------
   tempi = 0; //A global variable that determines the current chain (temperature) in the temperature ladder
@@ -410,6 +421,64 @@ void setconstants()
   annealfact = 2.0;      /* temperature increase factor for subsequent chains                */
   
 }
+
+
+
+void settrueparameters(struct parset *par)  //Set the parameters for the 12-parameter spinning template to the 'true values'
+{
+  par->m1       = truepar[0];                    // M1 (10.0)
+  par->m2       = truepar[1];                    // M2  (1.4)
+  par->m        = par->m1+par->m2;
+  par->mu       = par->m1*par->m2/par->m;
+  par->eta      = par->mu/par->m;                // mass ratio                
+  par->mc       = par->m*pow(par->eta,0.6);      // chirp mass. in Mo         
+  par->tc       = truepar[2];                    // coalescence time
+  par->logdl    = log(truepar[3]);               // log-distance (Mpc) (17.5)             
+  
+  par->spin     = truepar[4];                    // magnitude of total spin   (0.1)
+  par->kappa    = cos(truepar[5]*d2r);           // L^.S^, cos of angle between L^ & S^  (0.819152)
+  par->longi    = truepar[6]*d2r;                // longitude (~"hour angle"?, saved as RA)     (120)
+  par->sinlati  = sin(truepar[7]*d2r);           // sin latitude (sin(delta))  (40)     
+  
+  par->phase    = truepar[8]*d2r;                // orbital phase   (phi_c)   (0.2)
+  par->sinthJ0  = sin(truepar[9]*d2r);           // sin Theta_J0 ~ polar, 0=NP    (15)
+  par->phiJ0    = truepar[10]*d2r;               // Phi_J0 ~ azimuthal            (125)
+  par->alpha    = truepar[11]*d2r;               // Alpha_c                       (0.9 rad = 51.566202deg)
+  
+  par->loctc    = NULL;
+  par->localti  = NULL;
+  par->locazi   = NULL;
+  par->locpolar = NULL;
+}
+
+
+
+
+void setnullparameters(struct parset *par)  //Set the parameters for the 12-parameter spinning template to 'null values', to simulate absence of a signal
+{
+  par->mc       = 0.01;
+  par->eta      = 0.0001;
+  par->tc       = prior_tc_mean;
+  par->logdl    = 10000.0;
+  par->sinlati  = 0.0;
+  par->longi    = 0.0;
+  par->phase    = 0.0;
+  par->spin     = 0.000001;              // magnitude of total spin   
+  par->kappa    = 0.0;                   // L^.S^, cos of angle between L^ & S^
+  par->sinthJ0  = 0.000001;              // sin Theta_J0 ~ polar, 0=NP    
+  par->phiJ0    = 0.0;                   // Phi_J0 ~ azimuthal        
+  par->alpha    = 0.0;                   // Alpha_c                   
+  
+  par->loctc    = NULL;
+  par->localti  = NULL;
+  par->locazi   = NULL;
+  par->locpolar = NULL;
+}
+
+
+
+
+
 
 
 

@@ -546,7 +546,8 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   if(intscrout==1) printf(" | opening %d chirp data file(s)... \n", filecount);
   iFile = FrFileINew(filenames);
   if (iFile == NULL) {
-    printf("error!\n");
+    printf("\n\n   ERROR opening data file: %s (channel 1), aborting.\n\n\n",filenames);
+    exit(1);
   }
   /*else if(intscrout==1) printf("ok.\n");*/
   if(intscrout==1) printf(" | %s\n",filenames);
@@ -557,8 +558,8 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   else
     nvect = FrFileIGetVectF(iFile, ifo[i]->ch1name, from, delta);
   if (nvect == NULL) {
-    //printf(" | ERROR reading data file(s) (1st channel) !!\n");
-    printf(" | ERROR reading data file(s) (1st channel, %s) !!\n",filenames);
+    printf("\n\n   ERROR reading data file: %s (channel 1), aborting.\n\n\n",filenames);
+    exit(1);
   }
   FrFileIEnd(iFile);
   
@@ -650,14 +651,18 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     }
     /* open file: */
     iFile = FrFileINew(filenames);
-    if (iFile == NULL) printf("error!\n");
+    if (iFile == NULL) {
+      printf("\n\n   ERROR opening data file: %s (channel 2), aborting.\n\n\n",filenames);
+      exit(1);
+    }
     
     if (ifo[i]->ch2doubleprecision)
       svect = FrFileIGetVectD(iFile, ifo[i]->ch2name, from, delta);
     else
       svect = FrFileIGetVectF(iFile, ifo[i]->ch2name, from, delta);
     if (svect == NULL) {
-      printf(" : ERROR reading data file(s) (2nd channel) !!\n");
+      printf("\n\n   ERROR reading data file: %s (channel 2), aborting.\n\n\n",filenames);
+      exit(1);
     }
     FrFileIEnd(iFile);
   }
@@ -752,7 +757,8 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   if(intscrout==1) printf(" | performing data Fourier transform (%.1f s at %d Hz)... ",delta, ifo[i]->samplerate);
   fftw_execute(ifo[i]->FTplan);
   if (ifo[i]->FTout == NULL){
-    printf("error!\n");
+    printf("\n\n   ERROR performing Fourier transform: %s, aborting.\n\n\n",filenames);
+    exit(1);
   }
   else if(intscrout==1) printf("ok.\n");
   
@@ -853,7 +859,8 @@ void noisePSDestimate(struct interferometer *ifo)
   if(intscrout==1) printf(" | %s\n",filenames);
   iFile = FrFileINew(filenames);
   if (iFile == NULL) {
-    printf("error!\n");
+    printf("\n\n   ERROR opening noise data file: %s, aborting.\n\n\n",filenames);
+    exit(1);
   }
   /*else if(intscrout==1) printf("ok.\n");*/
   
@@ -865,7 +872,8 @@ void noisePSDestimate(struct interferometer *ifo)
   else
     vect = FrFileIGetVectF(iFile, ifo->noisechannel, ((double)ifo->noiseGPSstart), Mseconds*2);
   if (vect == NULL) {
-    printf("\n : ERROR reading noise file(s) %s  !!\n",filenames);
+    printf("\n\n   ERROR reading noise data file: %s, aborting.\n\n\n",filenames);
+    exit(1);
   }
   N = vect->nData; /* length of filtered & downsampled data (not yet!) */
   M = (int)(N/2.0);
@@ -923,7 +931,8 @@ void noisePSDestimate(struct interferometer *ifo)
   /*-- transform --*/
   fftw_execute(FTplan);
   if (out == NULL){
-    printf("\n : ERROR performing (noise) Fourier transform!\n");
+    printf("\n\n   ERROR performing noise Fourier transform: %s, aborting.\n\n\n",filenames);
+    exit(1);
   }
   fftw_free(in); 
   /*-- allocate & initialize PSD vector --*/

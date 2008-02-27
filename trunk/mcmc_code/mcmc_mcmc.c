@@ -1,7 +1,7 @@
 #include <mcmc.h>
 
 
-void mcmc(int networksize, struct interferometer *ifo[])
+void mcmc(struct runpar *run, int networksize, struct interferometer *ifo[])
 {
   if(MvdSdebug) printf("MCMC\n");
   struct parset state;
@@ -176,7 +176,7 @@ void mcmc(int networksize, struct interferometer *ifo[])
   for(i=0;i<networksize;i++) {
     printf("%16s%4s  ",ifo[i]->name,"SNR");
   }
-  printf("\n%10d  %10d  %6d  %20.10lf  %6d  ",iter,nburn,mcmcseed,NullLikelihood,networksize);
+  printf("\n%10d  %10d  %6d  %20.10lf  %6d  ",iter,nburn,run->mcmcseed,NullLikelihood,networksize);
   for(i=0;i<networksize;i++) {
     printf("%20.10lf  ",ifo[i]->snr);
   }
@@ -186,11 +186,11 @@ void mcmc(int networksize, struct interferometer *ifo[])
   // *** Open the output file and write run parameters in the header ***
   for(tempi=0;tempi<ntemps;tempi++) {
     if(tempi==0 || saveallchains==1) {
-      sprintf(outfilename,"mcmc.output.%6.6d.%2.2d",mcmcseed,tempi);
+      sprintf(outfilename,"mcmc.output.%6.6d.%2.2d",run->mcmcseed,tempi);
       fout = fopen(outfilename,"w"); //In current dir, allows for multiple copies to run
       fprintf(fout, "%10s  %10s  %6s  %20s  %6s %8s   %6s  %8s  %10s\n","Niter","Nburn","seed","null likelihood","Ndet","Ncorr","Ntemps","Tmax","Tchain");
       
-      fprintf(fout, "%10d  %10d  %6d  %20.10lf  %6d %8d   %6d%10d%12.1f\n",iter,nburn,mcmcseed,NullLikelihood,networksize,ncorr,ntemps,(int)tempmax,temps[tempi]);
+      fprintf(fout, "%10d  %10d  %6d  %20.10lf  %6d %8d   %6d%10d%12.1f\n",iter,nburn,run->mcmcseed,NullLikelihood,networksize,ncorr,ntemps,(int)tempmax,temps[tempi]);
       fprintf(fout, "\n%16s  %16s  %10s  %10s  %10s  %10s  %20s  %15s  %12s  %12s  %12s\n",
 	      "Detector","SNR","f_low","f_high","before tc","after tc","Sample start (GPS)","Sample length","Sample rate","Sample size","FT size");
       for(i=0;i<networksize;i++) {
@@ -233,7 +233,7 @@ void mcmc(int networksize, struct interferometer *ifo[])
   
   for(tempi=0;tempi<ntemps;tempi++) {
     if(tempi==0 || saveallchains==1) {
-      sprintf(outfilename,"mcmc.output.%6.6d.%2.2d",mcmcseed,tempi);
+      sprintf(outfilename,"mcmc.output.%6.6d.%2.2d",run->mcmcseed,tempi);
       fout = fopen(outfilename,"a");
       fprintf(fout, "%12d %20.10lf  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %20.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f\n",
 	      -1,logL[0]-NullLikelihood,param[0][0],0.0,0.0,param[0][1],0.0,0.0,param[0][2],0.0,0.0,param[0][3],0.0,0.0,param[0][4],0.0,0.0,param[0][5],0.0,0.0,rightAscension(param[0][6],GMST(param[0][2])),0.0,0.0,param[0][7],0.0,0.0,
@@ -245,7 +245,7 @@ void mcmc(int networksize, struct interferometer *ifo[])
 
   
   //Set seed for this chain
-  gsl_rng_set(r, mcmcseed);  
+  gsl_rng_set(r, run->mcmcseed);  
   
   int nparfit=0; //Determine the number of parameters that is actually fitted/varied (i.e. not kept fixed at the true values)
   for(i=0;i<npar;i++) {
@@ -339,7 +339,7 @@ void mcmc(int networksize, struct interferometer *ifo[])
   // *** Write to file ***
   for(tempi=0;tempi<ntemps;tempi++) {
     if(tempi==0 || saveallchains==1) {
-      sprintf(outfilename,"mcmc.output.%6.6d.%2.2d",mcmcseed,tempi);
+      sprintf(outfilename,"mcmc.output.%6.6d.%2.2d",run->mcmcseed,tempi);
       //printf("  3:  %d  %s\n",tempi,outfilename);
       fout = fopen(outfilename,"a");
       fprintf(fout, "%12d %20.10lf  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %20.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f\n",
@@ -598,7 +598,7 @@ void mcmc(int networksize, struct interferometer *ifo[])
 	// *** Write output to file ***
 	if(tempi==0 || saveallchains==1) { //For all T-chains if desired, otherwise the T=1 chain only
 	  if((iteri % skip)==0){
-	    sprintf(outfilename,"mcmc.output.%6.6d.%2.2d",mcmcseed,tempi);
+	    sprintf(outfilename,"mcmc.output.%6.6d.%2.2d",run->mcmcseed,tempi);
 	    fout = fopen(outfilename,"a");
 	    fprintf(fout, "%12d %20.10lf  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %20.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f\n",
 		    iteri,logL[tempi]-NullLikelihood,

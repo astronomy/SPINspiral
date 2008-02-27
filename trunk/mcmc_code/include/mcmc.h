@@ -10,7 +10,6 @@
 #include <complex.h>
 #include <fftw3.h>   /* www.fftw.org                                                   */
 #include <FrameL.h>  /* from LIGOtools package: www.ldas-sw.ligo.caltech.edu/ligotools */
-//#include <randlib.h>
 #include <time.h>
 #include <remez.h>   /* FIR-filter design routine:  www.janovetz.com/jake              */
 #include <gsl/gsl_rng.h>
@@ -47,15 +46,25 @@
 
 
 
-//Constants (which are of course variable in a multi-file C code) etc assigned in setconstants()
+//Global constants (which are of course variable in a multi-file C code) etc., assigned in setconstants()
 
-int npar,iter,skip,screenoutput,adapt,mcmcseed;
-int fitpar[12];
+//The following global arrays have the size of the number of parameters, e.g. 12 or 15:
+
+int fitpar[12],offsetpar[12];
+double truepar[12],pdfsigs[12];
+
+
+
+
+//Global variables:
+
+char datadir[99];
+
+int npar,iter,skip,screenoutput,adapt;//,mcmcseed;
 double blockfrac;
 
 int offsetmcmc;
 double offsetx;
-int offsetpar[12];
   
 int corrupd,ncorr,prmatrixinfo;
   
@@ -71,14 +80,10 @@ int dosnr,domcmc,domatch,intscrout,writesignal;
 int printmuch;
   
 double truespin,truetheta,prior_tc_mean,downsamplefactor;
-double pdfsigs[12];
   
-char datadir[99];
 int tempi;
   
 double Ms,Mpc,G,c,Mpcs,pi,tpi,mtpi;
-
-//double prior_tc_margin,prior_mass_lower,prior_mass_upper,prior_dist_90,prior_dist_10;
 
 
 int parallelchains,impodraws,anneal,covest,covfix,covskip,initweight,modifiedStudent;
@@ -98,6 +103,15 @@ double SFTconst,tfactor,NullLikelihood;
 
 
 
+// Structure with run parameters.  
+// This should eventually include all variables in the input file and replace many of the global variables.
+// That also means that this struct must be passed throughout much of the code.
+struct runpar{
+  int mcmcseed;      // Seed for MCMC
+  
+  char infilename[99];  // Run input file name
+  char outfilename[99]; // Copy of input file name
+};
 
 
 // Structure for spin parameter set with 12 parameters
@@ -192,14 +206,26 @@ fftw_complex *FTout;                  /* FT output (type here identical to `(dou
      
 };
 
+
+
 /*-- Declare functions (prototypes): --*/
-void readinputfile();
-void writeinputfile();
-void setconstants();
+void readlocalfile();
+void readinputfile(struct runpar *run);
+void writeinputfile(struct runpar *run);
+void setconstants(struct runpar *run);
 void set_ifo_data(struct interferometer ifo[]);
 void settrueparameters(struct parset *par);
 void setnullparameters(struct parset *par);
-void setmcmcseed();
+void setmcmcseed(struct runpar *run);
+
+void mcmc(struct runpar *run, int networksize, struct interferometer *ifo[]);
+void chol(int n, double **A);
+void par2arr(struct parset *par, double **param);
+void arr2par(double **param, struct parset *par);
+int prior(double *par, int p);
+
+
+
 
         double massratio(double m1, double m2);
           void mc2masses(double mc, double eta, double *m1, double *m2);
@@ -289,11 +315,6 @@ void setmcmcseed();
           void metro(int networksize, struct interferometer *ifo[],
                      double sPropCov[8][8],
                      char logfilename[], int iter, int thin, int multiple);
-          void mcmc(int networksize, struct interferometer *ifo[]);
-          void chol(int n, double **A);
-          void par2arr(struct parset *par, double **param);
-          void arr2par(double **param, struct parset *par);
-           int prior(double *par, int p);
 
           void printtime();
           void printcov(double mat[8][8], int precise);
