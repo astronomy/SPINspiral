@@ -13,7 +13,7 @@
 void set_ifo_data(struct interferometer ifo[])
 //Set all the data for all IFOs that may be used
 {
-    /*-- HANFORD: --*/
+  // HANFORD:
   sprintf(ifo[0].name, "Hanford");
   ifo[0].lati     = (  46.45/180.0)*pi;
   ifo[0].longi    = (-119.41/180.0)*pi;
@@ -22,8 +22,6 @@ void set_ifo_data(struct interferometer ifo[])
   ifo[0].radius_eqt  = 6378137.0;       /* WGS 84 */
   ifo[0].radius_pole = 6356752.314;       
   ifo[0].lowCut  =   40.0;  //The other two detectors have the same low,highCut
-  //ifo[0].highCut = 1600.0;
-  //ifo[0].highCut = 6400.0/downsamplefactor;
   ifo[0].highCut = 4800.0/downsamplefactor;
   ifo[0].before_tc = 6.0;   //The other two detectors have the same before,after_tc
   ifo[0].after_tc = 1.0;
@@ -39,15 +37,6 @@ void set_ifo_data(struct interferometer ifo[])
   ifo[0].ch1doubleprecision = 0;
   ifo[0].add2channels    = 1; 
   
-  //Is this used at all?
-  sprintf(ifo[0].ch2name,       "H1:STRAIN_INSP_INJ_ONLY"); 
-  sprintf(ifo[0].ch2filepath,   datadir);
-  sprintf(ifo[0].ch2fileprefix, "HL-SIM-");
-  sprintf(ifo[0].ch2filesuffix, "-6000.gwf");
-  ifo[0].ch2filesize   = 6000; 
-  ifo[0].ch2fileoffset = 4000; 
-  ifo[0].ch2doubleprecision = 0;
-  
   ifo[0].noiseGPSstart   = 700006000;
   sprintf(ifo[0].noisechannel,    "H1:STRAIN");
   sprintf(ifo[0].noisefilepath,   datadir);
@@ -58,28 +47,7 @@ void set_ifo_data(struct interferometer ifo[])
   ifo[0].noisedoubleprecision = 0;
   
   /*
-  // Real S5 data 1
-  sprintf(ifo[0].ch1name,       "H1:LSC-STRAIN");
-  sprintf(ifo[0].ch1filepath,   datadir);
-  sprintf(ifo[0].ch1fileprefix, "H-H1_RDS_C03_L2-");
-  sprintf(ifo[0].ch1filesuffix, "-384.gwf");
-  ifo[0].ch1filesize   = 384;
-  ifo[0].ch1fileoffset = 377;
-  ifo[0].ch1doubleprecision = 0;
-  ifo[0].add2channels    = 1;
-  
-  ifo[0].noiseGPSstart   = 839366020;
-  sprintf(ifo[0].noisechannel,    "H1:LSC-STRAIN");
-  sprintf(ifo[0].noisefilepath,   datadir);
-  sprintf(ifo[0].noisefileprefix, "H-H1_RDS_C03_L2-");
-  sprintf(ifo[0].noisefilesuffix, "-384.gwf");
-  ifo[0].noisefilesize   = 384;
-  ifo[0].noisefileoffset = 377;
-  ifo[0].noisedoubleprecision = 0;
-  */
-  
-  /*
-  // Real S5 data 2
+  // S5 data 2
   sprintf(ifo[0].ch1name,       "H1:LSC-STRAIN");
   sprintf(ifo[0].ch1filepath,   datadir);
   sprintf(ifo[0].ch1fileprefix, "H-H1_RDS_C03_L2-");
@@ -100,7 +68,7 @@ void set_ifo_data(struct interferometer ifo[])
   */
   
   
-  /*-- LIVINGSTON: --*/
+  // LIVINGSTON
   sprintf(ifo[1].name, "Livingston");
   ifo[1].lati     = (  30.56/180.0)*pi;
   ifo[1].longi    = ( -90.77/180.0)*pi;
@@ -108,12 +76,8 @@ void set_ifo_data(struct interferometer ifo[])
   ifo[1].leftarm  = ( 198.00/180.0)*pi;
   ifo[1].radius_eqt  = 6378137.0;       /* WGS 84 */
   ifo[1].radius_pole = 6356752.314;       
-  //ifo[1].lowCut  =   40.0;
-  //ifo[1].highCut = 1600.0;
   ifo[1].lowCut  =  ifo[0].lowCut;
   ifo[1].highCut = ifo[0].highCut;
-  //  ifo[1].before_tc = 6.0; //10.0;
-  //  ifo[1].after_tc = 1.0;
   ifo[1].before_tc = ifo[0].before_tc;
   ifo[1].after_tc = ifo[0].after_tc;
   
@@ -128,16 +92,6 @@ void set_ifo_data(struct interferometer ifo[])
   ifo[1].ch1doubleprecision = 0;
   ifo[1].add2channels    = 1;
   
-  // This doesn't seem to be used at all
-  sprintf(ifo[1].ch2name,       "L1:STRAIN_INSP_INJ_ONLY");
-  sprintf(ifo[1].ch2filepath,   datadir);
-  sprintf(ifo[1].ch2fileprefix, "HL-SIM-");
-  sprintf(ifo[1].ch2filesuffix, "-6000.gwf");
-  ifo[1].ch2filesize   = 6000;
-  ifo[1].ch2fileoffset = 4000;
-  ifo[1].ch2doubleprecision = 0;
-  ifo[1].noiseGPSstart   = 700007000;
-  
   sprintf(ifo[1].noisechannel,    "L1:STRAIN");
   sprintf(ifo[1].noisefilepath,   datadir);
   sprintf(ifo[1].noisefileprefix, "HL-SIM-");
@@ -147,28 +101,7 @@ void set_ifo_data(struct interferometer ifo[])
   ifo[1].noisedoubleprecision = 0;
   
   
-  /*
-  // Real S5 data 1
-  sprintf(ifo[1].ch1name,       "L1:LSC-STRAIN");
-  sprintf(ifo[1].ch1filepath,   datadir);
-  sprintf(ifo[1].ch1fileprefix, "L-L1_RDS_C03_L2-");
-  sprintf(ifo[1].ch1filesuffix, "-384.gwf");
-  ifo[1].ch1filesize   = 384;
-  ifo[1].ch1fileoffset = 19;
-  ifo[1].ch1doubleprecision = 0;
-  ifo[1].add2channels    = 1;
-  
-  ifo[1].noiseGPSstart   = 839366045;
-  sprintf(ifo[1].noisechannel,    "L1:LSC-STRAIN");
-  sprintf(ifo[1].noisefilepath,   datadir);
-  sprintf(ifo[1].noisefileprefix, "L-L1_RDS_C03_L2-");
-  sprintf(ifo[1].noisefilesuffix, "-384.gwf");
-  ifo[1].noisefilesize   = 384;
-  ifo[1].noisefileoffset = 19;
-  ifo[1].noisedoubleprecision = 0;
-  */
-  
-  // Real S5 data 2
+  // S5 data 2
   /*
   sprintf(ifo[1].ch1name,       "L1:LSC-STRAIN");
   sprintf(ifo[1].ch1filepath,   datadir);
@@ -192,7 +125,7 @@ void set_ifo_data(struct interferometer ifo[])
   
   
   
-  /*-- PISA: --*/
+  // PISA
   sprintf(ifo[2].name, "Pisa");
   ifo[2].lati     = (  43.63/180.0)*pi;
   ifo[2].longi    = (  10.50/180.0)*pi;
@@ -200,15 +133,13 @@ void set_ifo_data(struct interferometer ifo[])
   ifo[2].leftarm  = (  71.50/180.0)*pi;
   ifo[2].radius_eqt  = 6378137.0;    /*6378000.0;*/     /* WGS 84 */
   ifo[2].radius_pole = 6356752.314;  /*6378000.0;*/
-  //ifo[2].lowCut  =  40.0;
-  //ifo[2].highCut = 1600.0;
   ifo[2].lowCut  =  ifo[0].lowCut;
+  //ifo[2].lowCut  =  30.0;
   ifo[2].highCut = ifo[0].highCut;
-  //  ifo[2].before_tc = 6.0; //20.0;
-  //  ifo[2].after_tc = 1.0;
+  //ifo[2].before_tc = 20.0;
   ifo[2].before_tc = ifo[0].before_tc;
   ifo[2].after_tc = ifo[0].after_tc;
-  // redefine this below
+  
   sprintf(ifo[2].ch1name,       "V1:noise");
   sprintf(ifo[2].ch1filepath,   datadir);
   sprintf(ifo[2].ch1fileprefix, "V-");
@@ -217,14 +148,7 @@ void set_ifo_data(struct interferometer ifo[])
   ifo[2].ch1fileoffset = 4000; 
   ifo[2].ch1doubleprecision = 0;
   ifo[2].add2channels    = 1; 
-  sprintf(ifo[2].ch2name,       "V1:STRAIN_INSP_INJ_ONLY"); 
-  sprintf(ifo[2].ch2filepath,   datadir);
-  sprintf(ifo[2].ch2fileprefix, "HL-SIM-");
-  sprintf(ifo[2].ch2filesuffix, "-6000.gwf");
-  ifo[2].ch2filesize   = 6000; 
-  ifo[2].ch2fileoffset = 4000; 
-  ifo[2].ch2doubleprecision = 0;
-  ifo[2].noiseGPSstart   = 700008000;
+  
   sprintf(ifo[2].noisechannel,    "V1:noise");
   sprintf(ifo[2].noisefilepath,   datadir);
     sprintf(ifo[2].noisefileprefix, "V-");
@@ -232,34 +156,6 @@ void set_ifo_data(struct interferometer ifo[])
   ifo[2].noisefilesize   = 6000; 
   ifo[2].noisefileoffset = 4000; 
   ifo[2].noisedoubleprecision = 0;
-  
-  //Use LIGO noise for Virgo
-  if(1==2) {
-    printf("*** Using LIGO noise for VIRGO !!!  ***\n");
-    sprintf(ifo[2].ch1name,       "L1:STRAIN"); 
-    sprintf(ifo[2].ch1filepath,   datadir);
-    sprintf(ifo[2].ch1fileprefix, "HL-SIM-");
-    sprintf(ifo[2].ch1filesuffix, "-6000.gwf");
-    ifo[2].ch1filesize   = 6000; 
-    ifo[2].ch1fileoffset = 4000; 
-    ifo[2].ch1doubleprecision = 0;
-    ifo[2].add2channels    = 1; 
-    sprintf(ifo[2].ch2name,       "L1:STRAIN_INSP_INJ_ONLY"); 
-    sprintf(ifo[2].ch2filepath,   datadir);
-    sprintf(ifo[2].ch2fileprefix, "HL-SIM-");
-    sprintf(ifo[2].ch2filesuffix, "-6000.gwf");
-    ifo[2].ch2filesize   = 6000; 
-    ifo[2].ch2fileoffset = 4000; 
-    ifo[2].ch2doubleprecision = 0;
-    ifo[2].noiseGPSstart   = 700008000;
-    sprintf(ifo[2].noisechannel,    "L1:STRAIN");
-    sprintf(ifo[2].noisefilepath,   datadir);
-    sprintf(ifo[2].noisefileprefix, "HL-SIM-");
-    sprintf(ifo[2].noisefilesuffix, "-6000.gwf");
-    ifo[2].noisefilesize   = 6000; 
-    ifo[2].noisefileoffset = 4000; 
-    ifo[2].noisedoubleprecision = 0;
-  }
 }
 
 
