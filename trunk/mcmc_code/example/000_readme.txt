@@ -16,11 +16,13 @@
   
   This directory (./example/) contains an example Makefile and an example input file.
   These are supposed to be changed as the code changes, you can use them as reference
-  to maintain your own files. 	   
+  to maintain your own files.
   
-  A test.
-  
-  
+  Todo:
+    - move datadir to mcmc.input to different input file (e.g. mcmc.local), because it 
+      is system dependent
+    - add all 'true' values to mcmc.input
+    
   
   
   

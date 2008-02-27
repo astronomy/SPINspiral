@@ -682,9 +682,13 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   /*-- release the FrVect objects --*/
   FrVectFree(svect);
   FrVectFree(nvect);
-  free(injection);
+  if(inject) {
+    free(injection);
+    printf("   A signal with the 'true' parameter values was injected.\n");
+  }
+  else printf("   No signal was injected.\n");
 
-
+  
   int screwcount = 0;
   for (j=0; j<N; ++j)
     if (!(raw[j]<HUGE_VAL))

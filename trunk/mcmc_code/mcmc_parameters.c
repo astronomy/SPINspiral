@@ -62,7 +62,7 @@ void setnullparameters(struct parset *par)  //Set the parameters for the 12-para
 
 
 
-
+//Please keep this routine uptodate with writeinputfile() below
 void readinputfile()
 {
   int i;
@@ -85,6 +85,7 @@ void readinputfile()
   fgets(bla,500,fin);  sscanf(bla,"%d",&skip);
   fgets(bla,500,fin);  sscanf(bla,"%d",&screenoutput);
   fgets(bla,500,fin);  sscanf(bla,"%d",&mcmcseed);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&inject);
   fgets(bla,500,fin);  sscanf(bla,"%d",&adapt);
   fgets(bla,500,fin);  sscanf(bla,"%lf",&blockfrac);  //without the l, it doesn't work...
   for(i=0;i<npar;i++)  fscanf(fin,"%d",&fitpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
@@ -174,6 +175,7 @@ void writeinputfile()
   fprintf(fout, "  %-25d  %-18s  %-200s\n",    skip,          "skip",           "Number of iterations to be skipped between stored steps (100 for 1d).");
   fprintf(fout, "  %-25d  %-18s  %-200s\n",    screenoutput,  "screenoutput",   "Number of iterations between screen outputs im the MCMC (1000 for 1d).");
   fprintf(fout, "  %-25d  %-18s  %-200s\n",    mcmcseed,      "mcmcseed",       "Random number seed to start the MCMC: 0-let system clock determine seed.");
+  fprintf(fout, "  %-25d  %-18s  %-200s\n",    inject,        "inject",         "Inject a signal (1) or not (0).");
   fprintf(fout, "  %-25d  %-18s  %-200s\n",    adapt,         "adapt",          "Use adaptation: 0-no, 1-yes.");
   fprintf(fout, "  %-25.2f  %-18s  %-200s\n",  blockfrac,     "blockfrac",      "Fraction of uncorrelated updates that is updated as a block of all parameters (<=0.0: none, >=1.0: all).");
   fprintf(fout, " ");
@@ -221,7 +223,7 @@ void writeinputfile()
   fprintf(fout, "\n  #Diverse:\n");
   fprintf(fout, "  %-25.1f  %-18s  %-200s\n",   downsamplefactor,"downsamplefactor","Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0, shouldn't be higher than 8 for BH-NS...");
   
-  fprintf(fout, "\n  #True parameter values:\n");
+  fprintf(fout, "\n  #True parameter values.  These are used to inject a signal and/or start the MCMC from.\n");
   fprintf(fout, "  %-25.2f  %-18s  %-200s\n",   truespin,"truespin","True value of spin (0.0-1.0).");
   fprintf(fout, "  %-25.1f  %-18s  %-200s\n",   truetheta,"truetheta","True value of theta_SL, degrees (0-180).");
   fprintf(fout, "  %-25.3f  %-18s  %-200s\n",   prior_tc_mean,"prior_tc_mean","True GPS time of coalescence, seconds.  Simulated data: 700009012.345, S5 data1: 839366100.345, S5 data2: 846226100.345.");
@@ -402,7 +404,8 @@ void setconstants()
   iter_per_min   = 60.0; /* (a guess in order to estimate the computation time)              */
   mutationprob   = 0.75; /* mutation probability (remaining moves are crossovers)            */
   
-  inject            = 1; /* inject `homemade' signal?                                        */
+  //In mcmc.input now
+  //inject            = 1; /* inject `homemade' signal?                                        */
   
   annealfact = 2.0;      /* temperature increase factor for subsequent chains                */
   

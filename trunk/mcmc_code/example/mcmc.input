@@ -7,6 +7,7 @@
   100                        skip                Number of iterations to be skipped between stored steps (100 for 1d).                                                                                                                                   
   1000                       screenoutput        Number of iterations between screen outputs im the MCMC (1000 for 1d).                                                                                                                                  
   0                          mcmcseed            Random number seed to start the MCMC: 0-let system clock determine seed.                                                                                                                                
+  1                          inject              Inject a signal (1) or not (0).
   1                          adapt               Use adaptation: 0-no, 1-yes.                                                                                                                                                                            
   0.10                       blockfrac           Fraction of uncorrelated updates that is updated as a block of all parameters (<=0.0: none, >=1.0: all).                                                                                                
   1 1 1 1 1 1 1 1 1 1 1 1    fitpar[12]          Parameters you want to fit for.                                                                                                                                                                         
@@ -44,7 +45,7 @@
   #Diverse:
   8.0                        downsamplefactor    Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0, shouldn't be higher than 8 for BH-NS...                                                             
 
-  #True parameter values:
+  #True parameter values.  These are used to inject a signal and/or start the MCMC from.
   0.80                       truespin            True value of spin (0.0-1.0).                                                                                                                                                                           
   55.0                       truetheta           True value of theta_SL, degrees (0-180).                                                                                                                                                                
   700009012.345              prior_tc_mean       True GPS time of coalescence, seconds.  Simulated data: 700009012.345, S5 data1: 839366100.345, S5 data2: 846226100.345.                                                                                
