@@ -10,8 +10,7 @@
 #include <mcmc.h>
 
 
-/* main program: */
-//main()
+// Main program:
 int main(int argc, char * argv[])
 {
   // Interferometers are managed via the `database'; the `network' is a vector of pointers to the database (see below).
@@ -38,18 +37,27 @@ int main(int argc, char * argv[])
   set_ifo_data(database);  
   
   //Define interferometer network; how many and which IFOs
-  const int networksize = 1;
-  struct interferometer *network[1] = {&database[0]};
-  //const int networksize = 2;
-  //struct interferometer *network[2] = {&database[0], &database[1]};
+  //const int networksize = 1;
+  //struct interferometer *network[1] = {&database[0]};
+  const int networksize = 2;
+  struct interferometer *network[2] = {&database[0], &database[1]};
   //const int networksize = 3;
   //struct interferometer *network[3] = {&database[0], &database[1], &database[2]};
   
   
-  //Initialise interferometers, read and prepare data (takes some time)
-  printf("   Initialising IFOs, reading datafiles...\n");
+  //Initialise interferometers, read and prepare data, inject signal (takes some time)
+  if(networksize == 1) {
+    printf("   Initialising 1 IFO, reading data...\n");
+  } else {
+    printf("   Initialising %d IFOs, reading datafiles...\n",networksize);
+  }
   ifoinit(network, networksize);
-  
+  if(inject) {
+    printf("   A signal with the 'true' parameter values was injected.\n");
+  } else {
+    printf("   No signal was injected.\n");
+  }
+
   
   //Calculate 'null-likelihood'
   struct parset nullpar;
@@ -60,6 +68,7 @@ int main(int argc, char * argv[])
   nullpar.locpolar = (double*)calloc(networksize,sizeof(double));
   localpar(&nullpar, network, networksize);
   NullLikelihood = net_loglikelihood(&nullpar, networksize, network);
+  if(inject == 0) NullLikelihood *= 1.01;  //If no signal is injected, presumably there is one present in the data; enlarge the range that log(L) can take by owering Lo (since L>Lo is forced)
   
   //Get a parameter set to calculate SNR or write the wavefrom to disc
   struct parset dummypar;
@@ -176,7 +185,7 @@ void pardispose(struct parset *par)
 
 
 void setmcmcseed(struct runpar *run)
-//If run.mcmcseed==0, set it using the system clock
+//If run->mcmcseed==0, set it using the system clock
 {
   struct timeval time;
   struct timezone tz;

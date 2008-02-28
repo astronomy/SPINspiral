@@ -36,7 +36,7 @@ clean:
 	rm -f *.o 
 
 cleanoutput:
-	rm -f mcmc.input.* mcmc.output.*
+	rm -f mcmc.input.* mcmc.output.* *-signal*.dat
 
 
 

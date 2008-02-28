@@ -13,7 +13,14 @@
 void set_ifo_data(struct interferometer ifo[])
 //Set all the data for all IFOs that may be used
 {
-  // HANFORD:
+  int selectdata = 1;
+  //  Select a stretch of data:
+  //  1:  Gaussian, stationary noise (all we have at the moment for Virgo)
+  //  2:  Clean S5 data
+  //  3:  Playground trigger 845348295
+  
+  
+  // HANFORD, H1:
   sprintf(ifo[0].name, "Hanford");
   ifo[0].lati     = (  46.45/180.0)*pi;
   ifo[0].longi    = (-119.41/180.0)*pi;
@@ -27,71 +34,73 @@ void set_ifo_data(struct interferometer ifo[])
   ifo[0].after_tc = 1.0;
   
   
-  // Synthetic data
-  sprintf(ifo[0].ch1name,       "H1:STRAIN"); 
-  sprintf(ifo[0].ch1filepath,   datadir);
-  sprintf(ifo[0].ch1fileprefix, "HL-SIM-");
-  sprintf(ifo[0].ch1filesuffix, "-6000.gwf");
-  ifo[0].ch1filesize   = 6000; 
-  ifo[0].ch1fileoffset = 4000; 
-  ifo[0].ch1doubleprecision = 0;
-  ifo[0].add2channels    = 1; 
+  if(selectdata == 1) {
+    // Gaussian, stationary noise
+    sprintf(ifo[0].ch1name,       "H1:STRAIN"); 
+    sprintf(ifo[0].ch1filepath,   datadir);
+    sprintf(ifo[0].ch1fileprefix, "HL-SIM-");
+    sprintf(ifo[0].ch1filesuffix, "-6000.gwf");
+    ifo[0].ch1filesize   = 6000; 
+    ifo[0].ch1fileoffset = 4000; 
+    ifo[0].ch1doubleprecision = 0;
+    ifo[0].add2channels    = 0;  //0, unless you want to read a signal from file
+    
+    ifo[0].noiseGPSstart   = 700006000;
+    sprintf(ifo[0].noisechannel,    "H1:STRAIN");
+    sprintf(ifo[0].noisefilepath,   datadir);
+    sprintf(ifo[0].noisefileprefix, "HL-SIM-");
+    sprintf(ifo[0].noisefilesuffix, "-6000.gwf");
+    ifo[0].noisefilesize   = 6000; 
+    ifo[0].noisefileoffset = 4000; 
+    ifo[0].noisedoubleprecision = 0;
+  }
   
-  ifo[0].noiseGPSstart   = 700006000;
-  sprintf(ifo[0].noisechannel,    "H1:STRAIN");
-  sprintf(ifo[0].noisefilepath,   datadir);
-  sprintf(ifo[0].noisefileprefix, "HL-SIM-");
-  sprintf(ifo[0].noisefilesuffix, "-6000.gwf");
-  ifo[0].noisefilesize   = 6000; 
-  ifo[0].noisefileoffset = 4000; 
-  ifo[0].noisedoubleprecision = 0;
+  if(selectdata == 2) {
+    // Clean S5 data 2
+    sprintf(ifo[0].ch1name,       "H1:LSC-STRAIN");
+    sprintf(ifo[0].ch1filepath,   datadir);
+    sprintf(ifo[0].ch1fileprefix, "H-H1_RDS_C03_L2-");
+    sprintf(ifo[0].ch1filesuffix, "-384.gwf");
+    ifo[0].ch1filesize   = 384;
+    ifo[0].ch1fileoffset = 242;
+    ifo[0].ch1doubleprecision = 0;
+    ifo[0].add2channels    = 0;  //0, unless you want to read a signal from file
+    
+    ifo[0].noiseGPSstart   = 846226044;
+    sprintf(ifo[0].noisechannel,    "H1:LSC-STRAIN");
+    sprintf(ifo[0].noisefilepath,   datadir);
+    sprintf(ifo[0].noisefileprefix, "H-H1_RDS_C03_L2-");
+    sprintf(ifo[0].noisefilesuffix, "-384.gwf");
+    ifo[0].noisefilesize   = 384;
+    ifo[0].noisefileoffset = 242;
+    ifo[0].noisedoubleprecision = 0;
+  }
   
-  /*
-  // S5 data 2
-  sprintf(ifo[0].ch1name,       "H1:LSC-STRAIN");
-  sprintf(ifo[0].ch1filepath,   datadir);
-  sprintf(ifo[0].ch1fileprefix, "H-H1_RDS_C03_L2-");
-  sprintf(ifo[0].ch1filesuffix, "-384.gwf");
-  ifo[0].ch1filesize   = 384;
-  ifo[0].ch1fileoffset = 242;
-  ifo[0].ch1doubleprecision = 0;
-  ifo[0].add2channels    = 1;
-  
-  ifo[0].noiseGPSstart   = 846226044;
-  sprintf(ifo[0].noisechannel,    "H1:LSC-STRAIN");
-  sprintf(ifo[0].noisefilepath,   datadir);
-  sprintf(ifo[0].noisefileprefix, "H-H1_RDS_C03_L2-");
-  sprintf(ifo[0].noisefilesuffix, "-384.gwf");
-  ifo[0].noisefilesize   = 384;
-  ifo[0].noisefileoffset = 242;
-  ifo[0].noisedoubleprecision = 0;
-  */
-  
-  /*
-  // Trigger 845348295
-  sprintf(database[0].ch1name,       "H1:LSC-STRAIN");
-  sprintf(database[0].ch1filepath,   datadir);
-  sprintf(database[0].ch1fileprefix, "H-H1_RDS_C03_L2-");
-  sprintf(database[0].ch1filesuffix, "-128.gwf");
-  database[0].ch1filesize   = 128;
-  database[0].ch1fileoffset = 53;
-  database[0].ch1doubleprecision = 0;
-  database[0].add2channels    = 1;
-  
-  database[0].noiseGPSstart   = 845348534;
-  sprintf(database[0].noisechannel,    "H1:LSC-STRAIN");
-  sprintf(database[0].noisefilepath,   datadir);
-  sprintf(database[0].noisefileprefix, "H-H1_RDS_C03_L2-");
-  sprintf(database[0].noisefilesuffix, "-128.gwf");
-  database[0].noisefilesize   = 128;
-  database[0].noisefileoffset = 53;
-  database[0].noisedoubleprecision = 0;
-  */
+  if(selectdata == 3) {
+    // Playground trigger 845348295
+    sprintf(ifo[0].ch1name,       "H1:LSC-STRAIN");
+    sprintf(ifo[0].ch1filepath,   datadir);
+    sprintf(ifo[0].ch1fileprefix, "H-H1_RDS_C03_L2-");
+    sprintf(ifo[0].ch1filesuffix, "-128.gwf");
+    ifo[0].ch1filesize   = 128;
+    ifo[0].ch1fileoffset = 53;
+    ifo[0].ch1doubleprecision = 0;
+    ifo[0].add2channels    = 0;  //0, unless you want to read a signal from file
+    
+    ifo[0].noiseGPSstart   = 845348534;
+    sprintf(ifo[0].noisechannel,    "H1:LSC-STRAIN");
+    sprintf(ifo[0].noisefilepath,   datadir);
+    sprintf(ifo[0].noisefileprefix, "H-H1_RDS_C03_L2-");
+    sprintf(ifo[0].noisefilesuffix, "-128.gwf");
+    ifo[0].noisefilesize   = 128;
+    ifo[0].noisefileoffset = 53;
+    ifo[0].noisedoubleprecision = 0;
+  }
   
   
   
   
-  // LIVINGSTON
+  // LIVINGSTON, L1
   sprintf(ifo[1].name, "Livingston");
   ifo[1].lati     = (  30.56/180.0)*pi;
   ifo[1].longi    = ( -90.77/180.0)*pi;
@@ -104,70 +113,70 @@ void set_ifo_data(struct interferometer ifo[])
   ifo[1].before_tc = ifo[0].before_tc;
   ifo[1].after_tc = ifo[0].after_tc;
   
+  if(selectdata == 1) {
+    // Gaussian, stationary noise
+    sprintf(ifo[1].ch1name,       "L1:STRAIN");
+    sprintf(ifo[1].ch1filepath,   datadir);
+    sprintf(ifo[1].ch1fileprefix, "HL-SIM-");
+    sprintf(ifo[1].ch1filesuffix, "-6000.gwf");
+    ifo[1].ch1filesize   = 6000;
+    ifo[1].ch1fileoffset = 4000;
+    ifo[1].ch1doubleprecision = 0;
+    ifo[1].add2channels    = 0;  //0, unless you want to read a signal from file
+    
+    sprintf(ifo[1].noisechannel,    "L1:STRAIN");
+    sprintf(ifo[1].noisefilepath,   datadir);
+    sprintf(ifo[1].noisefileprefix, "HL-SIM-");
+    sprintf(ifo[1].noisefilesuffix, "-6000.gwf");
+    ifo[1].noisefilesize   = 6000;
+    ifo[1].noisefileoffset = 4000;
+    ifo[1].noisedoubleprecision = 0;
+  }
+    
+  if(selectdata == 2) {
+    //Clean S5 data 2
+    sprintf(ifo[1].ch1name,       "L1:LSC-STRAIN");
+    sprintf(ifo[1].ch1filepath,   datadir);
+    sprintf(ifo[1].ch1fileprefix, "L-L1_RDS_C03_L2-");
+    sprintf(ifo[1].ch1filesuffix, "-384.gwf");
+    ifo[1].ch1filesize   = 384;
+    ifo[1].ch1fileoffset = 262;
+    ifo[1].ch1doubleprecision = 0;
+    ifo[1].add2channels    = 0;  //0, unless you want to read a signal from file
+    
+    ifo[1].noiseGPSstart   = 846226064;
+    sprintf(ifo[1].noisechannel,    "L1:LSC-STRAIN");
+    sprintf(ifo[1].noisefilepath,   datadir);
+    sprintf(ifo[1].noisefileprefix, "L-L1_RDS_C03_L2-");
+    sprintf(ifo[1].noisefilesuffix, "-384.gwf");
+    ifo[1].noisefilesize   = 384;
+    ifo[1].noisefileoffset = 262;
+    ifo[1].noisedoubleprecision = 0;
+  }
   
-  //Synthetic data
-  sprintf(ifo[1].ch1name,       "L1:STRAIN");
-  sprintf(ifo[1].ch1filepath,   datadir);
-  sprintf(ifo[1].ch1fileprefix, "HL-SIM-");
-  sprintf(ifo[1].ch1filesuffix, "-6000.gwf");
-  ifo[1].ch1filesize   = 6000;
-  ifo[1].ch1fileoffset = 4000;
-  ifo[1].ch1doubleprecision = 0;
-  ifo[1].add2channels    = 1;
-  
-  sprintf(ifo[1].noisechannel,    "L1:STRAIN");
-  sprintf(ifo[1].noisefilepath,   datadir);
-  sprintf(ifo[1].noisefileprefix, "HL-SIM-");
-  sprintf(ifo[1].noisefilesuffix, "-6000.gwf");
-  ifo[1].noisefilesize   = 6000;
-  ifo[1].noisefileoffset = 4000;
-  ifo[1].noisedoubleprecision = 0;
-  
-  
-  // S5 data 2
-  /*
-  sprintf(ifo[1].ch1name,       "L1:LSC-STRAIN");
-  sprintf(ifo[1].ch1filepath,   datadir);
-  sprintf(ifo[1].ch1fileprefix, "L-L1_RDS_C03_L2-");
-  sprintf(ifo[1].ch1filesuffix, "-384.gwf");
-  ifo[1].ch1filesize   = 384;
-  ifo[1].ch1fileoffset = 262;
-  ifo[1].ch1doubleprecision = 0;
-  ifo[1].add2channels    = 1;
-  
-  ifo[1].noiseGPSstart   = 846226064;
-  sprintf(ifo[1].noisechannel,    "L1:LSC-STRAIN");
-  sprintf(ifo[1].noisefilepath,   datadir);
-  sprintf(ifo[1].noisefileprefix, "L-L1_RDS_C03_L2-");
-  sprintf(ifo[1].noisefilesuffix, "-384.gwf");
-  ifo[1].noisefilesize   = 384;
-  ifo[1].noisefileoffset = 262;
-  ifo[1].noisedoubleprecision = 0;
-  */
-  
-  /*
-  // Trigger 845348295
-  sprintf(database[1].ch1name,       "L1:LSC-STRAIN");
-  sprintf(database[1].ch1filepath,   datadir);
-  sprintf(database[1].ch1fileprefix, "L-L1_RDS_C03_L2-");
-  sprintf(database[1].ch1filesuffix, "-128.gwf");
-  database[1].ch1filesize   = 128;
-  database[1].ch1fileoffset = 92;
-  database[1].ch1doubleprecision = 0;
-  database[1].add2channels    = 1;
-  
-  database[1].noiseGPSstart   = 845348573;
-  sprintf(database[1].noisechannel,    "L1:LSC-STRAIN");
-  sprintf(database[1].noisefilepath,   datadir);
-  sprintf(database[1].noisefileprefix, "L-L1_RDS_C03_L2-");
-  sprintf(database[1].noisefilesuffix, "-128.gwf");
-  database[1].noisefilesize   = 128;
-  database[1].noisefileoffset = 92;
-  database[1].noisedoubleprecision = 0;
-  */
+  if(selectdata == 3) {
+    // Playground trigger 845348295
+    sprintf(ifo[1].ch1name,       "L1:LSC-STRAIN");
+    sprintf(ifo[1].ch1filepath,   datadir);
+    sprintf(ifo[1].ch1fileprefix, "L-L1_RDS_C03_L2-");
+    sprintf(ifo[1].ch1filesuffix, "-128.gwf");
+    ifo[1].ch1filesize   = 128;
+    ifo[1].ch1fileoffset = 92;
+    ifo[1].ch1doubleprecision = 0;
+    ifo[1].add2channels    = 0;  //0, unless you want to read a signal from file
+    
+    ifo[1].noiseGPSstart   = 845348573;
+    sprintf(ifo[1].noisechannel,    "L1:LSC-STRAIN");
+    sprintf(ifo[1].noisefilepath,   datadir);
+    sprintf(ifo[1].noisefileprefix, "L-L1_RDS_C03_L2-");
+    sprintf(ifo[1].noisefilesuffix, "-128.gwf");
+    ifo[1].noisefilesize   = 128;
+    ifo[1].noisefileoffset = 92;
+    ifo[1].noisedoubleprecision = 0;
+  }
   
   
-  // PISA
+  // PISA, Virgo
   sprintf(ifo[2].name, "Pisa");
   ifo[2].lati     = (  43.63/180.0)*pi;
   ifo[2].longi    = (  10.50/180.0)*pi;
@@ -182,22 +191,25 @@ void set_ifo_data(struct interferometer ifo[])
   ifo[2].before_tc = ifo[0].before_tc;
   ifo[2].after_tc = ifo[0].after_tc;
   
-  sprintf(ifo[2].ch1name,       "V1:noise");
-  sprintf(ifo[2].ch1filepath,   datadir);
-  sprintf(ifo[2].ch1fileprefix, "V-");
-  sprintf(ifo[2].ch1filesuffix, "-6000.gwf");
-  ifo[2].ch1filesize   = 6000; 
-  ifo[2].ch1fileoffset = 4000; 
-  ifo[2].ch1doubleprecision = 0;
-  ifo[2].add2channels    = 1; 
-  
-  sprintf(ifo[2].noisechannel,    "V1:noise");
-  sprintf(ifo[2].noisefilepath,   datadir);
+  if(selectdata == 1) {
+    // Gaussian, stationary noise
+    sprintf(ifo[2].ch1name,       "V1:noise");
+    sprintf(ifo[2].ch1filepath,   datadir);
+    sprintf(ifo[2].ch1fileprefix, "V-");
+    sprintf(ifo[2].ch1filesuffix, "-6000.gwf");
+    ifo[2].ch1filesize   = 6000; 
+    ifo[2].ch1fileoffset = 4000; 
+    ifo[2].ch1doubleprecision = 0;
+    ifo[2].add2channels    = 0;   //0, unless you want to read a signal from file
+    
+    sprintf(ifo[2].noisechannel,    "V1:noise");
+    sprintf(ifo[2].noisefilepath,   datadir);
     sprintf(ifo[2].noisefileprefix, "V-");
-  sprintf(ifo[2].noisefilesuffix, "-6000.gwf");
-  ifo[2].noisefilesize   = 6000; 
-  ifo[2].noisefileoffset = 4000; 
-  ifo[2].noisedoubleprecision = 0;
+    sprintf(ifo[2].noisefilesuffix, "-6000.gwf");
+    ifo[2].noisefilesize   = 6000; 
+    ifo[2].noisefileoffset = 4000; 
+    ifo[2].noisedoubleprecision = 0;
+  }
 }
 
 
@@ -625,11 +637,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   /*-- release the FrVect objects --*/
   FrVectFree(svect);
   FrVectFree(nvect);
-  if(inject) {
-    free(injection);
-    printf("   A signal with the 'true' parameter values was injected.\n");
-  }
-  else printf("   No signal was injected.\n");
+  if(inject) free(injection);
 
   
   int screwcount = 0;
@@ -769,7 +777,7 @@ void noisePSDestimate(struct interferometer *ifo)
   int                 FTsize;
   double         *filtercoef;
   int                  ncoef; 
-  char    filenames[2000]="";
+  char    filenames[2000];
   long             filestart;
   int            filecount=0;
   //double *outPSD = NULL;

@@ -230,7 +230,7 @@ void readlocalfile()
   }  
 
   //Data directory:
-  fscanf(fin, "%45s",datadir);
+  fscanf(fin, "%s",datadir);
   
   fclose(fin);
 }

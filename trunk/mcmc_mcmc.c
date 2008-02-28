@@ -1106,8 +1106,8 @@ int prior(double *par, int p)
   lb[1] = 0.03; //eta
   ub[1] = 0.245;
   
-  dt = 0.05; //This should be dt/2
-  //dt = 0.5; //This should be dt/2
+  dt = 0.05; //This should be dt/2  For known signals
+  //dt = 0.5; //This should be dt/2  For unknown signals
   lb[2] = prior_tc_mean - dt; //t_c
   ub[2] = prior_tc_mean + dt;
   
