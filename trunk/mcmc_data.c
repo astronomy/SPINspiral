@@ -45,6 +45,15 @@ void set_ifo_data(struct interferometer ifo[])
     ifo[0].ch1doubleprecision = 0;
     ifo[0].add2channels    = 0;  //0, unless you want to read a signal from file
     
+    //This seems to be needed for synthetic data only...
+    sprintf(ifo[0].ch2name,       "H1:STRAIN_INSP_INJ_ONLY"); 
+    sprintf(ifo[0].ch2filepath,   datadir);
+    sprintf(ifo[0].ch2fileprefix, "HL-SIM-");
+    sprintf(ifo[0].ch2filesuffix, "-6000.gwf");
+    ifo[0].ch2filesize   = 6000; 
+    ifo[0].ch2fileoffset = 4000; 
+    ifo[0].ch2doubleprecision = 0;
+    
     ifo[0].noiseGPSstart   = 700006000;
     sprintf(ifo[0].noisechannel,    "H1:STRAIN");
     sprintf(ifo[0].noisefilepath,   datadir);
@@ -124,6 +133,16 @@ void set_ifo_data(struct interferometer ifo[])
     ifo[1].ch1doubleprecision = 0;
     ifo[1].add2channels    = 0;  //0, unless you want to read a signal from file
     
+    //This seems to be needed for synthetic data only...
+    sprintf(ifo[1].ch2name,       "L1:STRAIN_INSP_INJ_ONLY");
+    sprintf(ifo[1].ch2filepath,   datadir);
+    sprintf(ifo[1].ch2fileprefix, "HL-SIM-");
+    sprintf(ifo[1].ch2filesuffix, "-6000.gwf");
+    ifo[1].ch2filesize   = 6000;
+    ifo[1].ch2fileoffset = 4000;
+    ifo[1].ch2doubleprecision = 0;
+    ifo[1].noiseGPSstart   = 700007000;
+  
     sprintf(ifo[1].noisechannel,    "L1:STRAIN");
     sprintf(ifo[1].noisefilepath,   datadir);
     sprintf(ifo[1].noisefileprefix, "HL-SIM-");
