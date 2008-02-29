@@ -18,6 +18,7 @@ void set_ifo_data(struct interferometer ifo[])
   //  1:  Gaussian, stationary noise (all we have at the moment for Virgo)
   //  2:  Clean S5 data
   //  3:  Playground trigger 845348295
+  //  4:  glitchy data
   
   
   // HANFORD, H1:
@@ -106,6 +107,28 @@ void set_ifo_data(struct interferometer ifo[])
     ifo[0].noisedoubleprecision = 0;
   }
   
+  if(selectdata == 4) {
+    // glitchy data 
+    sprintf(ifo[0].ch1name,       "H1:LSC-STRAIN");
+    sprintf(ifo[0].ch1filepath,   datadir);
+    sprintf(ifo[0].ch1fileprefix, "H-H1_RDS_C03_L2-");
+    sprintf(ifo[0].ch1filesuffix, "-128.gwf");
+    ifo[0].ch1filesize   = 128;
+    ifo[0].ch1fileoffset = 49;
+    ifo[0].ch1doubleprecision = 0;
+    ifo[0].add2channels    = 0;  //0, unless you want to read a signal from file
+    
+    ifo[0].noiseGPSstart   = 846471090;
+    sprintf(ifo[0].noisechannel,    "H1:LSC-STRAIN");
+    sprintf(ifo[0].noisefilepath,   datadir);
+    sprintf(ifo[0].noisefileprefix, "H-H1_RDS_C03_L2-");
+    sprintf(ifo[0].noisefilesuffix, "-128.gwf");
+    ifo[0].noisefilesize   = 128;
+    ifo[0].noisefileoffset = 49;
+    ifo[0].noisedoubleprecision = 0;
+  }
+
+  
   
   
   
@@ -191,6 +214,27 @@ void set_ifo_data(struct interferometer ifo[])
     sprintf(ifo[1].noisefilesuffix, "-128.gwf");
     ifo[1].noisefilesize   = 128;
     ifo[1].noisefileoffset = 92;
+    ifo[1].noisedoubleprecision = 0;
+  }
+  
+  if(selectdata == 4) {
+    // glitchy data
+    sprintf(ifo[1].ch1name,       "L1:LSC-STRAIN");
+    sprintf(ifo[1].ch1filepath,   datadir);
+    sprintf(ifo[1].ch1fileprefix, "L-L1_RDS_C03_L2-");
+    sprintf(ifo[1].ch1filesuffix, "-128.gwf");
+    ifo[1].ch1filesize   = 128;
+    ifo[1].ch1fileoffset = 125;
+    ifo[1].ch1doubleprecision = 0;
+    ifo[1].add2channels    = 0;  //0, unless you want to read a signal from file
+    
+    ifo[1].noiseGPSstart   = 846471038;
+    sprintf(ifo[1].noisechannel,    "L1:LSC-STRAIN");
+    sprintf(ifo[1].noisefilepath,   datadir);
+    sprintf(ifo[1].noisefileprefix, "L-L1_RDS_C03_L2-");
+    sprintf(ifo[1].noisefilesuffix, "-128.gwf");
+    ifo[1].noisefilesize   = 128;
+    ifo[1].noisefileoffset = 125;
     ifo[1].noisedoubleprecision = 0;
   }
   
