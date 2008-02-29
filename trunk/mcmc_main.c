@@ -23,7 +23,7 @@ int main(int argc, char * argv[])
   
   //Initialise stuff for the run
   struct runpar run;
-  sprintf(run.infilename,"mcmc.input");
+  sprintf(run.infilename,"mcmc.input"); //Default input filename
   if(argc > 1) sprintf(run.infilename,argv[1]);
   
   setconstants(&run);    //Set the global constants (which are variable in C). This routine should eventuelly disappear.
@@ -34,7 +34,7 @@ int main(int argc, char * argv[])
   
   //Set up the data of the IFOs you may want to use (H1,L1 + VIRGO by default)
   struct interferometer database[3];
-  set_ifo_data(database);  
+  set_ifo_data(run, database);  
   
   //Define interferometer network; how many and which IFOs
   //const int networksize = 1;

@@ -108,6 +108,7 @@ double SFTconst,tfactor,NullLikelihood;
 // That also means that this struct must be passed throughout much of the code.
 struct runpar{
   int mcmcseed;      // Seed for MCMC
+  int selectdata;    // Select which data set to run on
   
   char infilename[99];  // Run input file name
   char outfilename[99]; // Copy of input file name
@@ -213,7 +214,7 @@ void readlocalfile();
 void readinputfile(struct runpar *run);
 void writeinputfile(struct runpar *run);
 void setconstants(struct runpar *run);
-void set_ifo_data(struct interferometer ifo[]);
+void set_ifo_data(struct runpar run, struct interferometer ifo[]);
 void settrueparameters(struct parset *par);
 void setnullparameters(struct parset *par);
 void setmcmcseed(struct runpar *run);

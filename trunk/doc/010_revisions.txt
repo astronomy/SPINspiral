@@ -1,7 +1,11 @@
 
   Revisions in the spinning_mcmc repository.  
   Please log changes here (and add a short comment using svn commit -m 'Comment').
-     
+    
+    15: sluys
+     - the mcmc.input was changed: parameter selectdata added, to allow selection 
+       of a noise data set.  Selectdata=0 shows a list of data sets available.
+    
     11: sluys
      - removing plot code from this svn, will create a new one for that, moving 
        files around.

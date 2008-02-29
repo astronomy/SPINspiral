@@ -87,6 +87,7 @@ void readinputfile(struct runpar *run)
   
   //Diverse:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->selectdata);
   fgets(bla,500,fin);  sscanf(bla,"%lf",&downsamplefactor);
   
   //True parameter values:
@@ -120,7 +121,7 @@ void writeinputfile(struct runpar *run)
     exit(1);
   }
   
-  fprintf(fout, "  #Input file for spinning MCMC code\n\n");
+  fprintf(fout, "  #Input file for spinning MCMC code.  The LINE NUMBER for each parameter should not change!!!\n\n");
   fprintf(fout, "  %-25s  %-18s  %-200s\n","#Value:","Variable:","Description:");
   
   
@@ -175,6 +176,7 @@ void writeinputfile(struct runpar *run)
   
   
   fprintf(fout, "\n  #Diverse:\n");
+  fprintf(fout, "  %-25d  %-18s  %-200s\n",    run->selectdata,"selectdata","Select the data set to run on  (set to 0 to print a list of data sets). Make sure you set the true tc and datadir accordingly.");
   fprintf(fout, "  %-25.1f  %-18s  %-200s\n",   downsamplefactor,"downsamplefactor","Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0, shouldn't be higher than 8 for BH-NS...");
   //fprintf(fout, "  %-25.1f  %-18s  %-200s\n",   cutoff_a,"cutoff_a","Low value of a/M where signal should be cut off, e.g. 7.5.");
   
