@@ -110,6 +110,8 @@ struct runpar{
   int mcmcseed;      // Seed for MCMC
   int selectdata;    // Select which data set to run on
   
+  double temps[99];  // Temperature ladder for manual parallel tempering
+  
   char infilename[99];  // Run input file name
   char outfilename[99]; // Copy of input file name
 };

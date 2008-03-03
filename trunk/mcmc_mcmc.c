@@ -25,7 +25,7 @@ void mcmc(struct runpar *run, int networksize, struct interferometer *ifo[])
   
   //const int npar=12; //Make it a global variable
   int i=0,i1=0,j=0,j1=0,j2=0,iteri=0,tempj=0;
-  double scale[npar],gamma=0.0,alphastar=0.25,temp=temp0;
+  double gamma=0.0,alphastar=0.25,temp=temp0;
   double work[npar];
   
   double dparam=0.0,tmpdbl=0.0,tempratio=1.0;
@@ -82,12 +82,13 @@ void mcmc(struct runpar *run, int networksize, struct interferometer *ifo[])
   }
   
   int **accepted,**swapTss;
-  double **param,**nparam,**maxparam,**sig;
+  double **param,**nparam,**maxparam,**sig,**scale;
   accepted = (int**)calloc(ntemps,sizeof(int*)); // 
   swapTss = (int**)calloc(ntemps,sizeof(int*)); // 
   param = (double**)calloc(ntemps,sizeof(double*)); // The old parameters for all chains
   nparam = (double**)calloc(ntemps,sizeof(double*)); // The new parameters for all chains
   sig = (double**)calloc(ntemps,sizeof(double*)); // The standard deviation of the gaussian to draw the jump size from
+  scale = (double**)calloc(ntemps,sizeof(double*)); // The rate of adaptation
   maxparam = (double**)calloc(ntemps,sizeof(double*)); // The best parameters for all chains (max logL)
   for(i=0;i<ntemps;i++) {
     accepted[i] = (int*)calloc(npar,sizeof(int));
@@ -95,6 +96,7 @@ void mcmc(struct runpar *run, int networksize, struct interferometer *ifo[])
     param[i] = (double*)calloc(npar,sizeof(double));
     nparam[i] = (double*)calloc(npar,sizeof(double));
     sig[i] = (double*)calloc(npar,sizeof(double));
+    scale[i] = (double*)calloc(npar,sizeof(double));
     maxparam[i] = (double*)calloc(npar,sizeof(double));
   }
   
@@ -138,14 +140,8 @@ void mcmc(struct runpar *run, int networksize, struct interferometer *ifo[])
     }
     for(tempi=0;tempi<ntemps;tempi++) {
       temps[tempi] = pow(10.0,log10(tempmax)/(double)(ntemps-1)*(double)tempi);
-      if(partemp==3 || partemp==4) {  //Set chains manually; for Tmax = 50 and ntemps=6
-	temps[0] = 1.0;
-	temps[1] = 2.66;
-	temps[2] = 7.07;
-	temps[3] = 11.0; //Extra T between 2 and 4, the rest is for 5 chains between 1 and 50
-	temps[4] = 18.80;
-	temps[5] = 50.0;
-      }
+      if(partemp==3 || partemp==4) temps[tempi] = run->temps[tempi];  //Set manual ladder
+      
       //if(tempi>0) tempampl[tempi] = (temps[tempi] - temps[tempi-1])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains just touch at extrema (since in antiphase)
       //if(tempi>0) tempampl[tempi] = 1.5*(temps[tempi] - temps[tempi-1])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains overlap somewhat at extrema (since in antiphase)
       if(tempi>0) tempampl[tempi] = min(3.0*(temps[tempi] - temps[tempi-1])/(tempratio+1.0)*tempratio , fabs(temps[tempi]-temps[tempi-1]));  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
@@ -313,9 +309,9 @@ void mcmc(struct runpar *run, int networksize, struct interferometer *ifo[])
     nparam[tempi][i] = param[tempi][i];
     sig[tempi][i]   = 0.1  * pdfsigs[i];
     if(adapt==1) sig[tempi][i] = pdfsigs[i]; //Don't use adaptation
-    scale[i] = 10.0 * pdfsigs[i];
+    scale[tempi][i] = 10.0 * pdfsigs[i];
     //sig[tempi][i]   = 3.0  * pdfsigs[i]; //3-sigma = delta-100%
-    //scale[i] = 0.0 * pdfsigs[i]; //No adaptation
+    //scale[tempi][i] = 0.0 * pdfsigs[i]; //No adaptation
     if(i==6 || i==8 || i==10 || i==11) sig[tempi][i] = fmod(sig[tempi][i]+mtpi,tpi);  //Bring the sigma between 0 and 2pi
   }
   
@@ -364,6 +360,7 @@ void mcmc(struct runpar *run, int networksize, struct interferometer *ifo[])
 	param[tempi][j] = param[0][j];
 	nparam[tempi][j] = nparam[0][j];
 	sig[tempi][j] = sig[0][j];
+	scale[tempi][j] = scale[0][j];
 	logL[tempi] = logL[0];
 	nlogL[tempi] = nlogL[0];
 
@@ -472,7 +469,7 @@ void mcmc(struct runpar *run, int networksize, struct interferometer *ifo[])
 		  param[tempi][j1] = nparam[tempi][j1];
 		  logL[tempi] = nlogL[tempi];
 		  if(adapt==1){
-		    gamma = scale[j1]*pow(1.0/((double)(iteri+1)),1.0/6.0);
+		    gamma = scale[tempi][j1]*pow(1.0/((double)(iteri+1)),1.0/6.0);
 		    sig[tempi][j1] = max(0.0,sig[tempi][j1] + gamma*(1.0 - alphastar)); //Accept
 		    if(j1==6 || j1==8 || j1==10 || j1==11) sig[tempi][j1] = fmod(sig[tempi][j1]+mtpi,tpi);  //Bring the sigma between 0 and 2pi
 		  }
@@ -481,7 +478,7 @@ void mcmc(struct runpar *run, int networksize, struct interferometer *ifo[])
 		else{                                                      //Reject proposal
 		  nparam[tempi][j1] = param[tempi][j1];
 		  if(adapt==1){
-		    gamma = scale[j1]*pow(1.0/((double)(iteri+1)),1.0/6.0);
+		    gamma = scale[tempi][j1]*pow(1.0/((double)(iteri+1)),1.0/6.0);
 		    sig[tempi][j1] = max(0.0,sig[tempi][j1] - gamma*alphastar); //Reject
 		    if(j1==6 || j1==8 || j1==10 || j1==11) sig[tempi][j1] = fmod(sig[tempi][j1]+mtpi,tpi);  //Bring the sigma between 0 and 2pi
 		    //sig[tempi][j1] = max(0.01*sig[tempi][j1], sig[tempi][j1] - gamma*alphastar);
@@ -491,7 +488,7 @@ void mcmc(struct runpar *run, int networksize, struct interferometer *ifo[])
 	      else{  //If new state not within boundaries
 		nparam[tempi][j1] = param[tempi][j1];
 		if(adapt==1) {
-		  gamma = scale[j1]*pow(1.0/((double)(iteri+1)),1.0/6.0);
+		  gamma = scale[tempi][j1]*pow(1.0/((double)(iteri+1)),1.0/6.0);
 		  sig[tempi][j1] = max(0.0,sig[tempi][j1] - gamma*alphastar); //Reject
 		  if(j1==6 || j1==8 || j1==10 || j1==11) sig[tempi][j1] = fmod(sig[tempi][j1]+mtpi,tpi);  //Bring the sigma between 0 and 2pi
 		}
@@ -780,6 +777,8 @@ void mcmc(struct runpar *run, int networksize, struct interferometer *ifo[])
 	      } //if(prpartempinfo==2 && tempi==ntemps-1)
 	    } //if(partemp>=1)
 	    
+	    
+	    
 	    ihist[tempi] = 0;
 	    sumdlogL[tempi] = 0.0;
 	    
@@ -961,6 +960,7 @@ void mcmc(struct runpar *run, int networksize, struct interferometer *ifo[])
     free(param[i]);
     free(nparam[i]);
     free(sig[i]);
+    free(scale[i]);
     free(maxparam[i]);
   }
   free(accepted);
@@ -968,6 +968,7 @@ void mcmc(struct runpar *run, int networksize, struct interferometer *ifo[])
   free(param);
   free(nparam);
   free(sig);
+  free(scale);
   free(maxparam);
   
   for(i=0;i<npar;i++) {

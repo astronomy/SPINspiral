@@ -37,10 +37,10 @@ int main(int argc, char * argv[])
   set_ifo_data(run, database);  
   
   //Define interferometer network; how many and which IFOs
-  //const int networksize = 1;
-  //struct interferometer *network[1] = {&database[0]};
-  const int networksize = 2;
-  struct interferometer *network[2] = {&database[0], &database[1]};
+  const int networksize = 1;
+  struct interferometer *network[1] = {&database[0]};
+  //const int networksize = 2;
+  //struct interferometer *network[2] = {&database[0], &database[1]};
   //const int networksize = 3;
   //struct interferometer *network[3] = {&database[0], &database[1], &database[2]};
   
