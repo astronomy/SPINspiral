@@ -73,7 +73,7 @@ int nburn;
 int nburn0;
   
 int partemp,saveallchains,prpartempinfo;
-int ntemps;
+//int ntemps;
 double tempmax;
   
 int dosnr,domcmc,domatch,intscrout,writesignal;
@@ -99,7 +99,7 @@ double StartPropCov[8][8];
 
 double *chaintemp;                  /* vector of temperatures for individual chains (initialised later) */
 
-double SFTconst,tfactor,NullLikelihood;
+//double SFTconst,tfactor;//,NullLikelihood;
 
 
 
@@ -107,13 +107,48 @@ double SFTconst,tfactor,NullLikelihood;
 // This should eventually include all variables in the input file and replace many of the global variables.
 // That also means that this struct must be passed throughout much of the code.
 struct runpar{
-  int mcmcseed;      // Seed for MCMC
-  int selectdata;    // Select which data set to run on
+  //int npar;             // Number of parameters in the MCMC/template
+  int ntemps;
+  int mcmcseed;          // Seed for MCMC
+  int selectdata;        // Select which data set to run on
+  //int adapt;           // Use adaptation or not
+  //double *fitpar;
   
-  double temps[99];  // Temperature ladder for manual parallel tempering
+  double logL0;          // log of the 'null-likelihood'
+  double temps[99];      // Temperature ladder for manual parallel tempering
   
-  char infilename[99];  // Run input file name
-  char outfilename[99]; // Copy of input file name
+  char infilename[99];   // Run input file name
+  char outfilename[99];  // Copy of input file name
+};
+
+
+//Structure for MCMC variables
+struct mcmcvariables{
+  int npar;             // Number of parameters in the MCMC/template
+  int ntemps;           // Number of chains in the temperature ladder
+  double *temps;        // Array of temperatures in the temperature ladder
+  double temp;          // The current temperature
+  int tempi;            // The current temperature index
+
+  double *logL;         // Current log(L)
+  double *nlogL;        // New log(L)
+  double logL0;         // log of the 'null-likelihood'
+
+  double *corrsig;      // Sigma for correlated update proposals
+  int *acceptprior;     // Check boundary conditions and choose to accept (1) or not(0)
+
+  int **accepted;       // Count accepted proposals
+  int **swapTss;        // Count swaps between chains
+  double **param;       // The current parameters for all chains
+  double **nparam;      // The new parameters for all chains
+  double **maxparam;    // The best parameters for all chains (max logL)
+  double **sig;         // The standard deviation of the gaussian to draw the jump size from
+  double **scale;       // The rate of adaptation
+  
+  double ***hist;       // Array to store a block of iterations, to calculate the covariance matrix
+  double ***covar;      // The Cholesky-decomposed covariance matrix
+  
+  gsl_rng *ran;         // GSL random-number seed
 };
 
 
@@ -142,7 +177,6 @@ struct parset{
   double *locazi;    // vector of local azimuths                                        
   double *locpolar;  // vector of local polarisations                                   
 };
-
 
 
 struct interferometer{
@@ -226,7 +260,6 @@ void chol(int n, double **A);
 void par2arr(struct parset *par, double **param);
 void arr2par(double **param, struct parset *par);
 int prior(double *par, int p);
-
 
 
 

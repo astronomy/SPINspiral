@@ -67,8 +67,8 @@ int main(int argc, char * argv[])
   nullpar.locazi   = (double*)calloc(networksize,sizeof(double));
   nullpar.locpolar = (double*)calloc(networksize,sizeof(double));
   localpar(&nullpar, network, networksize);
-  NullLikelihood = net_loglikelihood(&nullpar, networksize, network);
-  if(inject == 0) NullLikelihood *= 1.01;  //If no signal is injected, presumably there is one present in the data; enlarge the range that log(L) can take by owering Lo (since L>Lo is forced)
+  run.logL0 = net_loglikelihood(&nullpar, networksize, network);
+  if(inject == 0) run.logL0 *= 1.01;  //If no signal is injected, presumably there is one present in the data; enlarge the range that log(L) can take by owering Lo (since L>Lo is forced)
   
   //Get a parameter set to calculate SNR or write the wavefrom to disc
   struct parset dummypar;
@@ -111,7 +111,7 @@ int main(int argc, char * argv[])
     for(i=0;i<networksize;i++) {
       printf("%16s%4s  ",network[i]->name,"SNR");
     }
-    printf("\n%10d  %10d  %6d  %20.10lf  %6d  ",iter,nburn,run.mcmcseed,NullLikelihood,networksize);
+    printf("\n%10d  %10d  %6d  %20.10lf  %6d  ",iter,nburn,run.mcmcseed,run.logL0,networksize);
     for(i=0;i<networksize;i++) {
       printf("%20.10lf  ",network[i]->snr);
     }

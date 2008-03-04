@@ -2,6 +2,15 @@
   Revisions in the spinning_mcmc repository.  
   Please log changes here (and add a short comment using svn commit -m 'Comment').
     
+    
+    17: sluys
+     - many of the variables used in mcmc() are now in the struct mcmcvariables.
+       This should make it easier to restructure mcmc() and stick more of its code
+       into subroutines.
+    
+    16: sluys
+     - the mcmc.input was changed: a manual T ladder can now be given as input.
+    
     15: sluys
      - the mcmc.input was changed: parameter selectdata added, to allow selection 
        of a noise data set.  Selectdata=0 shows a list of data sets available.

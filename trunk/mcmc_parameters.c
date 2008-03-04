@@ -71,7 +71,7 @@ void readinputfile(struct runpar *run)
   //Parallel tempering:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin);  sscanf(bla,"%d",&partemp);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&ntemps);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->ntemps);
   fgets(bla,500,fin);  sscanf(bla,"%lf",&tempmax);
   fgets(bla,500,fin);  sscanf(bla,"%d",&saveallchains);
   fgets(bla,500,fin);  sscanf(bla,"%d",&prpartempinfo);
@@ -164,7 +164,7 @@ void writeinputfile(struct runpar *run)
   
   fprintf(fout, "\n  #Parallel tempering:\n");
   fprintf(fout, "  %-25d  %-18s  %-s\n",    partemp,"partemp","Use parallel tempering:  0-no,  1-auto, fixed T ladder,  2-auto, sinusoid T ladder,  3-manual, fixed T ladder,  4-manual, sinusoid T ladder.  For a manual ladder, see near the bottom of the file.");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    ntemps,"ntemps","Number of steps in the temperature ladder for parallel tempering, typically 5-10.");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",    run->ntemps,"ntemps","Number of steps in the temperature ladder for parallel tempering, typically 5-10.");
   fprintf(fout, "  %-25.1f  %-18s  %-s\n",   tempmax,"tempmax","Maximum temperature in automatic parallel-tempering ladder (equidistant in log(T)), typically 20-100, e.g. 50.");
   fprintf(fout, "  %-25d  %-18s  %-s\n",    saveallchains,"saveallchains","Save all parallel-tempering chains: 0-no (just the T=1 chain), 1-yes.");
   fprintf(fout, "  %-25d  %-18s  %-s\n",    prpartempinfo,"prpartempinfo","Print information to screen on the temperature chains: 0-none, 1-some ladder info (default), 2-add chain-swap matrix.");
@@ -202,7 +202,7 @@ void writeinputfile(struct runpar *run)
   
   fprintf(fout, "\n");
   fprintf(fout, "\n  #Manual temperature ladder for parallel tempering:\n");
-  for(i=0;i<ntemps;i++) fprintf(fout, "  %-7.2f",run->temps[i]);
+  for(i=0;i<run->ntemps;i++) fprintf(fout, "  %-7.2f",run->temps[i]);
   
   
   fprintf(fout, "\n");
