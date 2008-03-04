@@ -61,7 +61,6 @@ double truepar[12],pdfsigs[12];
 char datadir[99];
 
 int npar,iter,skip,screenoutput,adapt;//,mcmcseed;
-double blockfrac;
 
 int offsetmcmc;
 double offsetx;
@@ -73,7 +72,6 @@ int nburn;
 int nburn0;
   
 int partemp,saveallchains,prpartempinfo;
-//int ntemps;
 double tempmax;
   
 int dosnr,domcmc,domatch,intscrout,writesignal;
@@ -99,7 +97,6 @@ double StartPropCov[8][8];
 
 double *chaintemp;                  /* vector of temperatures for individual chains (initialised later) */
 
-//double SFTconst,tfactor;//,NullLikelihood;
 
 
 
@@ -114,6 +111,8 @@ struct runpar{
   //int adapt;           // Use adaptation or not
   //double *fitpar;
   
+  double blockfrac;      // Fraction of block-updates of non-correlated updates
+  
   double logL0;          // log of the 'null-likelihood'
   double temps[99];      // Temperature ladder for manual parallel tempering
   
@@ -124,6 +123,7 @@ struct runpar{
 
 //Structure for MCMC variables
 struct mcmcvariables{
+  int iteri;            // State/iteration number
   int npar;             // Number of parameters in the MCMC/template
   int ntemps;           // Number of chains in the temperature ladder
   double *temps;        // Array of temperatures in the temperature ladder
@@ -132,6 +132,7 @@ struct mcmcvariables{
 
   double *logL;         // Current log(L)
   double *nlogL;        // New log(L)
+  double *dlogL;        // log(L)-log(Lo)
   double logL0;         // log of the 'null-likelihood'
 
   double *corrsig;      // Sigma for correlated update proposals
@@ -148,7 +149,10 @@ struct mcmcvariables{
   double ***hist;       // Array to store a block of iterations, to calculate the covariance matrix
   double ***covar;      // The Cholesky-decomposed covariance matrix
   
+  int seed;             // MCMC seed
   gsl_rng *ran;         // GSL random-number seed
+  
+  FILE *fout;           // Output-file pointer
 };
 
 
@@ -261,6 +265,11 @@ void par2arr(struct parset *par, double **param);
 void arr2par(double **param, struct parset *par);
 int prior(double *par, int p);
 
+void correlated_mcmc_update(struct interferometer ifo[], int networksize, struct parset *state, struct mcmcvariables *mcmc);
+void uncorrelated_mcmc_single_update(struct interferometer ifo[], int networksize, struct parset *state, struct mcmcvariables *mcmc);
+void uncorrelated_mcmc_block_update(struct interferometer ifo[], int networksize, struct parset *state, struct mcmcvariables *mcmc);
+
+void write_mcmc_output(struct mcmcvariables mcmc);
 
 
         double massratio(double m1, double m2);

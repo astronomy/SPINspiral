@@ -39,7 +39,7 @@ void readinputfile(struct runpar *run)
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->mcmcseed);
   fgets(bla,500,fin);  sscanf(bla,"%d",&inject);
   fgets(bla,500,fin);  sscanf(bla,"%d",&adapt);
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&blockfrac);
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->blockfrac);
   for(i=0;i<npar;i++)  fscanf(fin,"%d",&fitpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
   fgets(bla,500,fin);  //Read the rest of this line
   
@@ -136,7 +136,7 @@ void writeinputfile(struct runpar *run)
   fprintf(fout, "  %-25d  %-18s  %-s\n",    run->mcmcseed, "mcmcseed",       "Random number seed to start the MCMC: 0-let system clock determine seed.");
   fprintf(fout, "  %-25d  %-18s  %-s\n",    inject,        "inject",         "Inject a signal (1) or not (0).");
   fprintf(fout, "  %-25d  %-18s  %-s\n",    adapt,         "adapt",          "Use adaptation: 0-no, 1-yes.");
-  fprintf(fout, "  %-25.2f  %-18s  %-s\n",  blockfrac,     "blockfrac",      "Fraction of uncorrelated updates that is updated as a block of all parameters (<=0.0: none, >=1.0: all).");
+  fprintf(fout, "  %-25.2f  %-18s  %-s\n",  run->blockfrac,     "blockfrac",      "Fraction of uncorrelated updates that is updated as a block of all parameters (<=0.0: none, >=1.0: all).");
   fprintf(fout, " ");
   for(i=0;i<npar;i++) fprintf(fout, "%2d",fitpar[i]);
   fprintf(fout, "    %-18s  %-s\n",                        "fitpar[12]",     "Parameters you want to fit for.");
@@ -275,7 +275,7 @@ void setconstants(struct runpar *run)
   screenoutput   =  10;            // Number of iterations between screen outputs im the MCMC (1000 for 1d)
   run->mcmcseed  =  0;             // Random number seed to start the MCMC 0-let system clock determine seed
   adapt          =  1;             // Use adaptation: 0-no, 1-yes
-  blockfrac   =  0.1;           // Fraction of uncorrelated updates that is updated as a block of all parameters (<=0.0: none, >=1.0: all)
+  run->blockfrac   =  0.1;           // Fraction of uncorrelated updates that is updated as a block of all parameters (<=0.0: none, >=1.0: all)
   
   
 

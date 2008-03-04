@@ -3,10 +3,17 @@
   Please log changes here (and add a short comment using svn commit -m 'Comment').
     
     
+    18: sluys
+     - parts of the mcmc routine were splitted off into different, new subroutines: 
+       correlated_mcmc_update(), uncorrelated_mcmc_single_update() and
+       uncorrelated_mcmc_block_update() now take care of MCMC updates.  The routine
+       write_mcmc_output() writes output to screen and file.  Mcmc() is now ~830 
+       lines.
+    
     17: sluys
      - many of the variables used in mcmc() are now in the struct mcmcvariables.
-       This should make it easier to restructure mcmc() and stick more of its code
-       into subroutines.
+       This should make it easier to restructure mcmc() (now ~1000 lines) and stick 
+       more of its code into subroutines.
     
     16: sluys
      - the mcmc.input was changed: a manual T ladder can now be given as input.
