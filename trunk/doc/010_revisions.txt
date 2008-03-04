@@ -3,10 +3,16 @@
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
     
+    21: sluys
+     - more of mcmc() splitted off: update_covariance_matrix() does what it says,
+       anneal_temperature() takes care of annealing, swap_chains() does so for the
+       parallel-tempering chains and write_chain_info() writes info on the chains and
+       parallel-tempering chains to screen.  mcmc() is now 415 lines.
+    
     19: sluys
      - more of mcmc() splitted off:  write_mcmc_header() writes the first bit of
        output to screen and file, allocate_mcmcvariables() and free_mcmcvariables()
-       (de)allocate memory for the mcmcvariables struct.
+       (de)allocate memory for the mcmcvariables struct. MCMC() is now ~690 lines.
     
     18: sluys
      - parts of the mcmc routine were splitted off into different, new subroutines: 

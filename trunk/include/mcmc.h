@@ -133,6 +133,8 @@ struct mcmcvariables{
   double temp;          // The current temperature
   double logL0;         // log of the 'null-likelihood'
   
+  double *histmean;     // Mean of hist block of iterations, used to get the covariance matrix
+  double *histdev;      // Standard deviation of hist block of iterations, used to get the covariance matrix
   
   int *corrupdate;      // Switch (per chain) to do correlated (1) or uncorrelated (0) updates
   int *acceptelems;     // Count 'improved' elements of diagonal of new corr matrix, to determine whether to accept it
@@ -290,6 +292,13 @@ void write_mcmc_header(struct interferometer ifo[], struct mcmcvariables mcmc, s
 void write_mcmc_output(struct mcmcvariables mcmc);
 void allocate_mcmcvariables(struct mcmcvariables *mcmc);
 void free_mcmcvariables(struct mcmcvariables *mcmc);
+
+void update_covariance_matrix(struct mcmcvariables *mcmc);
+double anneal_temperature(double temp0, int nburn, int nburn0, int iteri);
+void swap_chains(struct mcmcvariables *mcmc);
+void write_chain_info(struct mcmcvariables mcmc);
+
+
 
 
         double massratio(double m1, double m2);
