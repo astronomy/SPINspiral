@@ -1,7 +1,12 @@
 
   Revisions in the spinning_mcmc repository.  
-  Please log changes here (and add a short comment using svn commit -m 'Comment').
+  Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    
+    19: sluys
+     - more of mcmc() splitted off:  write_mcmc_header() writes the first bit of
+       output to screen and file, allocate_mcmcvariables() and free_mcmcvariables()
+       (de)allocate memory for the mcmcvariables struct.
     
     18: sluys
      - parts of the mcmc routine were splitted off into different, new subroutines: 

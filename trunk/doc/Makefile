@@ -32,11 +32,18 @@ mcmc: $(MCMCOBJ)
 waveform: $(WAVEOBJ) 
 	$(CC) -o waveform $(WAVEOBJ) $(WAVELFLAGS)
 
+all: mcmc waveform
+
+
+
 clean:
 	rm -f *.o 
+
+cleanbin:
+	rm -f mcmc waveform
 
 cleanoutput:
 	rm -f mcmc.input.* mcmc.output.* *-signal*.dat
 
-
+cleanall: clean cleanbin cleanoutput
 

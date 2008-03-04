@@ -44,6 +44,7 @@ int main(int argc, char * argv[])
   //const int networksize = 3;
   //struct interferometer *network[3] = {&database[0], &database[1], &database[2]};
   
+  run.networksize = networksize;
   
   //Initialise interferometers, read and prepare data, inject signal (takes some time)
   if(networksize == 1) {
@@ -104,7 +105,7 @@ int main(int argc, char * argv[])
   //Do MCMC
   if(domcmc==1) {
     //printmuch=1;
-    mcmc(&run, networksize, network);
+    mcmc(&run, network);
     //printmuch=0;
   } else {
     printf("%10s  %10s  %6s  %20s  %6s  ","niter","nburn","seed","null likelihood","ndet");

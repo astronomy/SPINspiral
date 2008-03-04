@@ -46,7 +46,7 @@
 
 
 
-//Global constants (which are of course variable in a multi-file C code) etc., assigned in setconstants()
+//Global constants (which must be variable in a multi-file C code) etc., assigned in setconstants()
 
 //The following global arrays have the size of the number of parameters, e.g. 12 or 15:
 
@@ -104,10 +104,11 @@ double *chaintemp;                  /* vector of temperatures for individual cha
 // This should eventually include all variables in the input file and replace many of the global variables.
 // That also means that this struct must be passed throughout much of the code.
 struct runpar{
-  //int npar;             // Number of parameters in the MCMC/template
+  //int npar;            // Number of parameters in the MCMC/template
   int ntemps;
   int mcmcseed;          // Seed for MCMC
   int selectdata;        // Select which data set to run on
+  int networksize;       // Number of IFOs in the detector network
   //int adapt;           // Use adaptation or not
   //double *fitpar;
   
@@ -126,17 +127,33 @@ struct mcmcvariables{
   int iteri;            // State/iteration number
   int npar;             // Number of parameters in the MCMC/template
   int ntemps;           // Number of chains in the temperature ladder
-  double *temps;        // Array of temperatures in the temperature ladder
-  double temp;          // The current temperature
   int tempi;            // The current temperature index
+  int networksize;      // Number of IFOs in the detector network
+  
+  double temp;          // The current temperature
+  double logL0;         // log of the 'null-likelihood'
+  
+  
+  int *corrupdate;      // Switch (per chain) to do correlated (1) or uncorrelated (0) updates
+  int *acceptelems;     // Count 'improved' elements of diagonal of new corr matrix, to determine whether to accept it
 
+  double *temps;        // Array of temperatures in the temperature ladder
+  double *newtemps;     // New temperature ladder, was used in adaptive parallel tempering
+  double *tempampl;     // Temperature amplitudes for sinusoid T in parallel tempering
   double *logL;         // Current log(L)
   double *nlogL;        // New log(L)
   double *dlogL;        // log(L)-log(Lo)
-  double logL0;         // log of the 'null-likelihood'
+  double *maxdlogL;     // Remember the maximum dlog(L)
+  double *sumdlogL;     // Sum of the dlogLs, summed over 1 block of ncorr (?), was used in adaptive parallel tempering, still printed?
+  double *avgdlogL;     // Average of the dlogLs, over 1 block of ncorr (?), was used in adaptive parallel tempering
+  double *expdlogL;     // Expected dlogL for a flat distribution of chains, was used in adaptive parallel tempering                    
+  
 
   double *corrsig;      // Sigma for correlated update proposals
+  int *swapTs1;         // Totals for the columns in the chain-swap matrix
+  int *swapTs2;         // Totals for the rows in the chain-swap matrix                                               
   int *acceptprior;     // Check boundary conditions and choose to accept (1) or not(0)
+  int *ihist;           // Count the iteration number in the current history block to calculate the covar matrix from
 
   int **accepted;       // Count accepted proposals
   int **swapTss;        // Count swaps between chains
@@ -146,7 +163,7 @@ struct mcmcvariables{
   double **sig;         // The standard deviation of the gaussian to draw the jump size from
   double **scale;       // The rate of adaptation
   
-  double ***hist;       // Array to store a block of iterations, to calculate the covariance matrix
+  double ***hist;       // Store a block of iterations, to calculate the covariance matrix
   double ***covar;      // The Cholesky-decomposed covariance matrix
   
   int seed;             // MCMC seed
@@ -259,7 +276,7 @@ void settrueparameters(struct parset *par);
 void setnullparameters(struct parset *par);
 void setmcmcseed(struct runpar *run);
 
-void mcmc(struct runpar *run, int networksize, struct interferometer *ifo[]);
+void mcmc(struct runpar *run, struct interferometer *ifo[]);
 void chol(int n, double **A);
 void par2arr(struct parset *par, double **param);
 void arr2par(double **param, struct parset *par);
@@ -269,7 +286,10 @@ void correlated_mcmc_update(struct interferometer ifo[], int networksize, struct
 void uncorrelated_mcmc_single_update(struct interferometer ifo[], int networksize, struct parset *state, struct mcmcvariables *mcmc);
 void uncorrelated_mcmc_block_update(struct interferometer ifo[], int networksize, struct parset *state, struct mcmcvariables *mcmc);
 
+void write_mcmc_header(struct interferometer ifo[], struct mcmcvariables mcmc, struct runpar run);
 void write_mcmc_output(struct mcmcvariables mcmc);
+void allocate_mcmcvariables(struct mcmcvariables *mcmc);
+void free_mcmcvariables(struct mcmcvariables *mcmc);
 
 
         double massratio(double m1, double m2);

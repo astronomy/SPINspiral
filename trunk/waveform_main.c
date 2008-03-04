@@ -34,7 +34,7 @@ int main(int argc, char * argv[])
   
   //Set up the data of the IFOs you may want to use (H1,L1 + VIRGO by default)
   struct interferometer database[3];
-  set_ifo_data(database);
+  set_ifo_data(run, database);
   
   
   //Define interferometer network; how many and which IFOs
