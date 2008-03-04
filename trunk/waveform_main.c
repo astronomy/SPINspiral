@@ -108,7 +108,7 @@ int main(int argc, char * argv[])
   //Do MCMC
   if(domcmc==1) {
     //printmuch=1;
-    mcmc(&run, networksize, network);
+    mcmc(&run, network);
     //printmuch=0;
   } else {
   */

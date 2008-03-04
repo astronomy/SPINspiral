@@ -52,7 +52,8 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   ifo[0].before_tc = 6.0;   //The other two detectors have the same before,after_tc
   ifo[0].after_tc = 1.0;
   
-  
+  ifo[0].samplerate      = 16384;  //MvdS: Needed when not reading frame file. Should be overwritten when reading Frame file (?)
+ 
   if(run.selectdata == 1) {
     // Gaussian, stationary noise
     sprintf(ifo[0].ch1name,       "H1:STRAIN"); 
@@ -163,6 +164,8 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   ifo[1].before_tc = ifo[0].before_tc;
   ifo[1].after_tc = ifo[0].after_tc;
   
+  ifo[1].samplerate      = 16384;  //MvdS: Needed when not reading frame file. Should be overwritten when reading Frame file (?)
+  
   if(run.selectdata == 1) {
     // Gaussian, stationary noise
     sprintf(ifo[1].ch1name,       "L1:STRAIN");
@@ -271,6 +274,8 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   //ifo[2].before_tc = 20.0;
   ifo[2].before_tc = ifo[0].before_tc;
   ifo[2].after_tc = ifo[0].after_tc;
+  
+  ifo[1].samplerate      = 20000;  //MvdS: Needed when not reading frame file. Should be overwritten when reading Frame file (?)
   
   if(run.selectdata == 1) {
     // Gaussian, stationary noise
@@ -569,7 +574,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   //ifo[i]->samplerate = (int)(1.0 / (nvect->dx[0]) +0.5);  // Add 0.5 for correct truncation/rounding, this overwrites setting in set_ifo_data()
   
   //Use data w.o. Frame file (ifo[i]->samplerate is set in set_ifo_data())
-  N = (int)(delta * ifo[i]->samplerate);  //MvdS: calculate N here, since we don;t want to read the Frame file
+  N = (int)(delta * ifo[i]->samplerate);  //MvdS: calculate N here, since we don't want to read the Frame file
   
   if(intscrout==1) printf(" | original sampling rate: %d Hz\n", ifo[i]->samplerate);
   if (inject) {
@@ -781,7 +786,7 @@ void noisePSDestimate(struct interferometer *ifo)
   //samplerate = (int)(1.0 / (vect->dx[0]) +0.5); //Add 0.5 for correct truncation/rounding */ 
   
   samplerate = ifo->samplerate;
-  N = samplerate*16; //How long is this data???
+  N = samplerate*16; //How long is this data, 16s???
   
   printf("  N: %d   rate: %d\n",N,samplerate);
   
