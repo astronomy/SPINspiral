@@ -821,7 +821,7 @@ void write_mcmc_output(struct mcmcvariables mcmc)
   int j1=0, tempi=mcmc.tempi, iteri=mcmc.iteri;
   char outfilename[99];
   
-  //printf("%d  %d",tempi,iteri);
+  printf("%d  %d",tempi,iteri);
   
   // *** Write output to screen ***
   if(tempi==0) { //Only for the T=1 chain
@@ -845,7 +845,7 @@ void write_mcmc_output(struct mcmcvariables mcmc)
   
   // *** Write output to file ***
   if(tempi==0 || saveallchains==1) { //For all T-chains if desired, otherwise the T=1 chain only
-    if((iteri % skip)==0){
+    if((iteri % skip)==0 || iteri<0){
       sprintf(outfilename,"mcmc.output.%6.6d.%2.2d",mcmc.seed,tempi);
       mcmc.fout = fopen(outfilename,"a");
       fprintf(mcmc.fout, "%12d %20.10lf  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %20.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f\n",
