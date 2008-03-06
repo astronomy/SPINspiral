@@ -9,6 +9,7 @@
 
 // Read the input file.
 // Please keep this routine in sync with writeinputfile() below.
+// All parameters that are read in here should become members of the runvar struct and lose their global status
 void readinputfile(struct runpar *run)
 {
   int i;
@@ -55,8 +56,10 @@ void readinputfile(struct runpar *run)
   //Correlated update proposals:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin);  sscanf(bla,"%d",&corrupd);
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->corrfrac);
   fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);
   ncorr = (int)tmpdbl;
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->mataccfr);
   fgets(bla,500,fin);  sscanf(bla,"%d",&prmatrixinfo);
   
   
@@ -130,64 +133,66 @@ void writeinputfile(struct runpar *run)
   
   
   fprintf(fout, "\n  #Basic settings:\n");
-  fprintf(fout, "  %-25.3g  %-18s  %-s\n",  (double)iter,  "iter",           "Total number of iterations to be computed (e.g. 1e7).");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    skip,          "skip",           "Number of iterations to be skipped between stored steps (100 for 1d).");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    screenoutput,  "screenoutput",   "Number of iterations between screen outputs im the MCMC (1000 for 1d).");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    run->mcmcseed, "mcmcseed",       "Random number seed to start the MCMC: 0-let system clock determine seed.");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    inject,        "inject",         "Inject a signal (1) or not (0).");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    adapt,         "adapt",          "Use adaptation: 0-no, 1-yes.");
-  fprintf(fout, "  %-25.2f  %-18s  %-s\n",  run->blockfrac,     "blockfrac",      "Fraction of uncorrelated updates that is updated as a block of all parameters (<=0.0: none, >=1.0: all).");
+  fprintf(fout, "  %-25.3g  %-18s  %-s\n",    (double)iter,  "iter",           "Total number of iterations to be computed (e.g. 1e7).");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      skip,          "skip",           "Number of iterations to be skipped between stored steps (100 for 1d).");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      screenoutput,  "screenoutput",   "Number of iterations between screen outputs im the MCMC (1000 for 1d).");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      run->mcmcseed, "mcmcseed",       "Random number seed to start the MCMC: 0-let system clock determine seed.");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      inject,        "inject",         "Inject a signal (1) or not (0).");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      adapt,         "adapt",          "Use adaptation: 0-no, 1-yes.");
+  fprintf(fout, "  %-25.2f  %-18s  %-s\n",    run->blockfrac,"blockfrac",      "Fraction of uncorrelated updates that is updated as a block of all parameters (<=0.0: none, >=1.0: all).");
   fprintf(fout, " ");
-  for(i=0;i<npar;i++) fprintf(fout, "%2d",fitpar[i]);
-  fprintf(fout, "    %-18s  %-s\n",                        "fitpar[12]",     "Parameters you want to fit for.");
+  for(i=0;i<npar;i++) fprintf(fout, "%2d",    fitpar[i]);
+  fprintf(fout, "    %-18s  %-s\n",                          "fitpar[12]",     "Parameters you want to fit for.");
   
   
   fprintf(fout, "\n  #Start from offset values:\n");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    offsetmcmc,    "offsetmcmc",     "Start the MCMC with offset initial parameters: 0-no, 1-yes.  The exact parameters to be offset are determined in offsetpar below.");
-  fprintf(fout, "  %-25.1f  %-18s  %-s\n",  offsetx,       "offsetx",        "Start the MCMC with an offset of x times the typical pdf sigma.");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      offsetmcmc,    "offsetmcmc",     "Start the MCMC with offset initial parameters: 0-no, 1-yes.  The exact parameters to be offset are determined in offsetpar below.");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n",    offsetx,       "offsetx",        "Start the MCMC with an offset of x times the typical pdf sigma.");
   fprintf(fout, " ");
-  for(i=0;i<npar;i++) fprintf(fout, "%2d",offsetpar[i]);
-  fprintf(fout, "    %-18s  %-s\n",                        "offsetpar[12]",  "Parameters you want to start from offset values. At the moment only works if parameter is also 'fit' (i.e. value is 1 in fitpar).");
+  for(i=0;i<npar;i++) fprintf(fout, "%2d",    offsetpar[i]);
+  fprintf(fout, "    %-18s  %-s\n",                          "offsetpar[12]",  "Parameters you want to start from offset values. At the moment only works if parameter is also 'fit' (i.e. value is 1 in fitpar).");
   
   
   fprintf(fout, "\n  #Correlated update proposals:\n");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    corrupd,"corrupd","Do correlated update proposals: 0-no, 1-yes but update the matrix only once, 2-yes and update the matrix every ncorr iterations.");
-  fprintf(fout, "  %-25.3g  %-18s  %-s\n",    (double)ncorr,"ncorr","Number of iterations for which the covariance matrix is calculated.");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    prmatrixinfo,"prmatrixinfo","Print information to screen on proposed matrix updates: 0-none, 1-some (default), 2-add the old and new matrices.");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      corrupd,       "corrupd",        "Do correlated update proposals: 0-no, 1-yes but update the matrix only once, 2-yes and update the matrix every ncorr iterations.");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n",    run->corrfrac, "corrfrac",       "Fraction of update proposals that is correlated (0.0-1.0, ~0.7 seems ok). corrupd must be 2. Should this replace corrupd?");
+  fprintf(fout, "  %-25.3g  %-18s  %-s\n",    (double)ncorr, "ncorr",          "Number of iterations for which the covariance matrix is calculated.");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n",    run->mataccfr, "mataccfr",       "Fraction of elements on the diagonal that must 'improve' in order to accept a new covariance matrix. ???~0.6-0.8 for unimodal, 0.0-0.2 for multimodal???");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      prmatrixinfo,  "prmatrixinfo",   "Print information to screen on proposed matrix updates: 0-none, 1-some (default), 2-add the old and new matrices.");
   
   
   fprintf(fout, "\n  #Annealing:\n");
-  fprintf(fout, "  %-25.2f  %-18s  %-s\n",  temp0,"temp0","Starting temperature of the chain, e.g. 100.0. Set 1.0 for no temperature effect.");
-  fprintf(fout, "  %-25.3g  %-18s  %-s\n",    (double)nburn,"nburn","Number of iterations for the burn-in phase (1e4) at this number, the temperature drops to 1.0.");
-  fprintf(fout, "  %-25.3g  %-18s  %-s\n",    (double)nburn0,"nburn0","Number of iterations during which temp=temp0 (e.g. 0.1*nburn, should be lower than ~0.9*nburn).");
+  fprintf(fout, "  %-25.2f  %-18s  %-s\n",    temp0,         "temp0",          "Starting temperature of the chain, e.g. 100.0. Set 1.0 for no temperature effect.");
+  fprintf(fout, "  %-25.3g  %-18s  %-s\n",    (double)nburn, "nburn",          "Number of iterations for the burn-in phase (1e4) at this number, the temperature drops to 1.0.");
+  fprintf(fout, "  %-25.3g  %-18s  %-s\n",    (double)nburn0,"nburn0",         "Number of iterations during which temp=temp0 (e.g. 0.1*nburn, should be lower than ~0.9*nburn).");
   
   
   fprintf(fout, "\n  #Parallel tempering:\n");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    partemp,"partemp","Use parallel tempering:  0-no,  1-auto, fixed T ladder,  2-auto, sinusoid T ladder,  3-manual, fixed T ladder,  4-manual, sinusoid T ladder.  For a manual ladder, see near the bottom of the file.");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    run->ntemps,"ntemps","Number of steps in the temperature ladder for parallel tempering, typically 5-10.");
-  fprintf(fout, "  %-25.1f  %-18s  %-s\n",   tempmax,"tempmax","Maximum temperature in automatic parallel-tempering ladder (equidistant in log(T)), typically 20-100, e.g. 50.");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    saveallchains,"saveallchains","Save all parallel-tempering chains: 0-no (just the T=1 chain), 1-yes.");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    prpartempinfo,"prpartempinfo","Print information to screen on the temperature chains: 0-none, 1-some ladder info (default), 2-add chain-swap matrix.");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      partemp,       "partemp",        "Use parallel tempering:  0-no,  1-auto, fixed T ladder,  2-auto, sinusoid T ladder,  3-manual, fixed T ladder,  4-manual, sinusoid T ladder.  For a manual ladder, see near the bottom of the file.");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      run->ntemps,   "ntemps",         "Number of steps in the temperature ladder for parallel tempering, typically 5-10.");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n",    tempmax,       "tempmax",        "Maximum temperature in automatic parallel-tempering ladder (equidistant in log(T)), typically 20-100, e.g. 50.");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      saveallchains, "saveallchains",  "Save all parallel-tempering chains: 0-no (just the T=1 chain), 1-yes.");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      prpartempinfo, "prpartempinfo",  "Print information to screen on the temperature chains: 0-none, 1-some ladder info (default), 2-add chain-swap matrix.");
   
   
   fprintf(fout, "\n  #Output:\n");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    dosnr,"dosnr","Calculate the SNR: 0-no, 1-yes.");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    domcmc,"domcmc","Do MCMC: 0-no, 1-yes.");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    domatch,"domatch","Calculate matches: 0-no, 1-yes.");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    intscrout,"intscrout","Print initialisation output to screen: 0-no, 1-yes.");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    writesignal,"writesignal","Write signal, noise, PSDs to file: 0-no, 1-yes.");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    printmuch,"printmuch","Print long stretches of output (1) or not (0).");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      dosnr,         "dosnr",          "Calculate the SNR: 0-no, 1-yes.");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      domcmc,        "domcmc",         "Do MCMC: 0-no, 1-yes.");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      domatch,       "domatch",        "Calculate matches: 0-no, 1-yes.");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      intscrout,     "intscrout",      "Print initialisation output to screen: 0-no, 1-yes.");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      writesignal,   "writesignal",    "Write signal, noise, PSDs to file: 0-no, 1-yes.");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      printmuch,     "printmuch",      "Print long stretches of output (1) or not (0).");
   
   
   fprintf(fout, "\n  #Diverse:\n");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    run->selectdata,"selectdata","Select the data set to run on  (set to 0 to print a list of data sets). Make sure you set the true tc and datadir accordingly.");
-  fprintf(fout, "  %-25.1f  %-18s  %-s\n",   downsamplefactor,"downsamplefactor","Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0, shouldn't be higher than 8 for BH-NS...");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",     run->selectdata,"selectdata",     "Select the data set to run on  (set to 0 to print a list of data sets). Make sure you set the true tc and datadir accordingly.");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n", downsamplefactor,"downsamplefactor","Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0, shouldn't be higher than 8 for BH-NS...");
   //fprintf(fout, "  %-25.1f  %-18s  %-s\n",   cutoff_a,"cutoff_a","Low value of a/M where signal should be cut off, e.g. 7.5.");
   
   
   fprintf(fout, "\n");
   fprintf(fout, "\n  #True parameter values, *not* the exact MCMC parameters and units!  These are used to inject a signal and/or start the MCMC from.\n");
-  fprintf(fout, "   M1(Mo)    M2(Mo)            t_c (GPS)   d_L(Mpc)    a_spin    th_SL(°)    H.A.(°)     dec(°)    phic(°)   th_Jo(°)   phi_Jo(°)  alpha(°)  \n");
+  fprintf(fout, "   M1(Mo)    M2(Mo)            t_c (GPS)   d_L(Mpc)    a_spin    th_SL(d)    H.A.(d)     dec(d)    phic(d)   th_Jo(d)   phi_Jo(d)  alpha(d)  \n");
   for(i=0;i<npar;i++) {
     if(i==2) {
       fprintf(fout, "  %-18.6lf",truepar[i]);

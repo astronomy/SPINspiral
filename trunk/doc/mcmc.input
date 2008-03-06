@@ -19,7 +19,9 @@
 
   #Correlated update proposals:
   2                          corrupd             Do correlated update proposals: 0-no, 1-yes but update the matrix only once, 2-yes and update the matrix every ncorr iterations.
+  0.7                        corrfrac            Fraction of update proposals that is correlated (0.0-1.0, ~0.7 seems ok). corrupd must be 2. Should this replace corrupd?
   1e+04                      ncorr               Number of iterations for which the covariance matrix is calculated.
+  0.7                        mataccfr            Fraction of elements on the diagonal that must 'improve' in order to accept a new covariance matrix. ???~0.6-0.8 for unimodal, 0.0-0.2 for multimodal???
   1                          prmatrixinfo        Print information to screen on proposed matrix updates: 0-none, 1-some (default), 2-add the old and new matrices.
 
   #Annealing:

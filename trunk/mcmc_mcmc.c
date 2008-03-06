@@ -22,6 +22,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
   mcmc.seed = run->mcmcseed;                  // MCMC seed
   mcmc.logL0 = run->logL0;                    // Log 'null-likelihood'
   mcmc.ntemps = run->ntemps;                  // Size of temperature ladder
+  mcmc.mataccfr = run->mataccfr;              // Fraction of elements on the diagonal that must 'improve' in order to accept a new covariance matrix.
   
   if(partemp==0) mcmc.ntemps=1;
   mcmc.ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
@@ -39,7 +40,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
   // *** MEMORY ALLOCATION ********************************************************************************************************************************************************
   
   int i=0,j=0,j1=0,j2=0,iteri=0;
-  int nstart=0, nparfit=0; 
+  int nstart=0;
   double tempratio=1.0;
   
   
@@ -133,7 +134,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
   
   //Determine the number of parameters that is actually fitted/varied (i.e. not kept fixed at the true values)
   for(i=0;i<npar;i++) {
-    if(fitpar[i]==1) nparfit += 1;
+    if(fitpar[i]==1) mcmc.nparfit += 1;
   }
   
   
@@ -280,19 +281,23 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
       // *** UPDATE MARKOV CHAIN STATE **************************************************************************************************************************************************
       
       // *** Uncorrelated update *************************************************************************************************
-      if(mcmc.corrupdate[tempi]<=0) {
+      //if(mcmc.corrupdate[tempi]<=0) {
+      if(gsl_rng_uniform(mcmc.ran) > run->corrfrac || iteri < ncorr) {
 	//if(iteri>nburn && gsl_rng_uniform(mcmc.ran) < run->blockfrac){                            //Block update; only after burnin
 	if(gsl_rng_uniform(mcmc.ran) < run->blockfrac){                                             //Block update; always
-	  uncorrelated_mcmc_block_update(*ifo, networksize, &state, &mcmc);
+	  uncorrelated_mcmc_block_update(*ifo, &state, &mcmc);
 	}
 	else{                                                                                       //Componentwise update (90%)
-	  uncorrelated_mcmc_single_update(*ifo, networksize, &state, &mcmc);
+	  uncorrelated_mcmc_single_update(*ifo, &state, &mcmc);
 	}
       } //End uncorrelated update
       
       
       // *** Correlated update ****************************************************************************************************
-      if(mcmc.corrupdate[tempi]>=1) correlated_mcmc_update(*ifo, networksize, &state, &mcmc);
+      //if(mcmc.corrupdate[tempi]>=1) {
+      else {
+	correlated_mcmc_update(*ifo, &state, &mcmc);
+      }
       
       
       
@@ -510,7 +515,7 @@ int prior(double *par, int p)
   lb[9] = -0.999999; //sin(theta_J0)
   ub[9] = 0.999999;
   
-  //Set prior to 0 if outside range
+  //Set prior to 0 if outside range: Very inefficient for correlated update proposals
   /*
     if(p==0) if(*par < 1.0 || *par > 5.0) prior = 0;                // Chirp mass <1 or >5
     if(p==1) if(*par < 0.03 || *par > 0.245) prior = 0;                // Mass ratio, refect if <0.03 or >0.245
@@ -551,33 +556,44 @@ int prior(double *par, int p)
 
 //Do a correlated block update
 //****************************************************************************************************************************************************  
-void correlated_mcmc_update(struct interferometer ifo[], int networksize, struct parset *state, struct mcmcvariables *mcmc)
+void correlated_mcmc_update(struct interferometer ifo[], struct parset *state, struct mcmcvariables *mcmc)
 //****************************************************************************************************************************************************  
 {
   int j1=0, j2=0, tempi=mcmc->tempi;
-  double work[mcmc->npar], dparam=0.0;
+  double temparr[mcmc->npar], dparam=0.0;
+  double ran=0.0, largejump1=0.0, largejumpall=0.0;
   
+  largejumpall = 1.0;
+  ran = gsl_rng_uniform(mcmc->ran);
+  if(ran < 1.0e-3) largejumpall = 1.0e1;    //Every 1e3 iterations, take a 10x larger jump in all parameters
+  if(ran < 1.0e-4) largejumpall = 1.0e2;    //Every 1e4 iterations, take a 100x larger jump in all parameters
+    
   for(j1=0;j1<mcmc->npar;j1++) {
-    work[j1] = gsl_ran_gaussian(mcmc->ran,1.0) * mcmc->corrsig[tempi];   //Univariate gaussian random number, with sigma=1, times the adaptable sigma_correlation
+    largejump1 = 1.0;
+    ran = gsl_rng_uniform(mcmc->ran);
+    if(ran < 1.0e-2) largejump1 = 1.0e1;    //Every 1e2 iterations, take a 10x larger jump in this parameter
+    if(ran < 1.0e-3) largejump1 = 1.0e2;    //Every 1e3 iterations, take a 100x larger jump in this parameter
+    temparr[j1] = gsl_ran_gaussian(mcmc->ran,1.0) * mcmc->corrsig[tempi] * largejump1 * largejumpall;   //Univariate gaussian random number, with sigma=1, times the adaptable sigma_correlation times the large-jump factor
   }
+  
   mcmc->acceptprior[tempi] = 1;
   for(j1=0;j1<mcmc->npar;j1++){
     if(fitpar[j1]==1) {
       dparam = 0.0;
       for(j2=0;j2<=j1;j2++){
-	dparam += mcmc->covar[tempi][j1][j2]*work[j2];   //Work is now a univariate gaussian random number
+	dparam += mcmc->covar[tempi][j1][j2]*temparr[j2];   //Temparr is now a univariate gaussian random number
       }
       mcmc->nparam[tempi][j1] = mcmc->param[tempi][j1] + dparam;       //Jump from the previous parameter value
-      mcmc->sig[tempi][j1] = fabs(dparam);                       //This isn't really sigma, but the proposed jump size
+      mcmc->sigout[tempi][j1] = fabs(dparam);                          //This isn't really sigma, but the proposed jump size
       mcmc->acceptprior[tempi] *= prior(&mcmc->nparam[tempi][j1],j1);
     }
   }
   
   if(mcmc->acceptprior[tempi]==1) {                                    //Then calculate the likelihood
-    arr2par(mcmc->nparam, state);	                      //Get the parameters from their array
-    localpar(state, &ifo, networksize);
-    mcmc->nlogL[tempi] = net_loglikelihood(state, networksize, &ifo); //Calculate the likelihood
-    par2arr(state, mcmc->nparam);	                      //Put the variables back in their array
+    arr2par(mcmc->nparam, state);	                               //Get the parameters from their array
+    localpar(state, &ifo, mcmc->networksize);
+    mcmc->nlogL[tempi] = net_loglikelihood(state, mcmc->networksize, &ifo); //Calculate the likelihood
+    par2arr(state, mcmc->nparam);	                               //Put the variables back in their array
     
     if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->temp) && mcmc->nlogL[tempi] > mcmc->logL0) {  //Accept proposal
       for(j1=0;j1<mcmc->npar;j1++){
@@ -621,24 +637,35 @@ void correlated_mcmc_update(struct interferometer ifo[], int networksize, struct
 
 //Do an uncorrelated single-parameter update
 //****************************************************************************************************************************************************  
-void uncorrelated_mcmc_single_update(struct interferometer ifo[], int networksize, struct parset *state, struct mcmcvariables *mcmc)
+void uncorrelated_mcmc_single_update(struct interferometer ifo[], struct parset *state, struct mcmcvariables *mcmc)
 //****************************************************************************************************************************************************  
 {
-  int j1=0;
+  int j1=0, tempi=mcmc->tempi;
   double gamma=0.0,alphastar=0.25;
+  double ran=0.0, largejump1=0.0, largejumpall=0.0;
   
+  largejumpall = 1.0;
+  ran = gsl_rng_uniform(mcmc->ran);
+  if(ran < 1.0e-3) largejumpall = 1.0e1;    //Every 1e3 iterations, take a 10x larger jump in all parameters
+  if(ran < 1.0e-4) largejumpall = 1.0e2;    //Every 1e4 iterations, take a 100x larger jump in all parameters
+    
   for(j1=0;j1<npar;j1++){
     if(fitpar[j1]==1) mcmc->nparam[tempi][j1] = mcmc->param[tempi][j1];
   }
   for(j1=0;j1<npar;j1++){
     if(fitpar[j1]==1) {
-      mcmc->nparam[tempi][j1] = mcmc->param[tempi][j1] + gsl_ran_gaussian(mcmc->ran,mcmc->sig[tempi][j1]);
+      largejump1 = 1.0;
+      ran = gsl_rng_uniform(mcmc->ran);
+      if(ran < 1.0e-2) largejump1 = 1.0e1;    //Every 1e2 iterations, take a 10x larger jump in this parameter
+      if(ran < 1.0e-3) largejump1 = 1.0e2;    //Every 1e3 iterations, take a 100x larger jump in this parameter
+      
+      mcmc->nparam[tempi][j1] = mcmc->param[tempi][j1] + gsl_ran_gaussian(mcmc->ran,mcmc->sig[tempi][j1]) * largejump1 * largejumpall;
       
       mcmc->acceptprior[tempi] = prior(&mcmc->nparam[tempi][j1],j1);
       if(mcmc->acceptprior[tempi]==1) {
 	arr2par(mcmc->nparam, state);                          //Get the parameters from their array
-	localpar(state, &ifo, networksize);
-	mcmc->nlogL[tempi] = net_loglikelihood(state, networksize, &ifo);   //Calculate the likelihood
+	localpar(state, &ifo, mcmc->networksize);
+	mcmc->nlogL[tempi] = net_loglikelihood(state, mcmc->networksize, &ifo);   //Calculate the likelihood
 	par2arr(state, mcmc->nparam);                          //Put the variables back in their array
 	
 	if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->temp) && mcmc->nlogL[tempi] > mcmc->logL0) {  //Accept proposal
@@ -670,6 +697,7 @@ void uncorrelated_mcmc_single_update(struct interferometer ifo[], int networksiz
 	}
       } //if(mcmc->acceptprior[tempi]==1)
     } //if(fitpar[j1]==1)
+    mcmc->sigout[tempi][j1] = mcmc->sig[tempi][j1]; //Save sigma for output
   } //j1
 }
 //End uncorrelated_mcmc_single_update
@@ -682,23 +710,34 @@ void uncorrelated_mcmc_single_update(struct interferometer ifo[], int networksiz
 
 //Do an uncorrelated block update
 //****************************************************************************************************************************************************  
-void uncorrelated_mcmc_block_update(struct interferometer ifo[], int networksize, struct parset *state, struct mcmcvariables *mcmc)
+void uncorrelated_mcmc_block_update(struct interferometer ifo[], struct parset *state, struct mcmcvariables *mcmc)
 //****************************************************************************************************************************************************  
 {
   int j1=0;
+  double ran=0.0, largejump1=0.0, largejumpall=0.0;
+  
+  largejumpall = 1.0;
+  ran = gsl_rng_uniform(mcmc->ran);
+  if(ran < 1.0e-3) largejumpall = 1.0e1;    //Every 1e3 iterations, take a 10x larger jump in all parameters
+  if(ran < 1.0e-4) largejumpall = 1.0e2;    //Every 1e4 iterations, take a 100x larger jump in all parameters
   
   mcmc->acceptprior[tempi] = 1;
   for(j1=0;j1<mcmc->npar;j1++){
     if(fitpar[j1]==1) {
-      mcmc->nparam[tempi][j1] = mcmc->param[tempi][j1] + gsl_ran_gaussian(mcmc->ran,mcmc->sig[tempi][j1]);
+      largejump1 = 1.0;
+      ran = gsl_rng_uniform(mcmc->ran);
+      if(ran < 1.0e-2) largejump1 = 1.0e1;    //Every 1e2 iterations, take a 10x larger jump in this parameter
+      if(ran < 1.0e-3) largejump1 = 1.0e2;    //Every 1e3 iterations, take a 100x larger jump in this parameter
+  
+      mcmc->nparam[tempi][j1] = mcmc->param[tempi][j1] + gsl_ran_gaussian(mcmc->ran,mcmc->sig[tempi][j1]) * largejump1 * largejumpall;
       mcmc->acceptprior[tempi] *= prior(&mcmc->nparam[tempi][j1],j1);
     }
   }
   
   if(mcmc->acceptprior[tempi]==1) {
     arr2par(mcmc->nparam, state);	                              //Get the parameters from their array
-    localpar(state, &ifo, networksize);                               //Calculate local variables
-    mcmc->nlogL[tempi] = net_loglikelihood(state, networksize, &ifo);  //Calculate the likelihood
+    localpar(state, &ifo, mcmc->networksize);                               //Calculate local variables
+    mcmc->nlogL[tempi] = net_loglikelihood(state, mcmc->networksize, &ifo);  //Calculate the likelihood
     par2arr(state, mcmc->nparam);	                              //Put the variables back in their array
     
     if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->temp) && mcmc->nlogL[tempi] > mcmc->logL0){  //Accept proposal if L>Lo
@@ -810,13 +849,13 @@ void write_mcmc_output(struct mcmcvariables mcmc)
       mcmc.fout = fopen(outfilename,"a");
       fprintf(mcmc.fout, "%12d %20.10lf  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %20.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f\n",
 	      iteri,mcmc.logL[tempi]-mcmc.logL0,
-	      mcmc.param[tempi][0],mcmc.sig[tempi][0],accrat[0],  mcmc.param[tempi][1],mcmc.sig[tempi][1],accrat[1],  
-	      mcmc.param[tempi][2],mcmc.sig[tempi][2],accrat[2],  mcmc.param[tempi][3],mcmc.sig[tempi][3],accrat[3], 
-	      mcmc.param[tempi][4],mcmc.sig[tempi][4],accrat[4],  mcmc.param[tempi][5],mcmc.sig[tempi][5],accrat[5],
-	      rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.sig[tempi][6],accrat[6],
-	      mcmc.param[tempi][7],mcmc.sig[tempi][7],accrat[7],  mcmc.param[tempi][8],mcmc.sig[tempi][8],accrat[8],
-	      mcmc.param[tempi][9],mcmc.sig[tempi][9],accrat[9],  
-	      mcmc.param[tempi][10],mcmc.sig[tempi][10],accrat[10],  mcmc.param[tempi][11],mcmc.sig[tempi][11],accrat[11]);
+	      mcmc.param[tempi][0],mcmc.sigout[tempi][0],accrat[0],  mcmc.param[tempi][1],mcmc.sigout[tempi][1],accrat[1],  
+	      mcmc.param[tempi][2],mcmc.sigout[tempi][2],accrat[2],  mcmc.param[tempi][3],mcmc.sigout[tempi][3],accrat[3], 
+	      mcmc.param[tempi][4],mcmc.sigout[tempi][4],accrat[4],  mcmc.param[tempi][5],mcmc.sigout[tempi][5],accrat[5],
+	      rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.sigout[tempi][6],accrat[6],
+	      mcmc.param[tempi][7],mcmc.sigout[tempi][7],accrat[7],  mcmc.param[tempi][8],mcmc.sigout[tempi][8],accrat[8],
+	      mcmc.param[tempi][9],mcmc.sigout[tempi][9],accrat[9],  
+	      mcmc.param[tempi][10],mcmc.sigout[tempi][10],accrat[10],  mcmc.param[tempi][11],mcmc.sigout[tempi][11],accrat[11]);
       
       //fflush(mcmc.fout); //Make sure any 'snapshot' you take halfway is complete
       fclose(mcmc.fout);
@@ -842,6 +881,8 @@ void allocate_mcmcvariables(struct mcmcvariables *mcmc)
 //****************************************************************************************************************************************************  
 {
   int i=0, j=0;
+  
+  mcmc->nparfit=0;
   
   mcmc->histmean  = (double*)calloc(mcmc->npar,sizeof(double));     // Mean of hist block of iterations, used to get the covariance matrix
   mcmc->histdev = (double*)calloc(mcmc->npar,sizeof(double));       // Standard deviation of hist block of iterations, used to get the covariance matrix
@@ -899,6 +940,7 @@ void allocate_mcmcvariables(struct mcmcvariables *mcmc)
   mcmc->nparam = (double**)calloc(mcmc->ntemps,sizeof(double*));     // The new parameters for all chains
   mcmc->maxparam = (double**)calloc(mcmc->ntemps,sizeof(double*));   // The best parameters for all chains (max logL)
   mcmc->sig = (double**)calloc(mcmc->ntemps,sizeof(double*));        // The standard deviation of the gaussian to draw the jump size from
+  mcmc->sigout = (double**)calloc(mcmc->ntemps,sizeof(double*));     // The sigma that gets written to output
   mcmc->scale = (double**)calloc(mcmc->ntemps,sizeof(double*));      // The rate of adaptation
   for(i=0;i<mcmc->ntemps;i++) {
     mcmc->accepted[i] = (int*)calloc(npar,sizeof(int));
@@ -907,6 +949,7 @@ void allocate_mcmcvariables(struct mcmcvariables *mcmc)
     mcmc->nparam[i] = (double*)calloc(npar,sizeof(double));
     mcmc->maxparam[i] = (double*)calloc(npar,sizeof(double));
     mcmc->sig[i] = (double*)calloc(npar,sizeof(double));
+    mcmc->sigout[i] = (double*)calloc(npar,sizeof(double));
     mcmc->scale[i] = (double*)calloc(npar,sizeof(double));
   }
   
@@ -968,6 +1011,7 @@ void free_mcmcvariables(struct mcmcvariables *mcmc)
     free(mcmc->nparam[i]);
     free(mcmc->maxparam[i]);
     free(mcmc->sig[i]);
+    free(mcmc->sigout[i]);
     free(mcmc->scale[i]);
   }
   free(mcmc->accepted);
@@ -976,6 +1020,7 @@ void free_mcmcvariables(struct mcmcvariables *mcmc)
   free(mcmc->nparam);
   free(mcmc->maxparam);
   free(mcmc->sig);
+  free(mcmc->sigout);
   free(mcmc->scale);
   
   for(i=0;i<mcmc->ntemps;i++) {
@@ -1103,15 +1148,19 @@ void update_covariance_matrix(struct mcmcvariables *mcmc)
   }
   
   // Copy the new covariance matrix from tempcovar into mcmc->covar
-  //if((mcmc->corrupdate[tempi]==2 && mcmc->acceptelems[tempi]>0) || (double)mcmc->acceptelems[tempi] >= (double)nparfit*0.75) { //Only accept new matrix if 75% of diagonal elements are better (smaller)
-  if(mcmc->acceptelems[tempi]>=0) { //Accept new matrix always, except when Infs, NaNs, 0s occur.
-    for(j1=0;j1<npar;j1++){
-      for(j2=0;j2<=j1;j2++){
-	mcmc->covar[tempi][j1][j2] = tempcovar[j1][j2]; 
+  if(mcmc->acceptelems[tempi]>=0) { //Accept new matrix only if no Infs, NaNs, 0s occur.
+    if((double)mcmc->acceptelems[tempi] >= (double)mcmc->nparfit*mcmc->mataccfr) { //Accept new matrix only if the fraction mataccfr of diagonal elements are better (smaller) than before
+      for(j1=0;j1<npar;j1++){
+	for(j2=0;j2<=j1;j2++){
+	  mcmc->covar[tempi][j1][j2] = tempcovar[j1][j2]; 
+	}
       }
+      mcmc->corrupdate[tempi] += 1;
+      if(prmatrixinfo>0 && tempi==0) printf("  Proposed covariance-matrix update at iteration %d accepted.  Acceptelems: %d.  Accepted matrices: %d/%d \n", mcmc->iteri, mcmc->acceptelems[tempi], mcmc->corrupdate[tempi]-2, (int)((double)mcmc->iteri/(double)ncorr));  // -2 since you start with 2
     }
-    mcmc->corrupdate[tempi] += 1;
-    if(prmatrixinfo>0 && tempi==0) printf("  Proposed covariance-matrix update at iteration %d accepted.  Acceptelems: %d.  Accepted matrices: %d/%d \n", mcmc->iteri, mcmc->acceptelems[tempi], mcmc->corrupdate[tempi]-2, (int)((double)mcmc->iteri/(double)ncorr));  // -2 since you start with 2
+    else {
+      if(prmatrixinfo>0 && tempi==0) printf("  Proposed covariance-matrix update at iteration %d rejected.  Acceptelems: %d.  Accepted matrices: %d/%d \n", mcmc->iteri, mcmc->acceptelems[tempi], mcmc->corrupdate[tempi]-2, (int)((double)mcmc->iteri/(double)ncorr));  // -2 since you start with 2
+    }
   }
   else{
     if(prmatrixinfo>0 && tempi==0) printf("  Proposed covariance-matrix update at iteration %d rejected.  Acceptelems: %d.  Accepted matrices: %d/%d \n", mcmc->iteri, mcmc->acceptelems[tempi], mcmc->corrupdate[tempi]-2, (int)((double)mcmc->iteri/(double)ncorr));  // -2 since you start with 2

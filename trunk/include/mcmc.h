@@ -112,7 +112,9 @@ struct runpar{
   //int adapt;           // Use adaptation or not
   //double *fitpar;
   
-  double blockfrac;      // Fraction of block-updates of non-correlated updates
+  double blockfrac;      // Fraction of non-correlated updates that is a block update
+  double corrfrac;       // Fraction of MCMC updates that used the correlation matrix
+  double mataccfr;       // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
   
   double logL0;          // log of the 'null-likelihood'
   double temps[99];      // Temperature ladder for manual parallel tempering
@@ -124,54 +126,59 @@ struct runpar{
 
 //Structure for MCMC variables
 struct mcmcvariables{
-  int iteri;            // State/iteration number
-  int npar;             // Number of parameters in the MCMC/template
-  int ntemps;           // Number of chains in the temperature ladder
-  int tempi;            // The current temperature index
-  int networksize;      // Number of IFOs in the detector network
+  int iteri;             // State/iteration number
+  int npar;              // Number of parameters in the MCMC/template
+  int nparfit;           // Number of parameters in the MCMC that is fitted for
+  int ntemps;            // Number of chains in the temperature ladder
+  int tempi;             // The current temperature index
+  int networksize;       // Number of IFOs in the detector network
   
-  double temp;          // The current temperature
-  double logL0;         // log of the 'null-likelihood'
   
-  double *histmean;     // Mean of hist block of iterations, used to get the covariance matrix
-  double *histdev;      // Standard deviation of hist block of iterations, used to get the covariance matrix
+  double temp;           // The current temperature
+  double logL0;          // Log of the 'null-likelihood'
+  double mataccfr;       // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
   
-  int *corrupdate;      // Switch (per chain) to do correlated (1) or uncorrelated (0) updates
-  int *acceptelems;     // Count 'improved' elements of diagonal of new corr matrix, to determine whether to accept it
+  
+  double *histmean;      // Mean of hist block of iterations, used to get the covariance matrix
+  double *histdev;       // Standard deviation of hist block of iterations, used to get the covariance matrix
+  
+  int *corrupdate;       // Switch (per chain) to do correlated (1) or uncorrelated (0) updates
+  int *acceptelems;      // Count 'improved' elements of diagonal of new corr matrix, to determine whether to accept it
 
-  double *temps;        // Array of temperatures in the temperature ladder
-  double *newtemps;     // New temperature ladder, was used in adaptive parallel tempering
-  double *tempampl;     // Temperature amplitudes for sinusoid T in parallel tempering
-  double *logL;         // Current log(L)
-  double *nlogL;        // New log(L)
-  double *dlogL;        // log(L)-log(Lo)
-  double *maxdlogL;     // Remember the maximum dlog(L)
-  double *sumdlogL;     // Sum of the dlogLs, summed over 1 block of ncorr (?), was used in adaptive parallel tempering, still printed?
-  double *avgdlogL;     // Average of the dlogLs, over 1 block of ncorr (?), was used in adaptive parallel tempering
-  double *expdlogL;     // Expected dlogL for a flat distribution of chains, was used in adaptive parallel tempering                    
+  double *temps;         // Array of temperatures in the temperature ladder
+  double *newtemps;      // New temperature ladder, was used in adaptive parallel tempering
+  double *tempampl;      // Temperature amplitudes for sinusoid T in parallel tempering
+  double *logL;          // Current log(L)
+  double *nlogL;         // New log(L)
+  double *dlogL;         // log(L)-log(Lo)
+  double *maxdlogL;      // Remember the maximum dlog(L)
+  double *sumdlogL;      // Sum of the dlogLs, summed over 1 block of ncorr (?), was used in adaptive parallel tempering, still printed?
+  double *avgdlogL;      // Average of the dlogLs, over 1 block of ncorr (?), was used in adaptive parallel tempering
+  double *expdlogL;      // Expected dlogL for a flat distribution of chains, was used in adaptive parallel tempering                    
   
 
-  double *corrsig;      // Sigma for correlated update proposals
-  int *swapTs1;         // Totals for the columns in the chain-swap matrix
-  int *swapTs2;         // Totals for the rows in the chain-swap matrix                                               
-  int *acceptprior;     // Check boundary conditions and choose to accept (1) or not(0)
-  int *ihist;           // Count the iteration number in the current history block to calculate the covar matrix from
+  double *corrsig;       // Sigma for correlated update proposals
+  int *swapTs1;          // Totals for the columns in the chain-swap matrix
+  int *swapTs2;          // Totals for the rows in the chain-swap matrix                                               
+  int *acceptprior;      // Check boundary conditions and choose to accept (1) or not(0)
+  int *ihist;            // Count the iteration number in the current history block to calculate the covar matrix from
 
-  int **accepted;       // Count accepted proposals
-  int **swapTss;        // Count swaps between chains
-  double **param;       // The current parameters for all chains
-  double **nparam;      // The new parameters for all chains
-  double **maxparam;    // The best parameters for all chains (max logL)
-  double **sig;         // The standard deviation of the gaussian to draw the jump size from
-  double **scale;       // The rate of adaptation
+  int **accepted;        // Count accepted proposals
+  int **swapTss;         // Count swaps between chains
+  double **param;        // The current parameters for all chains
+  double **nparam;       // The new parameters for all chains
+  double **maxparam;     // The best parameters for all chains (max logL)
+  double **sig;          // The standard deviation of the gaussian to draw the jump size from
+  double **sigout;       // The sigma that gets written to output
+  double **scale;        // The rate of adaptation
   
-  double ***hist;       // Store a block of iterations, to calculate the covariance matrix
-  double ***covar;      // The Cholesky-decomposed covariance matrix
+  double ***hist;        // Store a block of iterations, to calculate the covariance matrix
+  double ***covar;       // The Cholesky-decomposed covariance matrix
   
-  int seed;             // MCMC seed
-  gsl_rng *ran;         // GSL random-number seed
+  int seed;              // MCMC seed
+  gsl_rng *ran;          // GSL random-number seed
   
-  FILE *fout;           // Output-file pointer
+  FILE *fout;            // Output-file pointer
 };
 
 
@@ -284,9 +291,9 @@ void par2arr(struct parset *par, double **param);
 void arr2par(double **param, struct parset *par);
 int prior(double *par, int p);
 
-void correlated_mcmc_update(struct interferometer ifo[], int networksize, struct parset *state, struct mcmcvariables *mcmc);
-void uncorrelated_mcmc_single_update(struct interferometer ifo[], int networksize, struct parset *state, struct mcmcvariables *mcmc);
-void uncorrelated_mcmc_block_update(struct interferometer ifo[], int networksize, struct parset *state, struct mcmcvariables *mcmc);
+void correlated_mcmc_update(struct interferometer ifo[], struct parset *state, struct mcmcvariables *mcmc);
+void uncorrelated_mcmc_single_update(struct interferometer ifo[], struct parset *state, struct mcmcvariables *mcmc);
+void uncorrelated_mcmc_block_update(struct interferometer ifo[], struct parset *state, struct mcmcvariables *mcmc);
 
 void write_mcmc_header(struct interferometer ifo[], struct mcmcvariables mcmc, struct runpar run);
 void write_mcmc_output(struct mcmcvariables mcmc);

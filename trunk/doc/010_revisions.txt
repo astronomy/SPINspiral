@@ -2,6 +2,16 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    22: sluys
+     - Input file changed, 2 parameters added:
+       - corrfrac sets the fraction of all MCMC updates that uses the correlations
+       - mataccfr sets the fraction of (fitted) mcmc parameters that must improve 
+         in order to accept a new matrix. See description in mcmc.input.
+     - Every so often an extra-large jump is proposed:
+       - every 1e3 or 1e4 iterations, a 10x or 100x larger jump respectively is 
+         proposed in all parameters,
+       - every 1e2 or 1e3 iterations, a 10x or 100x larger jump respectively is 
+         proposed for a single parameter.
     
     21: sluys
      - more of mcmc() splitted off: update_covariance_matrix() does what it says,
