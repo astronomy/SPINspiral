@@ -192,11 +192,11 @@ struct parset{
   double eta;        // sym mass ratio            
   double tc;         // coalescence time          
   double logdl;      // log-distance              
-  double sinlati;    // latitude (sin(delta))     
-  double longi;      // longitude                 
-  double phase;      // wave phase   (phi0)       
   double spin;       // magnitude of total spin   
   double kappa;      // L^.S^, cos of angle between L^ & S^
+  double longi;      // longitude                 
+  double sinlati;    // latitude (sin(delta))     
+  double phase;      // wave phase   (phi0)       
   double sinthJ0;    // sin Theta_J0              
   double phiJ0;      // Phi_J0                    
   double alpha;      // Alpha_c                   
@@ -291,9 +291,9 @@ void par2arr(struct parset *par, double **param);
 void arr2par(double **param, struct parset *par);
 int prior(double *par, int p);
 
-void correlated_mcmc_update(struct interferometer ifo[], struct parset *state, struct mcmcvariables *mcmc);
-void uncorrelated_mcmc_single_update(struct interferometer ifo[], struct parset *state, struct mcmcvariables *mcmc);
-void uncorrelated_mcmc_block_update(struct interferometer ifo[], struct parset *state, struct mcmcvariables *mcmc);
+void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
+void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
+void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
 
 void write_mcmc_header(struct interferometer ifo[], struct mcmcvariables mcmc, struct runpar run);
 void write_mcmc_output(struct mcmcvariables mcmc);

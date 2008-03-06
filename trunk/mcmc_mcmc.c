@@ -282,13 +282,14 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
       
       // *** Uncorrelated update *************************************************************************************************
       //if(mcmc.corrupdate[tempi]<=0) {
+      //if(gsl_rng_uniform(mcmc.ran) > run->corrfrac) {
       if(gsl_rng_uniform(mcmc.ran) > run->corrfrac || iteri < ncorr) {
 	//if(iteri>nburn && gsl_rng_uniform(mcmc.ran) < run->blockfrac){                            //Block update; only after burnin
 	if(gsl_rng_uniform(mcmc.ran) < run->blockfrac){                                             //Block update; always
-	  uncorrelated_mcmc_block_update(*ifo, &state, &mcmc);
+	  uncorrelated_mcmc_block_update(ifo, &state, &mcmc);
 	}
 	else{                                                                                       //Componentwise update (90%)
-	  uncorrelated_mcmc_single_update(*ifo, &state, &mcmc);
+	  uncorrelated_mcmc_single_update(ifo, &state, &mcmc);
 	}
       } //End uncorrelated update
       
@@ -296,7 +297,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
       // *** Correlated update ****************************************************************************************************
       //if(mcmc.corrupdate[tempi]>=1) {
       else {
-	correlated_mcmc_update(*ifo, &state, &mcmc);
+	correlated_mcmc_update(ifo, &state, &mcmc);
       }
       
       
@@ -556,7 +557,7 @@ int prior(double *par, int p)
 
 //Do a correlated block update
 //****************************************************************************************************************************************************  
-void correlated_mcmc_update(struct interferometer ifo[], struct parset *state, struct mcmcvariables *mcmc)
+void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc)
 //****************************************************************************************************************************************************  
 {
   int j1=0, j2=0, tempi=mcmc->tempi;
@@ -591,8 +592,8 @@ void correlated_mcmc_update(struct interferometer ifo[], struct parset *state, s
   
   if(mcmc->acceptprior[tempi]==1) {                                    //Then calculate the likelihood
     arr2par(mcmc->nparam, state);	                               //Get the parameters from their array
-    localpar(state, &ifo, mcmc->networksize);
-    mcmc->nlogL[tempi] = net_loglikelihood(state, mcmc->networksize, &ifo); //Calculate the likelihood
+    localpar(state, ifo, mcmc->networksize);
+    mcmc->nlogL[tempi] = net_loglikelihood(state, mcmc->networksize, ifo); //Calculate the likelihood
     par2arr(state, mcmc->nparam);	                               //Put the variables back in their array
     
     if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->temp) && mcmc->nlogL[tempi] > mcmc->logL0) {  //Accept proposal
@@ -637,7 +638,7 @@ void correlated_mcmc_update(struct interferometer ifo[], struct parset *state, s
 
 //Do an uncorrelated single-parameter update
 //****************************************************************************************************************************************************  
-void uncorrelated_mcmc_single_update(struct interferometer ifo[], struct parset *state, struct mcmcvariables *mcmc)
+void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc)
 //****************************************************************************************************************************************************  
 {
   int j1=0, tempi=mcmc->tempi;
@@ -664,8 +665,8 @@ void uncorrelated_mcmc_single_update(struct interferometer ifo[], struct parset 
       mcmc->acceptprior[tempi] = prior(&mcmc->nparam[tempi][j1],j1);
       if(mcmc->acceptprior[tempi]==1) {
 	arr2par(mcmc->nparam, state);                          //Get the parameters from their array
-	localpar(state, &ifo, mcmc->networksize);
-	mcmc->nlogL[tempi] = net_loglikelihood(state, mcmc->networksize, &ifo);   //Calculate the likelihood
+	localpar(state, ifo, mcmc->networksize);
+	mcmc->nlogL[tempi] = net_loglikelihood(state, mcmc->networksize, ifo);   //Calculate the likelihood
 	par2arr(state, mcmc->nparam);                          //Put the variables back in their array
 	
 	if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->temp) && mcmc->nlogL[tempi] > mcmc->logL0) {  //Accept proposal
@@ -710,7 +711,7 @@ void uncorrelated_mcmc_single_update(struct interferometer ifo[], struct parset 
 
 //Do an uncorrelated block update
 //****************************************************************************************************************************************************  
-void uncorrelated_mcmc_block_update(struct interferometer ifo[], struct parset *state, struct mcmcvariables *mcmc)
+void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc)
 //****************************************************************************************************************************************************  
 {
   int j1=0;
@@ -736,8 +737,8 @@ void uncorrelated_mcmc_block_update(struct interferometer ifo[], struct parset *
   
   if(mcmc->acceptprior[tempi]==1) {
     arr2par(mcmc->nparam, state);	                              //Get the parameters from their array
-    localpar(state, &ifo, mcmc->networksize);                               //Calculate local variables
-    mcmc->nlogL[tempi] = net_loglikelihood(state, mcmc->networksize, &ifo);  //Calculate the likelihood
+    localpar(state, ifo, mcmc->networksize);                               //Calculate local variables
+    mcmc->nlogL[tempi] = net_loglikelihood(state, mcmc->networksize, ifo);  //Calculate the likelihood
     par2arr(state, mcmc->nparam);	                              //Put the variables back in their array
     
     if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->temp) && mcmc->nlogL[tempi] > mcmc->logL0){  //Accept proposal if L>Lo
