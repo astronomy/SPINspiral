@@ -821,7 +821,7 @@ void write_mcmc_output(struct mcmcvariables mcmc)
   int j1=0, tempi=mcmc.tempi, iteri=mcmc.iteri;
   char outfilename[99];
   
-  printf("%d  %d",tempi,iteri);
+  //printf("%d  %d",tempi,iteri);
   
   // *** Write output to screen ***
   if(tempi==0) { //Only for the T=1 chain
