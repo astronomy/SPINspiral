@@ -128,7 +128,13 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
   
   mcmc.iteri = -1;
   mcmc.tempi = tempi;
-  write_mcmc_output(mcmc);  //Write to output line to screen and/or file
+  for(tempi=0;tempi<mcmc.ntemps;tempi++) {
+    mcmc.tempi = tempi;
+    for(j1=0;j1<npar;j1++) {
+      mcmc.param[tempi][j1] = mcmc.param[0][j1];
+    }
+    write_mcmc_output(mcmc);  //Write output line to screen and/or file
+  }
   tempi = 0;  //MUST be zero
 
   
@@ -212,8 +218,13 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
   // *** Write output line to screen and/or file
   printf("\n");
   mcmc.iteri = 0;
-  mcmc.tempi = tempi;
-  write_mcmc_output(mcmc);  //Write to output line to screen and/or file
+  for(tempi=0;tempi<mcmc.ntemps;tempi++) {
+    mcmc.tempi = tempi;
+    for(j1=0;j1<npar;j1++) {
+      mcmc.param[tempi][j1] = mcmc.param[0][j1];
+    }
+    write_mcmc_output(mcmc);  //Write output line to screen and/or file
+  }
   tempi = 0;  //MUST be zero
   
   
@@ -320,7 +331,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
 	
 	// *** WRITE STATE TO SCREEN AND FILE *******************************************************************************************************************************************
 	
-	write_mcmc_output(mcmc);  //Write to output line to screen and/or file
+	write_mcmc_output(mcmc);  //Write output line to screen and/or file
 	
 	
 	
@@ -1120,8 +1131,8 @@ void update_covariance_matrix(struct mcmcvariables *mcmc)
   }
   mcmc->acceptelems[tempi] = max(mcmc->acceptelems[tempi],-1); //Now -1 means there is a diagonal element that is 0, NaN or Inf
   
-  //Update the matrix only if most of the diagonal elements of covar1 are smaller than the previous ones (and non-zero), to avoid non-positive definite matrices and get improved jump sizes
-  if(prmatrixinfo==2 && tempi==0){  //Print matrix information
+  //Print matrix information  
+  if(prmatrixinfo==2 && tempi==0){
     printf("\n  Update for the covariance matrix proposed at iteration:  %10d\n",mcmc->iteri);
     printf("\n    Acceptelems: %d\n",mcmc->acceptelems[tempi]);
     printf("\n    Covariance matrix:\n");
@@ -1150,7 +1161,7 @@ void update_covariance_matrix(struct mcmcvariables *mcmc)
   
   // Copy the new covariance matrix from tempcovar into mcmc->covar
   if(mcmc->acceptelems[tempi]>=0) { //Accept new matrix only if no Infs, NaNs, 0s occur.
-    if((double)mcmc->acceptelems[tempi] >= (double)mcmc->nparfit*mcmc->mataccfr) { //Accept new matrix only if the fraction mataccfr of diagonal elements are better (smaller) than before
+    if(mcmc->corrupdate[tempi]<=2 || (double)mcmc->acceptelems[tempi] >= (double)mcmc->nparfit*mcmc->mataccfr) { //Always accept the new matrix on the first update, otherwise only if the fraction mataccfr of diagonal elements are better (smaller) than before
       for(j1=0;j1<npar;j1++){
 	for(j2=0;j2<=j1;j2++){
 	  mcmc->covar[tempi][j1][j2] = tempcovar[j1][j2]; 
