@@ -133,6 +133,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
     for(j1=0;j1<npar;j1++) {
       mcmc.param[tempi][j1] = mcmc.param[0][j1];
     }
+    mcmc.logL[tempi] = mcmc.logL[0];
     write_mcmc_output(mcmc);  //Write output line to screen and/or file
   }
   tempi = 0;  //MUST be zero
@@ -223,6 +224,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
     for(j1=0;j1<npar;j1++) {
       mcmc.param[tempi][j1] = mcmc.param[0][j1];
     }
+    mcmc.logL[tempi] = mcmc.logL[0];
     write_mcmc_output(mcmc);  //Write output line to screen and/or file
   }
   tempi = 0;  //MUST be zero
