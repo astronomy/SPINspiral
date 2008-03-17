@@ -117,6 +117,8 @@ struct runpar{
   double mataccfr;       // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
   
   double logL0;          // log of the 'null-likelihood'
+  double netsnr;         // Total SNR of the network
+  double targetsnr;      // Target total SNR of the network, scale the distance
   double temps[99];      // Temperature ladder for manual parallel tempering
   
   char infilename[99];   // Run input file name
@@ -281,8 +283,8 @@ void readinputfile(struct runpar *run);
 void writeinputfile(struct runpar *run);
 void setconstants(struct runpar *run);
 void set_ifo_data(struct runpar run, struct interferometer ifo[]);
-void settrueparameters(struct parset *par);
-void setnullparameters(struct parset *par);
+void gettrueparameters(struct parset *par);
+void getnullparameters(struct parset *par);
 void setmcmcseed(struct runpar *run);
 
 void mcmc(struct runpar *run, struct interferometer *ifo[]);

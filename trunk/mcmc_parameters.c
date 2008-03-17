@@ -90,8 +90,10 @@ void readinputfile(struct runpar *run)
   
   //Diverse:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->networksize);
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->selectdata);
   fgets(bla,500,fin);  sscanf(bla,"%lf",&downsamplefactor);
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->targetsnr);
   
   //True parameter values:
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
@@ -185,8 +187,10 @@ void writeinputfile(struct runpar *run)
   
   
   fprintf(fout, "\n  #Diverse:\n");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",    run->networksize,"networksize",    "Set the number of detectors that make up the network: 1: H1, 2: H1L1, 3: H1L1V");
   fprintf(fout, "  %-25d  %-18s  %-s\n",     run->selectdata,"selectdata",     "Select the data set to run on  (set to 0 to print a list of data sets). Make sure you set the true tc and datadir accordingly.");
   fprintf(fout, "  %-25.1f  %-18s  %-s\n", downsamplefactor,"downsamplefactor","Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0, shouldn't be higher than 8 for BH-NS...");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n",   run->targetsnr, "targetsnr",      "If > 0: scale the distance such that the network SNR becomes targetsnr");
   //fprintf(fout, "  %-25.1f  %-18s  %-s\n",   cutoff_a,"cutoff_a","Low value of a/M where signal should be cut off, e.g. 7.5.");
   
   
@@ -442,7 +446,7 @@ void setconstants(struct runpar *run)
 
 
 
-void settrueparameters(struct parset *par)  //Set the parameters for the 12-parameter spinning template to the 'true values'
+void gettrueparameters(struct parset *par)  //Set the parameters for the 12-parameter spinning template to the 'true values'
 {
   par->m1       = truepar[0];                    // M1 (10.0)
   par->m2       = truepar[1];                    // M2  (1.4)
@@ -472,7 +476,7 @@ void settrueparameters(struct parset *par)  //Set the parameters for the 12-para
 
 
 
-void setnullparameters(struct parset *par)  //Set the parameters for the 12-parameter spinning template to 'null values', to simulate absence of a signal
+void getnullparameters(struct parset *par)  //Set the parameters for the 12-parameter spinning template to 'null values', to simulate absence of a signal
 {
   par->mc       = 0.01;
   par->eta      = 0.0001;

@@ -62,7 +62,7 @@ int main(int argc, char * argv[])
   
   //Calculate 'null-likelihood'
   struct parset nullpar;
-  setnullparameters(&nullpar);
+  getnullparameters(&nullpar);
   nullpar.loctc    = (double*)calloc(networksize,sizeof(double));
   nullpar.localti  = (double*)calloc(networksize,sizeof(double));
   nullpar.locazi   = (double*)calloc(networksize,sizeof(double));
@@ -73,7 +73,7 @@ int main(int argc, char * argv[])
   
   //Get a parameter set to calculate SNR or write the wavefrom to disc
   struct parset dummypar;
-  settrueparameters(&dummypar);
+  gettrueparameters(&dummypar);
   dummypar.loctc    = (double*)calloc(networksize,sizeof(double));
   dummypar.localti  = (double*)calloc(networksize,sizeof(double));
   dummypar.locazi   = (double*)calloc(networksize,sizeof(double));
@@ -129,7 +129,7 @@ int main(int argc, char * argv[])
   //Calculate matches between two signals
   if(domatch==1) {
     printf("\n");
-    settrueparameters(&dummypar);
+    gettrueparameters(&dummypar);
     dummypar.loctc    = (double*)calloc(networksize,sizeof(double));
     dummypar.localti  = (double*)calloc(networksize,sizeof(double));
     dummypar.locazi   = (double*)calloc(networksize,sizeof(double));

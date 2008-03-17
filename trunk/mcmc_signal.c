@@ -29,7 +29,7 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
   for (j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j) FTout1[j] = ifo[i]->FTout[j];
   
   //Get the true parameters
-  settrueparameters(&truepar);
+  gettrueparameters(&truepar);
   truepar.loctc    = (double*)calloc(networksize,sizeof(double));
   truepar.localti  = (double*)calloc(networksize,sizeof(double));
   truepar.locazi   = (double*)calloc(networksize,sizeof(double));
