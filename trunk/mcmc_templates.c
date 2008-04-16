@@ -143,12 +143,12 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
       terminate = 1;
     }
     else {
-      tau    = par->eta/(5.0*M)*t;  //t = localtc-t already
-      tau18  = exp(0.125*log(tau));
+      tau    = par->eta/(5.0*M)*t;   //t = localtc-t already
+      tau18  = exp(0.125*log(tau));  //tau^(1/8)
       tau28  = tau18*tau18;
       tau38  = tau28*tau18;
       tau58  = tau28*tau38;
-      tau_18 = 1.0/tau18;
+      tau_18 = 1.0/tau18;            //tau^(-1/8)
       tau_28 = tau_18*tau_18;
       tau_38 = tau_18*tau_28;
       tau_58 = tau_28*tau_38;
@@ -169,7 +169,7 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
 	//if(taperx[i]>0.09) terminate += 8;
       }
       
-      else {              // Frequency still increasing --> keep on computing...
+      else {             // Frequency still increasing --> keep on computing...
 	if(i1==0) i1=i;  //Save initial i for tapering the beginning of the signal
 	i2 = i;          //Save final i for tapering the end of the signal
         oldomega = omega_orb;
@@ -213,10 +213,10 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
         
         LdotN  = dotproduct(n_L,n_N);                                                                                    //L^.N^
 	x1     = 2.0*exp(5.0*c3rd*log(Mc))/D_L;
-        x2     = LdotN*LdotN;
+        //x2     = LdotN*LdotN;  //No longer needed
         x3     = exp(2.0*c3rd*log(omega_orb));
-        hplus  =      x1 * (1.0 + x2) * x3 * cos(phi_gw);
-        hcross = -2.0*x1 * x2         * x3 * sin(phi_gw);
+        hplus  =      x1 * (1.0 + LdotN*LdotN) * x3 * cos(phi_gw);
+        hcross = -2.0*x1 * LdotN               * x3 * sin(phi_gw);
         
         
         //Local polarisation vector, F+,Fx:

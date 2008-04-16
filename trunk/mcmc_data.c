@@ -44,9 +44,9 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   ifo[0].leftarm  = ( 126.80/180.0)*pi;
   ifo[0].radius_eqt  = 6378137.0;       /* WGS 84 */
   ifo[0].radius_pole = 6356752.314;       
-  ifo[0].lowCut  =   40.0;  //The other two detectors have the same low,highCut
+  ifo[0].lowCut  =   40.0;  //The other two detectors may use this low,highCut
   ifo[0].highCut = 4800.0/downsamplefactor;
-  ifo[0].before_tc = 6.0;   //The other two detectors have the same before,after_tc
+  ifo[0].before_tc = 6.0;   //The other two detectors may use this before,after_tc
   ifo[0].after_tc = 1.0;
   
   
@@ -254,7 +254,8 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   }
   
   
-  // PISA, Virgo
+  
+  // PISA, Virgo.  You might want to set the parameter tukeywin from 0.05 to 0.15 when including Virgo data
   sprintf(ifo[2].name, "Pisa");
   ifo[2].lati     = (  43.63/180.0)*pi;
   ifo[2].longi    = (  10.50/180.0)*pi;
@@ -280,6 +281,15 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[2].ch1doubleprecision = 0;
     ifo[2].add2channels    = 0;   //0, unless you want to read a signal from file
     
+    sprintf(ifo[2].ch2name,       "V1:STRAIN_INSP_INJ_ONLY"); 
+    sprintf(ifo[2].ch2filepath,   datadir);
+    sprintf(ifo[2].ch2fileprefix, "HL-SIM-");
+    sprintf(ifo[2].ch2filesuffix, "-6000.gwf");
+    ifo[2].ch2filesize   = 6000; 
+    ifo[2].ch2fileoffset = 4000; 
+    ifo[2].ch2doubleprecision = 0;
+    ifo[2].noiseGPSstart   = 700008000;
+    
     sprintf(ifo[2].noisechannel,    "V1:noise");
     sprintf(ifo[2].noisefilepath,   datadir);
     sprintf(ifo[2].noisefileprefix, "V-");
@@ -287,6 +297,37 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[2].noisefilesize   = 6000; 
     ifo[2].noisefileoffset = 4000;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[2].noisedoubleprecision = 0;
+
+
+    //Use LIGO noise for Virgo (keep tukeywin = 0.05)
+    if(1==2) {
+      printf("*** Using LIGO noise for VIRGO !!!  ***\n");
+      sprintf(ifo[2].ch1name,       "L1:STRAIN"); 
+      sprintf(ifo[2].ch1filepath,   datadir);
+      sprintf(ifo[2].ch1fileprefix, "HL-SIM-");
+      sprintf(ifo[2].ch1filesuffix, "-6000.gwf");
+      ifo[2].ch1filesize   = 6000; 
+      ifo[2].ch1fileoffset = 4000; 
+      ifo[2].ch1doubleprecision = 0;
+      ifo[2].add2channels    = 1; 
+      
+      sprintf(ifo[2].ch2name,       "L1:STRAIN_INSP_INJ_ONLY"); 
+      sprintf(ifo[2].ch2filepath,   datadir);
+      sprintf(ifo[2].ch2fileprefix, "HL-SIM-");
+      sprintf(ifo[2].ch2filesuffix, "-6000.gwf");
+      ifo[2].ch2filesize   = 6000; 
+      ifo[2].ch2fileoffset = 4000; 
+      ifo[2].ch2doubleprecision = 0;
+      ifo[2].noiseGPSstart   = 700008000;
+      
+      sprintf(ifo[2].noisechannel,    "L1:STRAIN");
+      sprintf(ifo[2].noisefilepath,   datadir);
+      sprintf(ifo[2].noisefileprefix, "HL-SIM-");
+      sprintf(ifo[2].noisefilesuffix, "-6000.gwf");
+      ifo[2].noisefilesize   = 6000; 
+      ifo[2].noisefileoffset = 4000; 
+      ifo[2].noisedoubleprecision = 0;
+    }
   }
 }
 
@@ -410,7 +451,7 @@ void ifoinit(struct interferometer **ifo, int networksize)
 void ifodispose(struct interferometer *ifo)
 {
   int i;
-  if(intscrout==1) printf(" | Interferometer %d `%s' verabschiedet sich.\n", ifo->index, ifo->name);
+  if(intscrout==1) printf(" | Interferometer %d `%s' is taken offline.\n", ifo->index, ifo->name);
   free(ifo->raw_noisePSD);       ifo->raw_noisePSD = NULL;
   fftw_free(ifo->raw_dataTrafo); ifo->raw_dataTrafo = NULL;
   free(ifo->noisePSD);           ifo->noisePSD = NULL;
@@ -515,7 +556,7 @@ double tukey(int j, int N, double r)
 /* j = 0, ..., N-1                                                                    */
 {
   double win = 1.0;
-  if (((double)j)>(((double)N)/2.0)) j = N-j;
+  if (((double)j) > (((double)N)/2.0)) j = N-j;
   if (((double)j) < (r*(((double)N)/2.0)))
     win = 0.5*(1.0-cos(((2.0*pi)/r)*(((double)j)/((double)N))));
   return win;
@@ -556,8 +597,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   if(intscrout==1) printf(" | investigated time range : from %.1f to %.1f (%.1f seconds)\n", from, to, delta);
   
   /* starting time of first(!) Frame file to be read: */
-  filestart = (((((long)(from))-ifo[i]->ch1fileoffset) / ifo[i]->ch1filesize) * ifo[i]->ch1filesize) 
-              + ifo[i]->ch1fileoffset;
+  filestart = (((((long)(from))-ifo[i]->ch1fileoffset) / ifo[i]->ch1filesize) * ifo[i]->ch1filesize) + ifo[i]->ch1fileoffset;
   /*if(intscrout==1) printf(" | chirp file(s) to be read:\n");*/
   /* Assemble the filename character string: */
   while (((double)filestart) < to){
@@ -865,15 +905,13 @@ void noisePSDestimate(struct interferometer *ifo)
   
   
   /* starting time of first(!) frame file to be read: */
-  filestart = (((ifo->noiseGPSstart-ifo->noisefileoffset) / ifo->noisefilesize) * ifo->noisefilesize) 
-              + ifo->noisefileoffset;
+  filestart = (((ifo->noiseGPSstart-ifo->noisefileoffset) / ifo->noisefilesize) * ifo->noisefilesize) + ifo->noisefileoffset;
   /* Assemble the filename character string: */
   while (((double)filestart) < (((double)ifo->noiseGPSstart)+Nseconds)){
     if (filecount == 0) /* fill in filename for first file: */
       sprintf(filenames,"%s/%s%ld%s",ifo->noisefilepath,ifo->noisefileprefix,(long)filestart,ifo->noisefilesuffix);
     else /* append filename for following files: */
       sprintf(filenames,"%s %s/%s%ld%s",filenames,ifo->noisefilepath,ifo->noisefileprefix,(long)filestart,ifo->noisefilesuffix);
-    /*if(intscrout==1) printf(" |   %s%ld%s\n", ifo->framefileprefix, (long)filestart, ifo->framefilesuffix);*/
     filestart += ifo->noisefilesize;
     filecount += 1;
   }

@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    30: sluys
+     - Vivien found an error in calculating h_x: L.N should be used, not (L.N)^2
+     - Some lines were missing that are needed to include Virgo data
+    
     29: sluys
      - Vivien found a bug in the 1.5PN waveform template, in creating the vectors N^ 
        and J^.  The latter was more serious, since the angle theta_J0 was used later

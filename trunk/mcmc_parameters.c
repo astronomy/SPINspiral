@@ -423,7 +423,7 @@ void setconstants(struct runpar *run)
   studentDF      =  3.0; /* degrees of freedom for Student-t jumps (0.0 indicates Normal)    */
   modifiedStudent =   1; /* modify the (student-t) proposal                                  */
   propscale      = 0.2 ; /* scale of proposal covariance relative to assumed posterior cov.  */
-  tukeywin       = 0.05; /* parameter for Tukey-window used in dataFT (non-flat fraction).   Was 0.15 for Virgo data*/
+  tukeywin       = 0.05; /* parameter for Tukey-window used in dataFT (non-flat fraction).   Use 0.15 for Virgo data  */
   randomseed1    = 3335; /* random seed                                                      */
   randomseed2    = 4449; /*   "     "                                                        */
   unifMcJump     = 0.10; /* probability for uniform chirp mass  proposals                    */

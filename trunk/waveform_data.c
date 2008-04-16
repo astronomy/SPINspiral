@@ -420,7 +420,7 @@ void ifoinit(struct interferometer **ifo, int networksize)
 void ifodispose(struct interferometer *ifo)
 {
   int i;
-  if(intscrout==1) printf(" | Interferometer %d `%s' verabschiedet sich.\n", ifo->index, ifo->name);
+  if(intscrout==1) printf(" | Interferometer %d `%s' is taken offline.\n", ifo->index, ifo->name);
   free(ifo->raw_noisePSD);       ifo->raw_noisePSD = NULL;
   fftw_free(ifo->raw_dataTrafo); ifo->raw_dataTrafo = NULL;
   free(ifo->noisePSD);           ifo->noisePSD = NULL;
