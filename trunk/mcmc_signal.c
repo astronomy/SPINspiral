@@ -198,6 +198,7 @@ void writesignaltodisc(struct parset *par, struct interferometer *ifo[], int i)
   for (j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j){
     f = (((double)j)/((double)ifo[i]->FTsize*2.0)) * rate;
     fprintf(dump2, "%9.9f %.6e\n",log10(f), log10(2.0*sqrt(exp(2.0*(log(cabs(ifo[i]->FTout[j]))-lograte))/ifo[i]->deltaFT))  );
+    //fprintf(dump2, "%9.9f %.6e\n",log10(f), log10(cabs(ifo[i]->FTout[j]))  );
   }
   fclose(dump2); if(intscrout) printf(" : (signal PSD written to file)\n");
   return;

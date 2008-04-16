@@ -423,7 +423,7 @@ void setconstants(struct runpar *run)
   studentDF      =  3.0; /* degrees of freedom for Student-t jumps (0.0 indicates Normal)    */
   modifiedStudent =   1; /* modify the (student-t) proposal                                  */
   propscale      = 0.2 ; /* scale of proposal covariance relative to assumed posterior cov.  */
-  tukeywin       = 0.15; /* parameter for Tukey-window used in dataFT (non-flat fraction).   */
+  tukeywin       = 0.05; /* parameter for Tukey-window used in dataFT (non-flat fraction).   Was 0.15 for Virgo data*/
   randomseed1    = 3335; /* random seed                                                      */
   randomseed2    = 4449; /*   "     "                                                        */
   unifMcJump     = 0.10; /* probability for uniform chirp mass  proposals                    */
@@ -463,7 +463,7 @@ void gettrueparameters(struct parset *par)  //Set the parameters for the 12-para
   par->sinlati  = sin(truepar[7]*d2r);           // sin latitude (sin(delta))  (40)     
   
   par->phase    = truepar[8]*d2r;                // orbital phase   (phi_c)   (0.2)
-  par->sinthJ0  = sin(truepar[9]*d2r);           // sin Theta_J0 ~ polar, 0=NP    (15)
+  par->sinthJ0  = sin(truepar[9]*d2r);           // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
   par->phiJ0    = truepar[10]*d2r;               // Phi_J0 ~ azimuthal            (125)
   par->alpha    = truepar[11]*d2r;               // Alpha_c                       (0.9 rad = 51.566202deg)
   
@@ -487,7 +487,7 @@ void getnullparameters(struct parset *par)  //Set the parameters for the 12-para
   par->phase    = 0.0;
   par->spin     = 0.000001;              // magnitude of total spin   
   par->kappa    = 0.0;                   // L^.S^, cos of angle between L^ & S^
-  par->sinthJ0  = 0.000001;              // sin Theta_J0 ~ polar, 0=NP    
+  par->sinthJ0  = 0.000001;              // sin Theta_J0 ~ latitude, pi/2=NP    
   par->phiJ0    = 0.0;                   // Phi_J0 ~ azimuthal        
   par->alpha    = 0.0;                   // Alpha_c                   
   

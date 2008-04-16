@@ -2,6 +2,13 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    29: sluys
+     - Vivien found a bug in the 1.5PN waveform template, in creating the vectors N^ 
+       and J^.  The latter was more serious, since the angle theta_J0 was used later
+       in the template in a different way, creating an inconsistent use of this angle.	
+       Now, this angle should be a latitude (rather than colatitude, as in the 
+       Apostolatos paper, which it must be if we keep sin(theta_J0) as an MCMC parameter.
+    
     28: sluys
      - Input file changed, 2 parameters added:
        - networksize: number of IFOs in the network (1-3): 1: H1, 2: H1L1, 3: H1L1V

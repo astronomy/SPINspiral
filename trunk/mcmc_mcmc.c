@@ -86,8 +86,8 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
       
       //if(tempi>0) mcmc.tempampl[tempi] = (mcmc.temps[tempi] - mcmc.temps[tempi-1])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains just touch at extrema (since in antiphase)
       //if(tempi>0) mcmc.tempampl[tempi] = 1.5*(mcmc.temps[tempi] - mcmc.temps[tempi-1])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains overlap somewhat at extrema (since in antiphase)
-      if(tempi>0) mcmc.tempampl[tempi] = min(3.0*(mcmc.temps[tempi] - mcmc.temps[tempi-1])/(tempratio+1.0)*tempratio , fabs(mcmc.temps[tempi]-mcmc.temps[tempi-1]));  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
-      if(mcmc.ntemps>10 && tempi>1) mcmc.tempampl[tempi] = min(3.0*(mcmc.temps[tempi] - mcmc.temps[tempi-1])/(tempratio+1.0)*tempratio , fabs(mcmc.temps[tempi]-mcmc.temps[tempi-2]));  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
+      if(tempi>0)                    mcmc.tempampl[tempi] = min(3.0*(mcmc.temps[tempi] - mcmc.temps[tempi-1])/(tempratio+1.0)*tempratio , fabs(mcmc.temps[tempi]-mcmc.temps[tempi-1]));  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
+      if(mcmc.ntemps>10 && tempi>1)  mcmc.tempampl[tempi] = min(3.0*(mcmc.temps[tempi] - mcmc.temps[tempi-1])/(tempratio+1.0)*tempratio , fabs(mcmc.temps[tempi]-mcmc.temps[tempi-2]));  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
       //if(tempi>0) mcmc.tempampl[tempi] = fabs(mcmc.temps[tempi]-mcmc.temps[tempi-1]);  //Temperatures of adjacent chains overlap: Amplitude = (T(i) - T(i-1))  (may be a bit smallish for large ntemps)
       if(tempi==0 || partemp<=1 || partemp==3) mcmc.tempampl[tempi] = 0.0;
       if(prpartempinfo>0) printf("     %3d  %7.2lf  %7.2lf  %7.2lf  %7.2lf\n",tempi,mcmc.temps[tempi],mcmc.tempampl[tempi],mcmc.temps[tempi]-mcmc.tempampl[tempi],mcmc.temps[tempi]+mcmc.tempampl[tempi]);
@@ -190,9 +190,9 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
       }
       nstart = nstart + 1;
     }
-    printf("%10s  %15s  %8s  %8s  %16s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "nDraws","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sinlati","phase","sinthJ0","phiJ0","alpha","logT");
-    printf("%10d  %15.6lf  %8.5f  %8.5f  %16.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.3f\n",
-	   nstart,mcmc.logL[tempi]-mcmc.logL0,mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2],mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11],log10(mcmc.temp));
+    printf("%10s  %15s  %8s  %8s  %16s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "nDraws","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","sinthJ0","phiJ0","alpha");
+    printf("%10d  %15.6lf  %8.5f  %8.5f  %16.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f\n",
+	   nstart,mcmc.logL[tempi]-mcmc.logL0,mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2],mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
   }
   
   
@@ -366,7 +366,11 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
 	    mcmc.sumdlogL[tempi] = 0.0;
 	    
 	    
-	    if( (prmatrixinfo>0 || prpartempinfo>0) && tempi==mcmc.ntemps-1 ) printf("\n\n");
+	    if( (prmatrixinfo>0 || prpartempinfo>0) && tempi==mcmc.ntemps-1 ) {
+	      printf("\n\n");
+	      printf("\n%10s  %15s  %8s  %8s  %16s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n",
+				  "cycle","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","sinthJ0","phiJ0","alpha");
+	    }
 	  } //if(mcmc.ihist[tempi]>=ncorr)
 	} //if(mcmc.corrupdate[tempi]>=2)
 	// *** END CORRELATION MATRIX *************************************************************
@@ -440,7 +444,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
 //****************************************************************************************************************************************************  
 void par2arr(struct parset *par, double **param)
 //Put the mcmc parameters in their array
-//0:mc, 1:eta, 2:tc, 3:logdl, 4:spin, 5:kappa, 6: longi (->RA), 7:sinlati, 8:phase, 9:sinthJ0, 10:phiJ0, 11:alpha
+//0:mc, 1:eta, 2:tc, 3:logdl, 4:spin, 5:kappa, 6: longi (->RA), 7:sindec, 8:phase, 9:sinthJ0, 10:phiJ0, 11:alpha
 {
   param[tempi][0]  =  par->mc      ;
   param[tempi][1]  =  par->eta     ;
@@ -464,7 +468,7 @@ void par2arr(struct parset *par, double **param)
 //****************************************************************************************************************************************************  
 void arr2par(double **param, struct parset *par)
 //Get the mcmc parameters from their array
-//0:mc, 1:eta, 2:tc, 3:logdl, 4:spin, 5:kappa, 6: longi (->RA), 7:sinlati, 8:phase, 9:sinthJ0, 10:phiJ0, 11:alpha
+//0:mc, 1:eta, 2:tc, 3:logdl, 4:spin, 5:kappa, 6: longi (->RA), 7:sindec, 8:phase, 9:sinthJ0, 10:phiJ0, 11:alpha
 {
   par->mc      =  param[tempi][0]   ;
   par->eta     =  param[tempi][1]   ;
@@ -494,7 +498,7 @@ int prior(double *par, int p)
 //****************************************************************************************************************************************************  
 //Contains boundary conditions and prior information for the adaptive MCMC.  Trying to avoid returning 0, to increase jump sizes
 //  'Stick to the wall method' should not be used, since it is asymmetric
-//  0:mc, 1:eta, 2:tc, 3:logdl, 4:spin, 5:kappa, 6: longi (->RA), 7:sinlati, 8:phase, 9:sinthJ0, 10:phiJ0, 11:alpha
+//  0:mc, 1:eta, 2:tc, 3:logdl, 4:spin, 5:kappa, 6: longi (->RA), 7:sindec, 8:phase, 9:sinthJ0, 10:phiJ0, 11:alpha
 {
   int prior = 1;
   double dt = 0.0;
@@ -577,6 +581,7 @@ void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, 
   double temparr[mcmc->npar], dparam=0.0;
   double ran=0.0, largejump1=0.0, largejumpall=0.0;
   
+  //Prepare the proposal
   largejumpall = 1.0;
   ran = gsl_rng_uniform(mcmc->ran);
   if(ran < 1.0e-3) largejumpall = 1.0e1;    //Every 1e3 iterations, take a 10x larger jump in all parameters
@@ -590,6 +595,7 @@ void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, 
     temparr[j1] = gsl_ran_gaussian(mcmc->ran,1.0) * mcmc->corrsig[tempi] * largejump1 * largejumpall;   //Univariate gaussian random number, with sigma=1, times the adaptable sigma_correlation times the large-jump factor
   }
   
+  //Do the proposal
   mcmc->acceptprior[tempi] = 1;
   for(j1=0;j1<mcmc->npar;j1++){
     if(fitpar[j1]==1) {
@@ -603,6 +609,20 @@ void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, 
     }
   }
   
+  
+  
+  /*
+  //Testing with sky position/orientation updates
+  if(gsl_rng_uniform(mcmc->ran) < 0.33) mcmc->nparam[tempi][6]  = fmod(mcmc->nparam[tempi][6]+pi,tpi);  //Move RA over 12h
+  if(gsl_rng_uniform(mcmc->ran) < 0.33) mcmc->nparam[tempi][7]  *= -1.0;                                //Flip declination
+  if(gsl_rng_uniform(mcmc->ran) < 0.33) mcmc->nparam[tempi][9]  *= -1.0;                                //Flip theta_Jo
+  if(gsl_rng_uniform(mcmc->ran) < 0.33) mcmc->nparam[tempi][10] = fmod(mcmc->nparam[tempi][10]+pi,tpi); //Move phi_Jo over 12h
+  */
+
+  
+  
+  
+  //Decide whether to accept
   if(mcmc->acceptprior[tempi]==1) {                                    //Then calculate the likelihood
     arr2par(mcmc->nparam, state);	                               //Get the parameters from their array
     localpar(state, ifo, mcmc->networksize);
@@ -674,6 +694,14 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
       if(ran < 1.0e-3) largejump1 = 1.0e2;    //Every 1e3 iterations, take a 100x larger jump in this parameter
       
       mcmc->nparam[tempi][j1] = mcmc->param[tempi][j1] + gsl_ran_gaussian(mcmc->ran,mcmc->sig[tempi][j1]) * largejump1 * largejumpall;
+      
+      /*
+      //Testing with sky position/orientation updates
+      if(j1==6  && gsl_rng_uniform(mcmc->ran) < 0.3) mcmc->nparam[tempi][6]  = fmod(mcmc->nparam[tempi][6]+pi,tpi);  //Move RA over 12h
+      if(j1==7  && gsl_rng_uniform(mcmc->ran) < 0.3) mcmc->nparam[tempi][7]  *= -1.0;                                //Flip declination
+      if(j1==9  && gsl_rng_uniform(mcmc->ran) < 0.3) mcmc->nparam[tempi][9]  *= -1.0;                                //Flip theta_Jo
+      if(j1==10 && gsl_rng_uniform(mcmc->ran) < 0.3) mcmc->nparam[tempi][10] = fmod(mcmc->nparam[tempi][10]+pi,tpi); //Move phi_Jo over 12h
+      */
       
       mcmc->acceptprior[tempi] = prior(&mcmc->nparam[tempi][j1],j1);
       if(mcmc->acceptprior[tempi]==1) {
@@ -813,7 +841,7 @@ void write_mcmc_header(struct interferometer ifo[], struct mcmcvariables mcmc, s
 		ifo[i].FTstart,ifo[i].deltaFT,ifo[i].samplerate,ifo[i].samplesize,ifo[i].FTsize);
       }
       fprintf(mcmc.fout, "\n%12s %20s  %32s  %32s  %37s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s\n",
-	      "cycle","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sinlati","phase","sinthJ0","phiJ0","alpha");
+	      "cycle","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","sinthJ0","phiJ0","alpha");
       fprintf(mcmc.fout, "%33s  %32s  %32s  %37s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s\n",
 	      " ","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept");
       fclose(mcmc.fout);
@@ -839,10 +867,10 @@ void write_mcmc_output(struct mcmcvariables mcmc)
   
   // *** Write output to screen ***
   if(tempi==0) { //Only for the T=1 chain
-    if((iteri % (50*screenoutput))==0 || iteri<0)  printf("\n%10s  %15s  %8s  %8s  %16s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n",
-							  "cycle","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sinlati","phase","sinthJ0","phiJ0","alpha","logT");
-    if((iteri % screenoutput)==0 || iteri<0)  printf("%10d  %15.6lf  %8.5f  %8.5f  %16.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.3f\n",
-						     iteri,mcmc.logL[tempi]-mcmc.logL0,mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2],mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11],log10(mcmc.temp));
+    if((iteri % (50*screenoutput))==0 || iteri<0)  printf("\n%10s  %15s  %8s  %8s  %16s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n",
+							  "cycle","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","sinthJ0","phiJ0","alpha");
+    if((iteri % screenoutput)==0 || iteri<0)  printf("%10d  %15.6lf  %8.5f  %8.5f  %16.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f\n",
+						     iteri,mcmc.logL[tempi]-mcmc.logL0,mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2],mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
   }
   
   
@@ -1391,7 +1419,7 @@ void write_chain_info(struct mcmcvariables mcmc)
     for(j1=0;j1<mcmc.ntemps-1;j1++) {
       printf("  %6.4f",(double)mcmc.swapTs1[j1]/(double)mcmc.iteri);
     }
-    printf("\n");
+    //printf("\n");
   } //if(prpartempinfo==2 && tempi==mcmc.ntemps-1)
 }
 //End write_chain_info
