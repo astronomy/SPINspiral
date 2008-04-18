@@ -45,7 +45,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   ifo[0].radius_eqt  = 6378137.0;       /* WGS 84 */
   ifo[0].radius_pole = 6356752.314;       
   ifo[0].lowCut  =   40.0;  //The other two detectors may use this low,highCut
-  ifo[0].highCut = 4800.0/downsamplefactor;
+  ifo[0].highCut = 6400.0/downsamplefactor;
   ifo[0].before_tc = 6.0;   //The other two detectors may use this before,after_tc
   ifo[0].after_tc = 1.0;
   
@@ -297,11 +297,11 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[2].noisefilesize   = 6000; 
     ifo[2].noisefileoffset = 4000;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[2].noisedoubleprecision = 0;
-
-
+    
+    
     //Use LIGO noise for Virgo (keep tukeywin = 0.05)
     if(1==2) {
-      printf("*** Using LIGO noise for VIRGO !!!  ***\n");
+      printf("\n   *** Using LIGO noise for VIRGO !!!  ***\n\n");
       sprintf(ifo[2].ch1name,       "L1:STRAIN"); 
       sprintf(ifo[2].ch1filepath,   datadir);
       sprintf(ifo[2].ch1fileprefix, "HL-SIM-");
@@ -406,7 +406,9 @@ void ifoinit(struct interferometer **ifo, int networksize)
     if(intscrout==1) printf(" ok.\n");
     // printf("== normalvec (%1.2f, %1.2f, %1.2f)\n", ifo[i]->normalvec[0],ifo[i]->normalvec[1],ifo[i]->normalvec[2]);
     // if(intscrout==1) printf(" : f=%f  e^2=%f  v=%f \n", flattening, eccentricitySQ, curvatureradius);
+    //printf("   Reading noise...\n");
     noisePSDestimate(ifo[i]);
+    //printf("   Reading data...\n");
     dataFT(ifo,i,networksize);
     /* initialise array of different powers of Fourier frequencies */
     /* corresponding to the elements of `ifo[i]->dataTrafo':       */

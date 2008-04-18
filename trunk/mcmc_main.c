@@ -1,9 +1,5 @@
 // mcmc_main.c
 // Main routine of spinning MCMC code
-// v.10: Include correlated jump proposals; the chain now starts with a guess for a diagonal covariance matrix
-// v.11: Include chain temperature and offset runs
-// v.12: Test off-set run and degeneracy between sky position and distance
-// v.13: Introduce parallel tempering
 
 
 
@@ -20,7 +16,6 @@ int main(int argc, char * argv[])
   int i;
   double snr;
   
-  
   //Initialise stuff for the run
   struct runpar run;
   sprintf(run.infilename,"mcmc.input"); //Default input filename
@@ -32,7 +27,7 @@ int main(int argc, char * argv[])
   setmcmcseed(&run);     //Set mcmcseed (if 0), or use the current value
   writeinputfile(&run);  //Write run data to nicely formatted input.mcmc.<mcmcseed>
   
-  //Set up the data of the IFOs you may want to use (H1,L1 + VIRGO by default)
+  //Set up the data for the IFOs you may want to use (H1,L1 + VIRGO by default)
   struct interferometer database[3];
   set_ifo_data(run, database);  
   
@@ -42,9 +37,9 @@ int main(int argc, char * argv[])
   
   //Initialise interferometers, read and prepare data, inject signal (takes some time)
   if(networksize == 1) {
-    printf("   Initialising 1 IFO, reading data...\n");
+    printf("   Initialising 1 IFO, reading noise and data...\n");
   } else {
-    printf("   Initialising %d IFOs, reading datafiles...\n",networksize);
+    printf("   Initialising %d IFOs, reading noise and data files...\n",networksize);
   }
   ifoinit(network, networksize);
   if(inject) {

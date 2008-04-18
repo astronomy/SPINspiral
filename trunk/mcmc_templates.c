@@ -22,9 +22,7 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
     cvec3[i] = 0.0;
     tvec1[i] = 0.0;
     tvec2[i] = 0.0;
-    //tvec3[i] = 0.0;
     tvec4[i] = 0.0;
-    //tvec5[i] = 0.0;
     tvec6[i] = 0.0;
     tvec7[i] = 0.0;
     n_L[i] = 0.0;
@@ -107,13 +105,14 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
   double omega_high = pi*ifo[ifonr]->highCut;  //1600 Hz, translated from f_gw to omega_orb
   //double omega_high = min(pi*ifo[ifonr]->highCut, exp(-1.5*log(cutoff_a) - log(M)) );  //1600 Hz, translated from f_gw to omega_orb, or a/M = cutoff_a, whichever is smaller
   
-  
-  /*  if(printmuch) {
+  /*
+  if(printmuch) {
     double Tcoal = 5.0*pow(8.0*omega_low,-8.0*c3rd)*pow(Mc,-5.0*c3rd) * (1.0 + 4.0*c3rd*cst1*pow(omega_low*M,2.0*c3rd) - 1.6*cst2*(omega_low*M));   //Time between f_low and coalescence
     double t0 = localtc - Tcoal;
     double deltat = (double)length*inversesamplerate;
-    printf("Times:  Tcoal: %g,  t0: %g,  localtc: %g,  tstart: %g,  length: %d,  dt: %g,  dt-ltc: %g\n",Tcoal,t0,localtc,tstart,length,deltat,deltat-localtc);
-    }*/
+    printf("Times:  Tcoal: %g,  t0: %g,  localtc: %g,  length: %d,  dt: %g,  dt-ltc: %g\n",Tcoal,t0,localtc,length,deltat,deltat-localtc);
+  }
+  */
   
   double oldomega = -1.e30;
   double phi_gw=0.0,alpha=0.0;
@@ -140,7 +139,8 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
     /* determine time left until coalescence, "(t_c-t)" in (4.17)/(11): */
     t = localtc - ((double)i)*inversesamplerate;  // (time to t_c) = "(t_c-t)" in (4.17)
     if(t<0.0) { 
-      terminate = 1;
+      //terminate = 1;
+      if(terminate==0) terminate = 1;  //Set to 1 only if it was 0
     }
     else {
       tau    = par->eta/(5.0*M)*t;   //t = localtc-t already
@@ -156,6 +156,7 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
       
       omega_orb = 1.0/(8.0*M) * (tau_38 + 0.125*cst1*tau_58 - 0.075*cst2*tau_68);   // Orbital frequency
       omegas[i] = omega_orb;
+      //printf("  t: %lf  tau: %lf  omega_orb: %lf\n",t,tau,omega_orb);
     }
     
     if ((omega_orb>=omega_low) && (terminate==0)) {  // After source comes into window, before tc and before frequency reaches its maximum  Careful, if t<0, omega = nan!!!
@@ -163,10 +164,10 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
       if (omega_orb < oldomega || omega_orb >= omega_high){  // Frequency starts decreasing, or frequency higher than highCut --> terminate signal
       //if (omega_orb < oldomega || omega_orb >= omega_high || taperx[i]>0.09){  // Frequency starts decreasing, or frequency higher than highCut, or v_orb>0.3c --> terminate signal
         ifo[ifonr]->FTin[i] = 0.0; 
-	//terminate = 1;
-        if(omega_orb < oldomega) terminate += 2;
-        if(omega_orb >= omega_high) terminate += 4;
-	//if(taperx[i]>0.09) terminate += 8;
+        if(omega_orb < oldomega) terminate = 2;
+        if(omega_orb >= omega_high) terminate = 3;
+	//if(taperx[i-1]>0.09) terminate = 4;
+	//printf("  i: %d  terminate: %d\n",i,terminate);
       }
       
       else {             // Frequency still increasing --> keep on computing...
@@ -180,7 +181,7 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
         
         //GW and orbital phase
         phi_gw = par->phase - 2.0/par->eta * (tau58 + 0.625*c3rd*cst1*tau38 - 0.1875*cst2*tau28);                       // GW phase
-	if(fabs(phi1)<1.e-30) phi1 = phi_gw;  //Save initial phi
+	if(fabs(phi1)<1.e-30) phi1 = phi_gw;   //Save initial phi
 	//phi2 = phi_gw;                       //Save final phi
         
         Y = spin/l_L;                                                                                                    //Y = |S|/|L|, Eq.43
@@ -246,14 +247,18 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
 	
 	
       }
+    }  //end if ((omega_orb>=omega_low) && (terminate==0)) {  // After source comes into window, before tc and before frequency reaches its maximum  Careful, if t<0, omega = nan!!!
+    else {
+      ifo[ifonr]->FTin[i]   = 0.0;  //  (after t_c or after termination)
+      //printf("  %d \n",terminate);
     }
-    else ifo[ifonr]->FTin[i]   = 0.0;  //  (after t_c or after termination)
   }  //i
+  
   //if(i1<=1 && par->mc>0.02)  printf("   **********    Warning: length is too small to fit waveform template, increase before_tc    **********\n"); //Don't print when doing null-likelihood
   //if(i2>=length-1 && par->mc>0.02)  printf("   **********    Warning: length is too small to fit waveform template, increase after_tc    **********\n"); //Don't print when doing null-likelihood
   //if(printmuch) 
   //printf("%10.2f  %10.2f  %10.2f  %10.1f  %10.2f  %10.2f",par->spin,acos(par->kappa)*r2d,(double)(i2-i1)*inversesamplerate,(phi2-phi1)/tpi,(alpha2-alpha1)/tpi,pow(M*oldomega,-2.0*c3rd));
-  //if(printmuch) printf("%d  %d  %d  %d  %lf  %lf  %lf  %lf  %lf  %lf\n",terminate,i1,i2,length,oldomega/pi,omega_orb/pi,omega_low/pi,omega_high/pi,omegas[i1]/pi,omegas[i2]/pi);
+  //if(printmuch) printf("  term: %d  i1: %d  i2: %d  length: %d  f_gw,old: %lf  f_gw: %lf  f_gw,low: %lf  f_gw,high: %lf  f_gw1: %lf  f_gw2: %lf\n",terminate,i1,i2,length,oldomega/pi,omega_orb/pi,omega_low/pi,omega_high/pi,omegas[i1]/pi,omegas[i2]/pi);
   
   
   //Apply tapering
@@ -303,6 +308,7 @@ void localpar(struct parset *par, struct interferometer *ifo[], int networksize)
     par->locazi[i] = angle(dummyvec, ifo[i]->rightvec);
     if (!righthanded(ifo[i]->rightvec, dummyvec, ifo[i]->normalvec))
       par->locazi[i] = 2.0*pi - par->locazi[i];
+    //printf("  %d  %lf  %lf  %s\n",i,ifo[i]->lati/pi*180.0,ifo[i]->longi/pi*180.0,ifo[i]->name);
   }
   return;
 }

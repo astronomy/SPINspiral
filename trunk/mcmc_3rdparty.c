@@ -662,7 +662,7 @@ void remez(double h[], int numtaps,
    }
    if (iter == MAXITERATIONS)
    {
-      printf("Reached maximum iteration count.\nResults may be bad.\n");
+      printf("Remez: Reached maximum iteration count; results may be bad.\n");
    }
 
    CalcParms(r, Ext, Grid, D, W, ad, x, y);

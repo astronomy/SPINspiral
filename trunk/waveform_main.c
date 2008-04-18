@@ -1,5 +1,5 @@
 // waveform_main.c:
-// Main routine to generate and save waveform
+// Main routine to generate and save waveforms
 
 
 
@@ -18,7 +18,7 @@ int main(int argc, char * argv[])
   
   //Initialise stuff for the run
   struct runpar run;
-  sprintf(run.infilename,"mcmc.input");
+  sprintf(run.infilename,"mcmc.input"); //Default input filename
   if(argc > 1) sprintf(run.infilename,argv[1]);
 
   setconstants(&run);    //Set the global constants (which are variable in C). This routine should eventuelly disappear.
@@ -32,25 +32,19 @@ int main(int argc, char * argv[])
   domatch = 0;
   writesignal = 0;
   
-  //Set up the data of the IFOs you may want to use (H1,L1 + VIRGO by default)
+  //Set up the data for the IFOs you may want to use (H1,L1 + VIRGO by default)
   struct interferometer database[3];
   set_ifo_data(run, database);
   
-  
-  //Define interferometer network; how many and which IFOs
-  //const int networksize = 1;
-  //struct interferometer *network[1] = {&database[0]};
-  const int networksize = 2;
-  struct interferometer *network[2] = {&database[0], &database[1]};
-  //const int networksize = 3;
-  //struct interferometer *network[3] = {&database[0], &database[1], &database[2]};
-  
+  //Define interferometer network which IFOs.  The first run.networksize are actually used
+  struct interferometer *network[3] = {&database[0], &database[1], &database[2]};
+  int networksize = run.networksize;
   
   //Initialise interferometers, read and prepare data, inject signal (takes some time)
   if(networksize == 1) {
-    printf("   Initialising 1 IFO, reading data...\n");
+    printf("   Initialising 1 IFO, reading noise and data...\n");
   } else {
-    printf("   Initialising %d IFOs, reading datafiles...\n",networksize);
+    printf("   Initialising %d IFOs, reading noise and data files...\n",networksize);
   }
   ifoinit(network, networksize);
   if(inject) {
@@ -84,12 +78,8 @@ int main(int argc, char * argv[])
   //Calculate SNR
   if(dosnr==1) {
     for (i=0; i<networksize; ++i) {
-      //printmuch=1;
       snr = signaltonoiseratio(&dummypar, network, i);
-      //printmuch=0;
-      //printf("  %10.2f\n",snr);
       network[i]->snr = snr;
-      //printf("  Det: %d,  GMST: %20.10lf,  Azimuth: %20.10lf,  Altitude: %20.10lf  \n",i,GMST(prior_tc_mean),dummypar.locazi[i],dummypar.localti[i]);
     }
   }
   
@@ -168,7 +158,7 @@ int main(int argc, char * argv[])
   free(dummypar.locpolar);
   
   
-  printf("\n   MCMC code done.\n\n\n");
+  printf("\n   Waveform code done.\n\n\n");
   return 0;
 }
 

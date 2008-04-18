@@ -48,7 +48,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   ifo[0].radius_eqt  = 6378137.0;       /* WGS 84 */
   ifo[0].radius_pole = 6356752.314;       
   ifo[0].lowCut  =   40.0;  //The other two detectors have the same low,highCut
-  ifo[0].highCut = 4800.0/downsamplefactor;
+  ifo[0].highCut = 6400.0/downsamplefactor;
   ifo[0].before_tc = 6.0;   //The other two detectors have the same before,after_tc
   ifo[0].after_tc = 1.0;
   
@@ -631,7 +631,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     // cut
   }
   
-  printf("  ifo: %d   N: %d   rate: %d   delta: %lf\n",i,N,ifo[i]->samplerate,delta);
+  //printf("  ifo: %d   N: %d   rate: %d   delta: %lf\n",i,N,ifo[i]->samplerate,delta);
   
   /*-- allocate memory for transform input, --*/
   raw  = malloc(sizeof(double) * N);
@@ -788,7 +788,7 @@ void noisePSDestimate(struct interferometer *ifo)
   samplerate = ifo->samplerate;
   N = samplerate*16; //How long is this data, 16s???
   
-  printf("  N: %d   rate: %d\n",N,samplerate);
+  //printf("  N: %d   rate: %d\n",N,samplerate);
   
   
   M = (int)(N/2.0);
