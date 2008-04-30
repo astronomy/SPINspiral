@@ -36,6 +36,8 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
   inversesamplerate = 1.0/samplerate;
   length     = ifo[ifonr]->samplesize;
   
+  //printf("\n\n  %20.5lf  %f    %f  %f  %f    %f  %f  %f\n\n\n",par->tc,GMST(par->tc),par->longi*r2h,rightAscension(par->longi,GMST(par->tc))*r2h,asin(par->sinlati)*r2d, par->locazi[ifonr]*r2d,fmod(pi-(par->locazi[ifonr]+ifo[ifonr]->rightarm)+mtpi,tpi)*r2d,(pi/2.0-par->localti[ifonr])*r2d);
+  
   
   double n_z[3] = {0.0,0.0,1.0};                                                                                        //North in global coordinates
   double normalvec[3];                                                                                                  
@@ -53,6 +55,7 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
   //double n_J0[3] = { cos(par->phiJ0)*sthJ0 , sin(par->phiJ0)*sthJ0 , cthJ0 };                                         //Here, theta_Jo is a polar angle (0-pi).  I think this conflicts with the fact that we have sin(theta_Jo) as an MCMC variable (MvdS)
   double n_J0[3] = { cos(par->phiJ0)*cthJ0 , sin(par->phiJ0)*cthJ0 , sthJ0 };                                           //Here, theta_Jo is an angle like Dec (-pi/2-pi/2).  I think this should be our choice since we have sin(theta_Jo) as an MCMC variable. In order to do this consistently, I swapped sthJ0 and cthJ0 below (MvdS)
   
+  par->NdJ = dotproduct(n_N,n_J0);                                                                                      //Inclination of J_0
   
   //Get masses from Mch and eta
   double root = sqrt(0.25-par->eta);
@@ -89,11 +92,12 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
   //facvec(tvec1,1.0/sthJ0,cvec2);                                                                                         //cvec2 = (J0^ x z^) / sin(theta_J0)
   facvec(tvec1,1.0/cthJ0,cvec2);                                                                                         //cvec2 = (J0^ x z^) / sin(theta_J0)   MvdS: if theta_J0 is NOT a polar angle
   
-  //Constant vector 3 for the construction of Eq.12
+  //Constant vector 3 for the construction of Eq.12 (local polarisation for F+,x)
   facvec(n_N,-dotproduct(normalvec,n_N),tvec1);                                                                          //tvec1 = -N^(z^'.N^)
   addvec(normalvec,tvec1,cvec3);                                                                                         //cvec3 = z^' - N^(z^'.N^)
   
   //Construct Eq.8ab
+  //Needed for F+,Fx
   double cosalti   = cos(altitude);
   double sin2azi   = sin(2.0*azimuth);
   double cos2azi   = cos(2.0*azimuth);
@@ -231,7 +235,7 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
         
 	//Detector signal:
 	ifo[ifonr]->FTin[i] = Fplus*hplus + Fcross*hcross;                                                              //  (3.10)
-	//ifo[ifonr]->FTin[i] = hplus;
+	//ifo[ifonr]->FTin[i] = Fcross*hcross;
 	
 	
 	
@@ -273,41 +277,42 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
 
 
 void localpar(struct parset *par, struct interferometer *ifo[], int networksize)
-/* calculate the local parameters from the global ones, for the spinning case  */
-/* parameters:                                                                 */
-/*    par   :  pointer to parameter set                                        */
-/*    ifo   :  pointer to interferometer data                                  */
+// Calculate the local parameters from the global ones, for the spinning parameters:
+//    par   :  pointer to parameter set
+//    ifo   :  pointer to interferometer data
 {
-  if(MvdSdebug) printf("  Localpar\n");
+  //if(MvdSdebug) printf("  Localpar\n");
   int i,j;
   double lineofsight[3];
   double dummyvec[3];
   
   
-//-- determine new (local) coalescence times
+  // Determine new (local) coalescence times:
   double scalprod1, delay;
   coord2vec(par->sinlati, par->longi, lineofsight);
   for (i=0; i<networksize; i++){
-    /* project line-of-sight onto `positionvec': */
+    // Project line of sight onto positionvec, scalprod1 is in units of metres
     scalprod1 =   ifo[i]->positionvec[0]*lineofsight[0]
                 + ifo[i]->positionvec[1]*lineofsight[1]
                 + ifo[i]->positionvec[2]*lineofsight[2];
-    /* `scalprod' is in units of metres!         */
-    delay = scalprod1 / c; /* time delay (wrt geocentre) in seconds */
+    delay = scalprod1 / c;                                 // Time delay (wrt geocentre) in seconds
+
     par->loctc[i] = ((par->tc - ifo[i]->FTstart) - delay);
   }
   
-  //-- determine new (local) altitudes & azimuths: --*/
+  // Determine new (local) altitudes & azimuths:
   for (i=0; i<networksize; i++){
-    /*-- determine ALTITUDE (with respect to ifo'): --*/
-    par->localti[i] = angle(ifo[i]->normalvec, lineofsight); 
-    /*-- determine AZIMUTH (w.r.t. ifo'):           --*/
-    /* project line of sight into ifo' arm plane: */
-    for (j=0; j<3; ++j) dummyvec[j] = lineofsight[j];
-    orthoproject(dummyvec, ifo[i]->rightvec, ifo[i]->orthoarm);
-    par->locazi[i] = angle(dummyvec, ifo[i]->rightvec);
-    if (!righthanded(ifo[i]->rightvec, dummyvec, ifo[i]->normalvec))
-      par->locazi[i] = 2.0*pi - par->locazi[i];
+    
+    //Determine ALTITUDE (wrt ifo'):
+    par->localti[i] = angle(ifo[i]->normalvec, lineofsight);       // Actually, this is the colatitude in the ifo' frame (i.e. 0deg=zenith, 90deg=horizon)
+    
+    for (j=0; j<3; ++j) dummyvec[j] = lineofsight[j];              // Temp vector with line of sight
+    orthoproject(dummyvec, ifo[i]->rightvec, ifo[i]->orthoarm);    // Project line of sight into ifo' arm plane
+    
+    //Determine AZIMUTH (wrt ifo'):
+    par->locazi[i] = angle(dummyvec, ifo[i]->rightvec);            //The 'true' azimuth (N=0,E=90deg) of the source at the location of the detector is:  pi - (par->locazi[i] + ifo[i]->rightarm) 
+    if (!righthanded(ifo[i]->rightvec, dummyvec, ifo[i]->normalvec)) par->locazi[i] = 2.0*pi - par->locazi[i];
+    
     //printf("  %d  %lf  %lf  %s\n",i,ifo[i]->lati/pi*180.0,ifo[i]->longi/pi*180.0,ifo[i]->name);
   }
   return;

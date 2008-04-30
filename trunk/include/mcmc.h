@@ -111,6 +111,8 @@ struct runpar{
   int networksize;       // Number of IFOs in the detector network
   //int adapt;           // Use adaptation or not
   //double *fitpar;
+  int *setranpar;        // Set random true (i.e., injection) parameters 
+  int ranparseed;        // Seed to randomise true parameters (i.e., injection)
   
   double blockfrac;      // Fraction of non-correlated updates that is a block update
   double corrfrac;       // Fraction of MCMC updates that used the correlation matrix
@@ -202,6 +204,8 @@ struct parset{
   double sinthJ0;    // sin Theta_J0              
   double phiJ0;      // Phi_J0                    
   double alpha;      // Alpha_c                   
+  
+  double NdJ;        // N^.J_o^; inclination of J_o
 
   // derived quantities (see also `parupdate()'):
   double *loctc;     // vector of `local coalescence times' (w.r.t. FT'd data!)         
@@ -283,9 +287,12 @@ void readinputfile(struct runpar *run);
 void writeinputfile(struct runpar *run);
 void setconstants(struct runpar *run);
 void set_ifo_data(struct runpar run, struct interferometer ifo[]);
+
+void setrandomtrueparameters(struct runpar *run);
 void gettrueparameters(struct parset *par);
 void getnullparameters(struct parset *par);
 void setmcmcseed(struct runpar *run);
+void setseed(int *seed);
 
 void mcmc(struct runpar *run, struct interferometer *ifo[]);
 void chol(int n, double **A);

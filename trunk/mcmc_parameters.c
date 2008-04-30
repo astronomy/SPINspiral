@@ -39,6 +39,9 @@ void readinputfile(struct runpar *run)
   fgets(bla,500,fin);  sscanf(bla,"%d",&screenoutput);
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->mcmcseed);
   fgets(bla,500,fin);  sscanf(bla,"%d",&inject);
+  for(i=0;i<npar;i++)  fscanf(fin,"%d",&run->setranpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  fgets(bla,500,fin);  //Read the rest of this line
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->ranparseed);
   fgets(bla,500,fin);  sscanf(bla,"%d",&adapt);
   fgets(bla,500,fin);  sscanf(bla,"%lf",&run->blockfrac);
   for(i=0;i<npar;i++)  fscanf(fin,"%d",&fitpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
@@ -140,6 +143,10 @@ void writeinputfile(struct runpar *run)
   fprintf(fout, "  %-25d  %-18s  %-s\n",      screenoutput,  "screenoutput",   "Number of iterations between screen outputs im the MCMC (1000 for 1d).");
   fprintf(fout, "  %-25d  %-18s  %-s\n",      run->mcmcseed, "mcmcseed",       "Random number seed to start the MCMC: 0-let system clock determine seed.");
   fprintf(fout, "  %-25d  %-18s  %-s\n",      inject,        "inject",         "Inject a signal (1) or not (0).");
+  fprintf(fout, " ");
+  for(i=0;i<npar;i++) fprintf(fout, "%2d",    run->setranpar[i]);
+  fprintf(fout, "    %-18s  %-s\n",                          "setranpar[12]",  "Parameters you want to randomise before injecting the signal; 0: use the value in truepar below, 1: randomise.  These are the same parameters as trueval (ie M1, M2, etc!)");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      run->ranparseed,"ranparseed",    "Random number seed for random injection parameters. Don't change between serial chains of the same run!");
   fprintf(fout, "  %-25d  %-18s  %-s\n",      adapt,         "adapt",          "Use adaptation: 0-no, 1-yes.");
   fprintf(fout, "  %-25.2f  %-18s  %-s\n",    run->blockfrac,"blockfrac",      "Fraction of uncorrelated updates that is updated as a block of all parameters (<=0.0: none, >=1.0: all).");
   fprintf(fout, " ");
@@ -196,7 +203,7 @@ void writeinputfile(struct runpar *run)
   
   fprintf(fout, "\n");
   fprintf(fout, "\n  #True parameter values, *not* the exact MCMC parameters and units!  These are used to inject a signal and/or start the MCMC from.\n");
-  fprintf(fout, "   M1(Mo)    M2(Mo)            t_c (GPS)   d_L(Mpc)    a_spin    th_SL(d)    H.A.(d)     dec(d)    phic(d)   th_Jo(d)   phi_Jo(d)  alpha(d)  \n");
+  fprintf(fout, "   M1(Mo)    M2(Mo)            t_c (GPS)   d_L(Mpc)    a_spin    th_SL(d)    R.A.(h)     dec(d)    phic(d)   th_Jo(d)   phi_Jo(d)  alpha(d)  \n");
   for(i=0;i<npar;i++) {
     if(i==2) {
       fprintf(fout, "  %-18.6lf",truepar[i]);
@@ -369,7 +376,7 @@ void setconstants(struct runpar *run)
   truepar[3]  = 13.0;              // d_L
   truepar[4]  = 0.8;               // spin
   truepar[5]  = 55.0;              // theta (deg)
-  truepar[6]  = 91.0;              // 'hour angle' (saved as RA) (deg)
+  truepar[6]  = 91.0;              // 'Greenwich hour angle' (saved as RA) (deg)
   truepar[7]  = 40.0;              // declination (deg)
   truepar[8]  = 11.459156;         // phase (deg)
   truepar[9]  = 15.0;              // theta_J0 (deg)
@@ -446,6 +453,66 @@ void setconstants(struct runpar *run)
 
 
 
+void setrandomtrueparameters(struct runpar *run)  //Get random values for the 'true' parameters for the 12-parameter spinning template.  
+// *** This changes the injected signal!!! ***
+{
+  int i=0;
+  gsl_rng *ran;
+  ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
+  if(1==2) {  //Select a random seed, *** ONLY FOR TESTING ***
+    printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setrandumtrueparameters() \n\n");
+    run->ranparseed = 0;
+    setseed(&run->ranparseed);
+    //printf("  Seed: %d\n", run->ranparseed);
+  }
+  gsl_rng_set(ran, run->ranparseed);     // Set seed
+  
+  //Lower and upper boundaries:
+  double *lb,*ub,db,dt;
+  lb = (double*)calloc(12,sizeof(double));
+  ub = (double*)calloc(12,sizeof(double));
+  lb[0] = 5.0;       //M1 (Mo)
+  ub[0] = 15.0;
+  lb[1] = 1.2;       //M2 (Mo)
+  ub[1] = 1.6;
+  dt = 0.5; //This should be dt/2
+  lb[2] = prior_tc_mean - dt; //t_c
+  ub[2] = prior_tc_mean + dt;
+  lb[3] = 10.0;      //d_L (Mpc)
+  ub[3] = 30.0;
+  lb[4] = 1.e-10;    //a_spin (0-1)
+  ub[4] = 0.999999;
+  lb[5] = 0.001;     //th_SL (deg)
+  ub[5] = 179.999;
+  //lb[6] = 0.0;       //longi (deg)
+  //ub[6] = 360.0;
+  lb[6] = 0.0;       //RA (h)
+  ub[6] = 24.0;
+  lb[7] = -89.999;   //dec (deg)
+  ub[7] = 89.999;
+  lb[8] = 0.0;       //phi_c (deg)
+  ub[8] = 360.0;
+  lb[9] = -89.999;   //theta_J0 (deg)
+  ub[9] = 89.999;
+  lb[10] = 0.0;      //phi_Jo (deg)
+  ub[10] = 360.0;
+  lb[11] = 0.0;      //alpha_c (deg)
+  ub[11] = 360.0;
+  
+  for(i=0;i<npar;i++) {
+    db = ub[i]-lb[i];
+    if(run->setranpar[i]==1) truepar[i] = gsl_rng_uniform(ran)*db + lb[i];
+    //printf("  %d  %lf  %lf  %lf  %lf\n",i,lb[i],ub[i],db,truepar[i]);
+  }
+  
+  free(lb);
+  free(ub);
+  free(ran);
+}
+
+
+
+
 void gettrueparameters(struct parset *par)  //Set the parameters for the 12-parameter spinning template to the 'true values'
 {
   par->m1       = truepar[0];                    // M1 (10.0)
@@ -459,7 +526,8 @@ void gettrueparameters(struct parset *par)  //Set the parameters for the 12-para
   
   par->spin     = truepar[4];                    // magnitude of total spin   (0.1)
   par->kappa    = cos(truepar[5]*d2r);           // L^.S^, cos of angle between L^ & S^  (0.819152)
-  par->longi    = truepar[6]*d2r;                // longitude (~"hour angle"?, saved as RA)     (120)
+  //par->longi    = truepar[6]*d2r;                // longitude (~'Greenwich hour angle', saved as RA)     (120)
+  par->longi    = fmod(longitude(truepar[6]*h2r,GMST(par->tc))+mtpi,tpi);  //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
   par->sinlati  = sin(truepar[7]*d2r);           // sin latitude (sin(delta))  (40)     
   
   par->phase    = truepar[8]*d2r;                // orbital phase   (phi_c)   (0.2)

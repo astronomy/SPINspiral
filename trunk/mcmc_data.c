@@ -16,7 +16,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   int i=0,numberofdatasets = 4;
   //Description of the data sets below
   char datadescriptions[10][99];
-  sprintf(datadescriptions[1],"gaussian, stationary noise (GPS ~700006000)");
+  sprintf(datadescriptions[1],"Gaussian, stationary noise (GPS ~700006000)");
   sprintf(datadescriptions[2],"clean S5 data (GPS ~846226044)");
   sprintf(datadescriptions[3],"playground trigger data (GPS ~845348295)");
   sprintf(datadescriptions[4],"glitchy data (GPS ~846471090)");
@@ -300,7 +300,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     
     
     //Use LIGO noise for Virgo (keep tukeywin = 0.05)
-    if(1==2) {
+    if(1==1) {
       printf("\n   *** Using LIGO noise for VIRGO !!!  ***\n\n");
       sprintf(ifo[2].ch1name,       "L1:STRAIN"); 
       sprintf(ifo[2].ch1filepath,   datadir);
@@ -364,37 +364,45 @@ void ifoinit(struct interferometer **ifo, int networksize)
     else if(intscrout==1) printf(" | frame file precision: float (32 bit)\n"); 
     //if(intscrout==1) printf(" | frequency range: %.0f to %.0f Hz.\n", ifo[i]->lowCut, ifo[i]->highCut);
     if(intscrout==1) printf(" | initialising vectors etc...");
-    /* place arms on equator plane, so that its designated N-S-direction */
-    /* is aligned with its meridian plane:                               */
+    
+    
+    //Longitude: East is positive
+    
+    // Place arms on equator plane, so that its designated N-S-direction is aligned with its meridian plane:
     ifo[i]->rightvec[0]  = -cos(ifo[i]->longi + ifo[i]->rightarm);
     ifo[i]->rightvec[1]  = -sin(ifo[i]->longi + ifo[i]->rightarm);
     ifo[i]->rightvec[2]  = 0.0;
+    
     ifo[i]->leftvec[0]   = -cos(ifo[i]->longi + ifo[i]->leftarm);
     ifo[i]->leftvec[1]   = -sin(ifo[i]->longi + ifo[i]->leftarm);
     ifo[i]->leftvec[2]   = 0.0;
+    
     ifo[i]->normalvec[0] = 0.0;
     ifo[i]->normalvec[1] = 0.0;
     ifo[i]->normalvec[2] = 1.0;
-    /* the following vector is usually (but not necessarily) */
-    /* identical to the left arm (`leftvec'):                */
+    
+    // The following vector is rightarm + 90deg and usually (but not necessarily) identical to the left arm (leftvec):
     ifo[i]->orthoarm[0]  = -cos(ifo[i]->longi + ifo[i]->rightarm + 0.5*pi);
     ifo[i]->orthoarm[1]  = -sin(ifo[i]->longi + ifo[i]->rightarm + 0.5*pi);
     ifo[i]->orthoarm[2]  = 0.0;
-    /* Determine normal vector of meridian plane: */
+    
+    // Determine normal vector of meridian plane (i.e., the vector that points E(?) when standing at the equator at longi):
     merinormal[0] = cos(ifo[i]->longi - 0.5*pi);
     merinormal[1] = sin(ifo[i]->longi - 0.5*pi);
     merinormal[2] = 0.0;
-    /* The three vectors:                                                      */
-    /*   x) from geocenter to intersection of ifo meridian with equator plane  */
-    /*   y) from geocenter to north pole                                       */
-    /*   z) the above normal vector                                            */
-    /* again form another (orthonormal) right-handed system.                   */
-    /* Now turn all arms clockwise around the normal vector of meridian plane: */
+    
+    // The three vectors:                                                     
+    //   x) from geocenter to intersection of ifo meridian with equator plane
+    //   y) from geocenter to north pole
+    //   z) the above normal vector (merinormal(?))
+    // again form another (orthonormal) right-handed system.
+    // Now turn all arms clockwise around the normal vector of meridian plane, to account for the latitude of the detectors:
     rotate(ifo[i]->rightvec,  pi/2.0 - ifo[i]->lati, merinormal);
     rotate(ifo[i]->leftvec,   pi/2.0 - ifo[i]->lati, merinormal);
     rotate(ifo[i]->orthoarm,  pi/2.0 - ifo[i]->lati, merinormal);
     rotate(ifo[i]->normalvec, pi/2.0 - ifo[i]->lati, merinormal);
-    /* initialise the ifo position (!NOT! unit-) vector: */
+    
+    // Initialise the ifo position (!NOT! unit-) vector:
     coord2vec(sin(ifo[i]->lati), ifo[i]->longi, ifo[i]->positionvec);
     if (ifo[i]->radius_eqt < ifo[i]->radius_pole) printf("  CHECK EARTH MODEL RADII !!  ");
     flattening      = (ifo[i]->radius_eqt - ifo[i]->radius_pole) / ifo[i]->radius_eqt;
@@ -406,10 +414,15 @@ void ifoinit(struct interferometer **ifo, int networksize)
     if(intscrout==1) printf(" ok.\n");
     // printf("== normalvec (%1.2f, %1.2f, %1.2f)\n", ifo[i]->normalvec[0],ifo[i]->normalvec[1],ifo[i]->normalvec[2]);
     // if(intscrout==1) printf(" : f=%f  e^2=%f  v=%f \n", flattening, eccentricitySQ, curvatureradius);
+    
+    
     //printf("   Reading noise...\n");
     noisePSDestimate(ifo[i]);
+    
     //printf("   Reading data...\n");
     dataFT(ifo,i,networksize);
+    
+    
     /* initialise array of different powers of Fourier frequencies */
     /* corresponding to the elements of `ifo[i]->dataTrafo':       */
     /* First loop to determine index bounds & range:               */

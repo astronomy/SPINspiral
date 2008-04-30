@@ -2,6 +2,15 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    31: sluys
+     - The input file has changed!!!  
+       * RA is now given in stead of 'longi'
+       * setranpar[12] and ranparseed were added to inject random parameters
+       * notice that setranpar uses M1,M2 in stead of Mc,eta!
+     - Many small other (often cosmetic) changes, most notably:
+       * the 'header' that provides signal info to screen in now in main(), not mcmc()
+       * some local source info for each detector is provided
+    
     30: sluys
      - Vivien found an error in calculating h_x: L.N should be used, not (L.N)^2
      - Some lines were missing that are needed to include Virgo data

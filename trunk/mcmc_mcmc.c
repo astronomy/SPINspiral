@@ -517,7 +517,7 @@ int prior(double *par, int p)
   lb[2] = prior_tc_mean - dt; //t_c
   ub[2] = prior_tc_mean + dt;
   
-  lb[3] = -6.9; //log(d_L)
+  lb[3] = -6.9; //ln(d_L)
   ub[3] = 4.6;
   
   lb[4] = 1.e-10; //a_spin
@@ -812,16 +812,12 @@ void write_mcmc_header(struct interferometer ifo[], struct mcmcvariables mcmc, s
   // *** Print run parameters to screen ***
   if(offsetmcmc==0) printf("   Starting MCMC with the true initial parameters\n\n");
   if(offsetmcmc==1) printf("   Starting MCMC with offset initial parameters\n\n");
-  printf("%10s  %10s  %6s  %20s  %6s  ","niter","nburn","seed","null likelihood","ndet");
-  for(i=0;i<run.networksize;i++) {
-    printf("%16s%4s  ",ifo[i].name,"SNR");
-  }
-  printf("%20s\n","Network SNR");
-  printf("%10d  %10d  %6d  %20.10lf  %6d  ",iter,nburn,mcmc.seed,mcmc.logL0,run.networksize);
-  for(i=0;i<run.networksize;i++) {
-    printf("%20.10lf  ",ifo[i].snr);
-  }
-  printf("%20.10lf\n",run.netsnr);
+  //printf("%10s  %10s  %6s  %20s  %6s  ","niter","nburn","seed","null likelihood","ndet");
+  //for(i=0;i<run.networksize;i++) printf("%16s%4s  ",ifo[i].name,"SNR");
+  //printf("%20s\n","Network SNR");
+  //printf("%10d  %10d  %6d  %20.10lf  %6d  ",iter,nburn,mcmc.seed,mcmc.logL0,run.networksize);
+  //for(i=0;i<run.networksize;i++) printf("%20.10lf  ",ifo[i].snr);
+  //printf("%20.10lf\n",run.netsnr);
   
   
   // *** Open the output file and write run parameters in the header ***

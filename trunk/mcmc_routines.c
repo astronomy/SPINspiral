@@ -45,38 +45,34 @@ double GMST(double GPSsec)
   double GPS_Jan1st2000midnight    = 630720013.0;
   double leapseconds = 32.0;  /* at Jan 1st 2000 */
   double seconds, days, centuries, secCurrentDay, result;
-  if (GPSsec > (GPS_Jan1st2000midnight + 189388800.0)) 
-    leapseconds += 1.0; /* one more leapsecond after 2005/'06 */
+  if (GPSsec > (GPS_Jan1st2000midnight + 189388800.0)) leapseconds += 1.0; // One more leapsecond after 2005/'06
   if (GPSsec < 630720013.0) printf(" : WARNING: GMST's before 1.1.2000 are inaccurate! \n");
-  /* time since Jan 1st 2000 (0:00h) */
+  // Time since Jan 1st 2000 (0:00h):
   seconds       = (GPSsec - GPS_Jan1st2000midnight) + (leapseconds - 32.0);
   days          = floor( seconds / (24.0*60.0*60.0) ) -0.5;
   secCurrentDay = fmod(seconds, 24.0*60.0*60.0);
   centuries     = days / 36525.0;
   result  = 24110.54841+(centuries*(8640184.812866+centuries*(0.093104+centuries*6.2e-6)));
-  result += secCurrentDay * 1.002737909350795; /* (UTC day is 1.002 * MST day) */
+  result += secCurrentDay * 1.002737909350795; // UTC day is 1.002 * MST day
   result  = fmod(result/(24.0*60.0*60.0),1.0);
   result *= 2.0*pi;
   return result;
 }
 
 double rightAscension(double longi, double GMST)
-/* Derives right ascension (in radians!) from longitude given GMST (radians). */
-/* Declination == latitude for equatorial coordinates.                        */
+// Derives right ascension (in radians!) from longitude given GMST (radians).
 {
-  //double result = longi + GMST;
   double result = fmod(longi + GMST + mtpi,tpi);  //Bring it between 0 and 2pi
-  //while (result<0) result += 2.0*pi;
-  //result *= 24.0/(2.0*pi);
   return result;
 }
 
 double longitude(double rightAscension, double GMST)
-/* Derives longitude from right ascension (radians), given GMST (radians).    */
+// Derives longitude from right ascension (radians), given GMST (radians).  Actually this is something like the Greenwich hour angle of the corresponding RA
 {
   double result = rightAscension - GMST;
-  while (result > pi)  result -= 2.0*pi;
-  while (result < -pi) result += 2.0*pi;
+  //while (result > pi)  result -= 2.0*pi;
+  //while (result < -pi) result += 2.0*pi;
+  //double result = fmod(rightAscension - GMST + mtpi,tpi);
   return result;
 }
 
