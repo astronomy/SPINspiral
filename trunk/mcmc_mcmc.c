@@ -23,6 +23,9 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
   mcmc.logL0 = run->logL0;                    // Log 'null-likelihood'
   mcmc.ntemps = run->ntemps;                  // Size of temperature ladder
   mcmc.mataccfr = run->mataccfr;              // Fraction of elements on the diagonal that must 'improve' in order to accept a new covariance matrix.
+  mcmc.basetime = (double)((floor)(prior_tc_mean/100.0)*100);  //'Base' time, gets rid of the first 6-7 digits of GPS time
+  //printf("  %lf  %lf\n",prior_tc_mean,mcmc.basetime);
+  printf("\n  GPS base time:  %15d\n",(int)mcmc.basetime);
   
   if(partemp==0) mcmc.ntemps=1;
   mcmc.ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
@@ -31,7 +34,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
   
   
   if(nburn0>=nburn) {
-    printf("\n\n   *** Warning: nburn0 > nburn, setting nburn0 = nburn*0.9 ***\n\n");
+    printf("\n   *** Warning: nburn0 > nburn, setting nburn0 = nburn*0.9 ***\n\n");
     nburn0 = (int)(0.9*(double)nburn);
   }
   
@@ -189,9 +192,15 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
       }
       nstart = nstart + 1;
     }
-    printf("%10s  %15s  %8s  %8s  %16s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "nDraws","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","sinthJ0","phiJ0","alpha");
-    printf("%10d  %15.6lf  %8.5f  %8.5f  %16.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f\n",
-	   nstart,mcmc.logL[tempi]-mcmc.logL0,mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2],mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
+    if(useoldmcmcoutputformat==1) { //Use old, longer screen output format
+      printf("%10s  %15s  %8s  %8s  %16s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "nDraws","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","sinthJ0","phiJ0","alpha");
+      printf("%10d  %15.6lf  %8.5f  %8.5f  %16.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f\n",
+	     nstart,mcmc.logL[tempi]-mcmc.logL0,mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2],mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
+    } else { //Use new, shorter screen output format
+      printf("%9s %10s  %7s %7s %8s %6s %6s %6s %6s %6s %6s %6s %6s %6s\n", "nDraws","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","snthJ0","phiJ0","alpha");
+      printf("%9d %10.3lf  %7.4f %7.4f %8.4f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f\n",
+	     nstart,mcmc.logL[tempi]-mcmc.logL0,mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2]-mcmc.basetime,mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
+    }
   }
   
   
@@ -367,8 +376,12 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
 	    
 	    if( (prmatrixinfo>0 || prpartempinfo>0) && tempi==mcmc.ntemps-1 ) {
 	      printf("\n\n");
-	      printf("\n%10s  %15s  %8s  %8s  %16s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n",
-				  "cycle","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","sinthJ0","phiJ0","alpha");
+	      if(useoldmcmcoutputformat==1) { //Use old, longer screen output format
+		printf("\n%10s  %15s  %8s  %8s  %16s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n","cycle","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","sinthJ0","phiJ0","alpha");
+	      } else { //Use new, shorter screen output format
+		//printf("\n%10s  %15s  %8s  %8s  %16s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n","cycle","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","sinthJ0","phiJ0","alpha");
+		printf("\n%9s %10s  %7s %7s %9s %6s %6s %6s %6s %6s %6s %6s %6s %6s\n","cycle","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","snthJ0","phiJ0","alpha");
+	      }
 	    }
 	  } //if(mcmc.ihist[tempi]>=ncorr)
 	} //if(mcmc.corrupdate[tempi]>=2)
@@ -835,10 +848,17 @@ void write_mcmc_header(struct interferometer ifo[], struct mcmcvariables mcmc, s
 		ifo[i].name,ifo[i].snr,ifo[i].lowCut,ifo[i].highCut,ifo[i].before_tc,ifo[i].after_tc,
 		ifo[i].FTstart,ifo[i].deltaFT,ifo[i].samplerate,ifo[i].samplesize,ifo[i].FTsize);
       }
-      fprintf(mcmc.fout, "\n%12s %20s  %32s  %32s  %37s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s\n",
-	      "cycle","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","sinthJ0","phiJ0","alpha");
-      fprintf(mcmc.fout, "%33s  %32s  %32s  %37s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s\n",
-	      " ","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept");
+      if(useoldmcmcoutputformat==1) { //Old, longer file output format
+	fprintf(mcmc.fout, "\n%12s %20s  %32s  %32s  %37s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s\n",
+		"cycle","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","sinthJ0","phiJ0","alpha");
+	fprintf(mcmc.fout, "%33s  %32s  %32s  %37s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s\n",
+		" ","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept");
+      } else { // New, short file output format
+	fprintf(mcmc.fout, "\n\n%10s %13s  %11s %11s %19s %11s %11s %11s %11s %11s %11s %11s %11s %11s\n",
+		"cycle","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","sinthJ0","phiJ0","alpha");
+	//fprintf(mcmc.fout, "%33s  %11s %11s %19s %11s %11s %11s %11s %11s %11s %11s %11s %11s\n",
+	//	" ","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept");
+      }
       fclose(mcmc.fout);
     }
   }
@@ -862,10 +882,17 @@ void write_mcmc_output(struct mcmcvariables mcmc)
   
   // *** Write output to screen ***
   if(tempi==0) { //Only for the T=1 chain
-    if((iteri % (50*screenoutput))==0 || iteri<0)  printf("\n%10s  %15s  %8s  %8s  %16s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n",
-							  "cycle","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","sinthJ0","phiJ0","alpha");
-    if((iteri % screenoutput)==0 || iteri<0)  printf("%10d  %15.6lf  %8.5f  %8.5f  %16.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f\n",
-						     iteri,mcmc.logL[tempi]-mcmc.logL0,mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2],mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
+    if(useoldmcmcoutputformat==1) { //Use old, longer screen output format
+      if((iteri % (50*screenoutput))==0 || iteri<0)  printf("\n%10s  %15s  %8s  %8s  %16s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n",
+							    "cycle","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","sinthJ0","phiJ0","alpha");
+      if((iteri % screenoutput)==0 || iteri<0)  printf("%10d  %15.6lf  %8.5f  %8.5f  %16.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f\n",
+						       iteri,mcmc.logL[tempi]-mcmc.logL0,mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2],mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
+    } else { //Use new, shorter screen output format
+      if((iteri % (50*screenoutput))==0 || iteri<0)  printf("\n%9s %10s  %7s %7s %8s %6s %6s %6s %6s %6s %6s %6s %6s %6s\n",
+							    "cycle","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","snthJ0","phiJ0","alpha");
+      if((iteri % screenoutput)==0 || iteri<0)  printf("%9d %10.3lf  %7.4f %7.4f %8.4lf %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f\n",
+						       iteri,mcmc.logL[tempi]-mcmc.logL0,mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2]-mcmc.basetime,mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
+    }
   }
   
   
@@ -885,15 +912,27 @@ void write_mcmc_output(struct mcmcvariables mcmc)
     if((iteri % skip)==0 || iteri<0){
       sprintf(outfilename,"mcmc.output.%6.6d.%2.2d",mcmc.seed,tempi);
       mcmc.fout = fopen(outfilename,"a");
-      fprintf(mcmc.fout, "%12d %20.10lf  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %20.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f\n",
-	      iteri,mcmc.logL[tempi]-mcmc.logL0,
-	      mcmc.param[tempi][0],mcmc.sigout[tempi][0],accrat[0],  mcmc.param[tempi][1],mcmc.sigout[tempi][1],accrat[1],  
-	      mcmc.param[tempi][2],mcmc.sigout[tempi][2],accrat[2],  mcmc.param[tempi][3],mcmc.sigout[tempi][3],accrat[3], 
-	      mcmc.param[tempi][4],mcmc.sigout[tempi][4],accrat[4],  mcmc.param[tempi][5],mcmc.sigout[tempi][5],accrat[5],
-	      rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.sigout[tempi][6],accrat[6],
-	      mcmc.param[tempi][7],mcmc.sigout[tempi][7],accrat[7],  mcmc.param[tempi][8],mcmc.sigout[tempi][8],accrat[8],
-	      mcmc.param[tempi][9],mcmc.sigout[tempi][9],accrat[9],  
-	      mcmc.param[tempi][10],mcmc.sigout[tempi][10],accrat[10],  mcmc.param[tempi][11],mcmc.sigout[tempi][11],accrat[11]);
+      if(useoldmcmcoutputformat==1) {  //Use old, longer file output format
+	fprintf(mcmc.fout, "%12d %20.10lf  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %20.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f\n",
+		iteri,mcmc.logL[tempi]-mcmc.logL0,
+		mcmc.param[tempi][0],mcmc.sigout[tempi][0],accrat[0],  mcmc.param[tempi][1],mcmc.sigout[tempi][1],accrat[1],  
+		mcmc.param[tempi][2],mcmc.sigout[tempi][2],accrat[2],  mcmc.param[tempi][3],mcmc.sigout[tempi][3],accrat[3], 
+		mcmc.param[tempi][4],mcmc.sigout[tempi][4],accrat[4],  mcmc.param[tempi][5],mcmc.sigout[tempi][5],accrat[5],
+		rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.sigout[tempi][6],accrat[6],
+		mcmc.param[tempi][7],mcmc.sigout[tempi][7],accrat[7],  mcmc.param[tempi][8],mcmc.sigout[tempi][8],accrat[8],
+		mcmc.param[tempi][9],mcmc.sigout[tempi][9],accrat[9],  
+		mcmc.param[tempi][10],mcmc.sigout[tempi][10],accrat[10],  mcmc.param[tempi][11],mcmc.sigout[tempi][11],accrat[11]);
+      } else {  //Use the new, shorter file output format
+	fprintf(mcmc.fout, "%10d %13.6lf  %11.7lf %11.7lf %19.8lf %11.7lf %11.7lf %11.7lf %11.7lf %11.7lf %11.7lf %11.7lf %11.7lf %11.7lf\n",
+		iteri,mcmc.logL[tempi]-mcmc.logL0,
+		mcmc.param[tempi][0],  mcmc.param[tempi][1],
+		mcmc.param[tempi][2],  mcmc.param[tempi][3],
+		mcmc.param[tempi][4],  mcmc.param[tempi][5],
+		rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),
+		mcmc.param[tempi][7],   mcmc.param[tempi][8],
+		mcmc.param[tempi][9], 
+		mcmc.param[tempi][10],  mcmc.param[tempi][11]);
+      }
       
       //fflush(mcmc.fout); //Make sure any 'snapshot' you take halfway is complete
       fclose(mcmc.fout);

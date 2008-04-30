@@ -49,7 +49,7 @@
   #Diverse:
   2                          networksize         Set the number of detectors that make up the network: 1: H1, 2: H1L1, 3: H1L1V
   1                          selectdata          Select the data set to run on  (set to 0 to print a list of data sets). Make sure you set the true tc and datadir accordingly.
-  8.0                        downsamplefactor    Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0, shouldn't be higher than 8 for BH-NS...
+  8.0                        downsamplefactor    Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8.
   0.0                        targetsnr           If > 0: scale the distance such that the network SNR becomes targetsnr
 
 

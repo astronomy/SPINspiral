@@ -196,7 +196,7 @@ void writeinputfile(struct runpar *run)
   fprintf(fout, "\n  #Diverse:\n");
   fprintf(fout, "  %-25d  %-18s  %-s\n",    run->networksize,"networksize",    "Set the number of detectors that make up the network: 1: H1, 2: H1L1, 3: H1L1V");
   fprintf(fout, "  %-25d  %-18s  %-s\n",     run->selectdata,"selectdata",     "Select the data set to run on  (set to 0 to print a list of data sets). Make sure you set the true tc and datadir accordingly.");
-  fprintf(fout, "  %-25.1f  %-18s  %-s\n", downsamplefactor,"downsamplefactor","Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0, shouldn't be higher than 8 for BH-NS...");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n", downsamplefactor,"downsamplefactor","Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8");
   fprintf(fout, "  %-25.1f  %-18s  %-s\n",   run->targetsnr, "targetsnr",      "If > 0: scale the distance such that the network SNR becomes targetsnr");
   //fprintf(fout, "  %-25.1f  %-18s  %-s\n",   cutoff_a,"cutoff_a","Low value of a/M where signal should be cut off, e.g. 7.5.");
   

@@ -69,6 +69,8 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
   mu = m1*m2/M;                                                                                                         // Eq.16b
   spin = par->spin*m1*m1;
   
+  
+  
   //if(printmuch) {printf("Ms: eta: %g  Mc: %g  m1: %g  m2: %g  M: %g  mu: %g  Mo: %g\n",par->eta,Mc/M0,m1/M0,m2/M0,M/M0,mu/M0,M0);}
   //printf("  %d  %lf  %lf  %lf  %lf  %d\n",ifonr,localtc,altitude,azimuth,samplerate,length);
   //printf("  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf",
@@ -263,7 +265,7 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
   //if(printmuch) 
   //printf("%10.2f  %10.2f  %10.2f  %10.1f  %10.2f  %10.2f",par->spin,acos(par->kappa)*r2d,(double)(i2-i1)*inversesamplerate,(phi2-phi1)/tpi,(alpha2-alpha1)/tpi,pow(M*oldomega,-2.0*c3rd));
   //if(printmuch) printf("  term: %d  i1: %d  i2: %d  length: %d  f_gw,old: %lf  f_gw: %lf  f_gw,low: %lf  f_gw,high: %lf  f_gw1: %lf  f_gw2: %lf\n",terminate,i1,i2,length,oldomega/pi,omega_orb/pi,omega_low/pi,omega_high/pi,omegas[i1]/pi,omegas[i2]/pi);
-  
+  //Terminate: 1: t>tc, 2: df/dt<0, 3: f>f_high
   
   //Apply tapering
   //int i1a = i1 + ceil(2.0*samplerate*pi/omegas[i1]);  //pi/omega_orb = 1/f_gw = lambda_gw.  *samplerate: number of points in first wavelength

@@ -16,6 +16,8 @@ int main(int argc, char * argv[])
   int i;
   double snr;
   
+  useoldmcmcoutputformat = 0; //Set to 1 if you want to ... exactly!
+  
   //Initialise stuff for the run
   struct runpar run;
   setconstants(&run);    //Set the global constants (which are variable in C). This routine should eventually disappear.

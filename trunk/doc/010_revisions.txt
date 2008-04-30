@@ -2,33 +2,41 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
-    31: sluys
-     - The input file has changed!!!  
-       * RA is now given in stead of 'longi'
-       * setranpar[12] and ranparseed were added to inject random parameters
-       * notice that setranpar uses M1,M2 in stead of Mc,eta!
-     - Many small other (often cosmetic) changes, most notably:
-       * the 'header' that provides signal info to screen in now in main(), not mcmc()
-       * some local source info for each detector is provided
+    33: sluys, 30/04/2008
+     - THE MCMC	OUTPUT FORMAT HAS CHANGED:
+       - The columns 'acceptance rate' and 'sigma' have disappeared from the output file
+       - The other columns have fewer decimals
+       - The size of the output file is reduced with a factor of ~2.5!
+       - The columns of the screen output have fewer decimals, a reduction of ~28%
+       - Switch back to the old output by setting useoldmcmcoutputformat=1 in main()
     
-    30: sluys
+    32: sluys, 30/04/2008
+     - The input file has changed:
+       - RA is now given in stead of 'longi'
+       - setranpar[12] and ranparseed were added to inject random parameters
+       - notice that setranpar uses M1,M2 in stead of Mc,eta!
+     - Many small other (often cosmetic) changes, most notably:
+       - the 'header' that provides signal info to screen in now in main(), not mcmc()
+       - some local source info for each detector is provided
+    
+    30: sluys, 16/04/2008
      - Vivien found an error in calculating h_x: L.N should be used, not (L.N)^2
      - Some lines were missing that are needed to include Virgo data
     
-    29: sluys
+    29: sluys, 15/04/2008
      - Vivien found a bug in the 1.5PN waveform template, in creating the vectors N^ 
        and J^.  The latter was more serious, since the angle theta_J0 was used later
        in the template in a different way, creating an inconsistent use of this angle.	
        Now, this angle should be a latitude (rather than colatitude, as in the 
        Apostolatos paper, which it must be if we keep sin(theta_J0) as an MCMC parameter.
     
-    28: sluys
+    28: sluys, 16/03/2008
      - Input file changed, 2 parameters added:
        - networksize: number of IFOs in the network (1-3): 1: H1, 2: H1L1, 3: H1L1V
        - targetsnr: Total network SNR that the signal should have: obtained by scaling 
          the distance (and thus the true distance of the injected signal is changed!).
     
-    23-27: sluys
+    23-27: sluys, 05-10/03/2008
      - Bugfixes
     
     22: sluys

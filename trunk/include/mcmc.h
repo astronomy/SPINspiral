@@ -55,12 +55,11 @@ double truepar[12],pdfsigs[12];
 
 
 
-
 //Global variables:
 
 char datadir[99];
 
-int npar,iter,skip,screenoutput,adapt;//,mcmcseed;
+int npar,iter,skip,screenoutput,adapt;
 
 int offsetmcmc;
 double offsetx;
@@ -82,6 +81,9 @@ double truespin,truetheta,prior_tc_mean,downsamplefactor;
 int tempi;
   
 double Ms,Mpc,G,c,Mpcs,pi,tpi,mtpi;
+
+
+int useoldmcmcoutputformat;
 
 
 int parallelchains,impodraws,anneal,covest,covfix,covskip,initweight,modifiedStudent;
@@ -141,6 +143,7 @@ struct mcmcvariables{
   double temp;           // The current temperature
   double logL0;          // Log of the 'null-likelihood'
   double mataccfr;       // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
+  double basetime;       // Base of time measurement, get rid of long GPS time format
   
   
   double *histmean;      // Mean of hist block of iterations, used to get the covariance matrix
