@@ -581,21 +581,19 @@ double tukey(int j, int N, double r)
 
 
 void dataFT(struct interferometer *ifo[], int i, int networksize)
-/* computes the Fourier Transform for the specified range  */
-/* of the specified Frame (".gwf") file,                   */
-/* after adding up the two (signal & noise) channels       */
-/*                                                         */
-/* also takes care of preparing FT stuff:                  */
-/* (ifo[i]->FTplan, ->FTin, ->FTout, ...)                  */
+// computes the Fourier Transform for the specified range
+// of the specified Frame (".gwf") file,                 
+// after adding up the two (signal & noise) channels,
+// or injecting a waveform template into the noise     
+//                                                       
+// also takes care of preparing FT stuff:                
+// (ifo[i]->FTplan, ->FTin, ->FTout, ...)                
 {
   if(MvdSdebug) printf("  DataFT\n");
   struct FrFile *iFile=NULL;                /* Frame file(s)                 */
   struct FrVect *svect=NULL, *nvect=NULL;   /* data vectors (signal & noise) */
   int           N;                          /* size of input                 */
   double        *raw;                       /* downsampling input            */
-  //double        *in;                        /* Fourier transform input       */
-  //fftw_complex  *out=NULL;      /* type here identical to `(double) complex' */
-  //fftw_plan     FTplan;                     /* Fourier transform plan        */
   int           j, ncoef;
   double        *filtercoef;
   long          filestart;
@@ -651,19 +649,18 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   /* add 0.5 for correct truncation/rounding */
   if(intscrout==1) printf(" | original sampling rate: %d Hz\n", ifo[i]->samplerate);
   
-  if (inject) {
+  // Inject the signal into the noise
+  if(inject) {
     if(intscrout==1) printf(" :  injecting signal:\n");
-    /* define injection parameters:                */
-    struct parset injectpar;
     
+    // Define injection parameters:
+    struct parset injectpar;
     gettrueparameters(&injectpar);
     double root = sqrt(0.25-injectpar.eta);
     double fraction = (0.5-root) / (0.5+root);
     double inversefraction = 1.0/fraction;
     double m1 = injectpar.mc * (pow(1+fraction,0.2) / pow(fraction,0.6));
     double m2 = injectpar.mc * (pow(1+inversefraction,0.2) / pow(inversefraction,0.6));
-    //double M  = m1+m2;
-    //double mu = m1*m2/M;
     injectpar.loctc           = NULL;
     injectpar.localti         = NULL;
     injectpar.locazi          = NULL;
@@ -673,27 +670,32 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     injectpar.locazi   = (double*)calloc(networksize,sizeof(double));
     injectpar.locpolar = (double*)calloc(networksize,sizeof(double));
     
-    if(intscrout==1) printf(" :   m1 = %.1f Ms,  m2 = %.1f Ms  (mc = %.3f Ms,  eta = %.4f)\n", m1, m2, injectpar.mc, injectpar.eta);
-    if(intscrout==1) printf(" :   tc = %.4f s,  dist = %.1f Mpc\n", injectpar.tc, exp(injectpar.logdl));
-    //if(intscrout==1) printf(" :   ra = %.2f h,  dec = %.2f deg  (GMST = %.2f h)\n", 
-    //       (RA/pi)*12.0, (asin(injectpar.sinlati)/pi)*180.0, (greenwichtime/pi)*12.0);
-    if(intscrout==1) printf(" :   phase = %.2f rad\n", injectpar.phase);
-    ifo[i]->FTstart = from; /* temporary setting so `parupdate()' works properly */
+    if(intscrout==1) {
+      printf(" :   m1 = %.1f Ms,  m2 = %.1f Ms  (mc = %.3f Ms,  eta = %.4f)\n", m1, m2, injectpar.mc, injectpar.eta);
+      printf(" :   tc = %.4f s,  dist = %.1f Mpc\n", injectpar.tc, exp(injectpar.logdl));
+      //printf(" :   ra = %.2f h,  dec = %.2f deg  (GMST = %.2f h)\n",(RA/pi)*12.0, (asin(injectpar.sinlati)/pi)*180.0, (greenwichtime/pi)*12.0);
+      printf(" :   phase = %.2f rad\n", injectpar.phase);
+    }
+    ifo[i]->FTstart = from; // Temporary setting so `parupdate()' works properly
     
     localpar(&injectpar, ifo, networksize);
     
-    if(intscrout==1) printf(" :   local parameters:\n");
-    if(intscrout==1) printf(" :   tc           = %.5f s\n",injectpar.loctc[i]+from);
-    if(intscrout==1) printf(" :   altitude     = %.2f rad\n",injectpar.localti[i]);
-    if(intscrout==1) printf(" :   azimuth      = %.2f rad\n",injectpar.locazi[i]);
-    if(intscrout==1) printf(" :   polarisation = %.2f rad\n",injectpar.locpolar[i]);
-    /* (initialise further components:) */
-    /* generate template:               */
+    if(intscrout==1) {
+      printf(" :   local parameters:\n");
+      printf(" :   tc           = %.5f s\n",injectpar.loctc[i]+from);
+      printf(" :   altitude     = %.2f rad\n",injectpar.localti[i]);
+      printf(" :   azimuth      = %.2f rad\n",injectpar.locazi[i]);
+      printf(" :   polarisation = %.2f rad\n",injectpar.locpolar[i]);
+    }
+    
+    
+    // Initialise further components:
+    
+    // Generate template:
     injection = malloc(sizeof(double) * N);
     double *tempinj = ifo[i]->FTin;
     double tempfrom = ifo[i]->FTstart;
     int tempN = ifo[i]->samplesize;
-    
     ifo[i]->FTin = injection;
     ifo[i]->FTstart = from;
     ifo[i]->samplesize = N;
@@ -702,7 +704,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     ifo[i]->FTstart = tempfrom;
     ifo[i]->samplesize = tempN;
     
-    //Write injection signal to disc
+    // Write injection signal to disc
     if(writesignal && 1==2){
       char filename[100]="";
       sprintf(filename,"%s-injection.dat",ifo[i]->name);
@@ -718,107 +720,101 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     }
     
     pardispose(&injectpar);
-  }
-  else if (ifo[i]->add2channels) { /*-- read 2nd channel (signal only) --*/
-    filestart = (((((long)(from))-ifo[i]->ch2fileoffset) / ifo[i]->ch2filesize) * ifo[i]->ch2filesize) 
-                + ifo[i]->ch2fileoffset;
-    /* Assemble the filename character string: */
+  } // if(inject)
+  else if(ifo[i]->add2channels) { // Read 2nd channel (signal only)
+    filestart = (((((long)(from))-ifo[i]->ch2fileoffset) / ifo[i]->ch2filesize) * ifo[i]->ch2filesize) + ifo[i]->ch2fileoffset;
+    // Assemble the filename character string:
     sprintf(filenames, " "); filecount = 0;
     while (((double)filestart) < to){
-      if (filecount == 0) /* fill in filename etc. for first file: */
+      if (filecount == 0) // Fill in filename etc. for first file:
         sprintf(filenames, "%s/%s%ld%s", ifo[i]->ch2filepath, ifo[i]->ch2fileprefix, (long)filestart, ifo[i]->ch2filesuffix);
-      else /* append filename etc. for following files: */
+      else // Append filename etc. for following files:
         sprintf(filenames, "%s %s/%s%ld%s", filenames, ifo[i]->ch2filepath, ifo[i]->ch2fileprefix, (long)filestart, ifo[i]->ch2filesuffix);
       filestart += ifo[i]->ch2filesize;
       filecount += 1;
     }
-    /* open file: */
+    // Open file:
     iFile = FrFileINew(filenames);
-    if (iFile == NULL) {
+    if(iFile == NULL) {
       printf("\n\n   ERROR opening data file: %s (channel 2), aborting.\n\n\n",filenames);
       exit(1);
     }
     
-    if (ifo[i]->ch2doubleprecision)
+    if(ifo[i]->ch2doubleprecision)
       svect = FrFileIGetVectD(iFile, ifo[i]->ch2name, from, delta);
     else
       svect = FrFileIGetVectF(iFile, ifo[i]->ch2name, from, delta);
-    if (svect == NULL) {
+    if(svect == NULL) {
       printf("\n\n   ERROR reading data file: %s (channel 2), aborting.\n\n\n",filenames);
       exit(1);
     }
     FrFileIEnd(iFile);
   }
   
-  /*-- allocate memory for transform input, --*/
+  
+  // Allocate memory for transform input:
   raw  = malloc(sizeof(double) * N);
-  /*-- then fill in values.                 --*/
-  for (j=0; j<N; ++j)
-    raw[j] = nvect->dataF[j];
+  // Fill in values:
+  for(j=0; j<N; ++j) raw[j] = nvect->dataF[j];
   
-  /*-- add channels (noise plus signal): --*/
-  if (inject){
-    for (j=0; j<N; ++j)
-      raw[j] += injection[j];
+  // Add channels (noise plus signal):
+  if(inject){
+    for(j=0; j<N; ++j) raw[j] += injection[j];
+  } else if(ifo[i]->add2channels) {
+    for(j=0; j<N; ++j) raw[j] += svect->dataF[j];
   }
-  else if (ifo[i]->add2channels)
-    for (j=0; j<N; ++j)
-      raw[j] += svect->dataF[j];
   
   
-  
-  /*-- release the FrVect objects --*/
+  // Release the FrVect objects:
   FrVectFree(svect);
   FrVectFree(nvect);
   if(inject) free(injection);
-
+  
   
   int screwcount = 0;
-  for (j=0; j<N; ++j)
-    if (!(raw[j]<HUGE_VAL))
-      ++screwcount;
-  if (screwcount>0){
+  for(j=0; j<N; ++j)
+    if(!(raw[j]<HUGE_VAL)) ++screwcount;
+  if(screwcount>0){
     printf(" : %d missing data points in DATA file(s) !!\n",screwcount);
     printf(" : (maybe the precision is incorrect)\n");
   }
  
-  /*-- downsample (by factor downsamplefactor)   --*/
-  /*-- !! changes value of `N' !! --*/
-  /*if(intscrout==1) printf(" | downsampling... ");*/
+  // Downsample (by factor downsamplefactor):    *** changes value of N ***
+  if(intscrout==1) printf(" | downsampling... ");
   filtercoef = filter(&ncoef, ifo[i]->samplerate, ifo[i]->highCut);
   ifo[i]->FTin = downsample(raw, &N, filtercoef, ncoef);
-
+  
   ifo[i]->FTstart = from + ((double)(ncoef-1))/((double)(ifo[i]->samplerate));
   ifo[i]->deltaFT = delta - ((double)((ncoef-1)*2))/((double)(ifo[i]->samplerate));
-
+  
   ifo[i]->samplesize = N;
   ifo[i]->FTsize = (N/2)+1;
   ifo[i]->samplerate = (int)((double)ifo[i]->samplerate/downsamplefactor);
   free(raw);
   free(filtercoef);
-  /*printf("new sampling rate: %d\n",ifo[i]->samplerate);*/
-
-
-  /*-- window input data: --*/
+  
+  
+  // Window input data with a Tukey window:
   ifo[i]->FTwindow = malloc(sizeof(double) * N);
   for (j=0; j<N; ++j){
     ifo[i]->FTwindow[j] =  tukey(j, N, tukeywin);
     ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
   }
-  /*if(intscrout==1) printf(" | data windowed (Tukey window, r=%.3f).\n", tukeywin);*/
   
-    
-  //Write data (signal + noise) to disc
+  
+  // Write data (signal + noise) to disc
   if(writesignal && 1==1){
-    struct parset par;
-    gettrueparameters(&par);
     char filename[1000]="";
     sprintf(filename, "%s-data.dat", ifo[i]->name);  //Write in current dir
     FILE *dump = fopen(filename,"w");
+    
+    // Get true signal parameters and write them to the header
+    struct parset par;
+    gettrueparameters(&par);
     fprintf(dump,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
     fprintf(dump,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
 	    par.m1,par.m2,par.mc,par.eta,par.tc,exp(par.logdl),asin(par.sinlati)*r2d,par.longi*r2d,par.phase,par.spin,par.kappa,par.sinthJ0,par.phiJ0,par.alpha);
-    fprintf(dump,"t Ht\n");
+    fprintf(dump,"       GPS time (s)         H(t)\n");
     for (j=0; j<N; ++j)
       fprintf(dump, "%9.9f %.6e\n", ifo[i]->FTstart+(((double)j)/((double) (ifo[i]->samplerate))), ifo[i]->FTin[j]);
     fclose(dump); if(intscrout) printf(" : (signal written to file)\n");
@@ -826,13 +822,14 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   }
   
     
-  /*-- allocate memory for transform output --*/
+  // Allocate memory for Fourier-transform output:
   ifo[i]->FTout = fftw_malloc(sizeof(fftw_complex) * (ifo[i]->FTsize));  
   
-  /*-- contruct a transform plan --*/
+  // Contruct a FFTW plan:
   ifo[i]->FTplan = fftw_plan_dft_r2c_1d(N, ifo[i]->FTin, ifo[i]->FTout, FFTW_ESTIMATE);
+  //ifo[i]->FTplan = fftw_plan_dft_r2c_1d(N, ifo[i]->FTin, ifo[i]->FTout, FFTW_MEASURE);  //This must be done before initialisation of FTin and could optimise the FFT
   
-  /*-- transform --*/
+  // Compute the FFT:
   if(intscrout==1) printf(" | performing data Fourier transform (%.1f s at %d Hz)... ",delta, ifo[i]->samplerate);
   fftw_execute(ifo[i]->FTplan);
   if (ifo[i]->FTout == NULL){
@@ -841,31 +838,30 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   }
   else if(intscrout==1) printf("ok.\n");
   
-  /*-- normalise transform (divide by sampling rate, see Mark's code, line 184): --*/
-  for (j=0; j<ifo[i]->FTsize; ++j)
-    ifo[i]->FTout[j] /= (double)ifo[i]->samplerate;
-  //  for (j=0; j<ifo[i]->FTsize; ++j)
-  //  ifo[i]->FTout[j] /= (double)ifo[i]->samplerate;
-  /* copy to `raw_dataTrafo': */
+  // Normalise transform (divide by sampling rate, see Mark's code, line 184):
+  for(j=0; j<ifo[i]->FTsize; ++j) ifo[i]->FTout[j] /= (double)ifo[i]->samplerate;
+  // Copy to 'raw_dataTrafo':
   ifo[i]->raw_dataTrafo = fftw_malloc(sizeof(fftw_complex) * (ifo[i]->FTsize));  
-  for (j=0; j<ifo[i]->FTsize; ++j)
-    ifo[i]->raw_dataTrafo[j] = ifo[i]->FTout[j];
+  for (j=0; j<ifo[i]->FTsize; ++j) ifo[i]->raw_dataTrafo[j] = ifo[i]->FTout[j];
   
   
   
-  //Write data PSD
+  // Write data PSD to disc
   if(writesignal && 1==2){
-    struct parset par;
-    gettrueparameters(&par);
+    double f=0.0;
     char filename[1000]="";
     sprintf(filename, "%s-dataPSD.dat", ifo[i]->name);  //Write in current dir
     FILE *dump1 = fopen(filename,"w");
+    
+    // Get true signal parameters and write them to the header
+    struct parset par;
+    gettrueparameters(&par);
     fprintf(dump1,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
     fprintf(dump1,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
 	    par.m1,par.m2,par.mc,par.eta,par.tc,exp(par.logdl),asin(par.sinlati)*r2d,par.longi*r2d,par.phase,par.spin,par.kappa,par.sinthJ0,par.phiJ0,par.alpha);
     fprintf(dump1,"f Nf\n");
-    // loop over the Fourier frequencies 
-    double f=0.0;
+    
+    // Loop over the Fourier frequencies 
     fprintf(dump1, "%9.9f %.6e\n",ifo[i]->deltaFT,(double)ifo[i]->samplerate  );
     for (j=0; j<ifo[i]->FTsize; ++j){
       f = (((double)(j+ifo[i]->lowIndex))/((double)ifo[i]->FTsize*2.0)) * ((double) ifo[i]->samplerate);
@@ -913,10 +909,6 @@ void noisePSDestimate(struct interferometer *ifo)
   char    filenames[2000];
   long             filestart;
   int            filecount=0;
-  //double *outPSD = NULL;
-  //FILE   *dumpfile;  
-  //char   dumpfilename[100];
-  //double dummyfact;
   
   
   /* starting time of first(!) frame file to be read: */

@@ -79,7 +79,7 @@ void readinputfile(struct runpar *run)
   fgets(bla,500,fin);  sscanf(bla,"%d",&partemp);
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->ntemps);
   fgets(bla,500,fin);  sscanf(bla,"%lf",&tempmax);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&saveallchains);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&savehotchains);
   fgets(bla,500,fin);  sscanf(bla,"%d",&prpartempinfo);
   
   //Output:
@@ -180,7 +180,7 @@ void writeinputfile(struct runpar *run)
   fprintf(fout, "  %-25d  %-18s  %-s\n",      partemp,       "partemp",        "Use parallel tempering:  0-no,  1-auto, fixed T ladder,  2-auto, sinusoid T ladder,  3-manual, fixed T ladder,  4-manual, sinusoid T ladder.  For a manual ladder, see near the bottom of the file.");
   fprintf(fout, "  %-25d  %-18s  %-s\n",      run->ntemps,   "ntemps",         "Number of steps in the temperature ladder for parallel tempering, typically 5-10.");
   fprintf(fout, "  %-25.1f  %-18s  %-s\n",    tempmax,       "tempmax",        "Maximum temperature in automatic parallel-tempering ladder (equidistant in log(T)), typically 20-100, e.g. 50.");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",      saveallchains, "saveallchains",  "Save all parallel-tempering chains: 0-no (just the T=1 chain), 1-yes.");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      savehotchains, "savehotchains",  "Save hot (T>1) parallel-tempering chains: 0-no (just the T=1 chain), >0-yes; for every saved T=1 point, save every savehotchains-th hot point.");
   fprintf(fout, "  %-25d  %-18s  %-s\n",      prpartempinfo, "prpartempinfo",  "Print information to screen on the temperature chains: 0-none, 1-some ladder info (default), 2-add chain-swap matrix.");
   
   
@@ -316,7 +316,7 @@ void setconstants(struct runpar *run)
   partemp        =  2;             // Use parallel tempering:  0-no,  1-auto, fixed T ladder,  2-auto, sinusoid T ladder,  3-manual, fixed T ladder,  4-manual, sinusoid T ladder
   ntemps         =  3;             // Number of steps in the temperature ladder for parallel tempering
   tempmax     =  5.e1;          // Maximum temperature in automatic parallel-tempering ladder (equidistant in log(T))
-  saveallchains  =  0;             // Save all parallel-tempering chains: 0-no, 1-yes
+  savehotchains  =  0;             // Save all parallel-tempering chains: 0-no, 1-yes
   prpartempinfo  =  2;             // Print information to screen on the temperature chains: 0-none, 1-some ladder info (default), 2-add chain-swap matrix
   
   //Output:
@@ -475,24 +475,22 @@ void setrandomtrueparameters(struct runpar *run)  //Get random values for the 't
   ub[0] = 15.0;
   lb[1] = 1.2;       //M2 (Mo)
   ub[1] = 1.6;
-  dt = 0.5; //This should be dt/2
+  dt = 0.5; //This is dt/2
   lb[2] = prior_tc_mean - dt; //t_c
   ub[2] = prior_tc_mean + dt;
-  lb[3] = 10.0;      //d_L (Mpc)
+  lb[3] = 10.0;      //d_L (Mpc)  !Linear!
   ub[3] = 30.0;
   lb[4] = 1.e-10;    //a_spin (0-1)
   ub[4] = 0.999999;
-  lb[5] = 0.001;     //th_SL (deg)
+  lb[5] = 0.001;     //th_SL (deg) (not used)
   ub[5] = 179.999;
-  //lb[6] = 0.0;       //longi (deg)
-  //ub[6] = 360.0;
   lb[6] = 0.0;       //RA (h)
   ub[6] = 24.0;
-  lb[7] = -89.999;   //dec (deg)
+  lb[7] = -89.999;   //dec (deg) (not used)
   ub[7] = 89.999;
   lb[8] = 0.0;       //phi_c (deg)
   ub[8] = 360.0;
-  lb[9] = -89.999;   //theta_J0 (deg)
+  lb[9] = -89.999;   //theta_J0 (deg) (not used)
   ub[9] = 89.999;
   lb[10] = 0.0;      //phi_Jo (deg)
   ub[10] = 360.0;
@@ -502,6 +500,8 @@ void setrandomtrueparameters(struct runpar *run)  //Get random values for the 't
   for(i=0;i<npar;i++) {
     db = ub[i]-lb[i];
     if(run->setranpar[i]==1) truepar[i] = gsl_rng_uniform(ran)*db + lb[i];
+    if(i==5 && run->setranpar[i]==1) truepar[i] = acos(gsl_rng_uniform(ran)*2.0 - 1.0)*r2d;  //kappa -> th_SL
+    if((i==7 || i==9)  && run->setranpar[i]==1) truepar[i] = asin(gsl_rng_uniform(ran)*2.0 - 1.0)*r2d;  //sin(dec)->dec, sin(th_J0)->th_J0
     //printf("  %d  %lf  %lf  %lf  %lf\n",i,lb[i],ub[i],db,truepar[i]);
   }
   

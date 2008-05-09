@@ -35,7 +35,7 @@
   2                          partemp             Use parallel tempering:  0-no,  1-auto, fixed T ladder,  2-auto, sinusoid T ladder,  3-manual, fixed T ladder,  4-manual, sinusoid T ladder.  For a manual ladder, see near the bottom of the file.
   5                          ntemps              Number of steps in the temperature ladder for parallel tempering, typically 5-10.
   30.0                       tempmax             Maximum temperature in automatic parallel-tempering ladder (equidistant in log(T)), typically 20-100, e.g. 50.
-  0                          saveallchains       Save all parallel-tempering chains: 0-no (just the T=1 chain), 1-yes.
+  1                          savehotchains       Save hot (T>1) parallel-tempering chains: 0-no (just the T=1 chain), >0-yes; for every saved T=1 point, save every savehotchains-th hot point.
   1                          prpartempinfo       Print information to screen on the temperature chains: 0-none, 1-some ladder info (default), 2-add chain-swap matrix.
 
   #Output:

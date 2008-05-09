@@ -1,7 +1,18 @@
 
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
-    
+  
+    34: sluys, 09/05/2008
+     - The input parameter saveallchains was renamed to savehotchains. If 0 (save
+       T=1 chain only) or 1 (save all parallel chains) the effect is the same as
+       before. However, savehotchains=n saves 1 in every n states for the T>1 chains
+       for each T=1 state (i.e. extra thinning for the hotter chains)
+     - The boundary conditions in prior() changed: only one 'bounce off the wall' is
+       allowed, if the parameter is then not between the BCs, prior = 0
+     - Output file is no longer opened for every saved state (as it was since the split)
+     - Added and changed comments in mcmc_data and mcmc_signal, try to make code more
+       readable
+       
     33: sluys, 30/04/2008
      - THE MCMC	OUTPUT FORMAT HAS CHANGED:
        - The columns 'acceptance rate' and 'sigma' have disappeared from the output file

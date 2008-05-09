@@ -70,7 +70,7 @@ double temp0;
 int nburn;
 int nburn0;
   
-int partemp,saveallchains,prpartempinfo;
+int partemp,savehotchains,prpartempinfo;
 double tempmax;
   
 int dosnr,domcmc,domatch,intscrout,writesignal;
@@ -186,6 +186,7 @@ struct mcmcvariables{
   gsl_rng *ran;          // GSL random-number seed
   
   FILE *fout;            // Output-file pointer
+  FILE **fouts;          // Output-file pointer array
 };
 
 

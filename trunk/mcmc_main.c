@@ -5,12 +5,13 @@
 
 #include <mcmc.h>
 
-
 // Main program:
 int main(int argc, char * argv[])
 {
   // Interferometers are managed via the `database'; the `network' is a vector of pointers to the database (see below).
   // The interferometers that are actually used need to be initialised via the `ifoinit()'-function in order to determine noise PSD, signal FT &c.
+  
+  clock_t time0 = clock();
   
   printf("\n\n   Starting MCMC code...\n");
   int i;
@@ -155,13 +156,13 @@ int main(int argc, char * argv[])
   
   
   //Do MCMC
+  clock_t time1 = clock();
   if(domcmc==1) {
     //printmuch=1;
     mcmc(&run, network);
     //printmuch=0;
   }
-  
-  
+  clock_t time2 = clock();
   
   //Calculate matches between two signals
   if(domatch==1) {
@@ -203,6 +204,14 @@ int main(int argc, char * argv[])
   free(dummypar.localti);
   free(dummypar.locazi);
   free(dummypar.locpolar);
+  
+  
+  clock_t time3 = clock();
+  printf("   Timimg:\n");
+  printf("     initialisation:%10.2lfs\n", ((double)time1 - (double)time0)*1.e-6 );
+  printf("     MCMC:          %10.2lfs\n", ((double)time2 - (double)time1)*1.e-6 );
+  printf("     total time:    %10.2lfs\n", (double)time3*1.e-6);
+  
   
   printf("\n   MCMC code done.\n\n\n");
   return 0;

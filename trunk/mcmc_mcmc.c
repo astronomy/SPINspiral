@@ -32,6 +32,14 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
   gsl_rng_set(mcmc.ran, mcmc.seed);           // Set seed for this run
   
   
+  char outfilename[99];
+  mcmc.fouts = (FILE**)calloc(mcmc.ntemps,sizeof(FILE*));      // Sigma for correlated update proposals						     
+  for(tempi=0;tempi<mcmc.ntemps;tempi++) {
+    if(tempi==0 || savehotchains>0) {
+      sprintf(outfilename,"mcmc.output.%6.6d.%2.2d",mcmc.seed,tempi);
+      mcmc.fouts[tempi] = fopen(outfilename,"w");                       // In current dir, allows for multiple copies to run
+    }
+  }
   
   if(nburn0>=nburn) {
     printf("\n   *** Warning: nburn0 > nburn, setting nburn0 = nburn*0.9 ***\n\n");
@@ -322,7 +330,6 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
       }
       
       
-      
       // Update the dlogL = logL - logLo, and remember the parameter values where it has a maximum
       mcmc.dlogL[tempi] = mcmc.logL[tempi]-mcmc.logL0;
       if(mcmc.dlogL[tempi]>mcmc.maxdlogL[tempi]) {
@@ -331,8 +338,6 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
 	  mcmc.maxparam[tempi][i] = mcmc.param[tempi][i];
 	}
       }
-      
-      
       
       
       // *** ACCEPT THE PROPOSED UPDATE *************************************************************************************************************************************************
@@ -417,6 +422,12 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
   
   
   
+  for(tempi=0;tempi<mcmc.ntemps;tempi++) {
+    if(tempi==0 || savehotchains>0) {
+      fclose(mcmc.fouts[tempi]);
+    }
+  }
+  free(mcmc.fouts);
   
   // *** FREE MEMORY **************************************************************************************************************************************************************
   
@@ -522,11 +533,13 @@ int prior(double *par, int p)
   lb[0] = 1.0; //Mc
   ub[0] = 6.0;
   
-  lb[1] = 0.03; //eta
-  ub[1] = 0.245;
+  //lb[1] = 0.03; //eta
+  //ub[1] = 0.245;
+  lb[1] = 0.001; //eta
+  ub[1] = 0.249;
   
-  dt = 0.05; //This should be dt/2  For known signals
-  //dt = 0.5; //This should be dt/2  For unknown signals
+  dt = 0.05; //This is dt/2  For known signals
+  //dt = 0.5; //This is dt/2  For unknown signals
   lb[2] = prior_tc_mean - dt; //t_c
   ub[2] = prior_tc_mean + dt;
   
@@ -545,7 +558,7 @@ int prior(double *par, int p)
   lb[9] = -0.999999; //sin(theta_J0)
   ub[9] = 0.999999;
   
-  //Set prior to 0 if outside range: Very inefficient for correlated update proposals
+  //Set prior to 0 if outside range: Seems very inefficient for correlated update proposals
   /*
     if(p==0) if(*par < 1.0 || *par > 5.0) prior = 0;                // Chirp mass <1 or >5
     if(p==1) if(*par < 0.03 || *par > 0.245) prior = 0;                // Mass ratio, refect if <0.03 or >0.245
@@ -557,17 +570,23 @@ int prior(double *par, int p)
   
   //printf("%2d  %20.6f  %20.6f  %20.6f  ",p,lb[p],ub[p],*par);
   
-  //Bounce back from the wall:
-  //if((p==0 || p==1 || p==2 || p==3 || p==4 || p==5 || p==7 || p==9) && *par<lb[p])  *par = lb[p] + fabs(*par - lb[p]); //Does only 1 step
-  //if((p==0 || p==1 || p==2 || p==3 || p==4 || p==5 || p==7 || p==9) && *par>ub[p])  *par = ub[p] - fabs(*par - ub[p]);
-  if(p==0 || p==1 || p==2 || p==3 || p==4 || p==5 || p==7 || p==9) {
-    while(*par<lb[p] || *par>ub[p]) {
-      while(*par<lb[p])  *par = lb[p] + fabs(*par - lb[p]);
-      while(*par>ub[p])  *par = ub[p] - fabs(*par - ub[p]);
+  
+  if(p==6 || p==8 || p==10 || p==11) {                                    // Periodic boundary condition to bring the variable between 0 and 2pi
+    *par = fmod(*par+mtpi,tpi);
+  } else {                                                                // Bounce back from the wall
+    //while(*par<lb[p] || *par>ub[p]) {                                     // Do as many bounces as necessary to get between the walls
+    //  if(*par<lb[p])  *par = lb[p] + fabs(*par - lb[p]);
+    //  if(*par>ub[p])  *par = ub[p] - fabs(*par - ub[p]);
+    //}
+    if(*par<lb[p] || *par>ub[p]) {                                        // Do only one bounce
+      if(*par<lb[p]) {
+	*par = lb[p] + fabs(*par - lb[p]);
+      } else {
+	*par = ub[p] - fabs(*par - ub[p]);
+      }
+      if(*par<lb[p] || *par>ub[p]) prior = 0;                             // If, after bouncing once, still outside the range, reject
     }
   }
-  
-  if(p==6 || p==8 || p==10 || p==11) *par = fmod(*par+mtpi,tpi);  //Periodic boundary condition to bring the variable between 0 and 2pi
   
   //printf("%20.6f  %d  \n",*par,prior);
   
@@ -589,7 +608,7 @@ int prior(double *par, int p)
 void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc)
 //****************************************************************************************************************************************************  
 {
-  int j1=0, j2=0, tempi=mcmc->tempi;
+  int p1=0, p2=0, tempi=mcmc->tempi;
   double temparr[mcmc->npar], dparam=0.0;
   double ran=0.0, largejump1=0.0, largejumpall=0.0;
   
@@ -599,26 +618,26 @@ void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, 
   if(ran < 1.0e-3) largejumpall = 1.0e1;    //Every 1e3 iterations, take a 10x larger jump in all parameters
   if(ran < 1.0e-4) largejumpall = 1.0e2;    //Every 1e4 iterations, take a 100x larger jump in all parameters
     
-  for(j1=0;j1<mcmc->npar;j1++) {
+  for(p1=0;p1<mcmc->npar;p1++) {
     largejump1 = 1.0;
     ran = gsl_rng_uniform(mcmc->ran);
     if(ran < 1.0e-2) largejump1 = 1.0e1;    //Every 1e2 iterations, take a 10x larger jump in this parameter
     if(ran < 1.0e-3) largejump1 = 1.0e2;    //Every 1e3 iterations, take a 100x larger jump in this parameter
-    temparr[j1] = gsl_ran_gaussian(mcmc->ran,1.0) * mcmc->corrsig[tempi] * largejump1 * largejumpall;   //Univariate gaussian random number, with sigma=1, times the adaptable sigma_correlation times the large-jump factor
+    temparr[p1] = gsl_ran_gaussian(mcmc->ran,1.0) * mcmc->corrsig[tempi] * largejump1 * largejumpall;   //Univariate gaussian random numbers, with sigma=1, times the adaptable sigma_correlation times the large-jump factors
   }
   
   //Do the proposal
   mcmc->acceptprior[tempi] = 1;
-  for(j1=0;j1<mcmc->npar;j1++){
-    if(fitpar[j1]==1) {
+  for(p1=0;p1<mcmc->npar;p1++){
+    if(fitpar[p1]==1) {
       dparam = 0.0;
-      for(j2=0;j2<=j1;j2++){
-	dparam += mcmc->covar[tempi][j1][j2]*temparr[j2];   //Temparr is now a univariate gaussian random number
+      for(p2=0;p2<=p1;p2++){
+	dparam += mcmc->covar[tempi][p1][p2]*temparr[p2];   //Temparr is now a univariate gaussian random vector
       }
-      mcmc->nparam[tempi][j1] = mcmc->param[tempi][j1] + dparam;       //Jump from the previous parameter value
-      mcmc->sigout[tempi][j1] = fabs(dparam);                          //This isn't really sigma, but the proposed jump size
-      mcmc->acceptprior[tempi] *= prior(&mcmc->nparam[tempi][j1],j1);
-    }
+      mcmc->nparam[tempi][p1] = mcmc->param[tempi][p1] + dparam;       //Jump from the previous parameter value
+      mcmc->sigout[tempi][p1] = fabs(dparam);                          //This isn't really sigma, but the proposed jump size
+      mcmc->acceptprior[tempi] *= prior(&mcmc->nparam[tempi][p1],p1);
+   }
   }
   
   
@@ -642,10 +661,10 @@ void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, 
     par2arr(state, mcmc->nparam);	                               //Put the variables back in their array
     
     if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->temp) && mcmc->nlogL[tempi] > mcmc->logL0) {  //Accept proposal
-      for(j1=0;j1<mcmc->npar;j1++){
-	if(fitpar[j1]==1) {
-	  mcmc->param[tempi][j1] = mcmc->nparam[tempi][j1];
-	  mcmc->accepted[tempi][j1] += 1;
+      for(p1=0;p1<mcmc->npar;p1++){
+	if(fitpar[p1]==1) {
+	  mcmc->param[tempi][p1] = mcmc->nparam[tempi][p1];
+	  mcmc->accepted[tempi][p1] += 1;
 	}
       }
       mcmc->logL[tempi] = mcmc->nlogL[tempi];
@@ -686,7 +705,7 @@ void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, 
 void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc)
 //****************************************************************************************************************************************************  
 {
-  int j1=0, tempi=mcmc->tempi;
+  int p=0, tempi=mcmc->tempi;
   double gamma=0.0,alphastar=0.25;
   double ran=0.0, largejump1=0.0, largejumpall=0.0;
   
@@ -695,64 +714,65 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
   if(ran < 1.0e-3) largejumpall = 1.0e1;    //Every 1e3 iterations, take a 10x larger jump in all parameters
   if(ran < 1.0e-4) largejumpall = 1.0e2;    //Every 1e4 iterations, take a 100x larger jump in all parameters
     
-  for(j1=0;j1<npar;j1++){
-    if(fitpar[j1]==1) mcmc->nparam[tempi][j1] = mcmc->param[tempi][j1];
+  for(p=0;p<npar;p++){
+    if(fitpar[p]==1) mcmc->nparam[tempi][p] = mcmc->param[tempi][p];
   }
-  for(j1=0;j1<npar;j1++){
-    if(fitpar[j1]==1) {
+  for(p=0;p<npar;p++){
+    if(fitpar[p]==1) {
       largejump1 = 1.0;
       ran = gsl_rng_uniform(mcmc->ran);
       if(ran < 1.0e-2) largejump1 = 1.0e1;    //Every 1e2 iterations, take a 10x larger jump in this parameter
       if(ran < 1.0e-3) largejump1 = 1.0e2;    //Every 1e3 iterations, take a 100x larger jump in this parameter
       
-      mcmc->nparam[tempi][j1] = mcmc->param[tempi][j1] + gsl_ran_gaussian(mcmc->ran,mcmc->sig[tempi][j1]) * largejump1 * largejumpall;
+      mcmc->nparam[tempi][p] = mcmc->param[tempi][p] + gsl_ran_gaussian(mcmc->ran,mcmc->sig[tempi][p]) * largejump1 * largejumpall;
       
       /*
       //Testing with sky position/orientation updates
-      if(j1==6  && gsl_rng_uniform(mcmc->ran) < 0.3) mcmc->nparam[tempi][6]  = fmod(mcmc->nparam[tempi][6]+pi,tpi);  //Move RA over 12h
-      if(j1==7  && gsl_rng_uniform(mcmc->ran) < 0.3) mcmc->nparam[tempi][7]  *= -1.0;                                //Flip declination
-      if(j1==9  && gsl_rng_uniform(mcmc->ran) < 0.3) mcmc->nparam[tempi][9]  *= -1.0;                                //Flip theta_Jo
-      if(j1==10 && gsl_rng_uniform(mcmc->ran) < 0.3) mcmc->nparam[tempi][10] = fmod(mcmc->nparam[tempi][10]+pi,tpi); //Move phi_Jo over 12h
+      if(p==6  && gsl_rng_uniform(mcmc->ran) < 0.3) mcmc->nparam[tempi][6]  = fmod(mcmc->nparam[tempi][6]+pi,tpi);  //Move RA over 12h
+      if(p==7  && gsl_rng_uniform(mcmc->ran) < 0.3) mcmc->nparam[tempi][7]  *= -1.0;                                //Flip declination
+      if(p==9  && gsl_rng_uniform(mcmc->ran) < 0.3) mcmc->nparam[tempi][9]  *= -1.0;                                //Flip theta_Jo
+      if(p==10 && gsl_rng_uniform(mcmc->ran) < 0.3) mcmc->nparam[tempi][10] = fmod(mcmc->nparam[tempi][10]+pi,tpi); //Move phi_Jo over 12h
       */
       
-      mcmc->acceptprior[tempi] = prior(&mcmc->nparam[tempi][j1],j1);
+      mcmc->acceptprior[tempi] = prior(&mcmc->nparam[tempi][p],p);
+      
       if(mcmc->acceptprior[tempi]==1) {
-	arr2par(mcmc->nparam, state);                          //Get the parameters from their array
+	arr2par(mcmc->nparam, state);                                            //Get the parameters from their array
 	localpar(state, ifo, mcmc->networksize);
 	mcmc->nlogL[tempi] = net_loglikelihood(state, mcmc->networksize, ifo);   //Calculate the likelihood
-	par2arr(state, mcmc->nparam);                          //Put the variables back in their array
+	par2arr(state, mcmc->nparam);                                            //Put the variables back in their array
 	
 	if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->temp) && mcmc->nlogL[tempi] > mcmc->logL0) {  //Accept proposal
-	  mcmc->param[tempi][j1] = mcmc->nparam[tempi][j1];
+	  mcmc->param[tempi][p] = mcmc->nparam[tempi][p];
 	  mcmc->logL[tempi] = mcmc->nlogL[tempi];
 	  if(adapt==1){
-	    gamma = mcmc->scale[tempi][j1]*pow(1.0/((double)(mcmc->iteri+1)),1.0/6.0);
-	    mcmc->sig[tempi][j1] = max(0.0,mcmc->sig[tempi][j1] + gamma*(1.0 - alphastar)); //Accept
-	    if(j1==6 || j1==8 || j1==10 || j1==11) mcmc->sig[tempi][j1] = fmod(mcmc->sig[tempi][j1]+mtpi,tpi);  //Bring the sigma between 0 and 2pi
+	    gamma = mcmc->scale[tempi][p]*pow(1.0/((double)(mcmc->iteri+1)),1.0/6.0);
+	    mcmc->sig[tempi][p] = max(0.0,mcmc->sig[tempi][p] + gamma*(1.0 - alphastar)); //Accept
+	    if(p==6 || p==8 || p==10 || p==11) mcmc->sig[tempi][p] = fmod(mcmc->sig[tempi][p]+mtpi,tpi);  //Bring the sigma between 0 and 2pi
 	  }
-	  mcmc->accepted[tempi][j1] += 1;
+	  mcmc->accepted[tempi][p] += 1;
 	}
 	else{                                                      //Reject proposal
-	  mcmc->nparam[tempi][j1] = mcmc->param[tempi][j1];
+	  mcmc->nparam[tempi][p] = mcmc->param[tempi][p];
 	  if(adapt==1){
-	    gamma = mcmc->scale[tempi][j1]*pow(1.0/((double)(mcmc->iteri+1)),1.0/6.0);
-	    mcmc->sig[tempi][j1] = max(0.0,mcmc->sig[tempi][j1] - gamma*alphastar); //Reject
-	    if(j1==6 || j1==8 || j1==10 || j1==11) mcmc->sig[tempi][j1] = fmod(mcmc->sig[tempi][j1]+mtpi,tpi);  //Bring the sigma between 0 and 2pi
-	    //mcmc->sig[tempi][j1] = max(0.01*mcmc->sig[tempi][j1], mcmc->sig[tempi][j1] - gamma*alphastar);
+	    gamma = mcmc->scale[tempi][p]*pow(1.0/((double)(mcmc->iteri+1)),1.0/6.0);
+	    mcmc->sig[tempi][p] = max(0.0,mcmc->sig[tempi][p] - gamma*alphastar); //Reject
+	    if(p==6 || p==8 || p==10 || p==11) mcmc->sig[tempi][p] = fmod(mcmc->sig[tempi][p]+mtpi,tpi);  //Bring the sigma between 0 and 2pi
+	    //mcmc->sig[tempi][p] = max(0.01*mcmc->sig[tempi][p], mcmc->sig[tempi][p] - gamma*alphastar);
 	  }
 	}
       }
       else{  //If new state not within boundaries
-	mcmc->nparam[tempi][j1] = mcmc->param[tempi][j1];
+	mcmc->nparam[tempi][p] = mcmc->param[tempi][p];
 	if(adapt==1) {
-	  gamma = mcmc->scale[tempi][j1]*pow(1.0/((double)(mcmc->iteri+1)),1.0/6.0);
-	  mcmc->sig[tempi][j1] = max(0.0,mcmc->sig[tempi][j1] - gamma*alphastar); //Reject
-	  if(j1==6 || j1==8 || j1==10 || j1==11) mcmc->sig[tempi][j1] = fmod(mcmc->sig[tempi][j1]+mtpi,tpi);  //Bring the sigma between 0 and 2pi
+	  gamma = mcmc->scale[tempi][p]*pow(1.0/((double)(mcmc->iteri+1)),1.0/6.0);
+	  mcmc->sig[tempi][p] = max(0.0,mcmc->sig[tempi][p] - gamma*alphastar); //Reject
+	  if(p==6 || p==8 || p==10 || p==11) mcmc->sig[tempi][p] = fmod(mcmc->sig[tempi][p]+mtpi,tpi);  //Bring the sigma between 0 and 2pi
 	}
       } //if(mcmc->acceptprior[tempi]==1)
-    } //if(fitpar[j1]==1)
-    mcmc->sigout[tempi][j1] = mcmc->sig[tempi][j1]; //Save sigma for output
-  } //j1
+    } //if(fitpar[p]==1)
+    mcmc->sigout[tempi][p] = mcmc->sig[tempi][p]; //Save sigma for output
+  } //p
 }
 //End uncorrelated_mcmc_single_update
 //****************************************************************************************************************************************************  
@@ -767,7 +787,7 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
 void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc)
 //****************************************************************************************************************************************************  
 {
-  int j1=0;
+  int p=0;
   double ran=0.0, largejump1=0.0, largejumpall=0.0;
   
   largejumpall = 1.0;
@@ -776,15 +796,15 @@ void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset 
   if(ran < 1.0e-4) largejumpall = 1.0e2;    //Every 1e4 iterations, take a 100x larger jump in all parameters
   
   mcmc->acceptprior[tempi] = 1;
-  for(j1=0;j1<mcmc->npar;j1++){
-    if(fitpar[j1]==1) {
+  for(p=0;p<mcmc->npar;p++){
+    if(fitpar[p]==1) {
       largejump1 = 1.0;
       ran = gsl_rng_uniform(mcmc->ran);
       if(ran < 1.0e-2) largejump1 = 1.0e1;    //Every 1e2 iterations, take a 10x larger jump in this parameter
       if(ran < 1.0e-3) largejump1 = 1.0e2;    //Every 1e3 iterations, take a 100x larger jump in this parameter
   
-      mcmc->nparam[tempi][j1] = mcmc->param[tempi][j1] + gsl_ran_gaussian(mcmc->ran,mcmc->sig[tempi][j1]) * largejump1 * largejumpall;
-      mcmc->acceptprior[tempi] *= prior(&mcmc->nparam[tempi][j1],j1);
+      mcmc->nparam[tempi][p] = mcmc->param[tempi][p] + gsl_ran_gaussian(mcmc->ran,mcmc->sig[tempi][p]) * largejump1 * largejumpall;
+      mcmc->acceptprior[tempi] *= prior(&mcmc->nparam[tempi][p],p);
     }
   }
   
@@ -795,10 +815,10 @@ void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset 
     par2arr(state, mcmc->nparam);	                              //Put the variables back in their array
     
     if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->temp) && mcmc->nlogL[tempi] > mcmc->logL0){  //Accept proposal if L>Lo
-      for(j1=0;j1<mcmc->npar;j1++){
-	if(fitpar[j1]==1) {
-	  mcmc->param[tempi][j1] = mcmc->nparam[tempi][j1];
-	  mcmc->accepted[tempi][j1] += 1;
+      for(p=0;p<mcmc->npar;p++){
+	if(fitpar[p]==1) {
+	  mcmc->param[tempi][p] = mcmc->nparam[tempi][p];
+	  mcmc->accepted[tempi][p] += 1;
 	}
       }
       mcmc->logL[tempi] = mcmc->nlogL[tempi];
@@ -820,7 +840,6 @@ void write_mcmc_header(struct interferometer ifo[], struct mcmcvariables mcmc, s
 //****************************************************************************************************************************************************  
 {
   int i=0, tempi=0;
-  char outfilename[99];
   
   // *** Print run parameters to screen ***
   if(offsetmcmc==0) printf("   Starting MCMC with the true initial parameters\n\n");
@@ -835,31 +854,29 @@ void write_mcmc_header(struct interferometer ifo[], struct mcmcvariables mcmc, s
   
   // *** Open the output file and write run parameters in the header ***
   for(tempi=0;tempi<mcmc.ntemps;tempi++) {
-    if(tempi==0 || saveallchains==1) {
-      sprintf(outfilename,"mcmc.output.%6.6d.%2.2d",mcmc.seed,tempi);
-      mcmc.fout = fopen(outfilename,"w"); //In current dir, allows for multiple copies to run
-      fprintf(mcmc.fout, "%10s  %10s  %6s  %20s  %6s %8s   %6s  %8s  %10s  %12s\n","Niter","Nburn","seed","null likelihood","Ndet","Ncorr","Ntemps","Tmax","Tchain","Network SNR");
+    if(tempi==0 || savehotchains>0) {
+      fprintf(mcmc.fouts[tempi], "%10s  %10s  %6s  %20s  %6s %8s   %6s  %8s  %10s  %12s\n","Niter","Nburn","seed","null likelihood","Ndet","Ncorr","Ntemps","Tmax","Tchain","Network SNR");
       
-      fprintf(mcmc.fout, "%10d  %10d  %6d  %20.10lf  %6d %8d   %6d%10d%12.1f%14.6f\n",iter,nburn,mcmc.seed,mcmc.logL0,run.networksize,ncorr,mcmc.ntemps,(int)tempmax,mcmc.temps[tempi],run.netsnr);
-      fprintf(mcmc.fout, "\n%16s  %16s  %10s  %10s  %10s  %10s  %20s  %15s  %12s  %12s  %12s\n",
+      fprintf(mcmc.fouts[tempi], "%10d  %10d  %6d  %20.10lf  %6d %8d   %6d%10d%12.1f%14.6f\n",iter,nburn,mcmc.seed,mcmc.logL0,run.networksize,ncorr,mcmc.ntemps,(int)tempmax,mcmc.temps[tempi],run.netsnr);
+      fprintf(mcmc.fouts[tempi], "\n%16s  %16s  %10s  %10s  %10s  %10s  %20s  %15s  %12s  %12s  %12s\n",
 	      "Detector","SNR","f_low","f_high","before tc","after tc","Sample start (GPS)","Sample length","Sample rate","Sample size","FT size");
       for(i=0;i<run.networksize;i++) {
-	fprintf(mcmc.fout, "%16s  %16.8lf  %10.2lf  %10.2lf  %10.2lf  %10.2lf  %20.8lf  %15.7lf  %12d  %12d  %12d\n",
+	fprintf(mcmc.fouts[tempi], "%16s  %16.8lf  %10.2lf  %10.2lf  %10.2lf  %10.2lf  %20.8lf  %15.7lf  %12d  %12d  %12d\n",
 		ifo[i].name,ifo[i].snr,ifo[i].lowCut,ifo[i].highCut,ifo[i].before_tc,ifo[i].after_tc,
 		ifo[i].FTstart,ifo[i].deltaFT,ifo[i].samplerate,ifo[i].samplesize,ifo[i].FTsize);
       }
       if(useoldmcmcoutputformat==1) { //Old, longer file output format
-	fprintf(mcmc.fout, "\n%12s %20s  %32s  %32s  %37s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s\n",
+	fprintf(mcmc.fouts[tempi], "\n%12s %20s  %32s  %32s  %37s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s\n",
 		"cycle","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","sinthJ0","phiJ0","alpha");
-	fprintf(mcmc.fout, "%33s  %32s  %32s  %37s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s\n",
+	fprintf(mcmc.fouts[tempi], "%33s  %32s  %32s  %37s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s\n",
 		" ","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept");
       } else { // New, short file output format
-	fprintf(mcmc.fout, "\n\n%10s %13s  %11s %11s %19s %11s %11s %11s %11s %11s %11s %11s %11s %11s\n",
+	fprintf(mcmc.fouts[tempi], "\n\n%10s %13s  %11s %11s %19s %11s %11s %11s %11s %11s %11s %11s %11s %11s\n",
 		"cycle","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","sinthJ0","phiJ0","alpha");
-	//fprintf(mcmc.fout, "%33s  %11s %11s %19s %11s %11s %11s %11s %11s %11s %11s %11s %11s\n",
+	//fprintf(mcmc.fouts[tempi], "%33s  %11s %11s %19s %11s %11s %11s %11s %11s %11s %11s %11s %11s\n",
 	//	" ","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept","parameter     sigma accept");
       }
-      fclose(mcmc.fout);
+      fflush(mcmc.fouts[tempi]);
     }
   }
 }
@@ -875,8 +892,7 @@ void write_mcmc_header(struct interferometer ifo[], struct mcmcvariables mcmc, s
 void write_mcmc_output(struct mcmcvariables mcmc)
 //****************************************************************************************************************************************************  
 {
-  int j1=0, tempi=mcmc.tempi, iteri=mcmc.iteri;
-  char outfilename[99];
+  int p=0, tempi=mcmc.tempi, iteri=mcmc.iteri;
   
   //printf("%d  %d",tempi,iteri);
   
@@ -898,45 +914,45 @@ void write_mcmc_output(struct mcmcvariables mcmc)
   
   double *accrat;
   accrat = (double*)calloc(mcmc.npar,sizeof(double));
-  for(j1=0;j1<mcmc.npar;j1++) {
-    accrat[j1] = 0.0;
+  for(p=0;p<mcmc.npar;p++) {
+    accrat[p] = 0.0;
   }
   if(iteri > 0) {
-    for(j1=0;j1<mcmc.npar;j1++) {
-      accrat[j1] = mcmc.accepted[tempi][j1]/(double)iteri;
+    for(p=0;p<mcmc.npar;p++) {
+      accrat[p] = mcmc.accepted[tempi][p]/(double)iteri;
     }
   }
   
   // *** Write output to file ***
-  if(tempi==0 || saveallchains==1) { //For all T-chains if desired, otherwise the T=1 chain only
-    if((iteri % skip)==0 || iteri<0){
-      sprintf(outfilename,"mcmc.output.%6.6d.%2.2d",mcmc.seed,tempi);
-      mcmc.fout = fopen(outfilename,"a");
-      if(useoldmcmcoutputformat==1) {  //Use old, longer file output format
-	fprintf(mcmc.fout, "%12d %20.10lf  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %20.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f\n",
-		iteri,mcmc.logL[tempi]-mcmc.logL0,
-		mcmc.param[tempi][0],mcmc.sigout[tempi][0],accrat[0],  mcmc.param[tempi][1],mcmc.sigout[tempi][1],accrat[1],  
-		mcmc.param[tempi][2],mcmc.sigout[tempi][2],accrat[2],  mcmc.param[tempi][3],mcmc.sigout[tempi][3],accrat[3], 
-		mcmc.param[tempi][4],mcmc.sigout[tempi][4],accrat[4],  mcmc.param[tempi][5],mcmc.sigout[tempi][5],accrat[5],
-		rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.sigout[tempi][6],accrat[6],
-		mcmc.param[tempi][7],mcmc.sigout[tempi][7],accrat[7],  mcmc.param[tempi][8],mcmc.sigout[tempi][8],accrat[8],
-		mcmc.param[tempi][9],mcmc.sigout[tempi][9],accrat[9],  
-		mcmc.param[tempi][10],mcmc.sigout[tempi][10],accrat[10],  mcmc.param[tempi][11],mcmc.sigout[tempi][11],accrat[11]);
-      } else {  //Use the new, shorter file output format
-	fprintf(mcmc.fout, "%10d %13.6lf  %11.7lf %11.7lf %19.8lf %11.7lf %11.7lf %11.7lf %11.7lf %11.7lf %11.7lf %11.7lf %11.7lf %11.7lf\n",
-		iteri,mcmc.logL[tempi]-mcmc.logL0,
-		mcmc.param[tempi][0],  mcmc.param[tempi][1],
-		mcmc.param[tempi][2],  mcmc.param[tempi][3],
-		mcmc.param[tempi][4],  mcmc.param[tempi][5],
-		rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),
-		mcmc.param[tempi][7],   mcmc.param[tempi][8],
-		mcmc.param[tempi][9], 
-		mcmc.param[tempi][10],  mcmc.param[tempi][11]);
-      }
-      
-      //fflush(mcmc.fout); //Make sure any 'snapshot' you take halfway is complete
-      fclose(mcmc.fout);
-    }
+  if(tempi==0 || savehotchains>0) { //For all T-chains if desired, otherwise the T=1 chain only
+    if((iteri % skip)==0 || iteri<=0){
+      if(iteri<=0 || tempi==0 || (iteri % (skip*savehotchains))==0) { //Save every skip-th line for the T=1 chain, but every (skip*savehotchains)-th line for the T>1 ones
+	if(useoldmcmcoutputformat==1) {  //Use old, longer file output format
+	  fprintf(mcmc.fouts[tempi], "%12d %20.10lf  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %20.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f  %15.10lf %9.6f %6.4f\n",
+		  iteri,mcmc.logL[tempi]-mcmc.logL0,
+		  mcmc.param[tempi][0],mcmc.sigout[tempi][0],accrat[0],  mcmc.param[tempi][1],mcmc.sigout[tempi][1],accrat[1],  
+		  mcmc.param[tempi][2],mcmc.sigout[tempi][2],accrat[2],  mcmc.param[tempi][3],mcmc.sigout[tempi][3],accrat[3], 
+		  mcmc.param[tempi][4],mcmc.sigout[tempi][4],accrat[4],  mcmc.param[tempi][5],mcmc.sigout[tempi][5],accrat[5],
+		  rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.sigout[tempi][6],accrat[6],
+		  mcmc.param[tempi][7],mcmc.sigout[tempi][7],accrat[7],  mcmc.param[tempi][8],mcmc.sigout[tempi][8],accrat[8],
+		  mcmc.param[tempi][9],mcmc.sigout[tempi][9],accrat[9],  
+		  mcmc.param[tempi][10],mcmc.sigout[tempi][10],accrat[10],  mcmc.param[tempi][11],mcmc.sigout[tempi][11],accrat[11]);
+	} else {  //Use the new, shorter file output format
+	  fprintf(mcmc.fouts[tempi], "%10d %13.6lf  %11.7lf %11.7lf %19.8lf %11.7lf %11.7lf %11.7lf %11.7lf %11.7lf %11.7lf %11.7lf %11.7lf %11.7lf\n",
+		  iteri,mcmc.logL[tempi]-mcmc.logL0,
+		  mcmc.param[tempi][0],  mcmc.param[tempi][1],
+		  mcmc.param[tempi][2],  mcmc.param[tempi][3],
+		  mcmc.param[tempi][4],  mcmc.param[tempi][5],
+		  rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),
+		  mcmc.param[tempi][7],   mcmc.param[tempi][8],
+		  mcmc.param[tempi][9], 
+		  mcmc.param[tempi][10],  mcmc.param[tempi][11]);
+	}
+	
+	fflush(mcmc.fouts[tempi]); //Make sure any 'snapshot' you take halfway is complete
+	
+      } //if(tempi==0 || (iteri % (skip*savehotchains))==0)
+    } //if((iteri % skip)==0 || iteri<0)
   } //if(tempi==0)
   
   free(accrat);
@@ -1129,7 +1145,7 @@ void free_mcmcvariables(struct mcmcvariables *mcmc)
 void update_covariance_matrix(struct mcmcvariables *mcmc)
 //****************************************************************************************************************************************************  
 {
-  int i=0, j=0, i1=0, j1=0, j2=0;
+  int i=0, j=0, i1=0, p1=0, p2=0;
   double **tempcovar;
   tempcovar = (double**)calloc(npar,sizeof(double*));           // A temp Cholesky-decomposed matrix
   for(i=0;i<npar;i++) {
@@ -1146,38 +1162,38 @@ void update_covariance_matrix(struct mcmcvariables *mcmc)
   
   
   //Calculate the mean
-  for(j1=0;j1<npar;j1++){
-    mcmc->histmean[j1]=0.0;
+  for(p1=0;p1<npar;p1++){
+    mcmc->histmean[p1]=0.0;
     for(i1=0;i1<ncorr;i1++){
-      mcmc->histmean[j1]+=mcmc->hist[tempi][j1][i1];
+      mcmc->histmean[p1]+=mcmc->hist[tempi][p1][i1];
     }
-    mcmc->histmean[j1]/=((double)ncorr);
+    mcmc->histmean[p1]/=((double)ncorr);
   }
   
   //Calculate the standard deviation. Only for printing, not used in the code
-  for(j1=0;j1<npar;j1++){
-    mcmc->histdev[j1]=0.0;
+  for(p1=0;p1<npar;p1++){
+    mcmc->histdev[p1]=0.0;
     for(i1=0;i1<ncorr;i1++){
-      mcmc->histdev[j1] += (mcmc->hist[tempi][j1][i1]-mcmc->histmean[j1])*(mcmc->hist[tempi][j1][i1]-mcmc->histmean[j1]);
+      mcmc->histdev[p1] += (mcmc->hist[tempi][p1][i1]-mcmc->histmean[p1])*(mcmc->hist[tempi][p1][i1]-mcmc->histmean[p1]);
     }
-    mcmc->histdev[j1] = sqrt(mcmc->histdev[j1]/(double)(ncorr-1));
+    mcmc->histdev[p1] = sqrt(mcmc->histdev[p1]/(double)(ncorr-1));
   }
   
   //Calculate the covariances and save them in covar1
-  for(j1=0;j1<npar;j1++){
-    for(j2=0;j2<=j1;j2++){
-      covar1[tempi][j1][j2]=0.0;
+  for(p1=0;p1<npar;p1++){
+    for(p2=0;p2<=p1;p2++){
+      covar1[tempi][p1][p2]=0.0;
       for(i1=0;i1<ncorr;i1++){
-	covar1[tempi][j1][j2] += (mcmc->hist[tempi][j1][i1] - mcmc->histmean[j1]) * (mcmc->hist[tempi][j2][i1] - mcmc->histmean[j2]);
+	covar1[tempi][p1][p2] += (mcmc->hist[tempi][p1][i1] - mcmc->histmean[p1]) * (mcmc->hist[tempi][p2][i1] - mcmc->histmean[p2]);
       }
-      covar1[tempi][j1][j2] /= (double)(ncorr-1);
+      covar1[tempi][p1][p2] /= (double)(ncorr-1);
     }
   }
   
   //Store the covariance matrix in a temporary variable tempcovar, for Cholesky decomposition
-  for(j1=0;j1<npar;j1++){
-    for(j2=0;j2<=j1;j2++){
-      tempcovar[j1][j2] = covar1[tempi][j1][j2];
+  for(p1=0;p1<npar;p1++){
+    for(p2=0;p2<=p1;p2++){
+      tempcovar[p1][p2] = covar1[tempi][p1][p2];
     }
   }
   
@@ -1188,10 +1204,10 @@ void update_covariance_matrix(struct mcmcvariables *mcmc)
   
   //Get conditions to decide whether to accept the new matrix or not
   mcmc->acceptelems[tempi] = 0;
-  for(j1=0;j1<npar;j1++) {
-    if(fitpar[j1]==1) {
-      if(tempcovar[j1][j1] < mcmc->covar[tempi][j1][j1]) mcmc->acceptelems[tempi] += 1; //Smaller diagonal element is better; count for how many this is the case
-      if(tempcovar[j1][j1]<=0.0 || isnan(tempcovar[j1][j1])!=0 || isinf(tempcovar[j1][j1])!=0) mcmc->acceptelems[tempi] -= 9999;  //If diagonal element is <0, NaN or Inf
+  for(p1=0;p1<npar;p1++) {
+    if(fitpar[p1]==1) {
+      if(tempcovar[p1][p1] < mcmc->covar[tempi][p1][p1]) mcmc->acceptelems[tempi] += 1; //Smaller diagonal element is better; count for how many this is the case
+      if(tempcovar[p1][p1]<=0.0 || isnan(tempcovar[p1][p1])!=0 || isinf(tempcovar[p1][p1])!=0) mcmc->acceptelems[tempi] -= 9999;  //If diagonal element is <0, NaN or Inf
     }
   }
   mcmc->acceptelems[tempi] = max(mcmc->acceptelems[tempi],-1); //Now -1 means there is a diagonal element that is 0, NaN or Inf
@@ -1201,24 +1217,24 @@ void update_covariance_matrix(struct mcmcvariables *mcmc)
     printf("\n  Update for the covariance matrix proposed at iteration:  %10d\n",mcmc->iteri);
     printf("\n    Acceptelems: %d\n",mcmc->acceptelems[tempi]);
     printf("\n    Covariance matrix:\n");
-    for(j1=0;j1<npar;j1++){
-      for(j2=0;j2<=j1;j2++){
-	printf("    %10.3g",covar1[tempi][j1][j2]);
+    for(p1=0;p1<npar;p1++){
+      for(p2=0;p2<=p1;p2++){
+	printf("    %10.3g",covar1[tempi][p1][p2]);
       }
       printf("\n");
     }
     printf("\n    Old Cholesky-decomposed matrix:\n");
-    for(j1=0;j1<npar;j1++){
-      for(j2=0;j2<=j1;j2++){
-	printf("    %10.3g",mcmc->covar[tempi][j1][j2]);
+    for(p1=0;p1<npar;p1++){
+      for(p2=0;p2<=p1;p2++){
+	printf("    %10.3g",mcmc->covar[tempi][p1][p2]);
       }
       printf("\n");
     }
     printf("\n    New Cholesky-decomposed matrix:\n");
-    for(j1=0;j1<npar;j1++){
-      for(j2=0;j2<=j1;j2++){
-	//for(j2=0;j2<npar;j2++){
-	printf("    %10.3g",tempcovar[j1][j2]);
+    for(p1=0;p1<npar;p1++){
+      for(p2=0;p2<=p1;p2++){
+	//for(p2=0;p2<npar;p2++){
+	printf("    %10.3g",tempcovar[p1][p2]);
       }
       printf("\n");
     }
@@ -1227,9 +1243,9 @@ void update_covariance_matrix(struct mcmcvariables *mcmc)
   // Copy the new covariance matrix from tempcovar into mcmc->covar
   if(mcmc->acceptelems[tempi]>=0) { //Accept new matrix only if no Infs, NaNs, 0s occur.
     if(mcmc->corrupdate[tempi]<=2 || (double)mcmc->acceptelems[tempi] >= (double)mcmc->nparfit*mcmc->mataccfr) { //Always accept the new matrix on the first update, otherwise only if the fraction mataccfr of diagonal elements are better (smaller) than before
-      for(j1=0;j1<npar;j1++){
-	for(j2=0;j2<=j1;j2++){
-	  mcmc->covar[tempi][j1][j2] = tempcovar[j1][j2]; 
+      for(p1=0;p1<npar;p1++){
+	for(p2=0;p2<=p1;p2++){
+	  mcmc->covar[tempi][p1][p2] = tempcovar[p1][p2]; 
 	}
       }
       mcmc->corrupdate[tempi] += 1;
@@ -1418,14 +1434,14 @@ void swap_chains(struct mcmcvariables *mcmc)
 void write_chain_info(struct mcmcvariables mcmc)
 //****************************************************************************************************************************************************  
 {
-  int tempi=mcmc.tempi, j1=0, j2=0;
+  int tempi=mcmc.tempi, p=0, t1=0, t2=0;
   double tmpdbl = 0.0;
   
   if(tempi==0) printf("\n\n      Chain  log(T)   dlog(L)  AccEls AccMat     Swap  AccRat  logStdev:    Mc     eta     t_c  log(d)  a_spin   kappa      RA sin(de)   phi_c theta_J   phi_J alpha_c\n");
   printf("        %3d   %5.3f %9.2f     %3d    %3d   %6.4f  %6.4f         ",
 	 tempi,log10(mcmc.temp),mcmc.sumdlogL[tempi]/(double)mcmc.ihist[tempi],mcmc.acceptelems[tempi],mcmc.corrupdate[tempi]-2,  (double)mcmc.swapTs1[tempi]/(double)mcmc.iteri,(double)mcmc.accepted[tempi][0]/(double)mcmc.iteri);
-  for(j1=0;j1<mcmc.npar;j1++) {
-    tmpdbl = log10(mcmc.histdev[j1]+1.e-30);
+  for(p=0;p<mcmc.npar;p++) {
+    tmpdbl = log10(mcmc.histdev[p]+1.e-30);
     if(tmpdbl<-9.99) tmpdbl = 0.0;
     printf("  %6.3f",tmpdbl);
   }
@@ -1434,24 +1450,24 @@ void write_chain_info(struct mcmcvariables mcmc)
   
   if(prpartempinfo==2 && tempi==mcmc.ntemps-1) { //Print swap-rate matrix for parallel tempering
     printf("\n   Chain swap: ");
-    for(j1=0;j1<mcmc.ntemps-1;j1++) {
-      printf("  %6d",j1);
+    for(t1=0;t1<mcmc.ntemps-1;t1++) {
+      printf("  %6d",t1);
     }
     printf("   total\n");
-    for(j1=1;j1<mcmc.ntemps;j1++) {
-      printf("            %3d",j1);
-      for(j2=0;j2<mcmc.ntemps-1;j2++) {
-	if(j2<j1) {
-	  printf("  %6.4f",(double)mcmc.swapTss[j2][j1]/(double)mcmc.iteri);
+    for(t1=1;t1<mcmc.ntemps;t1++) {
+      printf("            %3d",t1);
+      for(t2=0;t2<mcmc.ntemps-1;t2++) {
+	if(t2<t1) {
+	  printf("  %6.4f",(double)mcmc.swapTss[t2][t1]/(double)mcmc.iteri);
 	} else {
 	  printf("        ");
 	}
       }
-      printf("  %6.4f\n",(double)mcmc.swapTs2[j1]/(double)mcmc.iteri);
+      printf("  %6.4f\n",(double)mcmc.swapTs2[t1]/(double)mcmc.iteri);
     }
     printf("          total");
-    for(j1=0;j1<mcmc.ntemps-1;j1++) {
-      printf("  %6.4f",(double)mcmc.swapTs1[j1]/(double)mcmc.iteri);
+    for(t1=0;t1<mcmc.ntemps-1;t1++) {
+      printf("  %6.4f",(double)mcmc.swapTs1[t1]/(double)mcmc.iteri);
     }
     //printf("\n");
   } //if(prpartempinfo==2 && tempi==mcmc.ntemps-1)
@@ -1470,7 +1486,8 @@ void write_chain_info(struct mcmcvariables mcmc)
 
 
 // Testing with adaptive parallel tempering, didn't work.  Moved from mcmc() to here, should be transformed into subroutine in order to be used.
-// This doesn't really seem to work, since getting a particular likelihood can also been done by zooming in on a piece of parameter space and dropping T; most T's go down to 1 this way.
+// This doesn't really seem to work, since getting a particular likelihood value for a certain chain can also been done by zooming in on a piece of 
+// parameter space and dropping T; most T's go down to 1 this way.
 //****************************************************************************************************************************************************  
 //void adaptive_prarallel_tempering()
 //****************************************************************************************************************************************************  
