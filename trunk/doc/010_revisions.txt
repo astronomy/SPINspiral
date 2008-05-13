@@ -1,7 +1,12 @@
 
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
-  
+    
+    35: sluys, 13/05/2008
+     - I changed the boundaries for \eta in the previous commit, changed them back
+       since chains get stuck at very low \eta and very high L	 
+     - Fixed two small memory leaks
+    
     34: sluys, 09/05/2008
      - The input parameter saveallchains was renamed to savehotchains. If 0 (save
        T=1 chain only) or 1 (save all parallel chains) the effect is the same as
@@ -50,7 +55,7 @@
     23-27: sluys, 05-10/03/2008
      - Bugfixes
     
-    22: sluys
+    22: sluys, 05/03/2008
      - Input file changed, 2 parameters added:
        - corrfrac sets the fraction of all MCMC updates that uses the correlations
        - mataccfr sets the fraction of (fitted) mcmc parameters that must improve 

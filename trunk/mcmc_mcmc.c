@@ -533,10 +533,10 @@ int prior(double *par, int p)
   lb[0] = 1.0; //Mc
   ub[0] = 6.0;
   
-  //lb[1] = 0.03; //eta
-  //ub[1] = 0.245;
-  lb[1] = 0.001; //eta
-  ub[1] = 0.249;
+  lb[1] = 0.03; //eta
+  ub[1] = 0.245;
+  //lb[1] = 0.001; //eta; Chains get stuck at low \eta and very high L!
+  //ub[1] = 0.249;
   
   dt = 0.05; //This is dt/2  For known signals
   //dt = 0.5; //This is dt/2  For unknown signals

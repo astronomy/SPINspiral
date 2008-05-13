@@ -507,7 +507,7 @@ void setrandomtrueparameters(struct runpar *run)  //Get random values for the 't
   
   free(lb);
   free(ub);
-  free(ran);
+  gsl_rng_free(ran);
 }
 
 

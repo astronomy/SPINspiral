@@ -704,6 +704,7 @@ void remez(double h[], int numtaps,
    free(D);
    free(E);
    free(Ext);
+   free(taps);  //MvdS
    free(x);
    free(y);
    free(ad);
