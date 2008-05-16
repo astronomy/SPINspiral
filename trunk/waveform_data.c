@@ -582,7 +582,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     /* define injection parameters:                */
     struct parset injectpar;
     
-    gettrueparameters(&injectpar);
+    settrueparameters(&injectpar);
     double root = sqrt(0.25-injectpar.eta);
     double fraction = (0.5-root) / (0.5+root);
     double inversefraction = 1.0/fraction;
@@ -620,6 +620,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     ifo[i]->FTstart = from;
     ifo[i]->samplesize = N;
     template(&injectpar,ifo,i);
+	//template15(&injectpar,ifo,i);
     ifo[i]->FTin = tempinj;
     ifo[i]->FTstart = tempfrom;
     ifo[i]->samplesize = tempN;
@@ -694,7 +695,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   //Write data (signal + noise) to disc
   if(writesignal && 1==1){
     struct parset par;
-    gettrueparameters(&par);
+    settrueparameters(&par);
     char filename[1000]="";
     sprintf(filename, "%s-data.dat", ifo[i]->name);  //Write in current dir
     FILE *dump = fopen(filename,"w");

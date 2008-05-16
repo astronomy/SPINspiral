@@ -121,8 +121,6 @@ struct runpar{
   double mataccfr;       // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
   
   double logL0;          // log of the 'null-likelihood'
-  double netsnr;         // Total SNR of the network
-  double targetsnr;      // Target total SNR of the network, scale the distance
   double temps[99];      // Temperature ladder for manual parallel tempering
   
   char infilename[99];   // Run input file name
@@ -295,6 +293,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[]);
 void setrandomtrueparameters(struct runpar *run);
 void gettrueparameters(struct parset *par);
 void getnullparameters(struct parset *par);
+
 void setmcmcseed(struct runpar *run);
 void setseed(int *seed);
 
@@ -358,6 +357,15 @@ void write_chain_info(struct mcmcvariables mcmc);
                                double *Fplus, double *Fcross);
           void template2(struct parset *par, struct interferometer *ifo[], int ifonr);
           void template(struct parset *par, struct interferometer *ifo[], int ifonr);
+		  
+		  /**************************************************************************************************************************************************/
+		  
+		  void template15(struct parset *par, struct interferometer *ifo[], int ifonr);
+		  void LALinterface(double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr);
+		  
+		  /**************************************************************************************************************************************************/
+
+		  
         double match(struct parset *par, struct interferometer *ifo[], int i, int networksize);
         double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int i);
         double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int i);

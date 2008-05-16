@@ -655,7 +655,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     
     // Define injection parameters:
     struct parset injectpar;
-    gettrueparameters(&injectpar);
+    settrueparameters(&injectpar);
     double root = sqrt(0.25-injectpar.eta);
     double fraction = (0.5-root) / (0.5+root);
     double inversefraction = 1.0/fraction;
@@ -699,13 +699,13 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     ifo[i]->FTin = injection;
     ifo[i]->FTstart = from;
     ifo[i]->samplesize = N;
-    template(&injectpar,ifo,i);
+    template15(&injectpar,ifo,i);
     ifo[i]->FTin = tempinj;
     ifo[i]->FTstart = tempfrom;
     ifo[i]->samplesize = tempN;
     
     // Write injection signal to disc
-    if(writesignal && 1==2){
+    if(writesignal && 1==1){ /////////////1==2
       char filename[100]="";
       sprintf(filename,"%s-injection.dat",ifo[i]->name);
       FILE *dump = fopen(filename,"w");
@@ -715,7 +715,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
               injectpar.spin,injectpar.kappa,injectpar.sinthJ0,injectpar.phiJ0,injectpar.alpha);
       fprintf(dump,"t Ht\n");
       for (j=0; j<N; ++j)
-	fprintf(dump, "%9.9f %.6e\n", from+(((double)j)/((double) (ifo[i]->samplerate))), injection[j]);
+	fprintf(dump, "%9.9f %.6e\n", from+(((double)j)/((double) (ifo[i]->samplerate))), injection[j]);//*******************************************************************************************
       fclose(dump); if(intscrout==1) printf(" : (signal written to file)\n");
     }
     
@@ -816,7 +816,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
 	    par.m1,par.m2,par.mc,par.eta,par.tc,exp(par.logdl),asin(par.sinlati)*r2d,par.longi*r2d,par.phase,par.spin,par.kappa,par.sinthJ0,par.phiJ0,par.alpha);
     fprintf(dump,"       GPS time (s)         H(t)\n");
     for (j=0; j<N; ++j)
-      fprintf(dump, "%9.9f %.6e\n", ifo[i]->FTstart+(((double)j)/((double) (ifo[i]->samplerate))), ifo[i]->FTin[j]);
+      fprintf(dump, "%9.9f %.6e\n", ifo[i]->FTstart+(((double)j)/((double) (ifo[i]->samplerate))), ifo[i]->FTin[j]);//*********************************************************************
     fclose(dump); if(intscrout) printf(" : (signal written to file)\n");
     pardispose(&par);
   }

@@ -37,9 +37,15 @@ int main(int argc, char * argv[])
   struct interferometer database[3];
   set_ifo_data(run, database);  
   
-  //Define interferometer network which IFOs.  The first run.networksize are actually used
-  struct interferometer *network[3] = {&database[0], &database[1], &database[2]};
-  int networksize = run.networksize;
+  //Define interferometer network; how many and which IFOs
+  const int networksize = 1;
+  struct interferometer *network[1] = {&database[0]};
+  //const int networksize = 2;
+  //struct interferometer *network[2] = {&database[0], &database[1]};
+  //const int networksize = 3;
+  //struct interferometer *network[3] = {&database[0], &database[1], &database[2]};
+  
+  run.networksize = networksize;
   
   //Initialise interferometers, read and prepare data, inject signal (takes some time)
   if(networksize == 1) {
@@ -49,31 +55,42 @@ int main(int argc, char * argv[])
   }
   ifoinit(network, networksize);
   if(inject) {
-    if(run.targetsnr < 0.001) printf("   A signal with the 'true' parameter values was injected.\n");
+    printf("   A signal with the 'true' parameter values was injected.\n");
   } else {
     printf("   No signal was injected.\n");
   }
+
   
+  //Calculate 'null-likelihood'
+  struct parset nullpar;
+  setnullparameters(&nullpar);
+  nullpar.loctc    = (double*)calloc(networksize,sizeof(double));
+  nullpar.localti  = (double*)calloc(networksize,sizeof(double));
+  nullpar.locazi   = (double*)calloc(networksize,sizeof(double));
+  nullpar.locpolar = (double*)calloc(networksize,sizeof(double));
+  localpar(&nullpar, network, networksize);
+  run.logL0 = net_loglikelihood(&nullpar, networksize, network);
+  if(inject == 0) run.logL0 *= 1.01;  //If no signal is injected, presumably there is one present in the data; enlarge the range that log(L) can take by owering Lo (since L>Lo is forced)
   
   //Get a parameter set to calculate SNR or write the wavefrom to disc
   struct parset dummypar;
-  gettrueparameters(&dummypar);
+  settrueparameters(&dummypar);
   dummypar.loctc    = (double*)calloc(networksize,sizeof(double));
   dummypar.localti  = (double*)calloc(networksize,sizeof(double));
   dummypar.locazi   = (double*)calloc(networksize,sizeof(double));
   dummypar.locpolar = (double*)calloc(networksize,sizeof(double));
   localpar(&dummypar, network, networksize);
   
-  
   //Calculate SNR
-  run.netsnr = 0.0;
   if(dosnr==1) {
     for (i=0; i<networksize; ++i) {
+      //printmuch=1;
       snr = signaltonoiseratio(&dummypar, network, i);
+      //printmuch=0;
+      //printf("  %10.2f\n",snr);
       network[i]->snr = snr;
-      run.netsnr += snr*snr;
+      //printf("  Det: %d,  GMST: %20.10lf,  Azimuth: %20.10lf,  Altitude: %20.10lf  \n",i,GMST(prior_tc_mean),dummypar.locazi[i],dummypar.localti[i]);
     }
-    run.netsnr = sqrt(run.netsnr);
   }
   
   //Get the desired SNR by scaling the distance
@@ -167,7 +184,7 @@ int main(int argc, char * argv[])
   //Calculate matches between two signals
   if(domatch==1) {
     printf("\n");
-    gettrueparameters(&dummypar);
+    settrueparameters(&dummypar);
     dummypar.loctc    = (double*)calloc(networksize,sizeof(double));
     dummypar.localti  = (double*)calloc(networksize,sizeof(double));
     dummypar.locazi   = (double*)calloc(networksize,sizeof(double));
