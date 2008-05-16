@@ -20,7 +20,7 @@ void LALinterface(double *hplus, double *hcross, int *l, int length, struct pars
     SimInspiralTable    injParams;
     PPNParamStruc       ppnParams;
 
-    const char        *filename = "wave2.dat";
+    //const char        *filename = "wave2.dat";
     FILE        *outputfile;
     INT4        i;
 	int			lengthLAL;
@@ -37,10 +37,10 @@ void LALinterface(double *hplus, double *hcross, int *l, int length, struct pars
   double m1=0.0,m2=0.0,M=0.0,mu=0.0;
   double cvec1[3],cvec2[3],cvec3[3];
   double tvec1[3],tvec2[3],tvec4[3],tvec6[3],tvec7[3];
-  int /*i,*/ terminate=0;
+  //int /*i,*/ terminate=0;
   double n_L[3];
-  double localtc=0.0,altitude=0.0,azimuth=0.0,spin=0.0,samplerate=0.0,inversesamplerate=0.0;
-  double Ltheta0=0.0, Lphi0=0.0, Lphi02=0.0;
+  double spin=0.0,samplerate=0.0,inversesamplerate=0.0,altitude=0.0,azimuth=0.0;//,localtc=0.0;
+  //double Ltheta0=0.0, Lphi0=0.0, Lphi02=0.0;
   for(i=0;i<3;i++) {
     cvec1[i] = 0.0;
     cvec2[i] = 0.0;
@@ -117,7 +117,7 @@ void LALinterface(double *hplus, double *hcross, int *l, int length, struct pars
  // for(i=0;i<3;i++) normalvec[i]=n_z[i];
   
   
-  double D_L = exp(par->logdl)*Mpcs;                                                                                    //Source luminosity distance, in seconds
+  //double D_L = exp(par->logdl)*Mpcs;                                                                                    //Source luminosity distance, in seconds
   double coslati = sqrt(1.0-par->sinlati*par->sinlati);
  // double n_N[3] = {sin(par->longi)*coslati,cos(par->longi)*coslati,par->sinlati};                                       //n_N: Position unit vector = N^
 //  double n_N[3] = {cos(par->longi)*par->sinlati,sin(par->longi)*par->sinlati,coslati};
@@ -143,10 +143,10 @@ void LALinterface(double *hplus, double *hcross, int *l, int length, struct pars
   spin = par->spin*m1*m1;
 
 	
-double beta = 1.0/12.0*(113.0*(m1*m1)/(M*M) + 75.0*par->eta)*par->kappa*spin/(m1*m1);                                 // Eq.20, for S2=0 or m1=m2,S1=S2:  kappa*spin/(m1*m1) = L^.S/m1^2
+  //double beta = 1.0/12.0*(113.0*(m1*m1)/(M*M) + 75.0*par->eta)*par->kappa*spin/(m1*m1);                                 // Eq.20, for S2=0 or m1=m2,S1=S2:  kappa*spin/(m1*m1) = L^.S/m1^2
   
-  double cst1 = 743.0/336.0 + 11.0/4.0*par->eta;
-  double cst2 = (4.0*pi-beta);
+  //double cst1 = 743.0/336.0 + 11.0/4.0*par->eta;
+  //double cst2 = (4.0*pi-beta);
   double cst5 = spin*sqrt(1.0-par->kappa*par->kappa);
   //printf("%10.20f\n", cst5);
   
@@ -172,15 +172,15 @@ double beta = 1.0/12.0*(113.0*(m1*m1)/(M*M) + 75.0*par->eta)*par->kappa*spin/(m1
   addvec(normalvec,tvec1,cvec3);                                                                                         //cvec3 = z^' - N^(z^'.N^)
   
   //Construct Eq.8ab
-  double cosalti   = cos(altitude);
-  double sin2azi   = sin(2.0*azimuth);
-  double cos2azi   = cos(2.0*azimuth);
-  double cst6  = 0.5*(1.0+cosalti*cosalti)*cos2azi;
-  double cst7  = cosalti*sin2azi;
+  //double cosalti   = cos(altitude);
+  //double sin2azi   = sin(2.0*azimuth);
+  //double cos2azi   = cos(2.0*azimuth);
+  //double cst6  = 0.5*(1.0+cosalti*cosalti)*cos2azi;
+  //double cst7  = cosalti*sin2azi;
 
 /***************************************************************************FIXED FREQUENCIES******************************************************************/
-  double omega_low  = pi*f_lower;//ifo[ifonr]->lowCut;   //30 or 40 Hz, translated from f_gw to omega_orb
-  double omega_high = pi*ifo->highCut;  //1600 Hz, translated from f_gw to omega_orb
+  //double omega_low  = pi*f_lower;//ifo[ifonr]->lowCut;   //30 or 40 Hz, translated from f_gw to omega_orb
+  //double omega_high = pi*ifo->highCut;  //1600 Hz, translated from f_gw to omega_orb
   //double omega_high = min(pi*ifo[ifonr]->highCut, exp(-1.5*log(cutoff_a) - log(M)) );  //1600 Hz, translated from f_gw to omega_orb, or a/M = cutoff_a, whichever is smaller
   
   
@@ -191,19 +191,19 @@ double beta = 1.0/12.0*(113.0*(m1*m1)/(M*M) + 75.0*par->eta)*par->kappa*spin/(m1
     printf("Times:  Tcoal: %g,  t0: %g,  localtc: %g,  tstart: %g,  length: %d,  dt: %g,  dt-ltc: %g\n",Tcoal,t0,localtc,tstart,length,deltat,deltat-localtc);
     }*/
   
-  double oldomega = -1.e30;
-  double phi_gw=0.0,alpha=0.0;
+  //double oldomega = -1.e30;
+  double alpha=0.0;//,phi_gw=0.0;
   
   //To display the number of wave and precession cycles:
-  double phi1 = 0.0;
+  //double phi1 = 0.0;
   //double phi2 = 0.0;
-  double alpha1 = 0.0;
+  //double alpha1 = 0.0;
   //double alpha2 = 0.0;
-  int i1=0,i2=0;
+  //int i1=0,i2=0;
   
-  double t=0.0,tau=0.0,tau18=0.0,tau28=0.0,tau38=0.0,tau58=0.0,tau_18=0.0,tau_28=0.0,tau_38=0.0,tau_58=0.0,tau_68=0.0;
+  //double t=0.0,tau=0.0,tau18=0.0,tau28=0.0,tau38=0.0,tau58=0.0,tau_18=0.0,tau_28=0.0,tau_38=0.0,tau_58=0.0,tau_68=0.0;
   double omega_orb=0.0,l_L=0.0,Y=0.0,Gsq=0.0,G=0.0,slamL=0.0,clamL=0.0,LdotN=0.0;
-  double locpolar=0.0,sin2polar=0.0,cos2polar=0.0,Fplus=0.0,Fcross=0.0;
+  //double locpolar=0.0,sin2polar=0.0,cos2polar=0.0,Fplus=0.0,Fcross=0.0;
   double cst4=0.0,x1=0.0,x2=0.0,x3=0.0;
  // double taperx[length],omegas[length];
  // for(i=0;i<length;i++) {
@@ -212,8 +212,8 @@ double beta = 1.0/12.0*(113.0*(m1*m1)/(M*M) + 75.0*par->eta)*par->kappa*spin/(m1
  // }
 	
 	 /*-- fill 'output' with time-domain template: --*/
-/*  for (i=0; i<length; ++i){
-    /* determine time left until coalescence, "(t_c-t)" in (4.17)/(11): */
+  //  for (i=0; i<length; ++i){
+    /// determine time left until coalescence, "(t_c-t)" in (4.17)/(11): 
 /*    t = localtc - ((double)i)*inversesamplerate;  // (time to t_c) = "(t_c-t)" in (4.17)
     if(t<0.0) { 
       terminate = 1;
@@ -552,19 +552,32 @@ double beta = 1.0/12.0*(113.0*(m1*m1)/(M*M) + 75.0*par->eta)*par->kappa*spin/(m1
 			hcross[i] = a1*sin(shift)*cos(phi) + a2*cos(shift)*sin(phi);
 			
     }
-
-  //  fclose(outputfile);
-  //  fprintf(stdout,"waveform saved in a file\n" );
-	
-	//printf("%10.20f\n", wave[0][lengthLAL-1]);
-	//printf("%10.20f\n", dt);
-	
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//	free(par);
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-   // return wave;
-	
-	
+    
+    //  fclose(outputfile);
+    //  fprintf(stdout,"waveform saved in a file\n" );
+    
+    //printf("%10.20f\n", wave[0][lengthLAL-1]);
+    //printf("%10.20f\n", dt);
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //	free(par);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    // return wave;
+    
+    CoherentGW *waveform;
+    
+    waveform = &thewaveform;
+    
+    LALSDestroyVectorSequence(&mystatus, &( waveform->a->data ));
+    LALSDestroyVector(&mystatus, &( waveform->f->data ));
+    LALDDestroyVector(&mystatus, &( waveform->phi->data ));
+    LALSDestroyVector(&mystatus, &( waveform->shift->data ));
+    
+    LALFree( waveform->a );
+    LALFree( waveform->f ); 
+    LALFree( waveform->phi) ;
+    LALFree( waveform->shift );
+    
 }
 
