@@ -17,6 +17,7 @@ int main(int argc, char * argv[])
   int i;
   double snr;
   
+  waveformversion = 2;  // 1: Apostolatos, 1.5PN, 12 par.  2: LAL 3.5PN, 15 par
   useoldmcmcoutputformat = 0; //Set to 1 if you want to ... exactly!
   
   //Initialise stuff for the run

@@ -1,9 +1,20 @@
 #include <mcmc.h>
 
 
-
-
 void template(struct parset *par, struct interferometer *ifo[], int ifonr)
+// Call a waveform template, the global variable waveformversion determines which one
+{
+  if(waveformversion==1) {
+    template12(par, ifo, ifonr);  // Apostolatos 12-parameter template
+  } else if(waveformversion==2) {
+    template15(par, ifo, ifonr);  // LAL 15-parameter template
+  }
+}
+
+
+
+
+void template12(struct parset *par, struct interferometer *ifo[], int ifonr)
 // Simplified spinning template in restricted 1.5PN order with 1 spin
 //  The output vector `output' is of length `length',  starting at `tstart' and with resolution `samplerate'.
 {
@@ -275,6 +286,8 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
     ifo[ifonr]->FTin[i] *= 0.5*(1.0 - tanh(100.0*(taperx[i]-taperx[i2a])));  //Taper end of template
   }
 }
+//End template12()
+
 
 void template15(struct parset *par, struct interferometer *ifo[], int ifonr)
 {
@@ -316,7 +329,7 @@ double x;
   double hcrossLAL[length+2];
   int lengthLAL = 0;
   
-  //LALinterface(hplusLAL, hcrossLAL, &lengthLAL, length, par, ifo[ifonr], ifonr);
+  LALinterface(hplusLAL, hcrossLAL, &lengthLAL, length, par, ifo[ifonr], ifonr);
 
   
 //printf("lengthLAL2 = %d\n", lengthLAL);
@@ -325,7 +338,7 @@ double x;
   double n_z[3] = {0.0,0.0,1.0};                                                                                        //North in global coordinates
   double normalvec[3];                                                                                                  
   for(i=0;i<3;i++) normalvec[i] = ifo[ifonr]->normalvec[i];                                                             //Detector position normal vector = local zenith vector z'
-  double D_L = exp(par->logdl)*Mpcs;                                                                                    //Source luminosity distance, in seconds
+  //double D_L = exp(par->logdl)*Mpcs;                                                                                    //Source luminosity distance, in seconds
   double coslati = sqrt(1.0-par->sinlati*par->sinlati);
  // double n_N[3] = {sin(par->longi)*coslati,cos(par->longi)*coslati,par->sinlati};                                       //n_N: Position unit vector = N^
  // double n_N[3] = {cos(par->longi)*par->sinlati,sin(par->longi)*par->sinlati,coslati};
@@ -407,17 +420,17 @@ double x;
   //double phi2 = 0.0;
   double alpha1 = 0.0;
   //double alpha2 = 0.0;
-  int i1=0,i2=0;
+  int i1=0;//,i2=0;
   
   double t=0.0,tau=0.0,tau18=0.0,tau28=0.0,tau38=0.0,tau58=0.0,tau_18=0.0,tau_28=0.0,tau_38=0.0,tau_58=0.0,tau_68=0.0;
-  double omega_orb=0.0,l_L=0.0,Y=0.0,Gsq=0.0,G=0.0,slamL=0.0,clamL=0.0,LdotN=0.0;
-  double hplus=0.0,hcross=0.0,locpolar=0.0,sin2polar=0.0,cos2polar=0.0,Fplus=0.0,Fcross=0.0;
+  double omega_orb=0.0,l_L=0.0,Y=0.0,Gsq=0.0,G=0.0,slamL=0.0,clamL=0.0;//,LdotN=0.0;
+  double locpolar=0.0,sin2polar=0.0,cos2polar=0.0,Fplus=0.0,Fcross=0.0;//,hplus=0.0,hcross=0.0
   double cst4=0.0,x1=0.0,x2=0.0,x3=0.0;
-  double taperx[length],omegas[length];
-  for(i=0;i<length;i++) {
-    taperx[i] = 0.0;
-    omegas[i] = 0.0;
-  }
+  //double taperx[length],omegas[length];
+  //for(i=0;i<length;i++) {
+  //  taperx[i] = 0.0;
+  //  omegas[i] = 0.0;
+  //}
   
   /*-- fill 'output' with time-domain template: --*/
 for (i=0; i<length; ++i){
@@ -439,7 +452,7 @@ for (i=0; i<length; ++i){
       tau_68 = tau_38*tau_38;
       
       omega_orb = 1.0/(8.0*M) * (tau_38 + 0.125*cst1*tau_58 - 0.075*cst2*tau_68);   // Orbital frequency
-      omegas[i] = omega_orb;
+      //omegas[i] = omega_orb;
     }
     
   //  if ((omega_orb>=omega_low) && (terminate==0)) {  // After source comes into window, before tc and before frequency reaches its maximum  Careful, if t<0, omega = nan!!!
@@ -457,9 +470,9 @@ for (i=0; i<length; ++i){
       
       else {              // Frequency still increasing --> keep on computing...
 	if(i1==0) i1=i;  //Save initial i for tapering the beginning of the signal
-	i2 = i;          //Save final i for tapering the end of the signal
+	//i2 = i;          //Save final i for tapering the end of the signal
         oldomega = omega_orb;
-	taperx[i] = exp(2.0*c3rd*log(M*omega_orb));                                                                      // x := (M*w)^(2/3)  =  v_orb^2
+	//taperx[i] = exp(2.0*c3rd*log(M*omega_orb));                                                                      // x := (M*w)^(2/3)  =  v_orb^2
         
         //Compute orbital A.M.
         l_L = m1*m2*exp(-c3rd*log(omega_orb*M));

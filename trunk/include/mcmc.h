@@ -52,7 +52,7 @@
 
 int fitpar[12],offsetpar[12];
 double truepar[12],pdfsigs[12];
-
+int waveformversion;
 
 
 //Global variables:
@@ -357,8 +357,8 @@ void write_chain_info(struct mcmcvariables mcmc);
         double interpol_log_noisePSD(double f, struct interferometer *ifo);
           void antennaepattern(double altitude, double azimuth, double polarisation,
                                double *Fplus, double *Fcross);
-          void template2(struct parset *par, struct interferometer *ifo[], int ifonr);
           void template(struct parset *par, struct interferometer *ifo[], int ifonr);
+          void template12(struct parset *par, struct interferometer *ifo[], int ifonr);
 		  
 /**************************************************************************************************************************************************/
 		  
