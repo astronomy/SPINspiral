@@ -19,11 +19,3 @@
   These are supposed to be changed as the code changes, you can use them as reference
   to maintain your own files.
   
-  Todo:
-    - move datadir to mcmc.input to different input file (e.g. mcmc.local), because it 
-      is system dependent
-    
-        
-  
-  
-  

@@ -44,21 +44,19 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
   for(i=0;i<3;i++) normalvec[i] = ifo[ifonr]->normalvec[i];                                                             //Detector position normal vector = local zenith vector z'
   double D_L = exp(par->logdl)*Mpcs;                                                                                    //Source luminosity distance, in seconds
   double coslati = sqrt(1.0-par->sinlati*par->sinlati);
- // double n_N[3] = {sin(par->longi)*coslati,cos(par->longi)*coslati,par->sinlati};                                       //n_N: Position unit vector = N^
- // double n_N[3] = {cos(par->longi)*par->sinlati,sin(par->longi)*par->sinlati,coslati};
-   double n_N[3] = {cos(par->longi)*coslati,sin(par->longi)*coslati,par->sinlati};
+  //double n_N[3] = {sin(par->longi)*coslati,cos(par->longi)*coslati,par->sinlati};                                       //n_N: Position unit vector = N^
+  //double n_N[3] = {cos(par->longi)*par->sinlati,sin(par->longi)*par->sinlati,coslati};
+  double n_N[3] = { cos(par->longi)*coslati , sin(par->longi)*coslati , par->sinlati };
   
   double sthJ0   = par->sinthJ0;                                                                                        //n_J0: 'total' AM unit vector, J0^  (almost equal to the real J, see Eq.15)
-  double cthJ0   = sqrt(1. - sthJ0*sthJ0);
-//double n_J0[3] = {sin(par->phiJ0)*cthJ0,cos(par->phiJ0)*cthJ0,sthJ0};  //???  ----- Swap sin(phi) & cos(phi)?  Or keep (by definition equal to n_N?
- //double n_J0[3] = {cos(par->phiJ0)*sthJ0,sin(par->phiJ0)*sthJ0,cthJ0};
-  
+  double cthJ0   = sqrt(1.0 - sthJ0*sthJ0);
+  //double cthJ0   = cos(asin(sthJ0));        //Should this make a difference?
+  //double n_J0[3] = { sin(par->phiJ0)*cthJ0, cos(par->phiJ0)*cthJ0, sthJ0 };                                           //WRONG!!!  ----- Swap sin(phi) & cos(phi)?  Or keep (by definition equal) to n_N?
+  //double n_J0[3] = { cos(par->phiJ0)*sthJ0 , sin(par->phiJ0)*sthJ0 , cthJ0 };                                         //Here, theta_Jo is a polar angle (0-pi).  I think this conflicts with the fact that we have sin(theta_Jo) as an MCMC variable (MvdS)
   double n_J0[3] = { cos(par->phiJ0)*cthJ0 , sin(par->phiJ0)*cthJ0 , sthJ0 };                                           //Here, theta_Jo is an angle like Dec (-pi/2-pi/2).  I think this should be our choice since we have sin(theta_Jo) as an MCMC variable. In order to do this consistently, I swapped sthJ0 and cthJ0 below (MvdS)
-
-
+  
   par->NdJ = dotproduct(n_N,n_J0);                                                                                      //Inclination of J_0
   
-
   //Get masses from Mch and eta
   double root = sqrt(0.25-par->eta);
   double fraction = (0.5-root) / (0.5+root);
@@ -85,24 +83,16 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
   double cst5 = spin*sqrt(1.0-par->kappa*par->kappa);
   
   //Constant vector 1 for the construction of Eq.41e
-  //facvec(n_J0,-cthJ0,tvec1);  
-  
-	facvec(n_J0,-sthJ0,tvec1);                                                                                             //tvec1 = -J0^*cos(theta_J0)   MvdS: if theta_J0 is NOT a polar angle
-			
-																																																																	                                                                                            //tvec1 = -J0^*cos(theta_J0)
+  //facvec(n_J0,-cthJ0,tvec1);                                                                                             //tvec1 = -J0^*cos(theta_J0)
+  facvec(n_J0,-sthJ0,tvec1);                                                                                             //tvec1 = -J0^*cos(theta_J0)   MvdS: if theta_J0 is NOT a polar angle
   addvec(n_z,tvec1,tvec2);                                                                                               //tvec2 = n_z - J0^*cos(theta_J0)
- // facvec(tvec2,1.0/sthJ0,cvec1);                                                                                         //cvec1 = (n_z - J0^*cos(theta_J0))/sin(theta_J0)
-  
-	facvec(tvec2,1.0/cthJ0,cvec1);                                                                                         //cvec1 = (n_z - J0^*cos(theta_J0))/sin(theta_J0)   MvdS: if theta_J0 is NOT a polar angle
-
-  
+  //facvec(tvec2,1.0/sthJ0,cvec1);                                                                                         //cvec1 = (n_z - J0^*cos(theta_J0))/sin(theta_J0)
+  facvec(tvec2,1.0/cthJ0,cvec1);                                                                                         //cvec1 = (n_z - J0^*cos(theta_J0))/sin(theta_J0)   MvdS: if theta_J0 is NOT a polar angle
   
   //Constant vector 2 for the construction of Eq.41e
   crossproduct(n_J0,n_z,tvec1);                                                                                          //tvec1 = J0^ x z^
   //facvec(tvec1,1.0/sthJ0,cvec2);                                                                                         //cvec2 = (J0^ x z^) / sin(theta_J0)
   facvec(tvec1,1.0/cthJ0,cvec2);                                                                                         //cvec2 = (J0^ x z^) / sin(theta_J0)   MvdS: if theta_J0 is NOT a polar angle
-
-
   
   //Constant vector 3 for the construction of Eq.12 (local polarisation for F+,x)
   facvec(n_N,-dotproduct(normalvec,n_N),tvec1);                                                                          //tvec1 = -N^(z^'.N^)
@@ -115,8 +105,8 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
   double cos2azi   = cos(2.0*azimuth);
   double cst6  = 0.5*(1.0+cosalti*cosalti)*cos2azi;
   double cst7  = cosalti*sin2azi;
-
-
+  
+  
   double omega_low  = pi*ifo[ifonr]->lowCut;   //30 or 40 Hz, translated from f_gw to omega_orb
   double omega_high = pi*ifo[ifonr]->highCut;  //1600 Hz, translated from f_gw to omega_orb
   //double omega_high = min(pi*ifo[ifonr]->highCut, exp(-1.5*log(cutoff_a) - log(M)) );  //1600 Hz, translated from f_gw to omega_orb, or a/M = cutoff_a, whichever is smaller
@@ -204,7 +194,7 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
         Gsq = 1.0 + 2.0*par->kappa*Y + Y*Y;                                                                                      //G^2, Eq.46
         G   = sqrt(Gsq);
         
-        cst4 = l_L+par->kappa*spin;
+        cst4 = l_L + par->kappa*spin;
         x = mu*M;
         x1 = x*x*x;
         x = G*l_L;
@@ -223,9 +213,10 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
         facvec(n_J0,clamL,tvec1);                                                                                        //tvec1 = J0^*cos(lambda_L)
         facvec(cvec1,slamL*cos(alpha),tvec4);                                                                            //tvec4 = (n_z - J0^*cos(theta_J0))*sin(lambda_L)*cos(alpha)/sin(theta_J0)
         facvec(cvec2,slamL*sin(alpha),tvec6);                                                                            //tvec6 = (J0^ x z^) * sin(lambds_L)*sin(alpha)/sin(theta_J0)
-        addvec(tvec1,tvec4,tvec7);                                                                                       //Construct Eq.41e
-        addvec(tvec7,tvec6,n_L);                                                                                         //Eq.41e: n_L=L^
-        
+        addvec(tvec1,tvec4,tvec7);                                                                                       //Construct Eq.59
+        addvec(tvec7,tvec6,n_L);                                                                                         //Eq.59: n_L=L^
+	//normalise(n_L);                                                                                                  //Make L^ a true normal vector
+	
         
         LdotN  = dotproduct(n_L,n_N);                                                                                    //L^.N^
 	x1     = 2.0*exp(5.0*c3rd*log(Mc))/D_L;
@@ -278,11 +269,11 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
   
   //Apply tapering
   //int i1a = i1 + ceil(2.0*samplerate*pi/omegas[i1]);  //pi/omega_orb = 1/f_gw = lambda_gw.  *samplerate: number of points in first wavelength
-///  int i2a = i2 - (int)ceil(2.0*samplerate*pi/omegas[i2]);  //pi/omega_orb = 1/f_gw = lambda_gw.  *samplerate: number of points in last wavelength
-///  for (i=i1;i<=i2;i++) {
+  int i2a = i2 - (int)ceil(2.0*samplerate*pi/omegas[i2]);  //pi/omega_orb = 1/f_gw = lambda_gw.  *samplerate: number of points in last wavelength
+  for (i=i1;i<=i2;i++) {
     //ifo[ifonr]->FTin[i] *= 0.5*(1.0 - tanh(15000.0*(taperx[i1a]-taperx[i])));  //Taper beginning of template
-///    ifo[ifonr]->FTin[i] *= 0.5*(1.0 - tanh(100.0*(taperx[i]-taperx[i2a])));  //Taper end of template
-///  }
+    ifo[ifonr]->FTin[i] *= 0.5*(1.0 - tanh(100.0*(taperx[i]-taperx[i2a])));  //Taper end of template
+  }
 }
 
 void template15(struct parset *par, struct interferometer *ifo[], int ifonr)
@@ -325,7 +316,7 @@ double x;
   double hcrossLAL[length+2];
   int lengthLAL = 0;
   
-   LALinterface(hplusLAL, hcrossLAL, &lengthLAL, length, par, ifo[ifonr], ifonr);
+  //LALinterface(hplusLAL, hcrossLAL, &lengthLAL, length, par, ifo[ifonr], ifonr);
 
   
 //printf("lengthLAL2 = %d\n", lengthLAL);

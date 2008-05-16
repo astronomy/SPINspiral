@@ -1,7 +1,14 @@
 
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
-    
+  
+    37: sluys, 16/05/2008
+     - Merging 3.5PN code into svn, step 2
+     - Old 1.5PN is used, references to 3.5PN commented out for now
+     
+    36: vivien, 16/05/2008
+     - Merging 3.5PN code into svn, step 1	
+     
     35: sluys, 13/05/2008
      - I changed the boundaries for \eta in the previous commit, changed them back
        since chains get stuck at very low \eta and very high L	 

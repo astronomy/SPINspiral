@@ -29,8 +29,9 @@ double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int i
   int j=0;
   
   // Fill `ifo[i]->FTin' with time-domain template:
+  template(par, ifo, i);
+  //template(par, ifo, i);  //Do it twice to time how long it takes
   //template15(par, ifo, i);
-  template(par, ifo, i);  //Do it twice to time how long it takes
   
   // Window template:
   for(j=0; j<ifo[i]->samplesize; ++j) ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
@@ -60,8 +61,8 @@ double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int 
   int j=0;
   
   // Fill `ifo[i]->FTin' with time-domain template:
-  //template15(par, ifo, i);
   template(par, ifo, i);
+  //template15(par, ifo, i);
   
   // Window template:
   for(j=0; j<ifo[i]->samplesize; ++j) ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
@@ -95,14 +96,14 @@ void writesignaltodisc(struct parset *par, struct interferometer *ifo[], int i)
   
   // Fill `ifo[i]->FTin' with time-domain template:
   
-
+  
   /**************************************************************************************************************************************************************************************/
   
   template(par, ifo, i);
-//  template15(par, ifo, i);
-
+  //template15(par, ifo, i);
+  
   // Write signal in time domain:
-
+  
   char filename[1000]="";
   sprintf(filename, "%s-signal.dat", ifo[i]->name);  // Write in current dir
   FILE *dump = fopen(filename,"w");
@@ -185,7 +186,7 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
   
   // Fill `ifo[i]->FTin' with time-domain template:
   template(par, ifo, i); 
-  // template15(par, ifo, i);
+  //template15(par, ifo, i);
   
   // Window template:
   for(j=0; j<ifo[i]->samplesize; ++j) ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
@@ -201,8 +202,8 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
   truepar.locazi   = (double*)calloc(networksize,sizeof(double));
   truepar.locpolar = (double*)calloc(networksize,sizeof(double));
   localpar(&truepar, ifo, networksize);
-  template(&truepar, ifo, i);
   //template15(&truepar, ifo, i);  
+  template(&truepar, ifo, i);
   
   
   // Window template:

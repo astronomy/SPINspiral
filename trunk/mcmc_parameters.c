@@ -93,8 +93,10 @@ void readinputfile(struct runpar *run)
   
   //Diverse:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->networksize);
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->selectdata);
   fgets(bla,500,fin);  sscanf(bla,"%lf",&downsamplefactor);
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->targetsnr);
   
   //True parameter values:
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
@@ -192,8 +194,10 @@ void writeinputfile(struct runpar *run)
   
   
   fprintf(fout, "\n  #Diverse:\n");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",    run->networksize,"networksize",    "Set the number of detectors that make up the network: 1: H1, 2: H1L1, 3: H1L1V");
   fprintf(fout, "  %-25d  %-18s  %-s\n",     run->selectdata,"selectdata",     "Select the data set to run on  (set to 0 to print a list of data sets). Make sure you set the true tc and datadir accordingly.");
   fprintf(fout, "  %-25.1f  %-18s  %-s\n", downsamplefactor,"downsamplefactor","Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n",   run->targetsnr, "targetsnr",      "If > 0: scale the distance such that the network SNR becomes targetsnr");
   //fprintf(fout, "  %-25.1f  %-18s  %-s\n",   cutoff_a,"cutoff_a","Low value of a/M where signal should be cut off, e.g. 7.5.");
   
   
@@ -527,7 +531,7 @@ void gettrueparameters(struct parset *par)  //Set the parameters for the 12-para
   par->sinlati  = sin(truepar[7]*d2r);           // sin latitude (sin(delta))  (40)     
   
   par->phase    = truepar[8]*d2r;                // orbital phase   (phi_c)   (0.2)
-  par->sinthJ0  = sin(truepar[9]*d2r);           // sin Theta_J0 ~ polar, 0=NP    (15)
+  par->sinthJ0  = sin(truepar[9]*d2r);           // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
   par->phiJ0    = truepar[10]*d2r;               // Phi_J0 ~ azimuthal            (125)
   par->alpha    = truepar[11]*d2r;               // Alpha_c                       (0.9 rad = 51.566202deg)
   
@@ -544,8 +548,8 @@ void getnullparameters(struct parset *par)  //Set the parameters for the 12-para
 {
   par->mc       = 0.01;
   par->eta      = 0.0001;
-  par->m1       = 0.1;//2.511;
-  par->m2       = 0.1;//0.0002512;
+  par->m1       = 0.1;
+  par->m2       = 0.1;
   par->tc       = prior_tc_mean;
   par->logdl    = 10000.0;
   par->sinlati  = 0.0;
@@ -553,7 +557,7 @@ void getnullparameters(struct parset *par)  //Set the parameters for the 12-para
   par->phase    = 0.0;
   par->spin     = 0.000001;              // magnitude of total spin   
   par->kappa    = 0.0;                   // L^.S^, cos of angle between L^ & S^
-  par->sinthJ0  = 0.000001;              // sin Theta_J0 ~ polar, 0=NP    
+  par->sinthJ0  = 0.000001;              // sin Theta_J0 ~ latitude, pi/2=NP    
   par->phiJ0    = 0.0;                   // Phi_J0 ~ azimuthal        
   par->alpha    = 0.0;                   // Alpha_c                   
   

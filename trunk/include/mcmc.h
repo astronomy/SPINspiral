@@ -121,6 +121,8 @@ struct runpar{
   double mataccfr;       // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
   
   double logL0;          // log of the 'null-likelihood'
+  double netsnr;         // Total SNR of the network
+  double targetsnr;      // Target total SNR of the network, scale the distance
   double temps[99];      // Temperature ladder for manual parallel tempering
   
   char infilename[99];   // Run input file name
@@ -358,12 +360,12 @@ void write_chain_info(struct mcmcvariables mcmc);
           void template2(struct parset *par, struct interferometer *ifo[], int ifonr);
           void template(struct parset *par, struct interferometer *ifo[], int ifonr);
 		  
-		  /**************************************************************************************************************************************************/
+/**************************************************************************************************************************************************/
 		  
-		  void template15(struct parset *par, struct interferometer *ifo[], int ifonr);
-		  void LALinterface(double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr);
-		  
-		  /**************************************************************************************************************************************************/
+          void template15(struct parset *par, struct interferometer *ifo[], int ifonr);
+          void LALinterface(double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr);
+
+/**************************************************************************************************************************************************/
 
 		  
         double match(struct parset *par, struct interferometer *ifo[], int i, int networksize);
