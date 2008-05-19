@@ -216,3 +216,23 @@ void vec2coord(double x[3], double *sinlati, double *longi)
 
 
 
+void setmcmcseed(struct runpar *run)
+//If run->mcmcseed==0, set it using the system clock
+{
+  struct timeval time;
+  struct timezone tz;
+  gettimeofday(&time, &tz);
+  if(run->mcmcseed==0) run->mcmcseed = time.tv_usec;
+}
+
+
+void setseed(int *seed)
+//If seed==0, set (randomise) it using the system clock
+{
+  struct timeval time;
+  struct timezone tz;
+  gettimeofday(&time, &tz);
+  if(*seed==0) *seed = time.tv_usec;
+}
+
+

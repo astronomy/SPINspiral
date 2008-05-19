@@ -5,7 +5,6 @@
 
 #include <mcmc.h>
 
-
 // Main program:
 int main(int argc, char * argv[])
 {
@@ -16,15 +15,21 @@ int main(int argc, char * argv[])
   int i;
   double snr;
   
+  waveformversion = 2;  // 1: Apostolatos, 1.5PN, 12 par.  2: LAL 3.5PN, 15 par
+  useoldmcmcoutputformat = 0; //Set to 1 if you want to ... exactly!
+  
   //Initialise stuff for the run
   struct runpar run;
+  setconstants(&run);    //Set the global constants (which are variable in C). This routine should eventually disappear.
+  run.setranpar  = (int*)calloc(npar,sizeof(int));
   sprintf(run.infilename,"mcmc.input"); //Default input filename
   if(argc > 1) sprintf(run.infilename,argv[1]);
 
-  setconstants(&run);    //Set the global constants (which are variable in C). This routine should eventuelly disappear.
   readlocalfile();       //Read system-dependent data, e.g. path to data files
   readinputfile(&run);   //Read data for this run from input.mcmc
-  setmcmcseed(&run);     //Set mcmcseed (if 0), or use the current value
+  //setmcmcseed(&run);     //Set mcmcseed (if 0), or use the current value
+  setseed(&run.mcmcseed);         //Set mcmcseed if 0, otherwise keep the current value; more general routine
+  setrandomtrueparameters(&run);  //Randomise the injection parameters where wanted
   writeinputfile(&run);  //Write run data to nicely formatted input.mcmc.<mcmcseed>
   
   dosnr = 1;
@@ -48,12 +53,12 @@ int main(int argc, char * argv[])
   }
   ifoinit(network, networksize);
   if(inject) {
-    printf("   A signal with the 'true' parameter values was injected.\n");
+    if(run.targetsnr < 0.001) printf("   A signal with the 'true' parameter values was injected.\n");
   } else {
     printf("   No signal was injected.\n");
   }
   
-  
+  /*
   //Calculate 'null-likelihood'
   struct parset nullpar;
   getnullparameters(&nullpar);
@@ -64,6 +69,7 @@ int main(int argc, char * argv[])
   localpar(&nullpar, network, networksize);
   run.logL0 = net_loglikelihood(&nullpar, networksize, network);
   if(inject == 0) run.logL0 *= 1.01;  //If no signal is injected, presumably there is one present in the data; enlarge the range that log(L) can take by owering Lo (since L>Lo is forced)
+  */
   
   //Get a parameter set to calculate SNR or write the wavefrom to disc
   struct parset dummypar;
@@ -146,11 +152,12 @@ int main(int argc, char * argv[])
   for (i=0; i<networksize; ++i)
     ifodispose(network[i]);
   
-  
+  /*
   free(nullpar.loctc);
   free(nullpar.localti);
   free(nullpar.locazi);
   free(nullpar.locpolar);
+  */
   
   free(dummypar.loctc);
   free(dummypar.localti);
@@ -176,22 +183,6 @@ void pardispose(struct parset *par)
   free(par->locazi);        par->locazi       = NULL;
   free(par->locpolar);      par->locpolar     = NULL;
 }
-
-
-
-
-void setmcmcseed(struct runpar *run)
-//If run->mcmcseed==0, set it using the system clock
-{
-  struct timeval time;
-  struct timezone tz;
-  gettimeofday(&time, &tz);
-  if(run->mcmcseed==0) run->mcmcseed = time.tv_usec;
-}
-
-
-
-
 
 
 
