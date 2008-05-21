@@ -6,7 +6,7 @@
   10                         iter                Total number of iterations to be computed (e.g. 1e7).
   1                          skip                Number of iterations to be skipped between stored steps (100 for 1d).
   1                          screenoutput        Number of iterations between screen outputs im the MCMC (1000 for 1d).
-  123456                     mcmcseed            Random number seed to start the MCMC: 0-let system clock determine seed.
+  0                          mcmcseed            Random number seed to start the MCMC: 0-let system clock determine seed.
   1                          inject              Inject a signal (1) or not (0).
   0 0 0 0 0 0 0 0 0 0 0 0    setranpar[12]       Parameters you want to randomise before injecting the signal; 0: use the value in truepar below, 1: randomise.  These are the same parameters as trueval (ie M1, M2, etc!)
   12345                      ranparseed          Random number seed for random injection parameters. Don't change between serial chains of the same run!
@@ -15,13 +15,13 @@
   1 1 1 1 1 1 1 1 1 1 1 1    fitpar[12]          Parameters you want to fit for.
 
   #Start from offset values:
-  0                          offsetmcmc          Start the MCMC with offset initial parameters: 0-no, 1-yes.  The exact parameters to be offset are determined in offsetpar below.
+  1                          offsetmcmc          Start the MCMC with offset initial parameters: 0-no, 1-yes.  The exact parameters to be offset are determined in offsetpar below.
   10.0                       offsetx             Start the MCMC with an offset of x times the typical pdf sigma.
   1 1 1 1 1 1 1 1 1 1 1 1    offsetpar[12]       Parameters you want to start from offset values. At the moment only works if parameter is also 'fit' (i.e. value is 1 in fitpar).
 
   #Correlated update proposals:
   2                          corrupd             Do correlated update proposals: 0-no, 1-yes but update the matrix only once, 2-yes and update the matrix every ncorr iterations.
-  0.9                        corrfrac            Fraction of update proposals that is correlated (0.0-1.0, ~0.7 seems ok). corrupd must be 2. Should this replace corrupd?
+  0.7                        corrfrac            Fraction of update proposals that is correlated (0.0-1.0, ~0.7 seems ok). corrupd must be 2. Should this replace corrupd?
   100                        ncorr               Number of iterations for which the covariance matrix is calculated.
   0.5                        mataccfr            Fraction of elements on the diagonal that must 'improve' in order to accept a new covariance matrix. ???~0.6-0.8 for unimodal, 0.0-0.2 for multimodal???
   1                          prmatrixinfo        Print information to screen on proposed matrix updates: 0-none, 1-some (default), 2-add the old and new matrices.
@@ -47,7 +47,7 @@
   0                          printmuch           Print long stretches of output (1) or not (0).
 
   #Diverse:
-  2                          networksize         Set the number of detectors that make up the network: 1: H1, 2: H1L1, 3: H1L1V
+  1                          networksize         Set the number of detectors that make up the network: 1: H1, 2: H1L1, 3: H1L1V
   1                          selectdata          Select the data set to run on  (set to 0 to print a list of data sets). Make sure you set the true tc and datadir accordingly.
   8.0                        downsamplefactor    Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8.
   0.0                        targetsnr           If > 0: scale the distance such that the network SNR becomes targetsnr

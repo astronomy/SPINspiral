@@ -17,7 +17,10 @@
 #include <sys/time.h>
 #include <stdlib.h>
 
-
+#include <lal/LALStdlib.h>
+#include <lal/LALInspiral.h>
+#include <lal/GeneratePPNInspiral.h>
+#include <lal/GenerateInspiral.h>
 
 
 #define TRUE (1==1)
@@ -363,7 +366,9 @@ void write_chain_info(struct mcmcvariables mcmc);
 /**************************************************************************************************************************************************/
 		  
           void template15(struct parset *par, struct interferometer *ifo[], int ifonr);
-          void LALinterface(double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr);
+          void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr);
+          double LALFpFc(CoherentGW *waveform, double *wave, int *l, int length, struct parset *par, int ifonr);
+		  void LALfreedom(CoherentGW *waveform);
 
 /**************************************************************************************************************************************************/
 

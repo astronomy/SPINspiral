@@ -30,10 +30,10 @@ void readinputfile(struct runpar *run)
   for(i=1;i<=3;i++) { //Read first 3 lines
     fgets(bla,500,fin);
   }
-  
+
   //Basic settings
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);
+  fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);    
   iter = (int)tmpdbl;
   fgets(bla,500,fin);  sscanf(bla,"%d",&skip);
   fgets(bla,500,fin);  sscanf(bla,"%d",&screenoutput);
@@ -48,6 +48,7 @@ void readinputfile(struct runpar *run)
   fgets(bla,500,fin);  //Read the rest of this line
   
   
+
   //Start from offset values:
   fgets(bla,500,fin);  fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin);  sscanf(bla,"%d",&offsetmcmc);

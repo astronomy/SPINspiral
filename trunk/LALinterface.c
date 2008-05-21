@@ -6,6 +6,14 @@
 #include <lal/LALInspiral.h>
 #include <lal/GeneratePPNInspiral.h>
 #include <lal/GenerateInspiral.h>
+//#include <lal/LALConstants.h>
+#include <lal/DetectorSite.h>
+
+#include <lal/Date.h>
+#include <lal/TimeDelay.h>
+#include <lal/SkyCoordinates.h>
+//#include <lal/DetectorSite.h>
+
 //////////////////////////////////////////
 #include <mcmc.h>
 //////////////////////////////////////////
@@ -13,10 +21,10 @@
 //NRCSID(LALSTPNWaveformTestC, "$Id: LALSTPNWaveformTest.c,v 1.1 2004/05/05 20:06:23 thomas Exp");
 
 
-void LALinterface(double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr) {
+void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr) {
+
     static LALStatus    mystatus;
     
-    CoherentGW      thewaveform;
     SimInspiralTable    injParams;
     PPNParamStruc       ppnParams;
 
@@ -73,7 +81,8 @@ void LALinterface(double *hplus, double *hcross, int *l, int length, struct pars
 	
 	
     memset( &mystatus, 0, sizeof(LALStatus) );
-    memset( &thewaveform, 0, sizeof(CoherentGW) );
+   // memset( &thewaveform, 0, sizeof(CoherentGW) );
+   memset( waveform, 0, sizeof(CoherentGW));
     memset( &injParams, 0, sizeof(SimInspiralTable) );
     memset( &ppnParams, 0, sizeof(PPNParamStruc) );
 
@@ -290,7 +299,7 @@ void LALinterface(double *hplus, double *hcross, int *l, int length, struct pars
 	//	printf("n_J0 = %10.20f\n", sqrt(n_J0[0]*n_J0[0]+n_J0[1]*n_J0[1]+n_J0[2]*n_J0[2]));
 	//	printf("n_L = %10.20f\n", sqrt(n_L[0]*n_L[0]+n_L[1]*n_L[1]+n_L[2]*n_L[2]));
 		
-	normalise(n_L);
+	//normalise(n_L);
 		
 	LdotN  = dotproduct(n_L,n_N);
 	
@@ -391,7 +400,7 @@ void LALinterface(double *hplus, double *hcross, int *l, int length, struct pars
 //	crossproduct(xloc,yloc,zlocverif);
 //	printf("zlocverif %10.20f\t%10.20f\t%10.20f\n", zlocverif[0], zlocverif[1], zlocverif[2]);
 
-	double n_Lloc[3];
+//	double n_Lloc[3];
 	double n_Sloc[3];
 	normalise(n_S);
 	
@@ -399,11 +408,11 @@ void LALinterface(double *hplus, double *hcross, int *l, int length, struct pars
 	n_Sloc[1] = dotproduct(n_S,yloc);
 	n_Sloc[2] = dotproduct(n_S,zloc);
 	
-	n_Lloc[0] = dotproduct(n_L,xloc);
-	n_Lloc[1] = dotproduct(n_L,yloc);
-	n_Lloc[2] = dotproduct(n_L,zloc);
+//	n_Lloc[0] = dotproduct(n_L,xloc);
+//	n_Lloc[1] = dotproduct(n_L,yloc);
+//	n_Lloc[2] = dotproduct(n_L,zloc);
 	
-	for(i=0;i<3;i++) n_L[i] = n_Lloc[i];
+//	for(i=0;i<3;i++) n_L[i] = n_Lloc[i];
 	for(i=0;i<3;i++) n_S[i] = n_Sloc[i];
 	
 	
@@ -419,7 +428,7 @@ void LALinterface(double *hplus, double *hcross, int *l, int length, struct pars
 	n_S[1]=par->spin*n_S[1];
 	n_S[2]=par->spin*n_S[2];
 	
-	
+	//printf("par->spin = %f\n", par->spin);
 	/*
 	Ltheta0 = acos(n_L[2]);
 	
@@ -482,6 +491,12 @@ void LALinterface(double *hplus, double *hcross, int *l, int length, struct pars
     injParams.spin2y = 0.0;
     injParams.spin2z = 0.0;
 
+// 4 parameters used after the computation of h+ hx ********************//
+  injParams.coa_phase = par->phase;
+  injParams.longitude = par->longi;
+  injParams.latitude = asin(par->sinlati);
+  injParams.polarization = par->alpha;    
+  
     ppnParams.deltaT = inversesamplerate;//1.0 / 4096.0;
  
  /*
@@ -501,7 +516,8 @@ void LALinterface(double *hplus, double *hcross, int *l, int length, struct pars
   //  fprintf(stderr, "Lower cut-off frequency used will be %fHz\n", injParams.f_lower);
 
     /* --- now we can call the injection function --- */
-    LALGenerateInspiral( &mystatus, &thewaveform, &injParams, &ppnParams );
+   // LALGenerateInspiral( &mystatus, &thewaveform, &injParams, &ppnParams );
+   LALGenerateInspiral( &mystatus, waveform, &injParams, &ppnParams );
     if ( mystatus.statusCode )
     {
       fprintf( stderr, "LALSTPNWaveformTest: error generating waveform\n" );
@@ -512,7 +528,9 @@ void LALinterface(double *hplus, double *hcross, int *l, int length, struct pars
 
    // outputfile = fopen(filename,"w");
 
-    lengthLAL  = thewaveform.phi->data->length;
+    //lengthLAL  = thewaveform.phi->data->length;
+	lengthLAL  = waveform->phi->data->length;
+	//
 	//double **wave;
 	/*wave = malloc( 3 * sizeof(**wave) );
 	for ( i = 0 ; i < 3 ; ++i ) {
@@ -523,9 +541,9 @@ void LALinterface(double *hplus, double *hcross, int *l, int length, struct pars
 	
 	
 
-    dt      = thewaveform.phi->deltaT;
-
-    phi0    = thewaveform.phi->data->data[0];
+  //  dt      = thewaveform.phi->deltaT;
+	//	dt      = waveform->phi->deltaT;
+  //  phi0    = thewaveform.phi->data->data[0];
 	
 	
 			*l = lengthLAL;
@@ -534,11 +552,17 @@ void LALinterface(double *hplus, double *hcross, int *l, int length, struct pars
 			//wave[1][0] = 0.0;
 			//wave[2][0] = 0.0;
 
-    for(i = 0; i < lengthLAL && i < length; i++) {
+   /* for(i = 0; i < lengthLAL && i < length; i++) {
         a1  = thewaveform.a->data->data[2*i];
         a2  = thewaveform.a->data->data[2*i+1];
-        phi     = thewaveform.phi->data->data[i] - phi0;
-        shift   = thewaveform.shift->data->data[i];
+        phi     = thewaveform.phi->data->data[i];// - phi0;
+        shift   = thewaveform.shift->data->data[i];*/
+
+for(i = 0; i < lengthLAL && i < length; i++) {
+        a1  = waveform->a->data->data[2*i];
+        a2  = waveform->a->data->data[2*i+1];
+        phi     = waveform->phi->data->data[i];// - phi0;
+        shift   = waveform->shift->data->data[i];
 
      /*   fprintf(outputfile,"%e %e %e\n",
             i*dt,
@@ -553,6 +577,11 @@ void LALinterface(double *hplus, double *hcross, int *l, int length, struct pars
 			
     }
     
+//	printf("tc = %10.10f\n", ppnParams.tc);
+//	printf("tf = %10.10f\n", waveform->phi->data->length*waveform->phi->deltaT);
+	//printf("tf = %d\t*%f\t = %10.10f\n", waveform->a->data->length, waveform->a->deltaT, waveform->a->data->length*waveform->a->deltaT);
+	//printf("dt = %f\n", inversesamplerate);
+	
     //  fclose(outputfile);
     //  fprintf(stdout,"waveform saved in a file\n" );
     
@@ -565,11 +594,16 @@ void LALinterface(double *hplus, double *hcross, int *l, int length, struct pars
     
     // return wave;
     
-    CoherentGW *waveform;
+  //  CoherentGW *waveform;
     
-    waveform = &thewaveform;
-    
-    LALSDestroyVectorSequence(&mystatus, &( waveform->a->data ));
+  //  waveform = &thewaveform;
+	
+	//return waveform;
+	//LALfreedom(&thewaveform);
+	
+    //return &thewaveform;
+	
+  /*  LALSDestroyVectorSequence(&mystatus, &( waveform->a->data ));
     LALSDestroyVector(&mystatus, &( waveform->f->data ));
     LALDDestroyVector(&mystatus, &( waveform->phi->data ));
     LALSDestroyVector(&mystatus, &( waveform->shift->data ));
@@ -577,7 +611,126 @@ void LALinterface(double *hplus, double *hcross, int *l, int length, struct pars
     LALFree( waveform->a );
     LALFree( waveform->f ); 
     LALFree( waveform->phi) ;
-    LALFree( waveform->shift );
-    
+    LALFree( waveform->shift );*/
+
 }
+
+
+double LALFpFc(CoherentGW *waveform, double *wave, int *l, int length, struct parset *par, int ifonr) {
+
+
+
+  static LALStatus stat;     // status structure
+  
+  memset( &stat, 0, sizeof(LALStatus) );
+  
+ // CHAR *sourcefile = NULL;   // name of sourcefile 
+ // CHAR *respfile = NULL;     // name of respfile 
+ // CHAR *infile = NULL;       // name of infile 
+ // CHAR *outfile = NULL;      // name of outfile 
+  //INT4 seed = 0;             // random number seed 
+  //INT4 sec = SEC;            // ouput epoch.gpsSeconds 
+  //INT4 nsec = NSEC;          // ouput epoch.gpsNanoSeconds 
+  //INT4 npt = NPT;            // number of output points
+  //REAL8 dt = DT;             // output sampling interval 
+  //REAL4 sigma = SIGMA;       // noise amplitude 
+int i;
+
+
+  DetectorResponse detector;   // the detector in question 
+
+LALDetector site;
+
+if(ifonr==0) site = lalCachedDetectors[LALDetectorIndexLHODIFF]; 
+if(ifonr==1) site = lalCachedDetectors[LALDetectorIndexLLODIFF];
+if(ifonr==2) site = lalCachedDetectors[LALDetectorIndexVIRGODIFF];
+
+//site = lalCachedDetectors[LALDetectorIndexLLODIFF];
+
+detector.site = &site;
+detector.transfer = NULL;
+detector.ephemerides = NULL;
+
+   
+   // REAL4 m1, m2, dist, inc, phic; // unconverted parameters 
+   
+    REAL4TimeSeries signal;        // GW signal 
+   // REAL8 time;                    // length of GW signal 
+   // CHAR timeCode;                 // code for signal time alignment 
+   // CHAR message[MSGLEN];          // warning/info messages 
+
+      signal.epoch.gpsSeconds = (INT4)par->tc;
+      signal.epoch.gpsNanoSeconds = (INT4) 100*(int)(1000000*(par->tc - signal.epoch.gpsSeconds));
+	   
+	  waveform->f->epoch = waveform->phi->epoch = waveform->a->epoch = signal.epoch; 
+	   
+      signal.deltaT = waveform->phi->deltaT;
+      signal.f0 = 0.0;
+      signal.data = NULL;
+    //  time = ( time + 2.0 )/signal.deltaT;
+
+//	 printf("signal.epoch.gpsSeconds(1) = %d\n",signal.epoch.gpsSeconds);
+//	 printf("signal.epoch.gpsNanoSeconds(1) = %d\n",signal.epoch.gpsNanoSeconds);
+	 
+       LALSCreateVector( &stat, &( signal.data ), (UINT4)waveform->phi->data->length );
+	   
+	   
+       LALSimulateCoherentGW( &stat, &signal, waveform, &detector );
+	 
+	for ( i = 0; i < signal.data->length && i < length; i++ ){
+      wave[i] = signal.data->data[i]; 
+	//   printf("%d\t%e\n", i, wave[i]);
+	  }
+	  
+	  /*********TIME DELAY***********/
+	  	  
+  //LIGOTimeGPS      gps;
+  //SkyPosition      source;
+  REAL8            delay;
+  //REAL8            difference;
+  DetTimeAndASource     det1_and_source;
+  /* TwoDetsTimeAndASource dets_and_source; */
+  LALPlaceAndGPS        det1_and_gps;
+  /* LALPlaceAndGPS        det2_and_gps; */
+	  
+ // source = waveform->position;	  
+	  
+ // gps = signal.epoch;
+
+  det1_and_gps.p_detector = detector.site;
+  det1_and_gps.p_gps      = &(signal.epoch);
+
+  det1_and_source.p_det_and_time = &det1_and_gps;
+  det1_and_source.p_source       = &(waveform->position);
+
+  LALTimeDelayFromEarthCenter(&stat, &delay, &det1_and_source);
+
+//	 printf("LALdelay1 = %10.10f\n", -delay);
+//	 printf("ifo = %d\n", ifonr);
+//	 printf("signal.epoch.gpsSeconds(2) = %d\n",signal.epoch.gpsSeconds);
+//	 printf("signal.epoch.gpsNanoSeconds(2) = %d\n",signal.epoch.gpsNanoSeconds);
+	 
+	LALSDestroyVector( &stat, &( signal.data ) );
+
+return -delay;
+
+}
+
+void LALfreedom(CoherentGW *waveform) {
+
+  static LALStatus stat;     /* status structure */
+  
+  memset( &stat, 0, sizeof(LALStatus) );
+
+	LALSDestroyVectorSequence(&stat, &( waveform->a->data ));
+    LALSDestroyVector(&stat, &( waveform->f->data ));
+    LALDDestroyVector(&stat, &( waveform->phi->data ));
+    LALSDestroyVector(&stat, &( waveform->shift->data ));
+    
+    LALFree( waveform->a );
+    LALFree( waveform->f ); 
+    LALFree( waveform->phi) ;
+    LALFree( waveform->shift );
+	
+	}
 
