@@ -66,11 +66,15 @@ int main(int argc, char * argv[])
   localpar(&dummypar, network, networksize);
   
   
+  //printf("  %lf  %lf  %lf  %lf\n",*dummypar.loctc,*dummypar.localti,*dummypar.locazi,*dummypar.locpolar);
+  
   //Calculate SNR
   run.netsnr = 0.0;
   if(dosnr==1) {
     for (i=0; i<networksize; ++i) {
+      //printmuch=1;
       snr = signaltonoiseratio(&dummypar, network, i);
+      //printmuch=0;
       network[i]->snr = snr;
       run.netsnr += snr*snr;
     }

@@ -31,7 +31,6 @@ double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int i
   // Fill `ifo[i]->FTin' with time-domain template:
   template(par, ifo, i);
   //template(par, ifo, i);  //Do it twice to time how long it takes
-  //template15(par, ifo, i);
   
   // Window template:
   for(j=0; j<ifo[i]->samplesize; ++j) ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
@@ -87,40 +86,34 @@ void writesignaltodisc(struct parset *par, struct interferometer *ifo[], int i)
 {
   if(MvdSdebug) printf("Writesignaltodisc %d\n",i);
   double signalabs, result = 0.0;
-  double rate = (double) ifo[i]->samplerate; // Double instead of int
+  double rate = (double)ifo[i]->samplerate; // Double instead of int
   double lograte = log(rate);
   double f=0.0;
   int j=0;
   
   //printf(" %g %g %g\n",rate,(double)ifo[i]->FTsize,ifo[i]->deltaFT);
   
+  
   // Fill `ifo[i]->FTin' with time-domain template:
-  
-  
-  /**************************************************************************************************************************************************************************************/
-  
   template(par, ifo, i);
-  //template15(par, ifo, i);
+  
   
   // Write signal in time domain:
-  
   char filename[1000]="";
   sprintf(filename, "%s-signal.dat", ifo[i]->name);  // Write in current dir
   FILE *dump = fopen(filename,"w");
   fprintf(dump,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
   fprintf(dump,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
 	  par->m1,par->m2,par->mc,par->eta,par->tc,exp(par->logdl),asin(par->sinlati)*r2d,par->longi*r2d,par->phase,par->spin,par->kappa,par->sinthJ0,par->phiJ0,par->alpha);
-	  
- // if(ifo[i]->FTin[j]!=0.0) {
+  
   fprintf(dump,"       GPS time (s)         H(t)\n");
   for(j=0; j<ifo[i]->samplesize; ++j)  fprintf(dump, "%9.9f %.6e\n", ifo[i]->FTstart+(((double)j)/rate),ifo[i]->FTin[j]);
-	//	}
-		
-  fclose(dump); if(intscrout) printf(" : (signal written to file)\n");
+  fclose(dump);
+  if(intscrout) printf(" : (signal written to file)\n");
   
   
-  //Write noise PSD
-  if(1==2) {
+  //Write noise PSD  (Noise w/o injected signal(?))
+  if(1==1) {
     sprintf(filename, "%s-noisePSD.dat", ifo[i]->name);  // Write in current dir
     FILE *dump1 = fopen(filename,"w");
     
@@ -135,7 +128,8 @@ void writesignaltodisc(struct parset *par, struct interferometer *ifo[], int i)
       f = (((double)(j+ifo[i]->lowIndex))/((double)ifo[i]->FTsize*2.0)) * rate;
       fprintf(dump1, "%9.9f %.6e\n",log10(f), log10(2.0*sqrt(exp(ifo[i]->noisePSD[j])/ifo[i]->deltaFT))  ); //(noisePSD is log)
     }
-    fclose(dump1); if(intscrout) printf(" : (noise PSD written to file)\n");
+    fclose(dump1);
+    if(intscrout) printf(" : (noise PSD written to file)\n");
   }
   
   // Window template:
@@ -166,7 +160,8 @@ void writesignaltodisc(struct parset *par, struct interferometer *ifo[], int i)
     f = (((double)j)/((double)ifo[i]->FTsize*2.0)) * rate;
     fprintf(dump2, "%9.9f %.6e\n",log10(f), log10(2.0*sqrt(exp(2.0*(log(cabs(ifo[i]->FTout[j]))-lograte))/ifo[i]->deltaFT))  );
   }
-  fclose(dump2); if(intscrout) printf(" : (signal PSD written to file)\n");
+  fclose(dump2); 
+  if(intscrout) printf(" : (signal PSD written to file)\n");
   return;
 }
 
@@ -186,7 +181,6 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
   
   // Fill `ifo[i]->FTin' with time-domain template:
   template(par, ifo, i); 
-  //template15(par, ifo, i);
   
   // Window template:
   for(j=0; j<ifo[i]->samplesize; ++j) ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
@@ -202,7 +196,6 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
   truepar.locazi   = (double*)calloc(networksize,sizeof(double));
   truepar.locpolar = (double*)calloc(networksize,sizeof(double));
   localpar(&truepar, ifo, networksize);
-  //template15(&truepar, ifo, i);  
   template(&truepar, ifo, i);
   
   

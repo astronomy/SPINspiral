@@ -56,7 +56,6 @@ void template12(struct parset *par, struct interferometer *ifo[], int ifonr)
   double D_L = exp(par->logdl)*Mpcs;                                                                                    //Source luminosity distance, in seconds
   double coslati = sqrt(1.0-par->sinlati*par->sinlati);
   //double n_N[3] = {sin(par->longi)*coslati,cos(par->longi)*coslati,par->sinlati};                                       //n_N: Position unit vector = N^
-  //double n_N[3] = {cos(par->longi)*par->sinlati,sin(par->longi)*par->sinlati,coslati};
   double n_N[3] = { cos(par->longi)*coslati , sin(par->longi)*coslati , par->sinlati };
   
   double sthJ0   = par->sinthJ0;                                                                                        //n_J0: 'total' AM unit vector, J0^  (almost equal to the real J, see Eq.15)
