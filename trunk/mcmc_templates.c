@@ -332,8 +332,8 @@ if (indexstart<0) indexstart = 0;
 	
 	for (i=0; i<length; ++i){
 	if(i<indexstart) ifo[ifonr]->FTin[i]   = 0.0;
-	if(i>indexstart && i<(indexstart+lengthLAL)) ifo[ifonr]->FTin[i] = wave[i-indexstart];
-	if(i>(indexstart+lengthLAL)) ifo[ifonr]->FTin[i]   = 0.0;
+	if(i>=indexstart && i<(indexstart+lengthLAL)) ifo[ifonr]->FTin[i] = wave[i-indexstart];
+	if(i>=(indexstart+lengthLAL)) ifo[ifonr]->FTin[i]   = 0.0;
 	}
 
 }

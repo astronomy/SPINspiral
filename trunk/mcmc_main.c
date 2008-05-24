@@ -17,8 +17,15 @@ int main(int argc, char * argv[])
   int i;
   double snr;
   
-  waveformversion = 2;  // 1: Apostolatos, 1.5PN, 12 par.  2: LAL 3.5PN, 15 par
+  waveformversion = 1;  // 1: Apostolatos, 1.5PN, 12 par.  2: LAL 3.5PN, 15 par
   useoldmcmcoutputformat = 0; //Set to 1 if you want to ... exactly!
+  
+  if(waveformversion==1) printf("********** using Apostolatos, 1.5PN, 12 par waveform **********\n");
+  else {
+  if(waveformversion==2) printf("********** using LAL, 3.5PN, 15 par waveform **********\n");
+  else printf("********** what waveform do you want to use? set waveformversion in mcmc_main.c **********\n");
+  }
+  
   
   //Initialise stuff for the run
   struct runpar run;
