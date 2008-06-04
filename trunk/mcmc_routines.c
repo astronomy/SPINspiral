@@ -36,25 +36,23 @@ double chirpmass(double m1, double m2)
 //*** GMT and RIGHT ASCENSION ***
 
 double GMST(double GPSsec)
-/* Derives the `Greenwich Mean Sidereal Time' (in radians!) */
-/* from GPS time (in seconds).                              */
-/* (see K.R.Lang(1999), p.80sqq.)                           */
+// Derives the `Greenwich Mean Sidereal Time' (in radians!) from GPS time (in seconds).
+// (see K.R.Lang(1999), p.80sqq.)
 {
-  //double Julian_Jan1st2000midnight = 2451544.5;
-  //double Julian_Jan1st2000noon     = 2451545.0;
   double GPS_Jan1st2000midnight    = 630720013.0;
   double leapseconds = 32.0;  /* at Jan 1st 2000 */
   double seconds, days, centuries, secCurrentDay, result;
   if (GPSsec > (GPS_Jan1st2000midnight + 189388800.0)) leapseconds += 1.0; // One more leapsecond after 2005/'06
   if (GPSsec < 630720013.0) printf(" : WARNING: GMST's before 1.1.2000 are inaccurate! \n");
+  
   // Time since Jan 1st 2000 (0:00h):
   seconds       = (GPSsec - GPS_Jan1st2000midnight) + (leapseconds - 32.0);
-  days          = floor( seconds / (24.0*60.0*60.0) ) -0.5;
-  secCurrentDay = fmod(seconds, 24.0*60.0*60.0);
+  days          = floor(seconds/86400.0) - 0.5;
+  secCurrentDay = fmod(seconds, 86400.0);
   centuries     = days / 36525.0;
   result  = 24110.54841+(centuries*(8640184.812866+centuries*(0.093104+centuries*6.2e-6)));
   result += secCurrentDay * 1.002737909350795; // UTC day is 1.002 * MST day
-  result  = fmod(result/(24.0*60.0*60.0),1.0);
+  result  = fmod(result/86400.0,1.0);
   result *= 2.0*pi;
   return result;
 }
@@ -69,10 +67,7 @@ double rightAscension(double longi, double GMST)
 double longitude(double rightAscension, double GMST)
 // Derives longitude from right ascension (radians), given GMST (radians).  Actually this is something like the Greenwich hour angle of the corresponding RA
 {
-  double result = rightAscension - GMST;
-  //while (result > pi)  result -= 2.0*pi;
-  //while (result < -pi) result += 2.0*pi;
-  //double result = fmod(rightAscension - GMST + mtpi,tpi);
+  double result = fmod(rightAscension - GMST + mtpi,tpi);
   return result;
 }
 

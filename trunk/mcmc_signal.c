@@ -44,6 +44,19 @@ double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int i
     result += exp(2.0*log(absdiff) - ifo[i]->noisePSD[j-ifo[i]->lowIndex]);  // Squared (absolute) difference divided by noise PSD(f) (noisePSD is log)
   }
   result *= -2.0/ifo[i]->deltaFT; // Divide by (FT'd) data segment length
+  
+  
+  /*
+  //Calc <n|n>
+  double ndotn=0.0;
+  for(j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j){
+    absdiff = cabs(ifo[i]->raw_dataTrafo[j]);
+    ndotn += absdiff*absdiff / exp(ifo[i]->noisePSD[j-ifo[i]->lowIndex]);  // Squared (absolute) difference divided by noise PSD(f) (noisePSD is log)
+  }
+  ndotn *= 4.0/ifo[i]->deltaFT; // Divide by (FT'd) data segment length
+  printf("  NdotN: %lf, logL: %lf  %lf %lf  %lf\n", ndotn,result,-ndotn/rate,rate,ifo[i]->deltaFT);
+  */
+  
   return result;
 }
 
@@ -61,7 +74,6 @@ double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int 
   
   // Fill `ifo[i]->FTin' with time-domain template:
   template(par, ifo, i);
-  //template15(par, ifo, i);
   
   // Window template:
   for(j=0; j<ifo[i]->samplesize; ++j) ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
@@ -147,7 +159,7 @@ void writesignaltodisc(struct parset *par, struct interferometer *ifo[], int i)
   result = 2.0*sqrt(result);
   
   
-  // Write signal PSD:
+  // Write signal PSD (signal w/o noise):
   sprintf(filename, "%s-signalPSD.dat", ifo[i]->name);  // Write in current dir
   FILE *dump2 = fopen(filename,"w");
   fprintf(dump2,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");

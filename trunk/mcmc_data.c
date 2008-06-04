@@ -1045,7 +1045,7 @@ void noisePSDestimate(struct interferometer *ifo)
       in[i] *= win[i];
     
     // Execute FT:
-    fftw_destroy_plan(FTplan); /* previous `in'-vector was freed in the meantime */
+    fftw_destroy_plan(FTplan); // Previous `in'-vector was freed in the meantime
     FTplan = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE);
     fftw_execute(FTplan);
     if(out == NULL){

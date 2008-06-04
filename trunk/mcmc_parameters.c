@@ -459,6 +459,7 @@ void setrandomtrueparameters(struct runpar *run)  //Get random values for the 't
 {
   int i=0;
   gsl_rng *ran;
+  double rannr = 0.0;
   ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
   if(1==2) {  //Select a random seed, *** ONLY FOR TESTING ***
     printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setrandumtrueparameters() \n\n");
@@ -500,9 +501,10 @@ void setrandomtrueparameters(struct runpar *run)  //Get random values for the 't
   
   for(i=0;i<npar;i++) {
     db = ub[i]-lb[i];
-    if(run->setranpar[i]==1) truepar[i] = gsl_rng_uniform(ran)*db + lb[i];
-    if(i==5 && run->setranpar[i]==1) truepar[i] = acos(gsl_rng_uniform(ran)*2.0 - 1.0)*r2d;  //kappa -> th_SL
-    if((i==7 || i==9)  && run->setranpar[i]==1) truepar[i] = asin(gsl_rng_uniform(ran)*2.0 - 1.0)*r2d;  //sin(dec)->dec, sin(th_J0)->th_J0
+    rannr = gsl_rng_uniform(ran);                                                        //This assures you always draw the same number of random variables
+    if(run->setranpar[i]==1) truepar[i] = rannr*db + lb[i];
+    if(i==5 && run->setranpar[i]==1) truepar[i] = acos(rannr*2.0 - 1.0)*r2d;             //kappa -> th_SL
+    if((i==7 || i==9)  && run->setranpar[i]==1) truepar[i] = asin(rannr*2.0 - 1.0)*r2d;  //sin(dec)->dec, sin(th_J0)->th_J0
     //printf("  %d  %lf  %lf  %lf  %lf\n",i,lb[i],ub[i],db,truepar[i]);
   }
   

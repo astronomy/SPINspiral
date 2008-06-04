@@ -20,11 +20,6 @@ int main(int argc, char * argv[])
   waveformversion = 1;  // 1: Apostolatos, 1.5PN, 12 par.  2: LAL 3.5PN, 15 par
   useoldmcmcoutputformat = 0; //Set to 1 if you want to ... exactly!
   
-  if(waveformversion==1) printf("********** using Apostolatos, 1.5PN, 12 par waveform **********\n");
-  else {
-  if(waveformversion==2) printf("********** using LAL, 3.5PN, 15 par waveform **********\n");
-  else printf("********** what waveform do you want to use? set waveformversion in mcmc_main.c **********\n");
-  }
   
   
   //Initialise stuff for the run
@@ -41,12 +36,22 @@ int main(int argc, char * argv[])
   setrandomtrueparameters(&run);  //Randomise the injection parameters where wanted
   writeinputfile(&run);           //Write run data to nicely formatted input.mcmc.<mcmcseed>
   
+  if(waveformversion==1) {
+    printf("   Using Apostolatos, 1.5PN, 12-parameter waveform.\n");
+  } else if(waveformversion==2) {
+    printf("   Using LAL, 3.5PN, 15-parameter waveform.\n");
+  } else {
+    printf("   Unknown waveform: %d.\n",waveformversion);
+    exit(1);
+  }
+  
   //Set up the data for the IFOs you may want to use (H1,L1 + VIRGO by default)
   struct interferometer database[3];
   set_ifo_data(run, database);  
   
   //Define interferometer network which IFOs.  The first run.networksize are actually used
   struct interferometer *network[3] = {&database[0], &database[1], &database[2]};
+  //struct interferometer *network[3] = {&database[0], &database[2], &database[1]};
   int networksize = run.networksize;
   
   //Initialise interferometers, read and prepare data, inject signal (takes some time)
@@ -243,5 +248,6 @@ void pardispose(struct parset *par)
   free(par->locazi);        par->locazi       = NULL;
   free(par->locpolar);      par->locpolar     = NULL;
 }
+
 
 
