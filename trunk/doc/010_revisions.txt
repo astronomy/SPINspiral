@@ -2,6 +2,14 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    46: sluys, 07/06/2008
+     - Changed name and contents of *PSD.dat:
+       - signalPSD.dat and dataPSD.dat have PSD replaced by FFT
+       - these files contain real and imaginary parts of the amplitude spectrum
+       - noisePSD.dat is now noiseASD.dat, because in contains the amplitudes
+       - to get compatible amplitudes, all values are a factor sqrt(2) higher
+       - all output is no longer logged (incl. f)
+    
     41: sluys, 19/05/2008
      - Made waveform_main uptodate
        

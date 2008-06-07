@@ -849,11 +849,11 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   
   
   
-  // Write data PSD (i.e. PSD of signal+noise) to disc
+  // Write data FFT to disc (i.e., FFT or amplitude spectrum of signal+noise)
   if(writesignal && 1==1){
     double f=0.0;
     char filename[1000]="";
-    sprintf(filename, "%s-dataPSD.dat", ifo[i]->name);  //Write in current dir
+    sprintf(filename, "%s-dataFFT.dat", ifo[i]->name);  //Write in current dir
     FILE *dump1 = fopen(filename,"w");
     
     // Get true signal parameters and write them to the header
@@ -862,16 +862,18 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     fprintf(dump1,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
     fprintf(dump1,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
 	    par.m1,par.m2,par.mc,par.eta,par.tc,exp(par.logdl),asin(par.sinlati)*r2d,par.longi*r2d,par.phase,par.spin,par.kappa,par.sinthJ0,par.phiJ0,par.alpha);
-    fprintf(dump1,"f Nf\n");
+    fprintf(dump1,"       f (Hz)    real(H(f))    imag(H(f))\n");
     
+    double fact1a = ((double)ifo[i]->samplerate) / (2.0*(double)ifo[i]->FTsize);
+    double fact1b = sqrt(2.0)*2.0/ifo[i]->deltaFT;  //Extra factor of sqrt(2) to get the numbers right with the outside world
     // Loop over the Fourier frequencies 
-    //fprintf(dump1, "%9.9f %.6e\n",ifo[i]->deltaFT,(double)ifo[i]->samplerate  );
     for(j=1; j<ifo[i]->FTsize; ++j){
-      f = (((double)(j+ifo[i]->lowIndex))/((double)ifo[i]->FTsize*2.0)) * ((double) ifo[i]->samplerate);
-      //fprintf(dump1, "%9.9f %.6e\n", log10(f), log10(2.0*sqrt(exp(cabs(ifo[i]->raw_dataTrafo[j]))/ifo[i]->deltaFT))  );
-      if(f>0.9*ifo[i]->lowCut) fprintf(dump1, "%9.9f %.6e\n", log10(f), log10(2.0*cabs( ifo[i]->raw_dataTrafo[j] )/ifo[i]->deltaFT )  );
+      f = fact1a * ((double)(j+ifo[i]->lowIndex));
+      //if(f>0.9*ifo[i]->lowCut) fprintf(dump1, "%9.9f %.6e\n", log10(f), log10(2.0*cabs( ifo[i]->raw_dataTrafo[j] )/ifo[i]->deltaFT )  );
+      double complex tempvar = fact1b * ifo[i]->raw_dataTrafo[j];
+      if(f>0.9*ifo[i]->lowCut) fprintf(dump1, "%13.6e %13.6e %13.6e\n", f, creal(tempvar), cimag(tempvar) );  //Save the real and imaginary parts of the data FFT
     }
-    fclose(dump1); if(intscrout) printf(" : (data PSD written to file)\n");
+    fclose(dump1); if(intscrout) printf(" : (data FFT written to file)\n");
   }
   
   
@@ -885,7 +887,7 @@ void noisePSDestimate(struct interferometer *ifo)
 /* data is split into K segments of M seconds,                        */
 /* and K-1 overlapping segments of length 2M are eventually           */
 /* windowed and transformed                                           */
-
+  
 {
   struct FrFile  *iFile=NULL;  /* Frame File                           */
   struct FrVect   *vect=NULL; 

@@ -124,25 +124,33 @@ void writesignaltodisc(struct parset *par, struct interferometer *ifo[], int i)
   if(intscrout) printf(" : (signal written to file)\n");
   
   
-  //Write noise PSD  (Noise w/o injected signal(?))
-  if(1==1) {
-    sprintf(filename, "%s-noisePSD.dat", ifo[i]->name);  // Write in current dir
-    FILE *dump1 = fopen(filename,"w");
-    
-    fprintf(dump1,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
-    fprintf(dump1,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
-	    par->m1,par->m2,par->mc,par->eta,par->tc,exp(par->logdl),asin(par->sinlati)*r2d,par->longi*r2d,par->phase,par->spin,par->kappa,par->sinthJ0,par->phiJ0,par->alpha);
-    fprintf(dump1,"     log(f)        log(A)\n");
-    
-    // Loop over the Fourier frequencies within operational range (some 40-1500 Hz or similar):
-    f=0.0;
-    for(j=0; j<ifo[i]->indexRange; ++j){
-      f = (((double)(j+ifo[i]->lowIndex))/((double)ifo[i]->FTsize*2.0)) * rate;
-      fprintf(dump1, "%9.9f %.6e\n",log10(f), log10(2.0*sqrt(exp(ifo[i]->noisePSD[j])/ifo[i]->deltaFT))  ); //(noisePSD is log)
-    }
-    fclose(dump1);
-    if(intscrout) printf(" : (noise PSD written to file)\n");
+  
+  
+  
+  //Write noise ASD  (Square root of the estimated noise PSD (i.e., no injected signal))
+  sprintf(filename, "%s-noiseASD.dat", ifo[i]->name);  // Write in current dir
+  FILE *dump1 = fopen(filename,"w");
+  
+  fprintf(dump1,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
+  fprintf(dump1,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
+	  par->m1,par->m2,par->mc,par->eta,par->tc,exp(par->logdl),asin(par->sinlati)*r2d,par->longi*r2d,par->phase,par->spin,par->kappa,par->sinthJ0,par->phiJ0,par->alpha);
+  fprintf(dump1,"       f (Hz)          H(f)\n");
+  
+  // Loop over the Fourier frequencies within operational range (some 40-1500 Hz or similar):
+  f=0.0;
+  double fact1a = rate/(2.0 * (double)ifo[i]->FTsize);
+  double fact1b = sqrt(2.0)*2.0/sqrt(ifo[i]->deltaFT);  //Extra factor of sqrt(2) to get the numbers right with the outside world
+  for(j=0; j<ifo[i]->indexRange; ++j){
+    f = fact1a * (double)(j+ifo[i]->lowIndex);
+    //fprintf(dump1, "%9.9f %.6e\n",log10(f), log10(2.0*sqrt(exp(ifo[i]->noisePSD[j])/ifo[i]->deltaFT))  ); //(noisePSD is log)
+    fprintf(dump1, "%13.6f %13.6e\n",f, fact1b * sqrt(exp(ifo[i]->noisePSD[j]))   ); //(noisePSD is log)
   }
+  fclose(dump1);
+  if(intscrout) printf(" : (noise ASD written to file)\n");
+  
+  
+  
+  
   
   // Window template:
   for(j=0; j<ifo[i]->samplesize; ++j)  ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
@@ -159,21 +167,25 @@ void writesignaltodisc(struct parset *par, struct interferometer *ifo[], int i)
   result = 2.0*sqrt(result);
   
   
-  // Write signal PSD (signal w/o noise):
-  sprintf(filename, "%s-signalPSD.dat", ifo[i]->name);  // Write in current dir
+  // Write signal FFT to disc (i.e., amplitude spectrum of signal w/o noise):
+  sprintf(filename, "%s-signalFFT.dat", ifo[i]->name);  // Write in current dir
   FILE *dump2 = fopen(filename,"w");
   fprintf(dump2,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
   fprintf(dump2,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
 	  par->m1,par->m2,par->mc,par->eta,par->tc,exp(par->logdl),asin(par->sinlati)*r2d,par->longi*r2d,par->phase,par->spin,par->kappa,par->sinthJ0,par->phiJ0,par->alpha);
-  fprintf(dump2,"     log(f)        log(A)\n");
+  fprintf(dump2,"       f (Hz)    real(H(f))    imag(H(f))\n");
   
+  double fact2a = rate / (2.0*(double)ifo[i]->FTsize);
+  double fact2b = sqrt(2.0)*2.0/(rate*sqrt(ifo[i]->deltaFT));  //Extra factor of sqrt(2) to get the numbers right with the outside world
   // Loop over the Fourier frequencies within operational range (some 40-1500 Hz or similar):
   for(j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j){
-    f = (((double)j)/((double)ifo[i]->FTsize*2.0)) * rate;
-    fprintf(dump2, "%9.9f %.6e\n",log10(f), log10(2.0*sqrt(exp(2.0*(log(cabs(ifo[i]->FTout[j]))-lograte))/ifo[i]->deltaFT))  );
+    f = fact2a * (double)j;
+    double complex tempvar = fact2b * ifo[i]->FTout[j];
+    //fprintf(dump2, "%13.6e %13.6e\n",log10(f), log10(sqrt(0.5)*cabs(tempvar))  ); //Produces the old output
+    fprintf(dump2, "%13.6e %13.6e %13.6e\n",f, creal(tempvar), cimag(tempvar) );  //Save the real and imaginary parts of the signal FFT
   }
   fclose(dump2); 
-  if(intscrout) printf(" : (signal PSD written to file)\n");
+  if(intscrout) printf(" : (signal FFT written to file)\n");
   return;
 }
 
