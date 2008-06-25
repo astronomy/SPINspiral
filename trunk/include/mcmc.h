@@ -298,14 +298,21 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[]);
 void setrandomtrueparameters(struct runpar *run);
 void gettrueparameters(struct parset *par);
 void getnullparameters(struct parset *par);
+void getparameterset(struct parset *par, double mc, double eta, double tc, double logdl, double spin, double kappa, 
+		     double longi, double sinlati, double phase, double sinthJ0, double phiJ0, double alpha);
+void allocparset(struct parset *par, int networksize);
+void freeparset(struct parset *par);
+void printparset(struct parset par);
 
 void setmcmcseed(struct runpar *run);
 void setseed(int *seed);
 
 void mcmc(struct runpar *run, struct interferometer *ifo[]);
 void chol(int n, double **A);
-void par2arr(struct parset *par, double **param);
-void arr2par(double **param, struct parset *par);
+void par2arr(struct parset par, double *param);
+void arr2par(double *param, struct parset *par);
+void par2arrt(struct parset par, double **param); //For the case of parallel tempering
+void arr2part(double **param, struct parset *par);
 int prior(double *par, int p);
 
 void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
@@ -325,108 +332,114 @@ void write_chain_info(struct mcmcvariables mcmc);
 
 
 
-        double massratio(double m1, double m2);
-          void mc2masses(double mc, double eta, double *m1, double *m2);
-        double chirpmass(double m1, double m2);
-        double GMST(double GPSsec);
-        double rightAscension(double longi, double GMST);
-        double longitude(double rightAscension, double GMST);
+double massratio(double m1, double m2);
+void mc2masses(double mc, double eta, double *m1, double *m2);
+double chirpmass(double m1, double m2);
+double GMST(double GPSsec);
+double rightAscension(double longi, double GMST);
+double longitude(double rightAscension, double GMST);
 
-        double dotproduct(double vec1[3], double vec2[3]);
-          void facvec(double vec1[3], double fac, double vec2[3]);
-          void addvec(double vec1[3], double vec2[3], double result[3]);
-          void normalise(double vec[3]);
-          void crossproduct(double vec1[3], double vec2[3], double result[3]);
-          void rotate(double x[3], double angle, double axis[3]);
-           int righthanded(double x[3], double y[3], double z[3]);
-          void orthoproject(double x[3], double vec1[3], double vec2[3]);
-        double angle(double x[3], double y[3]);
-          void coord2vec(double sinlati, double longi, double x[3]);
-          void vec2coord(double x[3], double *sinlati, double *longi);
+double dotproduct(double vec1[3], double vec2[3]);
+void facvec(double vec1[3], double fac, double vec2[3]);
+void addvec(double vec1[3], double vec2[3], double result[3]);
+void normalise(double vec[3]);
+void crossproduct(double vec1[3], double vec2[3], double result[3]);
+void rotate(double x[3], double angle, double axis[3]);
+int righthanded(double x[3], double y[3], double z[3]);
+void orthoproject(double x[3], double vec1[3], double vec2[3]);
+double angle(double x[3], double y[3]);
+void coord2vec(double sinlati, double longi, double x[3]);
+void vec2coord(double x[3], double *sinlati, double *longi);
 
-          void choleskyinv(double randlibout[], double inverse[]);
+void choleskyinv(double randlibout[], double inverse[]);
 
-          void ifoinit(struct interferometer **ifo, int networksize);
-          void ifodispose(struct interferometer *ifo);
+void ifoinit(struct interferometer **ifo, int networksize);
+void ifodispose(struct interferometer *ifo);
 //void parupdate(struct parset *par, struct interferometer *ifo[], int networksize, int time, int dir, int polar);
-          void localpar(struct parset *par, struct interferometer *ifo[], int networksize);
-        double *filter(int *order, int samplerate, double upperlimit);
-        double *downsample(double data[], int *datalength, double coef[], int ncoef);
-          void dataFT(struct interferometer *ifo[], int i, int networksize);
-        double hann(int j, int N);
-        double tukey(int j, int N, double r);
-          void noisePSDestimate(struct interferometer *ifo);
-        double log_noisePSD(double f, struct interferometer *ifo);
-        double interpol_log_noisePSD(double f, struct interferometer *ifo);
-          void antennaepattern(double altitude, double azimuth, double polarisation,
-                               double *Fplus, double *Fcross);
-          void template(struct parset *par, struct interferometer *ifo[], int ifonr);
-          void template12(struct parset *par, struct interferometer *ifo[], int ifonr);
+void localpar(struct parset *par, struct interferometer *ifo[], int networksize);
+double *filter(int *order, int samplerate, double upperlimit);
+double *downsample(double data[], int *datalength, double coef[], int ncoef);
+void dataFT(struct interferometer *ifo[], int i, int networksize);
+double hann(int j, int N);
+double tukey(int j, int N, double r);
+void noisePSDestimate(struct interferometer *ifo);
+double log_noisePSD(double f, struct interferometer *ifo);
+double interpol_log_noisePSD(double f, struct interferometer *ifo);
+void antennaepattern(double altitude, double azimuth, double polarisation,
+		     double *Fplus, double *Fcross);
+void template(struct parset *par, struct interferometer *ifo[], int ifonr);
+void template12(struct parset *par, struct interferometer *ifo[], int ifonr);
 		  
 /**************************************************************************************************************************************************/
-		  
-          void template15(struct parset *par, struct interferometer *ifo[], int ifonr);
-          void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr);
-          double LALFpFc(CoherentGW *waveform, double *wave, int *l, int length, struct parset *par, int ifonr);
-		  void LALfreedom(CoherentGW *waveform);
+
+void template15(struct parset *par, struct interferometer *ifo[], int ifonr);
+void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr);
+double LALFpFc(CoherentGW *waveform, double *wave, int *l, int length, struct parset *par, int ifonr);
+void LALfreedom(CoherentGW *waveform);
 
 /**************************************************************************************************************************************************/
 
-		  
-        double match(struct parset *par, struct interferometer *ifo[], int i, int networksize);
-        double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int i);
-        double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int i);
-        double net_loglikelihood(struct parset *par, int networksize, struct interferometer *ifo[]);
-          void writesignaltodisc(struct parset *par, struct interferometer *ifo[], int i);
-        double logprior(struct parset *par);
-        double logstartdens(struct parset *par);
-        double logmultiplier(double mc, double eta, double logdl, double sinlati, double cosiota);
-        double lgamma(double x);
-        double logit(double x);
-        double logitinverse(double x);
 
-        double logdnorm(double x, double mu, double sigma);
-        double logdlnorm(double x, double mu, double sigma);
-        double logdlogitnorm(double x, double mu, double sigma);
-        double genstudent(double mu, double sigma, double df);
-        double logdstudent(double x, double mu, double sigma, double df);
-        double logdlstudent(double x, double mu, double sigma, double df);
-        double logdlogitstudent(double x, double mu, double sigma, double df);
-          void genunivect(double x[3]);
+double match(struct parset *par, struct interferometer *ifo[], int i, int networksize);
+double parmatch(struct parset par1,struct parset par2, struct interferometer *ifo[], int networksize);
+double paroverlap(struct parset par1, struct parset par2, struct interferometer *ifo[], int i, int networksize);
+double vecoverlap(fftw_complex *vec1, fftw_complex *vec2, double *noise, int j1, int j2, double deltaFT);
+void signalFFT(struct parset par, struct interferometer *ifo[], int networksize, int i, fftw_complex *FFT);
+void computeFishermatrixIFO(struct parset par, int npar, struct interferometer *ifo[], int networksize, int ifonr, double **matrix);
+void computeFishermatrix(struct parset par, int npar, struct interferometer *ifo[], int networksize, double **matrix);
 
-        double temperature(int iter, double startfactor, int annealtime);
-          void jump(struct parset *par, double MVNpar[45], 
-                    double InvCov[8][8], double *jumpforth, double *jumpback, double temp,
-                    struct interferometer *ifo[], int networksize);
-        double logjumpdens(struct parset arg, struct parset par, double InvCov[8][8]);
-          void parcopy(struct parset *from, struct parset *to, int uninitialised, 
-                       int networksize, struct interferometer *ifo[]);
-          void pardispose(struct parset *par);
-          void priordraw(struct parset *par);
-          void startdraw(struct parset *par, struct interferometer *ifo[], int networksize);
-          void importancedraw(int n, int m, struct parset par[], 
-                            int networksize, struct interferometer *ifo[]);
-          void postmodedraw(int n, int m, double postdiff, struct parset par[m], 
-                            int networksize, struct interferometer *ifo[]);
-          void mutate(struct parset *state, double *loglikeli, double *logposterior, int *move, 
-                      double MVNpar[45], double InvCov[8][8],
-                      int networksize, struct interferometer *ifo[],int iter, double temp);
-          void realcrossover(struct parset *state1, double *loglikeli1, double *logposterior1, 
-                             double temp1, int *move1, 
-                             struct parset *state2, double *loglikeli2, double *logposterior2, 
-                             double temp2, int *move2, 
-                             int networksize, struct interferometer *ifo[], int iter);
-          void snooker(struct parset *state1, double *loglikeli1, double *logposterior1, 
+double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int i);
+double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int i);
+double net_loglikelihood(struct parset *par, int networksize, struct interferometer *ifo[]);
+void writesignaltodisc(struct parset *par, struct interferometer *ifo[], int i);
+double logprior(struct parset *par);
+double logstartdens(struct parset *par);
+double logmultiplier(double mc, double eta, double logdl, double sinlati, double cosiota);
+double lgamma(double x);
+double logit(double x);
+double logitinverse(double x);
+
+double logdnorm(double x, double mu, double sigma);
+double logdlnorm(double x, double mu, double sigma);
+double logdlogitnorm(double x, double mu, double sigma);
+double genstudent(double mu, double sigma, double df);
+double logdstudent(double x, double mu, double sigma, double df);
+double logdlstudent(double x, double mu, double sigma, double df);
+double logdlogitstudent(double x, double mu, double sigma, double df);
+void genunivect(double x[3]);
+
+double temperature(int iter, double startfactor, int annealtime);
+void jump(struct parset *par, double MVNpar[45], 
+	  double InvCov[8][8], double *jumpforth, double *jumpback, double temp,
+	  struct interferometer *ifo[], int networksize);
+double logjumpdens(struct parset arg, struct parset par, double InvCov[8][8]);
+void parcopy(struct parset *from, struct parset *to, int uninitialised, 
+	     int networksize, struct interferometer *ifo[]);
+void priordraw(struct parset *par);
+void startdraw(struct parset *par, struct interferometer *ifo[], int networksize);
+void importancedraw(int n, int m, struct parset par[], 
+		    int networksize, struct interferometer *ifo[]);
+void postmodedraw(int n, int m, double postdiff, struct parset par[m], 
+		  int networksize, struct interferometer *ifo[]);
+void mutate(struct parset *state, double *loglikeli, double *logposterior, int *move, 
+	    double MVNpar[45], double InvCov[8][8],
+	    int networksize, struct interferometer *ifo[],int iter, double temp);
+void realcrossover(struct parset *state1, double *loglikeli1, double *logposterior1, 
+		   double temp1, int *move1, 
+		   struct parset *state2, double *loglikeli2, double *logposterior2, 
+		   double temp2, int *move2, 
+		   int networksize, struct interferometer *ifo[], int iter);
+void snooker(struct parset *state1, double *loglikeli1, double *logposterior1, 
                        double temp1, int *move1, 
-                       struct parset *state2, double *loglikeli2, double *logposterior2, 
-                       double temp2, int *move2, 
-                       int networksize, struct interferometer *ifo[], int iter);
-          void metro(int networksize, struct interferometer *ifo[],
-                     double sPropCov[8][8],
-                     char logfilename[], int iter, int thin, int multiple);
+	     struct parset *state2, double *loglikeli2, double *logposterior2, 
+	     double temp2, int *move2, 
+	     int networksize, struct interferometer *ifo[], int iter);
+void metro(int networksize, struct interferometer *ifo[],
+	   double sPropCov[8][8],
+	   char logfilename[], int iter, int thin, int multiple);
 
-          void printtime();
-          void printcov(double mat[8][8], int precise);
+void printtime();
+void printcov(double mat[8][8], int precise);
 
 /* Define functions: */
 

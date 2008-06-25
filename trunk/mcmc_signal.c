@@ -244,3 +244,180 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
 }
 
 
+
+
+double parmatch(struct parset par1,struct parset par2, struct interferometer *ifo[], int networksize)
+// Compute match between waveforms with parameter sets par1 and par2
+{
+  double match=0.0,ovrlp11=0.0,ovrlp12=0.0,ovrlp22=0.0;
+  int ifonr=0;
+  
+  for(ifonr=0; ifonr<networksize; ifonr++){
+    ovrlp11 = paroverlap(par1,par1,ifo,ifonr,networksize);
+    ovrlp22 = paroverlap(par2,par2,ifo,ifonr,networksize);
+    ovrlp12 = paroverlap(par1,par2,ifo,ifonr,networksize);
+    match += ovrlp12/sqrt(ovrlp11*ovrlp22);
+  }
+  match /= (double)networksize;
+  return match;
+}
+
+
+double paroverlap(struct parset par1, struct parset par2, struct interferometer *ifo[], int ifonr, int networksize)
+//Compute the overlap in the frequency domain between two waveforms with parameter sets par1 and par2
+{
+  double overlap = 0.0;
+  int j=0;
+  fftw_complex *FFT1 = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
+  fftw_complex *FFT2 = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
+  double *noise  = (double*)calloc(ifo[ifonr]->FTsize,sizeof(double));
+  int i1 = ifo[ifonr]->lowIndex;
+  int i2 = ifo[ifonr]->highIndex;
+  
+  // Get waveforms, FFT them and store them in FFT1,2
+  signalFFT(par1, ifo, networksize, ifonr, FFT1);
+  signalFFT(par2, ifo, networksize, ifonr, FFT2);
+  
+  // Convert log PSD -> PSD with in same index order as the FFTed vectors:
+  for (j=i1; j<=i2; ++j){
+    noise[j] = exp(ifo[ifonr]->noisePSD[j-i1]);
+  }
+  
+  // Compute the overlap between the vectors FFT1,2, given noise and between index i1 and i2:
+  overlap = vecoverlap(FFT1, FFT2, noise, i1, i2, ifo[ifonr]->deltaFT);
+  
+  fftw_free(FFT1);
+  fftw_free(FFT2);
+  free(noise);
+  
+  return overlap;
+}
+
+
+
+double vecoverlap(fftw_complex *vec1, fftw_complex *vec2, double *noise, int j1, int j2, double deltaFT)
+//Compute the overlap of vectors vec1 and vec2, between indices j1 and j2
+{
+  int j=0;
+  double overlap = 0.0;
+  
+  // Sum over the Fourier frequencies within operational range (some 40-1500 Hz or similar):
+  for (j=j1; j<=j2; ++j){
+    //overlap += creal( (conj(vec1[j])*vec2[j] + vec1[j]*conj(vec2[j])) / noise[j] ); //(noisePSD is log)     
+    overlap += creal( vec1[j]*conj(vec2[j]) / noise[j] ); //(noisePSD is log)     
+  }
+  //overlap *= 2.0/deltaFT;
+  overlap *= 4.0/deltaFT;
+  return overlap;
+}
+
+
+
+void signalFFT(struct parset par, struct interferometer *ifo[], int networksize, int ifonr, fftw_complex *FFT)
+//Compute the FFT of a waveform with given parameter set
+{
+  int j=0;
+  
+  //Allocate the parset vectors, compute the local parameters and the time-domain template:
+  localpar(&par, ifo, networksize);
+  template(&par, ifo, ifonr); 
+  
+  // Window the time-domain template:
+  for(j=0; j<ifo[ifonr]->samplesize; ++j) ifo[ifonr]->FTin[j] *= ifo[ifonr]->FTwindow[j];
+  
+  // Execute Fourier transform of signal template:
+  fftw_execute(ifo[ifonr]->FTplan);
+  for(j=ifo[ifonr]->lowIndex; j<=ifo[ifonr]->highIndex; ++j) FFT[j] = ifo[ifonr]->FTout[j];
+}
+
+
+
+
+void computeFishermatrixIFO(struct parset par, int npar, struct interferometer *ifo[], int networksize, int ifonr, double **matrix)
+// Compute  Fisher matrix for parameter set par for a given IFO
+{
+  int ip=0,jp=0,j=0,j1=0,j2=0,nFT=0;
+  struct parset par1;
+  allocparset(&par1, networksize);
+  double pars[npar];
+  
+  nFT = ifo[ifonr]->FTsize;
+  double dx[npar], noise[nFT];
+  double _Complex FFT0[nFT], FFT1[nFT], dFFTs[npar][nFT];
+  
+  j1 = ifo[ifonr]->lowIndex;
+  j2 = ifo[ifonr]->highIndex;
+  
+  // Convert log PSD -> PSD with in same index order as the FFTed vectors:
+  for (j=j1; j<=j2; ++j){
+    noise[j] = exp(ifo[ifonr]->noisePSD[j-j1]);
+  }
+  
+  // Compute the FFTed signal for the default parameter set FFT0
+  signalFFT(par, ifo, networksize, ifonr, FFT0);
+  
+  for(ip=0;ip<npar;ip++) {
+    // Change parameter ip with dx
+    dx[ip] = 1.e-5;       // Should this be the same for each parameter?
+    par2arr(par,pars);    // Stick the default parameter set par into the array pars
+    pars[ip] += dx[ip];   // Change parameter ip with dx
+    arr2par(pars,&par1);  // Put the changed parameter set into struct par1
+    
+    // Compute the FFTed signal for this parameter set FFT1
+    signalFFT(par1, ifo, networksize, ifonr, FFT1);
+    
+    // Compute the partial derivative to parameter ip
+    for(j=j1;j<=j2;j++) {
+      dFFTs[ip][j] = (FFT1[j]-FFT0[j])/dx[ip];
+    }
+  }
+  
+  
+  // Compute the actual Fisher matrix (diagonal + lower triangle)
+  for(ip=0;ip<npar;ip++) {
+    for(jp=0;jp<=ip;jp++) {
+      matrix[ip][jp] = vecoverlap(dFFTs[ip], dFFTs[jp], noise, j1, j2, ifo[ifonr]->deltaFT);
+    }
+  }
+  
+  // Copy the lower to the upper triangle to get a complete matrix
+  for(ip=0;ip<npar;ip++) {
+    for(jp=ip;jp<npar;jp++) {
+      matrix[ip][jp] = matrix[jp][ip];
+    }
+  }
+  
+  freeparset(&par1);
+}
+
+
+void computeFishermatrix(struct parset par, int npar, struct interferometer *ifo[], int networksize, double **matrix)
+// Compute the Fisher matrix for a network of IFOs, using computeFishermatrixIFO to compute the elements per IFO
+{
+  int ip=0,jp=0,ifonr=0;
+  double **dmatrix  = (double**)calloc(npar,sizeof(double*));
+  for(ip=0;ip<npar;ip++) dmatrix[ip]  = (double*)calloc(npar,sizeof(double));
+  
+  for(ifonr=0;ifonr<networksize;ifonr++) {
+    computeFishermatrixIFO(par,npar,ifo,networksize,ifonr,dmatrix);
+    
+    for(ip=0;ip<npar;ip++) {
+      for(jp=0;jp<npar;jp++) {
+	matrix[ip][jp] += dmatrix[ip][jp];
+      }
+    }
+  }
+}
+
+
+
+
+void printparset(struct parset par)
+// Print the parameter set par to screen
+{
+  printf("\n");
+  printf("  Mc:  %20.10lf,   eta:     %20.10lf,   tc:      %20.10lf,   logdl:   %20.10lf\n",par.mc,par.eta,par.tc,par.logdl);
+  printf("  a:   %20.10lf,   kappa:   %20.10lf,   longi:   %20.10lf,   sinlati: %20.10lf\n",par.spin,par.kappa,par.longi,par.sinlati);
+  printf("  phi: %20.10lf,   sinthJ0: %20.10lf,   phithJ0: %20.10lf,   alpha:   %20.10lf\n",par.phase,par.sinthJ0,par.phiJ0,par.alpha);
+  printf("\n");
+}

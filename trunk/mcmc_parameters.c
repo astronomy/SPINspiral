@@ -545,6 +545,26 @@ void gettrueparameters(struct parset *par)  //Set the parameters for the 12-para
 }
 
 
+void getparameterset(struct parset *par, double mc, double eta, double tc, double logdl, double spin, double kappa, double longi, double sinlati, double phase, double sinthJ0, double phiJ0, double alpha)  
+// Set the parameters for the 12-parameter spinning template to the indicated values
+{
+  par->mc       = mc;                         // chirp mass. in Mo   
+  par->eta      = eta;                        // mass ratio                
+  par->tc       = tc;                         // coalescence time
+  par->logdl    = logdl;                      // log(distance/Mpc) (17.5)             
+  
+  par->spin     = spin;                       // magnitude of total spin   (0.1)
+  par->kappa    = kappa;                      // L^.S^, cos of angle between L^ & S^  (0.819152)
+  par->longi    = longi;                      // The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
+  par->sinlati  = sinlati;                    // sin dec (sin(delta))  (40)     
+  
+  par->phase    = phase;                      // orbital phase   (phi_c)   (0.2)
+  par->sinthJ0  = sinthJ0;                    // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
+  par->phiJ0    = phiJ0;                      // Phi_J0 ~ azimuthal            (125)
+  par->alpha    = alpha;                      // Alpha_c                       (0.9 rad = 51.566202deg)
+}
+
+
 
 
 void getnullparameters(struct parset *par)  //Set the parameters for the 12-parameter spinning template to 'null values', to simulate absence of a signal
@@ -570,6 +590,33 @@ void getnullparameters(struct parset *par)  //Set the parameters for the 12-para
   par->locpolar = NULL;
 }
 
+
+
+
+
+//Allocate the vectors in the struct parset
+void allocparset(struct parset *par, int networksize)
+{
+  par->loctc    = NULL;
+  par->localti  = NULL;
+  par->locazi   = NULL;
+  par->locpolar = NULL;
+  
+  par->loctc    = (double*)calloc(networksize,sizeof(double));
+  par->localti  = (double*)calloc(networksize,sizeof(double));
+  par->locazi   = (double*)calloc(networksize,sizeof(double));
+  par->locpolar = (double*)calloc(networksize,sizeof(double));
+}
+
+
+//Deallocate the vectors in the struct parset
+void freeparset(struct parset *par)
+{
+  free(par->loctc);         par->loctc        = NULL;
+  free(par->localti);       par->localti      = NULL;
+  free(par->locazi);        par->locazi       = NULL;
+  free(par->locpolar);      par->locpolar     = NULL;
+}
 
 
 

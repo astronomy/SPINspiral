@@ -301,7 +301,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     
     //Use LIGO noise for Virgo (keep tukeywin = 0.05)
     if(1==1) {
-      printf("\n   *** Using LIGO noise for VIRGO !!!  ***\n\n");
+      printf("   Using LIGO noise for Virgo\n");
       sprintf(ifo[2].ch1name,       "L1:STRAIN"); 
       sprintf(ifo[2].ch1filepath,   datadir);
       sprintf(ifo[2].ch1fileprefix, "HL-SIM-");
@@ -712,10 +712,11 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
       fprintf(dump,"t Ht\n");
       for(j=0; j<N; ++j)
 	fprintf(dump, "%9.9f %.6e\n", from+(((double)j)/((double) (ifo[i]->samplerate))), injection[j]);  //*******************************************************************************************
-      fclose(dump); if(intscrout==1) printf(" : (signal written to file)\n");
+      fclose(dump);
+      if(intscrout==1) printf(" : (signal written to file)\n");
     }
     
-    pardispose(&injectpar);
+    freeparset(&injectpar);
   } // if(inject)
   else if(ifo[i]->add2channels) { // Read 2nd channel (signal only)  (if not doing a software injection)
     filestart = (((((long)(from))-ifo[i]->ch2fileoffset) / ifo[i]->ch2filesize) * ifo[i]->ch2filesize) + ifo[i]->ch2fileoffset;
@@ -818,7 +819,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
       fprintf(dump, "%9.9f %.6e\n", ifo[i]->FTstart+(((double)j)/((double) (ifo[i]->samplerate))), ifo[i]->FTin[j]);
     fclose(dump);
     if(intscrout) printf(" : (signal written to file)\n");
-    pardispose(&par);
+    freeparset(&par);
   }
   
   
@@ -852,6 +853,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   // Write data FFT to disc (i.e., FFT or amplitude spectrum of signal+noise)
   if(writesignal && 1==1){
     double f=0.0;
+    double complex tempvar=0.0;
     char filename[1000]="";
     sprintf(filename, "%s-dataFFT.dat", ifo[i]->name);  //Write in current dir
     FILE *dump1 = fopen(filename,"w");
@@ -870,10 +872,11 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     for(j=1; j<ifo[i]->FTsize; ++j){
       f = fact1a * ((double)(j+ifo[i]->lowIndex));
       //if(f>0.9*ifo[i]->lowCut) fprintf(dump1, "%9.9f %.6e\n", log10(f), log10(2.0*cabs( ifo[i]->raw_dataTrafo[j] )/ifo[i]->deltaFT )  );
-      double complex tempvar = fact1b * ifo[i]->raw_dataTrafo[j];
+      tempvar = fact1b * ifo[i]->raw_dataTrafo[j];
       if(f>0.9*ifo[i]->lowCut) fprintf(dump1, "%13.6e %13.6e %13.6e\n", f, creal(tempvar), cimag(tempvar) );  //Save the real and imaginary parts of the data FFT
     }
-    fclose(dump1); if(intscrout) printf(" : (data FFT written to file)\n");
+    fclose(dump1);
+    if(intscrout) printf(" : (data FFT written to file)\n");
   }
   
   

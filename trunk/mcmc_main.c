@@ -13,9 +13,10 @@ int main(int argc, char * argv[])
   
   clock_t time0 = clock();
   
-  printf("\n\n   Starting MCMC code...\n");
-  int i;
-  double snr;
+  if(domcmc>=1) printf("\n");
+  printf("\n   Starting MCMC code...\n");
+  int ifonr=0;
+  double snr=0.0;
   
   waveformversion = 1;  // 1: Apostolatos, 1.5PN, 12 par.  2: LAL 3.5PN, 15 par
   useoldmcmcoutputformat = 0; //Set to 1 if you want to ... exactly!
@@ -50,8 +51,8 @@ int main(int argc, char * argv[])
   set_ifo_data(run, database);  
   
   //Define interferometer network which IFOs.  The first run.networksize are actually used
-  struct interferometer *network[3] = {&database[0], &database[1], &database[2]};
-  //struct interferometer *network[3] = {&database[0], &database[2], &database[1]};
+  //struct interferometer *network[3] = {&database[0], &database[1], &database[2]};
+  struct interferometer *network[3] = {&database[0], &database[2], &database[1]};
   int networksize = run.networksize;
   
   //Initialise interferometers, read and prepare data, inject signal (takes some time)
@@ -83,11 +84,11 @@ int main(int argc, char * argv[])
   //Calculate SNR
   run.netsnr = 0.0;
   if(dosnr==1) {
-    for (i=0; i<networksize; ++i) {
+    for(ifonr=0; ifonr<networksize; ++ifonr) {
       //printmuch=1;
-      snr = signaltonoiseratio(&dummypar, network, i);
+      snr = signaltonoiseratio(&dummypar, network, ifonr);
       //printmuch=0;
-      network[i]->snr = snr;
+      network[ifonr]->snr = snr;
       run.netsnr += snr*snr;
     }
     run.netsnr = sqrt(run.netsnr);
@@ -108,16 +109,15 @@ int main(int argc, char * argv[])
     //Recalculate SNR
     run.netsnr = 0.0;
     if(dosnr==1) {
-      for (i=0; i<networksize; ++i) {
-	snr = signaltonoiseratio(&dummypar, network, i);
-	network[i]->snr = snr;
+      for(ifonr=0; ifonr<networksize; ++ifonr) {
+	snr = signaltonoiseratio(&dummypar, network, ifonr);
+	network[ifonr]->snr = snr;
 	run.netsnr += snr*snr;
       }
       run.netsnr = sqrt(run.netsnr);
     }
     
-    for (i=0; i<networksize; ++i)
-      ifodispose(network[i]);
+    for(ifonr=0; ifonr<networksize; ++ifonr) ifodispose(network[ifonr]);
     //Reinitialise interferometers, read and prepare data, inject signal (takes some time)
     if(networksize == 1) {
       printf("   Reinitialising 1 IFO, reading data...\n");
@@ -145,9 +145,9 @@ int main(int argc, char * argv[])
   
   //Write the signal and its FFT to disc
   if(writesignal) {
-    for (i=0; i<networksize; ++i) {
+    for(ifonr=0; ifonr<networksize; ++ifonr) {
       //printmuch=1;
-      writesignaltodisc(&dummypar, network, i);
+      writesignaltodisc(&dummypar, network, ifonr);
       //printmuch=0;
     }
   }
@@ -157,18 +157,20 @@ int main(int argc, char * argv[])
   //Write some injection-signal parameters to screen (used to be in the MCMC routine)
   printf("\n\n");
   printf("   Global     :    Source position:  RA: %5.2lfh, dec: %6.2lfd;  J0 points to:  RA: %5.2lfh, dec: %6.2lfd;   inclination J0: %5.2lfd  \n",rightAscension(dummypar.longi,GMST(dummypar.tc))*r2h,asin(dummypar.sinlati)*r2d,rightAscension(dummypar.phiJ0,GMST(dummypar.tc))*r2h,asin(dummypar.sinthJ0)*r2d,(pi/2.0-acos(dummypar.NdJ))*r2d);
-  for(i=0;i<networksize;i++) printf("   %-11s:    theta: %5.1lfd,  phi: %5.1lfd;   azimuth: %5.1lfd,  altitude: %5.1lfd\n",network[i]->name,dummypar.localti[i]*r2d,dummypar.locazi[i]*r2d,fmod(pi-(dummypar.locazi[i]+network[i]->rightarm)+mtpi,tpi)*r2d,(pi/2.0-dummypar.localti[i])*r2d);
+  for(ifonr=0;ifonr<networksize;ifonr++) printf("   %-11s:    theta: %5.1lfd,  phi: %5.1lfd;   azimuth: %5.1lfd,  altitude: %5.1lfd\n",network[ifonr]->name,dummypar.localti[ifonr]*r2d,dummypar.locazi[ifonr]*r2d,fmod(pi-(dummypar.locazi[ifonr]+network[ifonr]->rightarm)+mtpi,tpi)*r2d,(pi/2.0-dummypar.localti[ifonr])*r2d);
   
   printf("\n  %10s  %10s  %6s  %20s  %6s  ","niter","nburn","seed","null likelihood","ndet");
-  for(i=0;i<networksize;i++) printf("%16s%4s  ",network[i]->name,"SNR");
+  for(ifonr=0;ifonr<networksize;ifonr++) printf("%16s%4s  ",network[ifonr]->name,"SNR");
   printf("%20s  ","Network SNR");
   printf("\n  %10d  %10d  %6d  %20.10lf  %6d  ",iter,nburn,run.mcmcseed,run.logL0,networksize);
-  for(i=0;i<networksize;i++) printf("%20.10lf  ",network[i]->snr);
+  for(ifonr=0;ifonr<networksize;ifonr++) printf("%20.10lf  ",network[ifonr]->snr);
   printf("%20.10lf\n\n",run.netsnr);
   printf("    %8s  %8s  %17s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "Mc","eta","tc","logdL","spin","kappa","longi","sinlati","phase","sinthJ0","phiJ0","alpha");
   printf("    %8.5f  %8.5f  %17.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f\n\n", dummypar.mc,dummypar.eta,dummypar.tc,dummypar.logdl,dummypar.spin,dummypar.kappa,dummypar.longi,dummypar.sinlati,dummypar.phase,dummypar.sinthJ0,dummypar.phiJ0,dummypar.alpha);
   printf("    %8s  %8s  %17s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "M1","M2","tc","d_L","spin","th_SL","RA","Dec","phase","th_J0","phi_J0","alpha");
   printf("    %8.5f  %8.5f  %17.6lf  %8.2f  %8.5f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f\n\n", dummypar.m1,dummypar.m2,dummypar.tc,exp(dummypar.logdl),dummypar.spin,acos(dummypar.kappa)*r2d,rightAscension(dummypar.longi,GMST(dummypar.tc))*r2h,asin(dummypar.sinlati)*r2d,dummypar.phase*r2d,asin(dummypar.sinthJ0)*r2d,dummypar.phiJ0*r2d,dummypar.alpha*r2d);
+  
+  
   
   
   
@@ -181,73 +183,117 @@ int main(int argc, char * argv[])
   }
   clock_t time2 = clock();
   
+  
+  
+  
+  
   //Calculate matches between two signals
   if(domatch==1) {
-    printf("\n");
-    gettrueparameters(&dummypar);
-    dummypar.loctc    = (double*)calloc(networksize,sizeof(double));
-    dummypar.localti  = (double*)calloc(networksize,sizeof(double));
-    dummypar.locazi   = (double*)calloc(networksize,sizeof(double));
-    dummypar.locpolar = (double*)calloc(networksize,sizeof(double));
-    
-    FILE *fout;
-    fout = fopen("tc.dat","w");
-    double fac=0.0;
-    double matchpar = dummypar.tc,matchres=0.0;
-    for(fac=-0.002;fac<0.002;fac+=0.00005) {
-      dummypar.tc = matchpar+fac;
-      for(i=0;i<networksize;i++) {
-        localpar(&dummypar, network, networksize);
-        matchres = match(&dummypar,network,i,networksize);
-        printf("%10.6f  %10.6f\n",fac,matchres);
-        fprintf(fout,"%10.6f  %10.6f\n",fac,matchres);
+    if(1==2) {
+      printf("\n\n");
+      gettrueparameters(&dummypar);
+      dummypar.loctc    = (double*)calloc(networksize,sizeof(double));
+      dummypar.localti  = (double*)calloc(networksize,sizeof(double));
+      dummypar.locazi   = (double*)calloc(networksize,sizeof(double));
+      dummypar.locpolar = (double*)calloc(networksize,sizeof(double));
+      
+      FILE *fout;
+      fout = fopen("tc.dat","w");
+      double fac=0.0;
+      double matchpar = dummypar.tc,matchres=0.0;
+      for(fac=-0.002;fac<0.002;fac+=0.00005) {
+	dummypar.tc = matchpar+fac;
+	for(ifonr=0;ifonr<networksize;ifonr++) {
+	  localpar(&dummypar, network, networksize);
+	  matchres = match(&dummypar,network,ifonr,networksize);
+	  printf("%10.6f  %10.6f\n",fac,matchres);
+	  fprintf(fout,"%10.6f  %10.6f\n",fac,matchres);
+	}
       }
+      fclose(fout);
     }
-    fclose(fout);
-  }
+    
+    
+    //Compute match between waveforms with parameter sets par1 and par2
+    if(1==1) {
+      printf("\n\n");
+      struct parset par1;
+      allocparset(&par1, networksize);
+      struct parset par2;
+      allocparset(&par2, networksize);
+      
+      double eta=0.0;
+      //for(eta=0.01;eta<0.25001;eta+=0.001) {
+      //for(eta=0.1;eta<0.12001;eta+=0.001) {
+      for(eta=0.111;eta<0.1111;eta+=0.001) {
+	getparameterset(&par1, 3.0,0.11,700009012.346140,3.0, 0.5,0.9,3.0,0.5, 1.0,0.1,2.0,3.0);
+	
+	getparameterset(&par2, 3.0,eta,700009012.346140,3.0, 0.5,0.9,3.0,0.5, 1.0,0.1,2.0,3.0);
+	
+	double matchres = parmatch(par1,par2,network,networksize);
+	double overlap = paroverlap(par1,par2,network,0,networksize);
+	
+	printf("   Eta: %6.4f,  match: %10.5lf,  overlap: %g \n",eta,matchres,overlap);
+      }
+      printf("\n");
+      
+      freeparset(&par1);
+      freeparset(&par2);
+    }
   
+    //Compute Fisher matrix for parameter set par
+    if(1==1) {
+      printf("\n\n  Computing Fisher matrix...\n\n");
+      int i=0, j=0;
+      struct parset par;
+      double **matrix  = (double**)calloc(npar,sizeof(double*));
+      for(i=0;i<npar;i++) matrix[i]  = (double*)calloc(npar,sizeof(double));
+      allocparset(&par, networksize);
+      getparameterset(&par, 3.0,0.11,700009012.346140,3.0, 0.5,0.9,3.0,0.5, 1.0,0.1,2.0,3.0);
+      
+      //computeFishermatrixIFO(par,npar,network,networksize,0,matrix);
+      computeFishermatrix(par,npar,network,networksize,matrix);
+      
+      for(i=0;i<npar;i++) {
+	for(j=0;j<npar;j++) {
+	  printf("  %12.4g",matrix[i][j]/(double)networksize);
+	}
+	printf("\n\n");
+      }
+      printf("\n\n");
+      
+      
+      
+      freeparset(&par);
+      for(i=0;i<npar;i++) {
+	free(matrix[i]);
+      }
+      free(matrix);
+    }
+  } //if(domatch=1)
+
+  
+  
+    
   
   //Get rid of allocated memory and quit
-  for (i=0; i<networksize; ++i) ifodispose(network[i]);
-  
+  for(ifonr=0; ifonr<networksize; ++ifonr) ifodispose(network[ifonr]);
   free(run.setranpar);
-  
-  free(nullpar.loctc);
-  free(nullpar.localti);
-  free(nullpar.locazi);
-  free(nullpar.locpolar);
-  
-  free(dummypar.loctc);
-  free(dummypar.localti);
-  free(dummypar.locazi);
-  free(dummypar.locpolar);
-  
+  freeparset(&nullpar);
+  freeparset(&dummypar);
   
   clock_t time3 = clock();
   printf("   Timimg:\n");
-  printf("     initialisation:%10.2lfs\n", ((double)time1 - (double)time0)*1.e-6 );
-  printf("     MCMC:          %10.2lfs\n", ((double)time2 - (double)time1)*1.e-6 );
+  if(domcmc>=1) {
+    printf("     initialisation:%10.2lfs\n", ((double)time1 - (double)time0)*1.e-6 );
+    printf("     MCMC:          %10.2lfs\n", ((double)time2 - (double)time1)*1.e-6 );
+  }
   printf("     total time:    %10.2lfs\n", (double)time3*1.e-6);
   
   
-  printf("\n   MCMC code done.\n\n\n");
+  printf("\n   MCMC code done.\n\n");
+  if(domcmc>=1) printf("\n");
   return 0;
 }
-
-
-
-
-
-
-
-//Deallocate the struct parset
-void pardispose(struct parset *par)
-{
-  free(par->loctc);         par->loctc        = NULL;
-  free(par->localti);       par->localti      = NULL;
-  free(par->locazi);        par->locazi       = NULL;
-  free(par->locpolar);      par->locpolar     = NULL;
-}
-
 
 

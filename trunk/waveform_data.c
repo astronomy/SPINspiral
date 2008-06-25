@@ -625,7 +625,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     ifo[i]->FTstart = tempfrom;
     ifo[i]->samplesize = tempN;
     
-    pardispose(&injectpar);
+    freeparset(&injectpar);
   }
   else if (ifo[i]->add2channels) { /*-- read 2nd channel (signal only) --*/
     //*** Read signal
@@ -706,7 +706,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     for (j=0; j<N; ++j)
       fprintf(dump, "%9.9f %.6e\n", ifo[i]->FTstart+(((double)j)/((double) (ifo[i]->samplerate))), ifo[i]->FTin[j]);
     fclose(dump); if(intscrout) printf(" : (signal written to file)\n");
-    pardispose(&par);
+    freeparset(&par);
   }
   
     

@@ -1,7 +1,12 @@
 
-  Revisions in the spinning_mcmc repository.  
+  ChangeLog for the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    47: sluys, 25/06/2008
+     - Added routines to compute overlap, match and Fisher matrix to mcmc_signal
+     - Cleaned up template12() and localpar() in mcmc_templates
+     - Renamed this file to more default ChangeLog.txt
+         
     46: sluys, 07/06/2008
      - Changed name and contents of *PSD.dat:
        - signalPSD.dat and dataPSD.dat have PSD replaced by FFT

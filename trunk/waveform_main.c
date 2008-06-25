@@ -175,14 +175,3 @@ int main(int argc, char * argv[])
 
 
 
-//Deallocate the struct parset
-void pardispose(struct parset *par)
-{
-  free(par->loctc);         par->loctc        = NULL;
-  free(par->localti);       par->localti      = NULL;
-  free(par->locazi);        par->locazi       = NULL;
-  free(par->locpolar);      par->locpolar     = NULL;
-}
-
-
-
