@@ -22,7 +22,7 @@
 
 
 
-//void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr) { //MvdS: ifonr not used
+//void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr) { //MvdS: ifonr not used //Vivien: just for debugging in a printf
 void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo) {
   // Compute h_+ and h_x
   
@@ -633,7 +633,7 @@ void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int le
 
 
 // Compute the detector response for a given detector (ifonr) and h_+,h_x
-//double LALFpFc(CoherentGW *waveform, double *wave, int *l, int length, struct parset *par, int ifonr) {  //MvdS: l not used
+//double LALFpFc(CoherentGW *waveform, double *wave, int *l, int length, struct parset *par, int ifonr) {  //MvdS: l not used //Vivien: very true.
 double LALFpFc(CoherentGW *waveform, double *wave, int length, struct parset *par, int ifonr) {
   
   static LALStatus stat;     // status structure

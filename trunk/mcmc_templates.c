@@ -297,7 +297,7 @@ void template15(struct parset *par, struct interferometer *ifo[], int ifonr)
   double hplusLAL[length+2];
   double hcrossLAL[length+2];
   //double wave[length+2];
-  double *wave = (double*)calloc(length+2,sizeof(double));  //MvdS: should this make a difference?
+  double *wave = (double*)calloc(length+2,sizeof(double));  //MvdS: should this make a difference? Vivien: no it shouldn't.
   int lengthLAL = 0;
   
   CoherentGW thewaveform;
@@ -305,10 +305,14 @@ void template15(struct parset *par, struct interferometer *ifo[], int ifonr)
   // Compute h_+ and h_x
   //LALHpHc(&thewaveform, hplusLAL, hcrossLAL, &lengthLAL, length, par, ifo[ifonr], ifonr);
   LALHpHc(&thewaveform, hplusLAL, hcrossLAL, &lengthLAL, length, par, ifo[ifonr]);  //MvdS: ifonr never used. This routine computes and returns hplusLAL, hcrossLAL, which are never used... However, this information should also be contained in thewaveform
-  
+																					//Vivien: ifonr is only used in a commented printf to know which interferometer called the routine. Just for debugging purposes
+																					//Vivien: hplusLAL and hcrossLAL are indeed unecessary (was before I used the structure thewaveform)
+																					
+   
   // Compute the detector response
   //double delay = LALFpFc(&thewaveform, wave, &lengthLAL, length, par, ifonr);
   double delay = LALFpFc(&thewaveform, wave, length, par, ifonr); //MvdS: lengthLAL never used or set. Uses waveforms in thewaveform to compute the detector response in wave (?)
+																	//Vivien: lentghLAL is set line 535 of LALinteface.c But is is also availble in the structure thewaveform (which holds h+,x) and the structure wave (which holds F+,x)
   
   // printf("LALdelay = %10.10f\n", delay);
   
@@ -319,7 +323,7 @@ void template15(struct parset *par, struct interferometer *ifo[], int ifonr)
   localtc = ((par->tc - ifo[ifonr]->FTstart) - delay);
   
   int indexstart;
-  indexstart = (int) (localtc/inversesamplerate - (double)lengthLAL);   //MvdS: lengthLAL is used here, but seems never to be set in LALFpFc. Is it set in LALHpHc?
+  indexstart = (int) (localtc/inversesamplerate - (double)lengthLAL);   //MvdS: lengthLAL is used here, but seems never to be set in LALFpFc. Is it set in LALHpHc? Vivien: Yes it is (line 535) but it is also available in thewaveform and wave
   if (indexstart<0) indexstart = 0;
   
   //printf("localtc2 = %f\n", localtc2);
