@@ -1,7 +1,11 @@
 
   ChangeLog for the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
-    
+        
+    48: sluys, 07/07/2008
+     - Made some small changes (cleaning?) to the 15-waveform routines to see if 
+       it changes anything
+     
     47: sluys, 25/06/2008
      - Added routines to compute overlap, match and Fisher matrix to mcmc_signal
      - Cleaned up template12() and localpar() in mcmc_templates

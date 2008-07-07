@@ -46,16 +46,35 @@ double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int i
   result *= -2.0/ifo[i]->deltaFT; // Divide by (FT'd) data segment length
   
   
+  
+  //printf("ifo_loglikelihood integration range:  i1: %d,  i2: %d,  i2-1: %d\n", ifo[i]->lowIndex, ifo[i]->highIndex, ifo[i]->highIndex-ifo[i]->lowIndex );
+  //printf("ifo_loglikelihood sample rate:  i1: %f\n", rate);
+  
   /*
-  //Calc <n|n>
-  double ndotn=0.0;
-  for(j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j){
-    absdiff = cabs(ifo[i]->raw_dataTrafo[j]);
-    ndotn += absdiff*absdiff / exp(ifo[i]->noisePSD[j-ifo[i]->lowIndex]);  // Squared (absolute) difference divided by noise PSD(f) (noisePSD is log)
+  //Write noise ASD  (Square root of the estimated noise PSD (i.e., no injected signal))
+  char filename[1000]="";
+  sprintf(filename, "%s-noiseASD.dat", ifo[i]->name);  // Write in current dir
+  FILE *dump1 = fopen(filename,"w");
+
+  fprintf(dump1,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
+  fprintf(dump1,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
+          par->m1,par->m2,par->mc,par->eta,par->tc,exp(par->logdl),asin(par->sinlati)*r2d,par->longi*r2d,par->phase,par->spin,par->kappa,par->sinthJ0,par->phiJ0,par->alpha);
+  fprintf(dump1,"       f (Hz)          H(f)\n");
+
+  // Loop over the Fourier frequencies within operational range (some 40-1500 Hz or similar):
+  double f=0.0;
+  double fact1a = rate/(2.0 * (double)ifo[i]->FTsize);
+  double fact1b = sqrt(2.0)*2.0/sqrt(ifo[i]->deltaFT);  //Extra factor of sqrt(2) to get the numbers right with the outside world
+  for(j=0; j<ifo[i]->indexRange; ++j){
+    f = fact1a * (double)(j+ifo[i]->lowIndex);
+    //fprintf(dump1, "%9.9f %.6e\n",log10(f), log10(2.0*sqrt(exp(ifo[i]->noisePSD[j])/ifo[i]->deltaFT))  ); //(noisePSD is log)
+    fprintf(dump1, "%13.6f %13.6e\n",f, fact1b * sqrt(exp(ifo[i]->noisePSD[j]))   ); //(noisePSD is log)
   }
-  ndotn *= 4.0/ifo[i]->deltaFT; // Divide by (FT'd) data segment length
-  printf("  NdotN: %lf, logL: %lf  %lf %lf  %lf\n", ndotn,result,-ndotn/rate,rate,ifo[i]->deltaFT);
+  fclose(dump1);
+  if(intscrout) printf(" : (noise ASD written to file)\n");
   */
+  
+  
   
   return result;
 }

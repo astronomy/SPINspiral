@@ -296,14 +296,19 @@ void template15(struct parset *par, struct interferometer *ifo[], int ifonr)
   
   double hplusLAL[length+2];
   double hcrossLAL[length+2];
-  double wave[length+2];
+  //double wave[length+2];
+  double *wave = (double*)calloc(length+2,sizeof(double));  //MvdS: should this make a difference?
   int lengthLAL = 0;
   
   CoherentGW thewaveform;
   
-  LALHpHc(&thewaveform, hplusLAL, hcrossLAL, &lengthLAL, length, par, ifo[ifonr], ifonr);
+  // Compute h_+ and h_x
+  //LALHpHc(&thewaveform, hplusLAL, hcrossLAL, &lengthLAL, length, par, ifo[ifonr], ifonr);
+  LALHpHc(&thewaveform, hplusLAL, hcrossLAL, &lengthLAL, length, par, ifo[ifonr]);  //MvdS: ifonr never used. This routine computes and returns hplusLAL, hcrossLAL, which are never used... However, this information should also be contained in thewaveform
   
-  double delay = LALFpFc(&thewaveform, wave, &lengthLAL, length, par, ifonr);
+  // Compute the detector response
+  //double delay = LALFpFc(&thewaveform, wave, &lengthLAL, length, par, ifonr);
+  double delay = LALFpFc(&thewaveform, wave, length, par, ifonr); //MvdS: lengthLAL never used or set. Uses waveforms in thewaveform to compute the detector response in wave (?)
   
   // printf("LALdelay = %10.10f\n", delay);
   
@@ -314,20 +319,26 @@ void template15(struct parset *par, struct interferometer *ifo[], int ifonr)
   localtc = ((par->tc - ifo[ifonr]->FTstart) - delay);
   
   int indexstart;
-  indexstart = (int) (localtc/inversesamplerate - ((double)lengthLAL));
+  indexstart = (int) (localtc/inversesamplerate - (double)lengthLAL);   //MvdS: lengthLAL is used here, but seems never to be set in LALFpFc. Is it set in LALHpHc?
   if (indexstart<0) indexstart = 0;
   
-  // printf("indexstart = %d\n" , indexstart);
-  // printf("localtc2 = %f\n", localtc2);
-  // printf("ifo[%d]->FTstart = %f\n", ifonr, ifo[ifonr]->FTstart);
-  // printf("lengthLAL = %d\n", lengthLAL);
-  // printf("i1 = %d\n", i1);
+  //printf("localtc2 = %f\n", localtc2);
+  //printf("i1 = %d\n", i1);
+  //printf("indexstart = %d\n" , indexstart);
+  //printf("ifo[%d]->FTstart = %f\n", ifonr, ifo[ifonr]->FTstart);
+  //printf("lengthLAL = %d\n", lengthLAL);
+  //printf("length: %d,  lengthLAL: %d,  i1: %d,  i2: %d\n", length, lengthLAL,indexstart, indexstart+lengthLAL);
   
   for (i=0; i<length; ++i){
-    if(i<indexstart) ifo[ifonr]->FTin[i]   = 0.0;
+    //MvdS:  Reduce the number of if statements:
+    //if(i<indexstart) ifo[ifonr]->FTin[i]   = 0.0;
+    //if(i>=indexstart && i<(indexstart+lengthLAL)) ifo[ifonr]->FTin[i] = wave[i-indexstart];
+    //if(i>=(indexstart+lengthLAL)) ifo[ifonr]->FTin[i]   = 0.0;
+    ifo[ifonr]->FTin[i] = 0.0;
     if(i>=indexstart && i<(indexstart+lengthLAL)) ifo[ifonr]->FTin[i] = wave[i-indexstart];
-    if(i>=(indexstart+lengthLAL)) ifo[ifonr]->FTin[i]   = 0.0;
   }
+  
+  free(wave);
   
 }
 

@@ -51,8 +51,8 @@ int main(int argc, char * argv[])
   set_ifo_data(run, database);  
   
   //Define interferometer network which IFOs.  The first run.networksize are actually used
-  //struct interferometer *network[3] = {&database[0], &database[1], &database[2]};
-  struct interferometer *network[3] = {&database[0], &database[2], &database[1]};
+  struct interferometer *network[3] = {&database[0], &database[1], &database[2]};
+  //struct interferometer *network[3] = {&database[0], &database[2], &database[1]};
   int networksize = run.networksize;
   
   //Initialise interferometers, read and prepare data, inject signal (takes some time)
@@ -139,7 +139,7 @@ int main(int argc, char * argv[])
   nullpar.locpolar = (double*)calloc(networksize,sizeof(double));
   localpar(&nullpar, network, networksize);
   run.logL0 = net_loglikelihood(&nullpar, networksize, network);
-  if(inject == 0) run.logL0 *= 1.01;  //If no signal is injected, presumably there is one present in the data; enlarge the range that log(L) can take by owering Lo (since L>Lo is forced)
+  if(inject == 0) run.logL0 *= 1.01;  //If no signal is injected, presumably there is one present in the data; enlarge the range that log(L) can take by lowering Lo (since L>Lo is forced)
   
   
   

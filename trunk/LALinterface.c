@@ -21,7 +21,10 @@
 //NRCSID(LALSTPNWaveformTestC, "$Id: LALSTPNWaveformTest.c,v 1.1 2004/05/05 20:06:23 thomas Exp");
 
 
-void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr) {
+
+//void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr) { //MvdS: ifonr not used
+void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo) {
+  // Compute h_+ and h_x
   
   static LALStatus    mystatus;
   
@@ -577,6 +580,10 @@ void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int le
     
   }
   
+  
+  
+  
+  
   //	printf("tc = %10.10f\n", ppnParams.tc);
   //	printf("tf = %10.10f\n", waveform->phi->data->length*waveform->phi->deltaT);
   //printf("tf = %d\t*%f\t = %10.10f\n", waveform->a->data->length, waveform->a->deltaT, waveform->a->data->length*waveform->a->deltaT);
@@ -616,9 +623,18 @@ void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int le
 }
 
 
-double LALFpFc(CoherentGW *waveform, double *wave, int *l, int length, struct parset *par, int ifonr) {
-  
-  
+
+
+
+
+
+
+
+
+
+// Compute the detector response for a given detector (ifonr) and h_+,h_x
+//double LALFpFc(CoherentGW *waveform, double *wave, int *l, int length, struct parset *par, int ifonr) {  //MvdS: l not used
+double LALFpFc(CoherentGW *waveform, double *wave, int length, struct parset *par, int ifonr) {
   
   static LALStatus stat;     // status structure
   
@@ -660,7 +676,7 @@ double LALFpFc(CoherentGW *waveform, double *wave, int *l, int length, struct pa
   // CHAR message[MSGLEN];          // warning/info messages 
   
   signal.epoch.gpsSeconds = (INT4)par->tc;
-  signal.epoch.gpsNanoSeconds = (INT4) 100*(int)(1000000*(par->tc - signal.epoch.gpsSeconds));
+  signal.epoch.gpsNanoSeconds = (INT4) 100*(int)(1000000.0*(par->tc - signal.epoch.gpsSeconds));
   
   waveform->f->epoch = waveform->phi->epoch = waveform->a->epoch = signal.epoch; 
   
@@ -716,8 +732,13 @@ double LALFpFc(CoherentGW *waveform, double *wave, int *l, int length, struct pa
   
 }
 
+
+
+
+
+
 void LALfreedom(CoherentGW *waveform) {
-  
+  // Free LAL stuff  
   static LALStatus stat;     /* status structure */
   
   memset( &stat, 0, sizeof(LALStatus) );
