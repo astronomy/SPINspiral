@@ -48,11 +48,11 @@ int main(int argc, char * argv[])
   
   //Set up the data for the IFOs you may want to use (H1,L1 + VIRGO by default)
   struct interferometer database[3];
-  set_ifo_data(run, database);  
+  set_ifo_data(run, database);
   
-  //Define interferometer network which IFOs.  The first run.networksize are actually used
-  struct interferometer *network[3] = {&database[0], &database[1], &database[2]};
-  //struct interferometer *network[3] = {&database[0], &database[2], &database[1]};
+  //Define interferometer network with IFOs.  The first run.networksize are actually used
+  struct interferometer *network[3] = {&database[0], &database[1], &database[2]}; //H1L1V
+  //struct interferometer *network[3] = {&database[0], &database[2], &database[1]}; //H1VL1
   int networksize = run.networksize;
   
   //Initialise interferometers, read and prepare data, inject signal (takes some time)
@@ -169,7 +169,6 @@ int main(int argc, char * argv[])
   printf("    %8.5f  %8.5f  %17.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f\n\n", dummypar.mc,dummypar.eta,dummypar.tc,dummypar.logdl,dummypar.spin,dummypar.kappa,dummypar.longi,dummypar.sinlati,dummypar.phase,dummypar.sinthJ0,dummypar.phiJ0,dummypar.alpha);
   printf("    %8s  %8s  %17s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "M1","M2","tc","d_L","spin","th_SL","RA","Dec","phase","th_J0","phi_J0","alpha");
   printf("    %8.5f  %8.5f  %17.6lf  %8.2f  %8.5f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f\n\n", dummypar.m1,dummypar.m2,dummypar.tc,exp(dummypar.logdl),dummypar.spin,acos(dummypar.kappa)*r2d,rightAscension(dummypar.longi,GMST(dummypar.tc))*r2h,asin(dummypar.sinlati)*r2d,dummypar.phase*r2d,asin(dummypar.sinthJ0)*r2d,dummypar.phiJ0*r2d,dummypar.alpha*r2d);
-  
   
   
   

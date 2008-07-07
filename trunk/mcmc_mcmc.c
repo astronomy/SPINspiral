@@ -114,7 +114,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
   // *** WRITE RUN 'HEADER' TO SCREEN AND FILE ************************************************************************************************************************************
   
   // Write 'header' to screen and file
-  write_mcmc_header(*ifo, mcmc, *run);
+  write_mcmc_header(ifo, mcmc, run);
   tempi = 0;  //MUST be zero
   
   
@@ -890,7 +890,7 @@ void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset 
 
 //Write MCMC header to screen and file
 //****************************************************************************************************************************************************  
-void write_mcmc_header(struct interferometer ifo[], struct mcmcvariables mcmc, struct runpar run)
+void write_mcmc_header(struct interferometer *ifo[], struct mcmcvariables mcmc, struct runpar *run)
 //****************************************************************************************************************************************************  
 {
   int i=0, tempi=0;
@@ -899,11 +899,11 @@ void write_mcmc_header(struct interferometer ifo[], struct mcmcvariables mcmc, s
   if(offsetmcmc==0) printf("   Starting MCMC with the true initial parameters\n\n");
   if(offsetmcmc==1) printf("   Starting MCMC with offset initial parameters\n\n");
   //printf("%10s  %10s  %6s  %20s  %6s  ","niter","nburn","seed","null likelihood","ndet");
-  //for(i=0;i<run.networksize;i++) printf("%16s%4s  ",ifo[i].name,"SNR");
+  //for(i=0;i<run->networksize;i++) printf("%16s%4s  ",ifo[i]->name,"SNR");
   //printf("%20s\n","Network SNR");
-  //printf("%10d  %10d  %6d  %20.10lf  %6d  ",iter,nburn,mcmc.seed,mcmc.logL0,run.networksize);
-  //for(i=0;i<run.networksize;i++) printf("%20.10lf  ",ifo[i].snr);
-  //printf("%20.10lf\n",run.netsnr);
+  //printf("%10d  %10d  %6d  %20.10lf  %6d  ",iter,nburn,mcmc.seed,mcmc.logL0,run->networksize);
+  //for(i=0;i<run->networksize;i++) printf("%20.10lf  ",ifo[i]->snr);
+  //printf("%20.10lf\n",run->netsnr);
   
   
   // *** Open the output file and write run parameters in the header ***
@@ -911,13 +911,13 @@ void write_mcmc_header(struct interferometer ifo[], struct mcmcvariables mcmc, s
     if(tempi==0 || savehotchains>0) {
       fprintf(mcmc.fouts[tempi], "%10s  %10s  %6s  %20s  %6s %8s   %6s  %8s  %10s  %12s\n","Niter","Nburn","seed","null likelihood","Ndet","Ncorr","Ntemps","Tmax","Tchain","Network SNR");
       
-      fprintf(mcmc.fouts[tempi], "%10d  %10d  %6d  %20.10lf  %6d %8d   %6d%10d%12.1f%14.6f\n",iter,nburn,mcmc.seed,mcmc.logL0,run.networksize,ncorr,mcmc.ntemps,(int)tempmax,mcmc.temps[tempi],run.netsnr);
+      fprintf(mcmc.fouts[tempi], "%10d  %10d  %6d  %20.10lf  %6d %8d   %6d%10d%12.1f%14.6f\n",iter,nburn,mcmc.seed,mcmc.logL0,run->networksize,ncorr,mcmc.ntemps,(int)tempmax,mcmc.temps[tempi],run->netsnr);
       fprintf(mcmc.fouts[tempi], "\n%16s  %16s  %10s  %10s  %10s  %10s  %20s  %15s  %12s  %12s  %12s\n",
 	      "Detector","SNR","f_low","f_high","before tc","after tc","Sample start (GPS)","Sample length","Sample rate","Sample size","FT size");
-      for(i=0;i<run.networksize;i++) {
+      for(i=0;i<run->networksize;i++) {
 	fprintf(mcmc.fouts[tempi], "%16s  %16.8lf  %10.2lf  %10.2lf  %10.2lf  %10.2lf  %20.8lf  %15.7lf  %12d  %12d  %12d\n",
-		ifo[i].name,ifo[i].snr,ifo[i].lowCut,ifo[i].highCut,ifo[i].before_tc,ifo[i].after_tc,
-		ifo[i].FTstart,ifo[i].deltaFT,ifo[i].samplerate,ifo[i].samplesize,ifo[i].FTsize);
+		ifo[i]->name,ifo[i]->snr,ifo[i]->lowCut,ifo[i]->highCut,ifo[i]->before_tc,ifo[i]->after_tc,
+		ifo[i]->FTstart,ifo[i]->deltaFT,ifo[i]->samplerate,ifo[i]->samplesize,ifo[i]->FTsize);
       }
       if(useoldmcmcoutputformat==1) { //Old, longer file output format
 	fprintf(mcmc.fouts[tempi], "\n%12s %20s  %32s  %32s  %37s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s  %32s\n",

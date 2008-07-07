@@ -319,7 +319,7 @@ void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, 
 void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
 void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
 
-void write_mcmc_header(struct interferometer ifo[], struct mcmcvariables mcmc, struct runpar run);
+void write_mcmc_header(struct interferometer *ifo[], struct mcmcvariables mcmc, struct runpar *run);
 void write_mcmc_output(struct mcmcvariables mcmc);
 void allocate_mcmcvariables(struct mcmcvariables *mcmc);
 void free_mcmcvariables(struct mcmcvariables *mcmc);
