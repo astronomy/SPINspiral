@@ -23,7 +23,7 @@
 
 
 //void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr) { //MvdS: ifonr not used //Vivien: just for debugging in a printf
-void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo) {
+void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferometer *ifo) {
   // Compute h_+ and h_x
   
   static LALStatus    mystatus;
@@ -561,11 +561,11 @@ void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int le
      phi     = thewaveform.phi->data->data[i];// - phi0;
      shift   = thewaveform.shift->data->data[i];*/
   
-  for(i = 0; i < lengthLAL && i < length; i++) {
-    a1  = waveform->a->data->data[2*i];
-    a2  = waveform->a->data->data[2*i+1];
-    phi     = waveform->phi->data->data[i];// - phi0;
-    shift   = waveform->shift->data->data[i];
+ // for(i = 0; i < lengthLAL && i < length; i++) {
+ //   a1  = waveform->a->data->data[2*i];
+ //   a2  = waveform->a->data->data[2*i+1];
+ //   phi     = waveform->phi->data->data[i];// - phi0;
+ //   shift   = waveform->shift->data->data[i];
     
     /*   fprintf(outputfile,"%e %e %e\n",
 	 i*dt,
@@ -575,10 +575,10 @@ void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int le
     
     
     //wave[0][i+1] = i*dt;
-    hplus[i] = a1*cos(shift)*cos(phi) - a2*sin(shift)*sin(phi);
-    hcross[i] = a1*sin(shift)*cos(phi) + a2*cos(shift)*sin(phi);
+ //   hplus[i] = a1*cos(shift)*cos(phi) - a2*sin(shift)*sin(phi);
+ //   hcross[i] = a1*sin(shift)*cos(phi) + a2*cos(shift)*sin(phi);
     
-  }
+  //}
   
   
   

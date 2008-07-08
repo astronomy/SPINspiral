@@ -294,8 +294,8 @@ void template15(struct parset *par, struct interferometer *ifo[], int ifonr)
   length     = ifo[ifonr]->samplesize;
   //printf("length = %d\n",length);
   
-  double hplusLAL[length+2];
-  double hcrossLAL[length+2];
+ // double hplusLAL[length+2];
+ // double hcrossLAL[length+2];
   //double wave[length+2];
   double *wave = (double*)calloc(length+2,sizeof(double));  //MvdS: should this make a difference? Vivien: no it shouldn't.
   int lengthLAL = 0;
@@ -304,7 +304,7 @@ void template15(struct parset *par, struct interferometer *ifo[], int ifonr)
   
   // Compute h_+ and h_x
   //LALHpHc(&thewaveform, hplusLAL, hcrossLAL, &lengthLAL, length, par, ifo[ifonr], ifonr);
-  LALHpHc(&thewaveform, hplusLAL, hcrossLAL, &lengthLAL, length, par, ifo[ifonr]);  //MvdS: ifonr never used. This routine computes and returns hplusLAL, hcrossLAL, which are never used... However, this information should also be contained in thewaveform
+  LALHpHc(&thewaveform, &lengthLAL, par, ifo[ifonr]);  //MvdS: ifonr never used. This routine computes and returns hplusLAL, hcrossLAL, which are never used... However, this information should also be contained in thewaveform
 																					//Vivien: ifonr is only used in a commented printf to know which interferometer called the routine. Just for debugging purposes
 																					//Vivien: hplusLAL and hcrossLAL are indeed unecessary (was before I used the structure thewaveform)
 																					
