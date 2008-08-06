@@ -8,20 +8,21 @@
 #include <stdio.h>
 #include <math.h>
 #include <complex.h>
-#include <fftw3.h>   /* www.fftw.org                                                   */
-#include <FrameL.h>  /* from LIGOtools package: www.ldas-sw.ligo.caltech.edu/ligotools */
+#include <fftw3.h>   // www.fftw.org                                                   
+#include <FrameL.h>  // from LIGOtools package: www.ldas-sw.ligo.caltech.edu/ligotools 
 #include <time.h>
-#include <remez.h>   /* FIR-filter design routine:  www.janovetz.com/jake              */
+#include <remez.h>   // FIR-filter design routine:  www.janovetz.com/jake              
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <sys/time.h>
 #include <stdlib.h>
 
+/*
 #include <lal/LALStdlib.h>
 #include <lal/LALInspiral.h>
 #include <lal/GeneratePPNInspiral.h>
 #include <lal/GenerateInspiral.h>
-
+*/
 
 #define TRUE (1==1)
 #define FALSE (!TRUE)
@@ -373,11 +374,14 @@ void template12(struct parset *par, struct interferometer *ifo[], int ifonr);
 /**************************************************************************************************************************************************/
 
 void template15(struct parset *par, struct interferometer *ifo[], int ifonr);
+
+/*
 //void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr);
 void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferometer *ifo);
 //double LALFpFc(CoherentGW *waveform, double *wave, int *l, int length, struct parset *par, int ifonr);
 double LALFpFc(CoherentGW *waveform, double *wave, int length, struct parset *par, int ifonr);
 void LALfreedom(CoherentGW *waveform);
+*/
 
 /**************************************************************************************************************************************************/
 
