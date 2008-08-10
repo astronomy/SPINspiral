@@ -385,14 +385,14 @@ void LALfreedom(CoherentGW *waveform);
 
 /**************************************************************************************************************************************************/
 
-
+double overlapwithdata(struct parset *par, struct interferometer *ifo[], int ifonr);
 double match(struct parset *par, struct interferometer *ifo[], int i, int networksize);
-double parmatch(struct parset par1,struct parset par2, struct interferometer *ifo[], int networksize);
-double paroverlap(struct parset par1, struct parset par2, struct interferometer *ifo[], int i, int networksize);
-double vecoverlap(fftw_complex *vec1, fftw_complex *vec2, double *noise, int j1, int j2, double deltaFT);
-void signalFFT(struct parset par, struct interferometer *ifo[], int networksize, int i, fftw_complex *FFT);
-void computeFishermatrixIFO(struct parset par, int npar, struct interferometer *ifo[], int networksize, int ifonr, double **matrix);
-void computeFishermatrix(struct parset par, int npar, struct interferometer *ifo[], int networksize, double **matrix);
+double parmatch(struct parset *par1,struct parset *par2, struct interferometer *ifo[], int networksize);
+double paroverlap(struct parset *par1, struct parset *par2, struct interferometer *ifo[], int ifonr);
+double vecoverlap(fftw_complex *vec1, fftw_complex *vec2, double * noise, int j1, int j2, double deltaFT);
+void signalFFT(fftw_complex * FFTout, struct parset *par, struct interferometer *ifo[], int ifonr);
+void computeFishermatrixIFO(struct parset *par, int npar, struct interferometer *ifo[], int networksize, int ifonr, double **matrix);
+void computeFishermatrix(struct parset *par, int npar, struct interferometer *ifo[], int networksize, double **matrix);
 
 double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int i);
 double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int i);
