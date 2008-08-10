@@ -18,7 +18,7 @@ int main(int argc, char * argv[])
   int ifonr=0;
   double snr=0.0;
   
-  waveformversion = 2;  // 1: Apostolatos, 1.5PN, 12 par.  2: LAL 3.5PN, 15 par
+  waveformversion = 1;  // 1: Apostolatos, 1.5PN, 12 par.  2: LAL 3.5PN, 15 par
   useoldmcmcoutputformat = 0; //Set to 1 if you want to ... exactly!
   
   
@@ -63,6 +63,7 @@ int main(int argc, char * argv[])
   }
   ifoinit(network, networksize);
   if(inject) {
+/*ILYA*/ printf("got past ifoinit"); 
     if(run.targetsnr < 0.001) printf("   A signal with the 'true' parameter values was injected.\n");
   } else {
     printf("   No signal was injected.\n");

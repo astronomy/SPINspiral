@@ -407,6 +407,9 @@ void ifoinit(struct interferometer **ifo, int networksize)
       ifo[i]->freqpowers[j][6] = logf;                  /* used in `psi'         */
       ifo[i]->freqpowers[j][7] = 2.0*pi*f;              
       ifo[i]->noisePSD[j]      = interpol_log_noisePSD(f,ifo[i]);
+      //although smoothing was done for log noise, we store real noise on output
+      ifo[i]->noisePSD[j] = exp(ifo[i]->noisePSD[j]);
+
       ifo[i]->dataTrafo[j]     = ifo[i]->raw_dataTrafo[j+ifo[i]->lowIndex];
     }
     if(intscrout==1) printf(" | %d Fourier frequencies within operational range %.0f--%.0f Hz.\n", 
@@ -740,7 +743,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
 
 
 void noisePSDestimate(struct interferometer *ifo)
-/* returns a (smoothed) estimate of the log- Power Spectral Density.  */
+/* returns a (smoothed) estimate of the  Power Spectral Density.  */
 /* data is split into K segments of M seconds,                        */
 /* and K-1 overlapping segments of length 2M are eventually           */
 /* windowed and transformed                                           */
@@ -918,6 +921,7 @@ void noisePSDestimate(struct interferometer *ifo)
     if(intscrout==1) printf(" | and a range of +/- %0.2f Hz.\n", (((double)smoothrange)/((double)FTsize))*nyquist);
   }
   /*-- PSD estimation finished --*/
+
   free(PSD);
   ifo->raw_noisePSD = sPSD;
   free(raw);
@@ -932,5 +936,6 @@ double interpol_log_noisePSD(double f, struct interferometer *ifo)
   double weight1  = ((double)highindex) - dblindex;
   double weight2  = dblindex - ((double)lowindex);
   double result   = weight1*ifo->raw_noisePSD[lowindex] + weight2*ifo->raw_noisePSD[highindex];
+
   return result;
 }

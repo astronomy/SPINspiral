@@ -135,7 +135,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
   par2arrt(state, mcmc.param);  //Put the variables in their array
   localpar(&state, ifo, networksize);
   mcmc.logL[tempi] = net_loglikelihood(&state, networksize, ifo);  //Calculate the likelihood
-  
+
   mcmc.iteri = -1;
   mcmc.tempi = tempi;
   for(tempi=0;tempi<mcmc.ntemps;tempi++) {

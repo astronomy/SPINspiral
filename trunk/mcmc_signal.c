@@ -20,94 +20,95 @@ double net_loglikelihood(struct parset *par, int networksize, struct interferome
 
 
 
-double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int i)
+double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], 
+	int ifonr)
 //Calculate the loglikelihood for a (1) given IFO
 {
-  //if(MvdSdebug) printf("    Ifo_loglikelihood %d\n",i);
-  double absdiff=0.0, result=0.0;
-  double rate = (double)ifo[i]->samplerate;  // Double instead of int
   int j=0;
-  
-  // Fill `ifo[i]->FTin' with time-domain template:
-  template(par, ifo, i);
-  //template(par, ifo, i);  //Do it twice to time how long it takes
-  
+
+  // Fill `ifo[ifonr]->FTin' with time-domain template:
+  template(par, ifo, ifonr);
+
   // Window template:
-  for(j=0; j<ifo[i]->samplesize; ++j) ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
-  
+  for(j=0; j<ifo[ifonr]->samplesize; ++j) 
+	ifo[ifonr]->FTin[j] *= ifo[ifonr]->FTwindow[j];
+
   // Execute Fourier transform of signal template:
-  fftw_execute(ifo[i]->FTplan);
-  
-  // Sum over the Fourier frequencies within operational range (some 40-1500 Hz or similar):
-  for(j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j){
-    absdiff = cabs(ifo[i]->raw_dataTrafo[j] - (ifo[i]->FTout[j] / rate));
-    result += exp(2.0*log(absdiff) - ifo[i]->noisePSD[j-ifo[i]->lowIndex]);  // Squared (absolute) difference divided by noise PSD(f) (noisePSD is log)
-  }
-  result *= -2.0/ifo[i]->deltaFT; // Divide by (FT'd) data segment length
-  
-  
-  
-  //printf("ifo_loglikelihood integration range:  i1: %d,  i2: %d,  i2-1: %d\n", ifo[i]->lowIndex, ifo[i]->highIndex, ifo[i]->highIndex-ifo[i]->lowIndex );
-  //printf("ifo_loglikelihood sample rate:  i1: %f\n", rate);
-  
-  /*
-  //Write noise ASD  (Square root of the estimated noise PSD (i.e., no injected signal))
-  char filename[1000]="";
-  sprintf(filename, "%s-noiseASD.dat", ifo[i]->name);  // Write in current dir
-  FILE *dump1 = fopen(filename,"w");
+  fftw_execute(ifo[ifonr]->FTplan);
 
-  fprintf(dump1,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
-  fprintf(dump1,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
-          par->m1,par->m2,par->mc,par->eta,par->tc,exp(par->logdl),asin(par->sinlati)*r2d,par->longi*r2d,par->phase,par->spin,par->kappa,par->sinthJ0,par->phiJ0,par->alpha);
-  fprintf(dump1,"       f (Hz)          H(f)\n");
+  // Compute the overlap between waveform and data:
+  double overlaphd = vecoverlap(ifo[ifonr]->raw_dataTrafo, 
+	ifo[ifonr]->FTout, ifo[ifonr]->noisePSD,
+        ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
+  //correct FFT for sampling rate of waveform
+  overlaphd/=((double)ifo[ifonr]->samplerate);  
 
-  // Loop over the Fourier frequencies within operational range (some 40-1500 Hz or similar):
-  double f=0.0;
-  double fact1a = rate/(2.0 * (double)ifo[i]->FTsize);
-  double fact1b = sqrt(2.0)*2.0/sqrt(ifo[i]->deltaFT);  //Extra factor of sqrt(2) to get the numbers right with the outside world
-  for(j=0; j<ifo[i]->indexRange; ++j){
-    f = fact1a * (double)(j+ifo[i]->lowIndex);
-    //fprintf(dump1, "%9.9f %.6e\n",log10(f), log10(2.0*sqrt(exp(ifo[i]->noisePSD[j])/ifo[i]->deltaFT))  ); //(noisePSD is log)
-    fprintf(dump1, "%13.6f %13.6e\n",f, fact1b * sqrt(exp(ifo[i]->noisePSD[j]))   ); //(noisePSD is log)
-  }
-  fclose(dump1);
-  if(intscrout) printf(" : (noise ASD written to file)\n");
-  */
+  // Compute the overlap between waveform and itself:
+  double overlaphh = vecoverlap(ifo[ifonr]->FTout,
+        ifo[ifonr]->FTout, ifo[ifonr]->noisePSD,
+        ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
+  //correct FFT for sampling rate of waveform
+  overlaphh/=((double)ifo[ifonr]->samplerate);
+  overlaphh/=((double)ifo[ifonr]->samplerate);
+
+  return (overlaphd-0.5*overlaphh);
+
+/*
+  //Alternative: about 8% slower because of extra copies of FFT output
+  //   and division of each FFT point by ((double)ifo[ifonr]->samplerate)
+  fftw_complex *FFTwaveform =
+        fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
+  signalFFT(FFTwaveform, par, ifo, ifonr);                             
+  // Compute the overlap between waveform and data:
+  double overlaphd = vecoverlap(ifo[ifonr]->raw_dataTrafo,
+        FFTwaveform, ifo[ifonr]->noisePSD,
+        ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
+  // Compute the overlap between waveform and itself:
+  double overlaphh = vecoverlap(
+       FFTwaveform, FFTwaveform, ifo[ifonr]->noisePSD,
+        ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
+  return (overlaphd-0.5*overlaphh);
+*/
   
-  
-  
-  return result;
+/*
+  // Clean, but computes waveform thrice for a slowdown by ~x3
+  return (overlapwithdata(par, ifo, ifonr) 
+	- 0.5*paroverlap(par, par, ifo, ifonr));
+*/ 
 }
 
 
 
-double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int i)
+double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int ifonr)
 // SNR of signal corresponding to parameter set, w.r.t. i-th interferometer's noise.
 // (see SNR definition in Christensen/Meyer/Libson (2004), p.323)
 {
-  if(MvdSdebug) printf("Signaltonoiseratio %d\n",i);
-  double signalabs, result = 0.0;
-  double rate = (double) ifo[i]->samplerate;  // Double instead of int
-  double lograte = log(rate);
   int j=0;
-  
-  // Fill `ifo[i]->FTin' with time-domain template:
-  template(par, ifo, i);
-  
+
+  // Fill `ifo[ifonr]->FTin' with time-domain template:
+  template(par, ifo, ifonr);
+
   // Window template:
-  for(j=0; j<ifo[i]->samplesize; ++j) ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
-  
+  for(j=0; j<ifo[ifonr]->samplesize; ++j)
+        ifo[ifonr]->FTin[j] *= ifo[ifonr]->FTwindow[j];
+
   // Execute Fourier transform of signal template:
-  fftw_execute(ifo[i]->FTplan);
-  
-  // Sum over the Fourier frequencies within operational range (some 40-1500 Hz or similar):
-  for(j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j){
-    signalabs = cabs(ifo[i]->FTout[j]);
-    result += exp(2.0*(log(signalabs)-lograte) - ifo[i]->noisePSD[j-ifo[i]->lowIndex]);  // Squared absolute signal divided by noise PSD(f) (noisePSD is log)
-  }
-  result /= ifo[i]->deltaFT;  // Divide by (FT'd) data segment length
-  result = 2.0*sqrt(result);
-  return result;
+  fftw_execute(ifo[ifonr]->FTplan);
+
+  // Compute the overlap between waveform and itself:
+  double overlaphh = vecoverlap(ifo[ifonr]->FTout,
+        ifo[ifonr]->FTout, ifo[ifonr]->noisePSD,
+        ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
+  //correct FFT for sampling rate of waveform
+  overlaphh/=((double)ifo[ifonr]->samplerate);
+  overlaphh/=((double)ifo[ifonr]->samplerate);
+
+  return sqrt(overlaphh);
+
+/*
+  //Clean, but recomputes waveform multiple times
+  return sqrt(paroverlap(par, par, ifo, ifonr));
+*/
 }
 
 
@@ -116,7 +117,6 @@ void writesignaltodisc(struct parset *par, struct interferometer *ifo[], int i)
 // Write data (signal, noise, and PSDs) to disc
 {
   if(MvdSdebug) printf("Writesignaltodisc %d\n",i);
-  double signalabs, result = 0.0;
   double rate = (double)ifo[i]->samplerate; // Double instead of int
   double lograte = log(rate);
   double f=0.0;
@@ -161,29 +161,12 @@ void writesignaltodisc(struct parset *par, struct interferometer *ifo[], int i)
   double fact1b = sqrt(2.0)*2.0/sqrt(ifo[i]->deltaFT);  //Extra factor of sqrt(2) to get the numbers right with the outside world
   for(j=0; j<ifo[i]->indexRange; ++j){
     f = fact1a * (double)(j+ifo[i]->lowIndex);
-    //fprintf(dump1, "%9.9f %.6e\n",log10(f), log10(2.0*sqrt(exp(ifo[i]->noisePSD[j])/ifo[i]->deltaFT))  ); //(noisePSD is log)
-    fprintf(dump1, "%13.6f %13.6e\n",f, fact1b * sqrt(exp(ifo[i]->noisePSD[j]))   ); //(noisePSD is log)
+    fprintf(dump1, "%13.6f %13.6e\n",f, fact1b * sqrt(ifo[i]->noisePSD[j]) );
   }
   fclose(dump1);
   if(intscrout) printf(" : (noise ASD written to file)\n");
   
   
-  
-  
-  
-  // Window template:
-  for(j=0; j<ifo[i]->samplesize; ++j)  ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
-  
-  // Execute Fourier transform of signal template:
-  fftw_execute(ifo[i]->FTplan);
-  
-  // Sum over the Fourier frequencies within operational range (some 40-1500 Hz or similar):
-  for(j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j){
-    signalabs = cabs(ifo[i]->FTout[j]);
-    result += exp(2.0*(log(signalabs)-lograte) - ifo[i]->noisePSD[j-ifo[i]->lowIndex]);  // Squared absolute signal divided by noise PSD(f) (noisePSD is log)
-  }
-  result /= ifo[i]->deltaFT;  // Divide by (FT'd) data segment length
-  result = 2.0*sqrt(result);
   
   
   // Write signal FFT to disc (i.e., amplitude spectrum of signal w/o noise):
@@ -251,9 +234,9 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
   
   // Sum over the Fourier frequencies within operational range (some 40-1500 Hz or similar):
   for (j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j){
-    m1m2 += (double)( (conj(FTout1[j])*FTout2[j] + FTout1[j]*conj(FTout2[j])) / (exp(ifo[i]->noisePSD[j-ifo[i]->lowIndex])) ); // 1/rate cancels out  (noisePSD is log)
-    m1m1 += (double)( (conj(FTout1[j])*FTout1[j] + FTout1[j]*conj(FTout1[j])) / (exp(ifo[i]->noisePSD[j-ifo[i]->lowIndex])) );
-    m2m2 += (double)( (conj(FTout2[j])*FTout2[j] + FTout2[j]*conj(FTout2[j])) / (exp(ifo[i]->noisePSD[j-ifo[i]->lowIndex])) );
+    m1m2 += (double)( (conj(FTout1[j])*FTout2[j] + FTout1[j]*conj(FTout2[j])) / (ifo[i]->noisePSD[j-ifo[i]->lowIndex]) ); // 1/rate cancels out
+    m1m1 += (double)( (conj(FTout1[j])*FTout1[j] + FTout1[j]*conj(FTout1[j])) / (ifo[i]->noisePSD[j-ifo[i]->lowIndex]) );
+    m2m2 += (double)( (conj(FTout2[j])*FTout2[j] + FTout2[j]*conj(FTout2[j])) / (ifo[i]->noisePSD[j-ifo[i]->lowIndex]) );
   }
   fftw_free(FTout1);
   fftw_free(FTout2);
@@ -265,16 +248,16 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
 
 
 
-double parmatch(struct parset par1,struct parset par2, struct interferometer *ifo[], int networksize)
+double parmatch(struct parset * par1,struct parset * par2, struct interferometer *ifo[], int networksize)
 // Compute match between waveforms with parameter sets par1 and par2
 {
   double match=0.0,ovrlp11=0.0,ovrlp12=0.0,ovrlp22=0.0;
   int ifonr=0;
   
   for(ifonr=0; ifonr<networksize; ifonr++){
-    ovrlp11 = paroverlap(par1,par1,ifo,ifonr,networksize);
-    ovrlp22 = paroverlap(par2,par2,ifo,ifonr,networksize);
-    ovrlp12 = paroverlap(par1,par2,ifo,ifonr,networksize);
+    ovrlp11 = paroverlap(par1,par1,ifo,ifonr);
+    ovrlp22 = paroverlap(par2,par2,ifo,ifonr);
+    ovrlp12 = paroverlap(par1,par2,ifo,ifonr);
     match += ovrlp12/sqrt(ovrlp11*ovrlp22);
   }
   match /= (double)networksize;
@@ -282,39 +265,50 @@ double parmatch(struct parset par1,struct parset par2, struct interferometer *if
 }
 
 
-double paroverlap(struct parset par1, struct parset par2, struct interferometer *ifo[], int ifonr, int networksize)
+double overlapwithdata(struct parset *par, struct interferometer *ifo[], int ifonr)
+//compute frequency domain overlap of waveform of given parameters with raw data
+{
+  int j=0;
+
+  fftw_complex *FFTwaveform = 
+	fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
+  signalFFT(FFTwaveform, par, ifo, ifonr);
+
+  double overlap=
+     vecoverlap(ifo[ifonr]->raw_dataTrafo, FFTwaveform, ifo[ifonr]->noisePSD, 
+	ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
+
+  free(FFTwaveform);
+  return overlap;
+}
+
+
+
+double paroverlap(struct parset * par1, struct parset * par2, struct interferometer *ifo[], int ifonr)
 //Compute the overlap in the frequency domain between two waveforms with parameter sets par1 and par2
 {
   double overlap = 0.0;
   int j=0;
   fftw_complex *FFT1 = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
   fftw_complex *FFT2 = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
-  double *noise  = (double*)calloc(ifo[ifonr]->FTsize,sizeof(double));
-  int i1 = ifo[ifonr]->lowIndex;
-  int i2 = ifo[ifonr]->highIndex;
   
   // Get waveforms, FFT them and store them in FFT1,2
-  signalFFT(par1, ifo, networksize, ifonr, FFT1);
-  signalFFT(par2, ifo, networksize, ifonr, FFT2);
+  signalFFT(FFT1, par1, ifo, ifonr);
+  signalFFT(FFT2, par2, ifo, ifonr);
   
-  // Convert log PSD -> PSD with in same index order as the FFTed vectors:
-  for (j=i1; j<=i2; ++j){
-    noise[j] = exp(ifo[ifonr]->noisePSD[j-i1]);
-  }
-  
-  // Compute the overlap between the vectors FFT1,2, given noise and between index i1 and i2:
-  overlap = vecoverlap(FFT1, FFT2, noise, i1, i2, ifo[ifonr]->deltaFT);
+  // Compute the overlap between the vectors FFT1,2, between index i1 and i2:
+  overlap = vecoverlap(FFT1, FFT2, ifo[ifonr]->noisePSD, 
+	ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
   
   fftw_free(FFT1);
   fftw_free(FFT2);
-  free(noise);
   
   return overlap;
 }
 
 
 
-double vecoverlap(fftw_complex *vec1, fftw_complex *vec2, double *noise, int j1, int j2, double deltaFT)
+double vecoverlap(fftw_complex *vec1, fftw_complex *vec2, double * noise, int j1, int j2, double deltaFT)
 //Compute the overlap of vectors vec1 and vec2, between indices j1 and j2
 {
   int j=0;
@@ -322,21 +316,40 @@ double vecoverlap(fftw_complex *vec1, fftw_complex *vec2, double *noise, int j1,
   
   // Sum over the Fourier frequencies within operational range (some 40-1500 Hz or similar):
   for (j=j1; j<=j2; ++j){
-    //overlap += creal( (conj(vec1[j])*vec2[j] + vec1[j]*conj(vec2[j])) / noise[j] ); //(noisePSD is log)     
-    overlap += creal( vec1[j]*conj(vec2[j]) / noise[j] ); //(noisePSD is log)     
+    overlap += 4.0*creal( vec1[j]*conj(vec2[j]) / noise[j-j1] ) / deltaFT;   
   }
-  //overlap *= 2.0/deltaFT;
-  overlap *= 4.0/deltaFT;
   return overlap;
 }
 
 
 
-void signalFFT(struct parset par, struct interferometer *ifo[], int networksize, int ifonr, fftw_complex *FFT)
+void signalFFT(fftw_complex * FFTout, struct parset *par, 
+	struct interferometer *ifo[], int ifonr)
 //Compute the FFT of a waveform with given parameter set
 {
   int j=0;
   
+  if(FFTout==NULL)
+  {
+	printf("Memory should be allocated for FFTout vector");
+	printf(" before call to signalFFT()\n");
+	exit(1);
+  }
+
+  // Fill `ifo[i]->FTin' with time-domain template:
+  template(par, ifo, ifonr);
+
+  // Window template:
+  for(j=0; j<ifo[ifonr]->samplesize; ++j) 
+	ifo[ifonr]->FTin[j] *= ifo[ifonr]->FTwindow[j];
+
+  // Execute Fourier transform of signal template:
+  fftw_execute(ifo[ifonr]->FTplan);
+
+  for(j=0; j<ifo[ifonr]->FTsize; j++)
+	FFTout[j]=ifo[ifonr]->FTout[j]/((double)ifo[ifonr]->samplerate);
+
+/*
   //Allocate the parset vectors, compute the local parameters and the time-domain template:
   localpar(&par, ifo, networksize);
   template(&par, ifo, ifonr); 
@@ -347,15 +360,16 @@ void signalFFT(struct parset par, struct interferometer *ifo[], int networksize,
   // Execute Fourier transform of signal template:
   fftw_execute(ifo[ifonr]->FTplan);
   for(j=ifo[ifonr]->lowIndex; j<=ifo[ifonr]->highIndex; ++j) FFT[j] = ifo[ifonr]->FTout[j];
+*/
 }
 
 
 
 
-void computeFishermatrixIFO(struct parset par, int npar, struct interferometer *ifo[], int networksize, int ifonr, double **matrix)
+void computeFishermatrixIFO(struct parset *par, int npar, struct interferometer *ifo[], int networksize, int ifonr, double **matrix)
 // Compute  Fisher matrix for parameter set par for a given IFO
 {
-  int ip=0,jp=0,j=0,j1=0,j2=0,nFT=0;
+/*  int ip=0,jp=0,j=0,j1=0,j2=0,nFT=0;
   struct parset par1;
   allocparset(&par1, networksize);
   double pars[npar];
@@ -367,13 +381,8 @@ void computeFishermatrixIFO(struct parset par, int npar, struct interferometer *
   j1 = ifo[ifonr]->lowIndex;
   j2 = ifo[ifonr]->highIndex;
   
-  // Convert log PSD -> PSD with in same index order as the FFTed vectors:
-  for (j=j1; j<=j2; ++j){
-    noise[j] = exp(ifo[ifonr]->noisePSD[j-j1]);
-  }
-  
   // Compute the FFTed signal for the default parameter set FFT0
-  signalFFT(par, ifo, networksize, ifonr, FFT0);
+  signalFFT(FFT0, par, ifo, ifonr);
   
   for(ip=0;ip<npar;ip++) {
     // Change parameter ip with dx
@@ -395,7 +404,8 @@ void computeFishermatrixIFO(struct parset par, int npar, struct interferometer *
   // Compute the actual Fisher matrix (diagonal + lower triangle)
   for(ip=0;ip<npar;ip++) {
     for(jp=0;jp<=ip;jp++) {
-      matrix[ip][jp] = vecoverlap(dFFTs[ip], dFFTs[jp], noise, j1, j2, ifo[ifonr]->deltaFT);
+      matrix[ip][jp] = vecoverlap(dFFTs[ip], dFFTs[jp], 
+	ifo[ifonr]->noisePSD, j1, j2, ifo[ifonr]->deltaFT);
     }
   }
   
@@ -407,10 +417,11 @@ void computeFishermatrixIFO(struct parset par, int npar, struct interferometer *
   }
   
   freeparset(&par1);
+*/
 }
 
 
-void computeFishermatrix(struct parset par, int npar, struct interferometer *ifo[], int networksize, double **matrix)
+void computeFishermatrix(struct parset *par, int npar, struct interferometer *ifo[], int networksize, double **matrix)
 // Compute the Fisher matrix for a network of IFOs, using computeFishermatrixIFO to compute the elements per IFO
 {
   int ip=0,jp=0,ifonr=0;
