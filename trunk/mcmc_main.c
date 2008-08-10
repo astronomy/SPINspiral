@@ -18,7 +18,6 @@ int main(int argc, char * argv[])
   int ifonr=0;
   double snr=0.0;
   
-  waveformversion = 1;  // 1: Apostolatos, 1.5PN, 12 par.  2: LAL 3.5PN, 15 par
   useoldmcmcoutputformat = 0; //Set to 1 if you want to ... exactly!
   
   
@@ -63,7 +62,6 @@ int main(int argc, char * argv[])
   }
   ifoinit(network, networksize);
   if(inject) {
-/*ILYA*/ printf("got past ifoinit"); 
     if(run.targetsnr < 0.001) printf("   A signal with the 'true' parameter values was injected.\n");
   } else {
     printf("   No signal was injected.\n");
@@ -230,8 +228,8 @@ int main(int argc, char * argv[])
 	
 	getparameterset(&par2, 3.0,eta,700009012.346140,3.0, 0.5,0.9,3.0,0.5, 1.0,0.1,2.0,3.0);
 	
-	double matchres = parmatch(par1,par2,network,networksize);
-	double overlap = paroverlap(par1,par2,network,0,networksize);
+	double matchres = parmatch(&par1,&par2,network, networksize);
+	double overlap = paroverlap(&par1,&par2,network,0);
 	
 	printf("   Eta: %6.4f,  match: %10.5lf,  overlap: %g \n",eta,matchres,overlap);
       }
@@ -252,7 +250,7 @@ int main(int argc, char * argv[])
       getparameterset(&par, 3.0,0.11,700009012.346140,3.0, 0.5,0.9,3.0,0.5, 1.0,0.1,2.0,3.0);
       
       //computeFishermatrixIFO(par,npar,network,networksize,0,matrix);
-      computeFishermatrix(par,npar,network,networksize,matrix);
+      computeFishermatrix(&par,npar,network,networksize,matrix);
       
       for(i=0;i<npar;i++) {
 	for(j=0;j<npar;j++) {

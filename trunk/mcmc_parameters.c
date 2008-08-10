@@ -92,12 +92,20 @@ void readinputfile(struct runpar *run)
   fgets(bla,500,fin);  sscanf(bla,"%d",&writesignal);
   fgets(bla,500,fin);  sscanf(bla,"%d",&printmuch);
   
+  //Data handling:
+  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
+  fgets(bla,500,fin); sscanf(bla,"%d",&run->selectdata);
+  fgets(bla,500,fin); sscanf(bla,"%lf",&downsamplefactor);
+  fgets(bla,500,fin); sscanf(bla,"%lf",&databeforetc);
+  fgets(bla,500,fin); sscanf(bla,"%lf",&dataaftertc);
+  fgets(bla,500,fin); sscanf(bla,"%lf",&lowfrequencycut);
+  fgets(bla,500,fin); sscanf(bla,"%lf",&highfrequencycut);
+
   //Diverse:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->networksize);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&run->selectdata);
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&downsamplefactor);
   fgets(bla,500,fin);  sscanf(bla,"%lf",&run->targetsnr);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&waveformversion);
   
   //True parameter values:
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
@@ -193,12 +201,23 @@ void writeinputfile(struct runpar *run)
   fprintf(fout, "  %-25d  %-18s  %-s\n",      writesignal,   "writesignal",    "Write signal, noise, PSDs to file: 0-no, 1-yes.");
   fprintf(fout, "  %-25d  %-18s  %-s\n",      printmuch,     "printmuch",      "Print long stretches of output (1) or not (0).");
   
+
+  fprintf(fout, "\n  #Data handling:\n");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",     run->selectdata,"selectdata",     "Select the data set to run on  (set to 0 to print a list of data sets). Make sure you set the true tc and datadir accordingly.");
+  fprintf(fout, "  %-25.2f  %-18s  %-s\n", downsamplefactor,"downsamplefactor","Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n", databeforetc, "databeforetc", "The stretch of data in seconds before presumed coalescence that is read in as part of the data segment");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n", dataaftertc, "dataaftertc", "The stretch of data in seconds after presumed coalescence that is read in as part of the data segment");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n", lowfrequencycut, "lowfrequencycut", "Templates and overlap integration start at this frequency");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n", highfrequencycut, "highfrequencycut", "Overlap integration ends at this frequency");
+
   
   fprintf(fout, "\n  #Diverse:\n");
   fprintf(fout, "  %-25d  %-18s  %-s\n",    run->networksize,"networksize",    "Set the number of detectors that make up the network: 1: H1, 2: H1L1, 3: H1L1V");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",     run->selectdata,"selectdata",     "Select the data set to run on  (set to 0 to print a list of data sets). Make sure you set the true tc and datadir accordingly.");
-  fprintf(fout, "  %-25.1f  %-18s  %-s\n", downsamplefactor,"downsamplefactor","Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8");
   fprintf(fout, "  %-25.1f  %-18s  %-s\n",   run->targetsnr, "targetsnr",      "If > 0: scale the distance such that the network SNR becomes targetsnr");
+  fprintf(fout, "  %-25d  %-18s  %-s\n", waveformversion, "waveformversion", "Waveform version: 1 for 1.5PN 12-parameter non-LAL, 2 for 3.5PN 15-parameter LAL");
+
+
+  
   //fprintf(fout, "  %-25.1f  %-18s  %-s\n",   cutoff_a,"cutoff_a","Low value of a/M where signal should be cut off, e.g. 7.5.");
   
   

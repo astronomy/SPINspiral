@@ -46,12 +46,10 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   ifo[0].leftarm  = ( 126.80/180.0)*pi;
   ifo[0].radius_eqt  = 6378137.0;       /* WGS 84 */
   ifo[0].radius_pole = 6356752.314;       
-/*Use 30.0 for NINJA*/
-  ifo[0].lowCut  =   40.0;  //The other two detectors may use this low,highCut
-  ifo[0].highCut = 6400.0/downsamplefactor;
-/*Use 1.0 and 0.1 for NINJA*/
-  ifo[0].before_tc = 6.0;   //The other two detectors may use this before,after_tc
-  ifo[0].after_tc = 1.0;   
+  ifo[0].lowCut  =   lowfrequencycut;  //The other two detectors may use this low,highCut
+  ifo[0].highCut =   highfrequencycut;  //Define lower and upper limits of overlap integral
+  ifo[0].before_tc = databeforetc;   //The other two detectors may use this before,after_tc
+  ifo[0].after_tc = dataaftertc;   //Define data segment: [t_c-before_tc, t_c+after_tc]
   
   
   if(run.selectdata == 1) {
@@ -151,7 +149,6 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
 
   if(run.selectdata == 5) {
     // NINJA data set
-    ifo[0].highCut = 1600.0;
     
     sprintf(ifo[0].ch1name,       "H1:STRAIN"); 
     sprintf(ifo[0].ch1filepath,   datadir);
@@ -286,7 +283,6 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   
   if(run.selectdata == 5) {
     // NINJA data set
-    ifo[1].highCut = 1600.0;
     
     sprintf(ifo[1].ch1name,       "L1:STRAIN"); 
     sprintf(ifo[1].ch1filepath,   datadir);
@@ -317,9 +313,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   ifo[2].radius_eqt  = 6378137.0;    /*6378000.0;*/     /* WGS 84 */
   ifo[2].radius_pole = 6356752.314;  /*6378000.0;*/
   ifo[2].lowCut  =  ifo[0].lowCut;
-  //ifo[2].lowCut  =  30.0;
   ifo[2].highCut = ifo[0].highCut;
-  //ifo[2].before_tc = 20.0;
   ifo[2].before_tc = ifo[0].before_tc;
   ifo[2].after_tc = ifo[0].after_tc;
   
@@ -385,7 +379,6 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
 
   if(run.selectdata == 5) {
     // NINJA data set
-    ifo[2].highCut = 1600.0;
     
     sprintf(ifo[2].ch1name,       "V1:STRAIN");
     sprintf(ifo[2].ch1filepath,   datadir);
@@ -575,20 +568,28 @@ double *filter(int *order, int samplerate, double upperlimit)
   int totalcoef  = ncoef+ncoef-1;   /* total number of coefficients                    */
   double desired[2] = {1.0, 0.0};      /* desired gain                                    */
   double weights[2] = {1.0, 1.0};      /* weight for `loss' in pass- & stopband           */
-  //double bands[4]   = {0.0, (upperlimit/((double)samplerate)) + 0.001318, 0.125 - 0.001318, 0.5};  //For downsampling a factor of 4
-  double bands[4]   = {0.0, (upperlimit/((double)samplerate)), 0.5/downsamplefactor, 0.5};  //For downsampling a factor of downsamplefactor
-  /* NOTE: band edges are set such that they should work fine for sample rates             */
-  /*       of 16384 Hz and more  AND  `upperlimit' of 1800 Hz and less.                    */
-  /*       The transition band width is always halfway between `upperlimit' and 1/8 of the */
-  /*       sampling frequency, which is the new Nyquist frequency after downsampling.      */
-  /*       For  samplerate=16384 Hz  and  upperlimit=1800 Hz  the transition band width    */
-  /*       is 0.025 times the sampling frequency, otherwise is is (relatively) wider.      */
+  double transitionbandwidth=0.0125;  //suggested by Christian Roever via 07/30/08 e-mail
+  //place transition bandwidth half-way between upper edge of pass band, which is
+  //(upperlimit/samplerate) in relative units, and new Nyquist frequency, which is
+  //0.5/downsamplefactor in relative units.
+  //band vector contains 0, end of pass band, end of transition band, 0.5 (old Nyquist)
+  //if there's not enough room for a transition band, we have a problem!
+  if(0.5/downsamplefactor - upperlimit/((double)samplerate) < transitionbandwidth){
+	printf(" Problem in filter() function while downsampling!\n");
+	printf(" New Nyquist frequency after downsampling by %g is %g\n",
+			downsamplefactor, ((double)samplerate)/downsamplefactor/2.0);
+	printf(" Desired upper limit is %g\n", upperlimit);
+	printf(" This doesn't leave enough room for a transition band of relative width %g\n",
+		transitionbandwidth);
+	printf(" Aborting!\n");
+	exit(1);
+  }
+  double endpassband= upperlimit/((double)samplerate) +
+	(0.5/downsamplefactor - upperlimit/((double)samplerate) - transitionbandwidth)/2.0;
+  double endtransitionband=0.5/downsamplefactor - 
+	(0.5/downsamplefactor - upperlimit/((double)samplerate) - transitionbandwidth)/2.0;
+  double bands[4]   = {0.0, endpassband, endtransitionband, 0.5};
   double *coef;                        /* vector of coefficients (symmetric)               */
-  printf("\n  TEST: Samplingrate:  %d\n\n",samplerate);
-  if(samplerate<16384)  
-    printf(" : !WARNING! in `filter()': Sampling rates below 16384 Hz might cause problems!\n");
-  if(upperlimit>1800.0) 
-    printf(" : !WARNING! in `filter()': A `highCut' value of more than 1800 Hz might cause problems!\n");
   coef = (double*) malloc(sizeof(double)*totalcoef);
   /*-- determine filter coefficients: --*/
   remez(coef, totalcoef, 2, bands, desired, weights, BANDPASS);
@@ -604,14 +605,6 @@ double *downsample(double data[], int *datalength, double filtercoef[], int ncoe
 /* Filter coefficients are determined using the              */
 /* `Parks-McClellan' or `Remez exchange' algorithm.          */
 /* Resulting data vector is shorter than original            */
-/* and has a length of  (N - 2*(ncoef-1))/4  samples.        */
-/* Transition band of filter ranges                          */
-/* from 0.19 to 0.24 times the nyquist frequency             */
-/* of 8192 Hz; that is from 1569 to 1979 Hz, so the          */
-/* transition band has a width of deltaF=0.025               */
-/* (our range of interest is 100 to 1500 Hz).                */
-/* [ deltaF=0.025 with respect to scale used in previous     */
-/*   function -- on this scale: 0.05*8192 Hz = 410 Hz    ]   */
 /* Returned vector is allocated using `fftw_malloc()' and    */
 /* thus must be freed again using `fftw_free()'.             */
 {
@@ -682,6 +675,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   from  = floor(prior_tc_mean - ifo[i]->before_tc - (ifo[i]->before_tc+ifo[i]->after_tc) * 0.5 * (tukeywin/(1.0-tukeywin)));
   to    =  ceil(prior_tc_mean + ifo[i]->after_tc  + (ifo[i]->before_tc+ifo[i]->after_tc) * 0.5 * (tukeywin/(1.0-tukeywin)));
   delta = (to) - (from);
+/*ILYA*/ printf("prior tc %g", prior_tc_mean);
   if(intscrout==1) printf(" | investigated time range : from %.1f to %.1f (%.1f seconds)\n", from, to, delta);
   
   // Starting time of first(!) Frame file to be read:
@@ -859,8 +853,8 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
  
   // Downsample (by factor downsamplefactor):    *** changes value of N ***
   if(intscrout==1) printf(" | downsampling... \n");
-  /*NINJA*/
-/*
+
+/*NINJA*/
   filtercoef = filter(&ncoef, ifo[i]->samplerate, ifo[i]->highCut);
   ifo[i]->FTin = downsample(raw, &N, filtercoef, ncoef);
 
@@ -872,8 +866,8 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   ifo[i]->samplerate = (int)((double)ifo[i]->samplerate/downsamplefactor);
   free(raw);
   free(filtercoef);
-*/  
 
+/*
   ifo[i]->FTin = (double*) fftw_malloc(sizeof(double)*N);
   for (j=0; j<N; ++j)
     ifo[i]->FTin[j] = raw[j];
@@ -882,7 +876,8 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   ifo[i]->samplesize = N;
   ifo[i]->FTsize = (N/2)+1;  
   free(raw);
-  
+*/ 
+
   // Window input data with a Tukey window:
   ifo[i]->FTwindow = malloc(sizeof(double) * N);
   for(j=0; j<N; ++j){
@@ -1060,18 +1055,17 @@ void noisePSDestimate(struct interferometer *ifo)
   /*-- DOWNSAMPLE (by factor downsamplefactor)           --*/
   /*-- !! changes value of `N' as well !! --*/
   /*NINJA*/ 
-/*  filtercoef = filter(&ncoef, samplerate, ifo->highCut);
+  filtercoef = filter(&ncoef, samplerate, ifo->highCut);
   in = downsample(raw, &N, filtercoef, ncoef);
   FTsize = (N/2)+1;
   samplerate = (int)((double)samplerate/downsamplefactor);
-*/
+/*
   in = (double*) fftw_malloc(sizeof(double)*N);
   for (i=0; i<N; ++i)
     in[i] = raw[i];
-
   FTsize = (N/2)+1;    
+*/
 
-  /*FTsize     = (vect->nData)+1.0;*/
   nyquist      = ((double)samplerate)/2.0;
   lower        = (int)(floor((ifo->lowCut/nyquist)*(FTsize-1)));
   upper        = (int)(ceil((ifo->highCut/nyquist)*(FTsize-1)));
@@ -1139,13 +1133,13 @@ void noisePSDestimate(struct interferometer *ifo)
     
     // Downsample:
     /*NINJA*/ 
-/*
     dummyN = 2*M;
     in = downsample(raw, &dummyN, filtercoef, ncoef);
-*/
+/*
     in = (double*) fftw_malloc(sizeof(double)*N);
     for (i=0; i<N; ++i)
       in[i] = raw[i];
+*/
 
     // Window data:
     for(i=0; i<N; ++i)

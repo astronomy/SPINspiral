@@ -81,7 +81,9 @@ int dosnr,domcmc,domatch,intscrout,writesignal;
 int printmuch;
   
 double truespin,truetheta,prior_tc_mean,downsamplefactor;
-  
+
+double databeforetc, dataaftertc, lowfrequencycut, highfrequencycut;  
+
 int tempi;
   
 double Ms,Mpc,G,c,Mpcs,pi,tpi,mtpi;
