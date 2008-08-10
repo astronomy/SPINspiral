@@ -390,9 +390,9 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[2].add2channels    = 0;  //0, unless you want to read a signal from file
     
     ifo[2].noiseGPSstart   = 894457315; //894378400;  //894457315;
-    sprintf(ifo[2].noisechannel,    "H1:STRAIN");
+    sprintf(ifo[2].noisechannel,    "V1:STRAIN");
     sprintf(ifo[2].noisefilepath,   datadir);
-    sprintf(ifo[2].noisefileprefix, "H1-NINJADATA-");
+    sprintf(ifo[2].noisefileprefix, "V1-NINJADATA-");
     sprintf(ifo[2].noisefilesuffix, "-1024.gwf");
     ifo[2].noisefilesize   = 1024;
     ifo[2].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
@@ -675,7 +675,6 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   from  = floor(prior_tc_mean - ifo[i]->before_tc - (ifo[i]->before_tc+ifo[i]->after_tc) * 0.5 * (tukeywin/(1.0-tukeywin)));
   to    =  ceil(prior_tc_mean + ifo[i]->after_tc  + (ifo[i]->before_tc+ifo[i]->after_tc) * 0.5 * (tukeywin/(1.0-tukeywin)));
   delta = (to) - (from);
-/*ILYA*/ printf("prior tc %g", prior_tc_mean);
   if(intscrout==1) printf(" | investigated time range : from %.1f to %.1f (%.1f seconds)\n", from, to, delta);
   
   // Starting time of first(!) Frame file to be read:
