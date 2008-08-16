@@ -314,12 +314,11 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   
   if(run.selectdata == 1) {
     // Gaussian, stationary noise
-    // Use LIGO noise for Virgo
-    printf("   Using LIGO noise for Virgo\n");
+    printf("   Using Virgo noise for Virgo!\n");
 
-    sprintf(ifo[2].ch1name,       "L1:STRAIN"); 
+    sprintf(ifo[2].ch1name,       "V1:STRAIN"); 
     sprintf(ifo[2].ch1filepath,   datadir);
-    sprintf(ifo[2].ch1fileprefix, "L-L1_NINJA_NOISE-");
+    sprintf(ifo[2].ch1fileprefix, "V-V1_NINJA_NOISE-");
     sprintf(ifo[2].ch1filesuffix, "-1024.gwf");
     ifo[2].ch1filesize   = 1024; 
     ifo[2].ch1fileoffset = 743;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
@@ -327,9 +326,9 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[2].add2channels    = 0;  //0, unless you want to read a signal from file
     
     ifo[2].noiseGPSstart   = 894377200;
-    sprintf(ifo[2].noisechannel,    "L1:STRAIN");
+    sprintf(ifo[2].noisechannel,    "V1:STRAIN");
     sprintf(ifo[2].noisefilepath,   datadir);
-    sprintf(ifo[2].noisefileprefix, "L-L1_NINJA_NOISE-");
+    sprintf(ifo[2].noisefileprefix, "V-V1_NINJA_NOISE-");
     sprintf(ifo[2].noisefilesuffix, "-1024.gwf");
     ifo[2].noisefilesize   = 1024; 
     ifo[2].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
