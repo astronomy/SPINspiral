@@ -355,7 +355,7 @@ double LALFpFc(CoherentGW *waveform, double *wave, int length, struct parset *pa
   REAL4TimeSeries signal;        // GW signal 
     
   signal.epoch.gpsSeconds = (INT4)par->tc;
-  signal.epoch.gpsNanoSeconds = (INT4) 100*(int)(1000000.0*(par->tc - signal.epoch.gpsSeconds));
+  signal.epoch.gpsNanoSeconds = (INT4)(100000000.0*(par->tc - (double)signal.epoch.gpsSeconds));
   
   waveform->f->epoch = waveform->phi->epoch = waveform->a->epoch = signal.epoch; 
   
@@ -364,6 +364,8 @@ double LALFpFc(CoherentGW *waveform, double *wave, int length, struct parset *pa
   signal.data = NULL;
     
   LALSCreateVector( &stat, &( signal.data ), (UINT4)waveform->phi->data->length );
+  
+  waveform->position.system=COORDINATESYSTEM_GEOGRAPHIC;
   
   LALSimulateCoherentGW( &stat, &signal, waveform, &detector );//////////////////this is were F+,x are being computed.
   
