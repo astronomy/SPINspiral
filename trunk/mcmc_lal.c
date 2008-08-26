@@ -276,9 +276,9 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
   
 ////////////////////////////////////////////////////////////now we fill the injParam structure with the converted parameters//////////////
   
-  injParams.mass1 = (float)par->m1;//M1;
-  injParams.mass2 = (float)par->m2;//M2;
-  
+  injParams.mass1 = (float)(m1/M0);//par->m1;//M1;
+  injParams.mass2 = (float)(m2/M0);//par->m2;//M2;
+
   injParams.f_final = ifo->highCut;
   injParams.f_lower = (float)f_lower;
   
