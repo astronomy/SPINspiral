@@ -588,8 +588,8 @@ void getparameterset(struct parset *par, double mc, double eta, double tc, doubl
 
 void getnullparameters(struct parset *par)  //Set the parameters for the 12-parameter spinning template to 'null values', to simulate absence of a signal
 {
-  par->mc       = 0.01;
-  par->eta      = 0.0001;
+  par->mc       = 1.0;
+  par->eta      = 0.2;
   par->m1       = 0.1;
   par->m2       = 0.1;
   par->tc       = prior_tc_mean;
@@ -597,9 +597,9 @@ void getnullparameters(struct parset *par)  //Set the parameters for the 12-para
   par->sinlati  = 0.0;
   par->longi    = 0.0;
   par->phase    = 0.0;
-  par->spin     = 0.000001;              // magnitude of total spin   
+  par->spin     = 0.1;              // magnitude of total spin   
   par->kappa    = 0.0;                   // L^.S^, cos of angle between L^ & S^
-  par->sinthJ0  = 0.000001;              // sin Theta_J0 ~ latitude, pi/2=NP    
+  par->sinthJ0  = 0.1;              // sin Theta_J0 ~ latitude, pi/2=NP    
   par->phiJ0    = 0.0;                   // Phi_J0 ~ azimuthal        
   par->alpha    = 0.0;                   // Alpha_c                   
   
