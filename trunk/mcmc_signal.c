@@ -161,7 +161,7 @@ void writesignaltodisc(struct parset *par, struct interferometer *ifo[], int i)
   double fact1b = sqrt(2.0)*2.0/sqrt(ifo[i]->deltaFT);  //Extra factor of sqrt(2) to get the numbers right with the outside world
   for(j=0; j<ifo[i]->indexRange; ++j){
     f = fact1a * (double)(j+ifo[i]->lowIndex);
-    fprintf(dump1, "%13.6f %13.6e\n",f, fact1b * sqrt(ifo[i]->noisePSD[j]) );
+    fprintf(dump1, "%13.6f %13.6e %13.6e\n",f, fact1b * sqrt(ifo[i]->noisePSD[j]), 0.0 ); // Add 0 to create output compatible with FFT
   }
   fclose(dump1);
   if(intscrout) printf(" : (noise ASD written to file)\n");

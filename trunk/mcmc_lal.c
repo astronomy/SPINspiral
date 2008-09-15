@@ -202,7 +202,7 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
   double alpha=0.0;
   double omega_orb=0.0,l_L=0.0,Y=0.0,Gsq=0.0,G=0.0,slamL=0.0,clamL=0.0,LdotN=0.0;
   double cst4=0.0,x1=0.0,x2=0.0,x3=0.0;
- 
+  
   omega_orb=pi*f_lower;
   
   l_L = m1*m2*exp(-c3rd*log(omega_orb*M));
@@ -234,7 +234,7 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
     
   LdotN  = dotproduct(n_L,n_N);
   
-    double r,e;
+  double r,e;
   
   r=pow(M/(omega_orb*omega_orb),1.0/3.0);
     
@@ -259,7 +259,7 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
   normalise(yloc);
   crossproduct(yloc,zloc,xloc);
   
-
+  
   double n_Sloc[3];
   normalise(n_S);
   
@@ -274,11 +274,11 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
   n_S[1]=par->spin*n_S[1];
   n_S[2]=par->spin*n_S[2];
   
-////////////////////////////////////////////////////////////now we fill the injParam structure with the converted parameters//////////////
+  ////////////////////////////////////////////////////////////now we fill the injParam structure with the converted parameters//////////////
   
   injParams.mass1 = (float)(m1/M0);//par->m1;//M1;
   injParams.mass2 = (float)(m2/M0);//par->m2;//M2;
-
+  
   injParams.f_final = ifo->highCut;
   injParams.f_lower = (float)f_lower;
   
@@ -286,13 +286,13 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
   
   /* this is given in Mpc */    
   injParams.distance = (float)exp(par->logdl);//d_L;
-
+  
   injParams.inclination = (float)acos(LdotN);
     
   injParams.spin1x = (float)n_S[0];
   injParams.spin1y = (float)n_S[1];
   injParams.spin1z = (float)n_S[2];
-
+  
   injParams.spin2x = 0.0;
   injParams.spin2y = 0.0;
   injParams.spin2z = 0.0;
@@ -307,7 +307,7 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
   
   
   /* --- now we can call the injection function --- */
-
+  
   LALGenerateInspiral( &mystatus, waveform, &injParams, &ppnParams );
   if ( mystatus.statusCode )
     {
