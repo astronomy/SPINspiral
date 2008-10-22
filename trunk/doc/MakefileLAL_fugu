@@ -13,18 +13,18 @@
 #Use Pathscale C compiler
 CC = pathcc
 #CC = condor_compile pathcc
-#CFLAGS = -static -O3 -I/usr/include/ -I ./include -I ~/bin/include 
-CFLAGS = -static -O3 -I/home/vivien/opt/lscsoft/non-lsc/include -I/home/vivien/head/opt/lscsoft/lal/include/ -I/usr/include/ -I ./include -I ~/bin/include -I/export/apps/gsl-1.11/include/ -I/export/apps/fftw-3.1.2/include/ -I/home/vivien/opt/lscsoft/libframe/include
+#CFLAGS = -static -O3 -ipa -I/usr/include/ -I ./include -I ~/bin/include 
+CFLAGS = -static -O3 -ipa -I/home/vivien/opt/lscsoft/non-lsc/include -I/home/vivien/head/opt/lscsoft/lal/include/ -I/usr/include/ -I ./include -I ~/bin/include -I/export/apps/gsl-1.11/include/ -I/export/apps/fftw-3.1.2/include/ -I/home/vivien/opt/lscsoft/libframe/include
 #New Fugu
 
-#MCMCLFLAGS = -L ~/bin/lib -lFrame -lm -lgsl -lgslcblas -lfftw3
-#MCMCLFLAGS = -static -L ~/bin/lib -llal -lFrame -lfftw3 -lgsl -lgslcblas -lm
-MCMCLFLAGS = -static -L/home/vivien/head/opt/lscsoft/lal/lib -llal -L/export/apps/gsl-1.11/lib/ -lgsl -lgslcblas -L/home/vivien/opt/lscsoft/non-lsc/lib -lfftw3 -lfftw3f -lm -L ~/bin/lib -lFrame
+#MCMCLFLAGS = -ipa -L ~/bin/lib -lFrame -lm -lgsl -lgslcblas -lfftw3
+#MCMCLFLAGS = -static -ipa -L ~/bin/lib -llal -lFrame -lfftw3 -lgsl -lgslcblas -lm
+MCMCLFLAGS = -static -ipa -L/home/vivien/head/opt/lscsoft/lal/lib -llal -L/export/apps/gsl-1.11/lib/ -lgsl -lgslcblas -L/home/vivien/opt/lscsoft/non-lsc/lib -lfftw3 -lfftw3f -lm -L ~/bin/lib -lFrame
 #-L/share/apps/fftw/lib/ -lfftw3
 MCMCOBJ = mcmc_main.o mcmc_mcmc.o mcmc_templates.o mcmc_routines.o mcmc_data.o mcmc_parameters.o mcmc_signal.o mcmc_3rdparty.o mcmc_lal.o #LALinterface.o
 
 #WAVELFLAGS = -lfftw3
-WAVELFLAGS = -static -L ~/bin/lib -lFrame -lfftw3 -lgsl -lgslcblas -lm
+WAVELFLAGS = -static -ipa -L ~/bin/lib -lFrame -lfftw3 -lgsl -lgslcblas -lm
 WAVEOBJ = waveform_main.o mcmc_templates.o mcmc_routines.o waveform_data.o mcmc_parameters.o mcmc_signal.o mcmc_3rdparty.o LALinterface.o
 
 

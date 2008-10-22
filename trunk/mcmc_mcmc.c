@@ -170,10 +170,17 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
   
   // ***  GET OFFSET STARTING VALUES  ***********************************************************************************************************************************************
   
+  // *** Get the starting values for the chain ***
+  getstartparameters(&state,*run);
+  state.loctc    = (double*)calloc(networksize,sizeof(double));
+  state.localti  = (double*)calloc(networksize,sizeof(double));
+  state.locazi   = (double*)calloc(networksize,sizeof(double));
+  state.locpolar = (double*)calloc(networksize,sizeof(double));
+  
   //Offset starting values (only for the parameters we're fitting)
   nstart = 0;
   par2arrt(state, mcmc.param);  //Put the variables in their array
-  if(offsetmcmc==1) {
+  if(offsetmcmc==1 || offsetmcmc==3) {
     printf("\n");
     for(i=0;i<npar;i++) {
       mcmc.nparam[tempi][i] = mcmc.param[tempi][i];  //Temporarily store the true values
@@ -199,6 +206,9 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
 	mcmc.logL[tempi] = net_loglikelihood(&state, networksize, ifo);  //Calculate the likelihood
       }
       nstart = nstart + 1;
+      // Print each trial starting value:
+      //printf("%9d %10.3lf  %7.4f %7.4f %8.4f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f\n",
+      //     nstart,mcmc.logL[tempi]-mcmc.logL0,mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2]-mcmc.basetime,mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
     }
     if(useoldmcmcoutputformat==1) { //Use old, longer screen output format
       printf("%10s  %15s  %8s  %8s  %16s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "nDraws","logL-logLo","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","sinthJ0","phiJ0","alpha");
@@ -311,13 +321,13 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
       
       // *** Uncorrelated update *************************************************************************************************
       //if(mcmc.corrupdate[tempi]<=0) {
-      //if(gsl_rng_uniform(mcmc.ran) > run->corrfrac) {
-      if(gsl_rng_uniform(mcmc.ran) > run->corrfrac || iteri < ncorr) {
-	//if(iteri>nburn && gsl_rng_uniform(mcmc.ran) < run->blockfrac){                            //Block update; only after burnin
-	if(gsl_rng_uniform(mcmc.ran) < run->blockfrac){                                             //Block update; always
+      if(gsl_rng_uniform(mcmc.ran) > run->corrfrac) {                                               //Do correlated updates from the beginning (quicker, but less efficient start); this saves ~4-5h for 2D, ncorr=1e4, ntemps=5
+	//if(gsl_rng_uniform(mcmc.ran) > run->corrfrac || iteri < ncorr) {                              //Don't do correlated updates in the first block; more efficient per iteration, not necessarily per second
+	//if(iteri>nburn && gsl_rng_uniform(mcmc.ran) < run->blockfrac){                            //Block update: only after burnin
+	if(gsl_rng_uniform(mcmc.ran) < run->blockfrac){                                             //Block update: always
 	  uncorrelated_mcmc_block_update(ifo, &state, &mcmc);
 	}
-	else{                                                                                       //Componentwise update (90%)
+	else{                                                                                       //Componentwise update (e.g. 90% of the time)
 	  uncorrelated_mcmc_single_update(ifo, &state, &mcmc);
 	}
       } //End uncorrelated update
@@ -896,8 +906,10 @@ void write_mcmc_header(struct interferometer *ifo[], struct mcmcvariables mcmc, 
   int i=0, tempi=0;
   
   // *** Print run parameters to screen ***
-  if(offsetmcmc==0) printf("   Starting MCMC with the true initial parameters\n\n");
-  if(offsetmcmc==1) printf("   Starting MCMC with offset initial parameters\n\n");
+  if(offsetmcmc==0) printf("   Starting MCMC from the true initial parameters\n\n");
+  if(offsetmcmc==1) printf("   Starting MCMC from initial parameters randomly offset around the injection\n\n");
+  if(offsetmcmc==2) printf("   Starting MCMC from specified (offset) initial parameters\n\n");
+  if(offsetmcmc==3) printf("   Starting MCMC from initial parameters randomly offset around the specified values\n\n");
   //printf("%10s  %10s  %6s  %20s  %6s  ","niter","nburn","seed","null likelihood","ndet");
   //for(i=0;i<run->networksize;i++) printf("%16s%4s  ",ifo[i]->name,"SNR");
   //printf("%20s\n","Network SNR");

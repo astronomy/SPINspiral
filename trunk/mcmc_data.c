@@ -13,7 +13,7 @@
 void set_ifo_data(struct runpar run, struct interferometer ifo[])
 //Set all the data for all IFOs that may be used
 {
-  int i=0,numberofdatasets = 5;
+  int i=0,numberofdatasets = 6;
   //Description of the data sets below
   char datadescriptions[10][99];
   sprintf(datadescriptions[1],"Gaussian, stationary noise (GPS ~894377000)");
@@ -21,7 +21,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   sprintf(datadescriptions[3],"playground trigger data (GPS ~845348295)");
   sprintf(datadescriptions[4],"glitchy data (GPS ~846471090)");
   sprintf(datadescriptions[5],"NINJA");
-  //sprintf(datadescriptions[],"");
+  sprintf(datadescriptions[6],"Original Gaussian noise (GPS ~700006000)");
   
   //run.selectdata = max(min(run.selectdata,numberofdatasets),1);
   if(run.selectdata < 1 || run.selectdata > numberofdatasets) {
@@ -46,10 +46,10 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   ifo[0].leftarm  = ( 126.80/180.0)*pi;
   ifo[0].radius_eqt  = 6378137.0;       /* WGS 84 */
   ifo[0].radius_pole = 6356752.314;       
-  ifo[0].lowCut  =   lowfrequencycut;  //The other two detectors may use this low,highCut
-  ifo[0].highCut =   highfrequencycut;  //Define lower and upper limits of overlap integral
-  ifo[0].before_tc = databeforetc;   //The other two detectors may use this before,after_tc
-  ifo[0].after_tc = dataaftertc;   //Define data segment: [t_c-before_tc, t_c+after_tc]
+  ifo[0].lowCut  =   run.lowfrequencycut;  //The other two detectors may use this low,highCut
+  ifo[0].highCut =   run.highfrequencycut;  //Define lower and upper limits of overlap integral
+  ifo[0].before_tc = run.databeforetc;   //The other two detectors may use this before,after_tc
+  ifo[0].after_tc = run.dataaftertc;   //Define data segment: [t_c-before_tc, t_c+after_tc]
   
   
   if(run.selectdata == 1) {
@@ -71,17 +71,6 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[0].noisefilesize   = 1024; 
     ifo[0].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[0].noisedoubleprecision = 0;
-
-/*
-    //This seems to be needed for synthetic data only...
-    sprintf(ifo[0].ch2name,       "H1:STRAIN_INSP_INJ_ONLY"); 
-    sprintf(ifo[0].ch2filepath,   datadir);
-    sprintf(ifo[0].ch2fileprefix, "HL-SIM-");
-    sprintf(ifo[0].ch2filesuffix, "-6000.gwf");
-    ifo[0].ch2filesize   = 6000; 
-    ifo[0].ch2fileoffset = 4000;    //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
-    ifo[0].ch2doubleprecision = 0;
-*/
   }
   
   
@@ -147,8 +136,8 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[0].noisefileoffset = 49;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[0].noisedoubleprecision = 0;
   }
-
-
+  
+  
   if(run.selectdata == 5) {
     // NINJA data set
     
@@ -171,8 +160,38 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[0].noisedoubleprecision = 0;
   }
   
+  if(run.selectdata == 6) {
+    // Original Gaussian, stationary noise, which we used 2007-2008
+    sprintf(ifo[0].ch1name,       "H1:STRAIN"); 
+    sprintf(ifo[0].ch1filepath,   datadir);
+    sprintf(ifo[0].ch1fileprefix, "HL-SIM-");
+    sprintf(ifo[0].ch1filesuffix, "-6000.gwf");
+    ifo[0].ch1filesize   = 6000; 
+    ifo[0].ch1fileoffset = 4000;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[0].ch1doubleprecision = 0;
+    ifo[0].add2channels    = 0;  //0, unless you want to read a signal from file
+    
+    //This seems to be needed for synthetic data only...
+    sprintf(ifo[0].ch2name,       "H1:STRAIN_INSP_INJ_ONLY"); 
+    sprintf(ifo[0].ch2filepath,   datadir);
+    sprintf(ifo[0].ch2fileprefix, "HL-SIM-");
+    sprintf(ifo[0].ch2filesuffix, "-6000.gwf");
+    ifo[0].ch2filesize   = 6000; 
+    ifo[0].ch2fileoffset = 4000;    //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[0].ch2doubleprecision = 0;
+    
+    ifo[0].noiseGPSstart   = 700006000;
+    sprintf(ifo[0].noisechannel,    "H1:STRAIN");
+    sprintf(ifo[0].noisefilepath,   datadir);
+    sprintf(ifo[0].noisefileprefix, "HL-SIM-");
+    sprintf(ifo[0].noisefilesuffix, "-6000.gwf");
+    ifo[0].noisefilesize   = 6000; 
+    ifo[0].noisefileoffset = 4000;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[0].noisedoubleprecision = 0;
+  }
   
-
+  
+  
   
   
   
@@ -298,8 +317,41 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[1].noisedoubleprecision = 0;
   }
   
+  if(run.selectdata == 6) {
+    // Original Gaussian, stationary noise, which we used 2007-2008
+    sprintf(ifo[1].ch1name,       "L1:STRAIN");
+    sprintf(ifo[1].ch1filepath,   datadir);
+    sprintf(ifo[1].ch1fileprefix, "HL-SIM-");
+    sprintf(ifo[1].ch1filesuffix, "-6000.gwf");
+    ifo[1].ch1filesize   = 6000;
+    ifo[1].ch1fileoffset = 4000;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[1].ch1doubleprecision = 0;
+    ifo[1].add2channels    = 0;  //0, unless you want to read a signal from file
+    
+    //This seems to be needed for synthetic data only...
+    sprintf(ifo[1].ch2name,       "L1:STRAIN_INSP_INJ_ONLY");
+    sprintf(ifo[1].ch2filepath,   datadir);
+    sprintf(ifo[1].ch2fileprefix, "HL-SIM-");
+    sprintf(ifo[1].ch2filesuffix, "-6000.gwf");
+    ifo[1].ch2filesize   = 6000;
+    ifo[1].ch2fileoffset = 4000;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[1].ch2doubleprecision = 0;
+    ifo[1].noiseGPSstart   = 700007000;
   
-  // PISA, Virgo.  You might want to set the parameter tukeywin from 0.05 to 0.15 when including Virgo data
+    sprintf(ifo[1].noisechannel,    "L1:STRAIN");
+    sprintf(ifo[1].noisefilepath,   datadir);
+    sprintf(ifo[1].noisefileprefix, "HL-SIM-");
+    sprintf(ifo[1].noisefilesuffix, "-6000.gwf");
+    ifo[1].noisefilesize   = 6000;
+    ifo[1].noisefileoffset = 4000;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[1].noisedoubleprecision = 0;
+  }
+    
+  
+  
+  
+  
+  // PISA, Virgo.
   sprintf(ifo[2].name, "Pisa");
   ifo[2].lati     = (  43.63/180.0)*pi;
   ifo[2].longi    = (  10.50/180.0)*pi;
@@ -314,7 +366,6 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   
   if(run.selectdata == 1) {
     // Gaussian, stationary noise
-    printf("   Using Virgo noise for Virgo!\n");
 
     sprintf(ifo[2].ch1name,       "V1:STRAIN"); 
     sprintf(ifo[2].ch1filepath,   datadir);
@@ -334,7 +385,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[2].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[0].noisedoubleprecision = 0;
   }
-
+  
   if(run.selectdata == 5) {
     // NINJA data set
     
@@ -356,6 +407,68 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[2].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[2].noisedoubleprecision = 0;
   }
+  
+  // You might want to set the parameter tukeywin from 0.05 to 0.15 when including the Virgo data 6
+  if(run.selectdata == 6) {
+    // Original Gaussian, stationary noise, which we used 2007-2008
+    sprintf(ifo[2].ch1name,       "V1:noise");
+    sprintf(ifo[2].ch1filepath,   datadir);
+    sprintf(ifo[2].ch1fileprefix, "V-");
+    sprintf(ifo[2].ch1filesuffix, "-6000.gwf");
+    ifo[2].ch1filesize   = 6000; 
+    ifo[2].ch1fileoffset = 4000;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[2].ch1doubleprecision = 0;
+    ifo[2].add2channels    = 0;   //0, unless you want to read a signal from file
+    
+    sprintf(ifo[2].ch2name,       "V1:STRAIN_INSP_INJ_ONLY"); 
+    sprintf(ifo[2].ch2filepath,   datadir);
+    sprintf(ifo[2].ch2fileprefix, "HL-SIM-");
+    sprintf(ifo[2].ch2filesuffix, "-6000.gwf");
+    ifo[2].ch2filesize   = 6000; 
+    ifo[2].ch2fileoffset = 4000; 
+    ifo[2].ch2doubleprecision = 0;
+    ifo[2].noiseGPSstart   = 700008000;
+    
+    sprintf(ifo[2].noisechannel,    "V1:noise");
+    sprintf(ifo[2].noisefilepath,   datadir);
+    sprintf(ifo[2].noisefileprefix, "V-");
+    sprintf(ifo[2].noisefilesuffix, "-6000.gwf");
+    ifo[2].noisefilesize   = 6000; 
+    ifo[2].noisefileoffset = 4000;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[2].noisedoubleprecision = 0;
+    
+    
+    //Use LIGO noise for Virgo (keep tukeywin = 0.05)
+    if(1==1) {
+      printf("   Warning: Using LIGO noise for Virgo\n");
+      sprintf(ifo[2].ch1name,       "L1:STRAIN"); 
+      sprintf(ifo[2].ch1filepath,   datadir);
+      sprintf(ifo[2].ch1fileprefix, "HL-SIM-");
+      sprintf(ifo[2].ch1filesuffix, "-6000.gwf");
+      ifo[2].ch1filesize   = 6000; 
+      ifo[2].ch1fileoffset = 4000; 
+      ifo[2].ch1doubleprecision = 0;
+      ifo[2].add2channels    = 1; 
+      
+      sprintf(ifo[2].ch2name,       "L1:STRAIN_INSP_INJ_ONLY"); 
+      sprintf(ifo[2].ch2filepath,   datadir);
+      sprintf(ifo[2].ch2fileprefix, "HL-SIM-");
+      sprintf(ifo[2].ch2filesuffix, "-6000.gwf");
+      ifo[2].ch2filesize   = 6000; 
+      ifo[2].ch2fileoffset = 4000; 
+      ifo[2].ch2doubleprecision = 0;
+      ifo[2].noiseGPSstart   = 700008000;
+      
+      sprintf(ifo[2].noisechannel,    "L1:STRAIN");
+      sprintf(ifo[2].noisefilepath,   datadir);
+      sprintf(ifo[2].noisefileprefix, "HL-SIM-");
+      sprintf(ifo[2].noisefilesuffix, "-6000.gwf");
+      ifo[2].noisefilesize   = 6000; 
+      ifo[2].noisefileoffset = 4000; 
+      ifo[2].noisedoubleprecision = 0;
+    }
+  }
+  
 }
 
 
@@ -539,6 +652,7 @@ double *filter(int *order, int samplerate, double upperlimit)
 	printf(" Desired upper limit is %g\n", upperlimit);
 	printf(" This doesn't leave enough room for a transition band of relative width %g\n",
 		transitionbandwidth);
+	printf(" Maximum upper limit: %g Hz.\n", (double)samplerate * (0.5/downsamplefactor - transitionbandwidth));
 	printf(" Aborting!\n");
 	exit(1);
   }

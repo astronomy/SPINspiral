@@ -1,7 +1,13 @@
 
   ChangeLog for the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
-  
+    
+    65: sluys, 22/10/2008
+     - Added possibility to start chains from specified values (new values for offsetmcmc)
+       The input file has now one extra line 'starting values' below 'injection values'
+     - The original (buggy?) dataset is back as #6 (for comparison with earlier results)
+     - Some cleaning, parameters -> structs
+    
     53: sluys, 06/08/2008
      - Replaced LALinterface.c with mcmc_lal.c: this contains all of LALinterface
        plus template15().  LAL-dependent stuff was moved from mcmc.h to the new

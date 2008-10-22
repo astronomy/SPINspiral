@@ -84,31 +84,31 @@ double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int 
 // (see SNR definition in Christensen/Meyer/Libson (2004), p.323)
 {
   int j=0;
-
+  
   // Fill `ifo[ifonr]->FTin' with time-domain template:
   template(par, ifo, ifonr);
-
+  
   // Window template:
   for(j=0; j<ifo[ifonr]->samplesize; ++j)
         ifo[ifonr]->FTin[j] *= ifo[ifonr]->FTwindow[j];
-
+  
   // Execute Fourier transform of signal template:
   fftw_execute(ifo[ifonr]->FTplan);
-
+  
   // Compute the overlap between waveform and itself:
   double overlaphh = vecoverlap(ifo[ifonr]->FTout,
         ifo[ifonr]->FTout, ifo[ifonr]->noisePSD,
         ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
-  //correct FFT for sampling rate of waveform
+  // Correct FFT for sampling rate of waveform
   overlaphh/=((double)ifo[ifonr]->samplerate);
   overlaphh/=((double)ifo[ifonr]->samplerate);
-
+  
   return sqrt(overlaphh);
-
-/*
+  
+  /*
   //Clean, but recomputes waveform multiple times
   return sqrt(paroverlap(par, par, ifo, ifonr));
-*/
+  */
 }
 
 
@@ -118,7 +118,6 @@ void writesignaltodisc(struct parset *par, struct interferometer *ifo[], int i)
 {
   if(MvdSdebug) printf("Writesignaltodisc %d\n",i);
   double rate = (double)ifo[i]->samplerate; // Double instead of int
-  double lograte = log(rate);
   double f=0.0;
   int j=0;
   
@@ -268,8 +267,6 @@ double parmatch(struct parset * par1,struct parset * par2, struct interferometer
 double overlapwithdata(struct parset *par, struct interferometer *ifo[], int ifonr)
 //compute frequency domain overlap of waveform of given parameters with raw data
 {
-  int j=0;
-
   fftw_complex *FFTwaveform = 
 	fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
   signalFFT(FFTwaveform, par, ifo, ifonr);
@@ -288,7 +285,6 @@ double paroverlap(struct parset * par1, struct parset * par2, struct interferome
 //Compute the overlap in the frequency domain between two waveforms with parameter sets par1 and par2
 {
   double overlap = 0.0;
-  int j=0;
   fftw_complex *FFT1 = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
   fftw_complex *FFT2 = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
   
@@ -365,11 +361,11 @@ void signalFFT(fftw_complex * FFTout, struct parset *par,
 
 
 
-
+/*
 void computeFishermatrixIFO(struct parset *par, int npar, struct interferometer *ifo[], int networksize, int ifonr, double **matrix)
 // Compute  Fisher matrix for parameter set par for a given IFO
 {
-/*  int ip=0,jp=0,j=0,j1=0,j2=0,nFT=0;
+  int ip=0,jp=0,j=0,j1=0,j2=0,nFT=0;
   struct parset par1;
   allocparset(&par1, networksize);
   double pars[npar];
@@ -417,7 +413,6 @@ void computeFishermatrixIFO(struct parset *par, int npar, struct interferometer 
   }
   
   freeparset(&par1);
-*/
 }
 
 
@@ -438,6 +433,7 @@ void computeFishermatrix(struct parset *par, int npar, struct interferometer *if
     }
   }
 }
+*/
 
 
 

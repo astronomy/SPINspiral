@@ -52,7 +52,10 @@
 
 //Global constants (which must be variable in a multi-file C code) etc., assigned in setconstants()
 
-//The following global arrays have the size of the number of parameters, e.g. 12 or 15:
+//  *** PLEASE DON'T ADD ANY NEW ONES, BUT USE THE STRUCTS BELOW INSTEAD (e.g. runpar or mcmcvariables) ***
+//      (and if you're bored, go ahead and place the variables below in these structs as well)
+
+//The following global arrays have the size of the number of parameters, i.e. 12 or 15:
 
 int fitpar[12],offsetpar[12];
 double truepar[12],pdfsigs[12];
@@ -67,22 +70,19 @@ int npar,iter,skip,screenoutput,adapt;
 
 int offsetmcmc;
 double offsetx;
-  
+
 int corrupd,ncorr,prmatrixinfo;
-  
+
 double temp0;
-int nburn;
-int nburn0;
-  
+int nburn,nburn0;
+
 int partemp,savehotchains,prpartempinfo;
 double tempmax;
-  
+
 int dosnr,domcmc,domatch,intscrout,writesignal;
 int printmuch;
-  
-double truespin,truetheta,prior_tc_mean,downsamplefactor;
 
-double databeforetc, dataaftertc, lowfrequencycut, highfrequencycut;  
+double truespin,truetheta,prior_tc_mean,downsamplefactor;
 
 int tempi;
   
@@ -92,11 +92,16 @@ double Ms,Mpc,G,c,Mpcs,pi,tpi,mtpi;
 int useoldmcmcoutputformat;
 
 
+/*
+// Relics from Christian's code:
 int parallelchains,impodraws,anneal,covest,covfix,covskip,initweight,modifiedStudent;
 long randomseed1,randomseed2;
 double logpostdiff,annealtemp,studentDF,propscale,tukeywin;
 double unifMcJump,unifTcJump,unifDirectJump,invDirectJump,wideDirectJump,unifOrientJump;
 double invPhaseJump,invIncliJump,iter_per_min,mutationprob;
+*/
+
+double tukeywin;
 
 int inject;
 double annealfact;
@@ -104,6 +109,14 @@ double annealfact;
 double StartPropCov[8][8];
 
 double *chaintemp;                  /* vector of temperatures for individual chains (initialised later) */
+
+
+
+
+
+
+
+
 
 
 
@@ -130,6 +143,9 @@ struct runpar{
   double netsnr;         // Total SNR of the network
   double targetsnr;      // Target total SNR of the network, scale the distance
   double temps[99];      // Temperature ladder for manual parallel tempering
+  double startpar[12];   // Starting parameters for the MCMC chains (may be different from true parameters)
+  
+  double databeforetc, dataaftertc, lowfrequencycut, highfrequencycut;
   
   char infilename[99];   // Run input file name
   char outfilename[99];  // Copy of input file name
@@ -300,6 +316,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[]);
 
 void setrandomtrueparameters(struct runpar *run);
 void gettrueparameters(struct parset *par);
+void getstartparameters(struct parset *par, struct runpar run);
 void getnullparameters(struct parset *par);
 void getparameterset(struct parset *par, double mc, double eta, double tc, double logdl, double spin, double kappa, 
 		     double longi, double sinlati, double phase, double sinthJ0, double phiJ0, double alpha);

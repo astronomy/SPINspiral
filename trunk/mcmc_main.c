@@ -50,8 +50,8 @@ int main(int argc, char * argv[])
   set_ifo_data(run, database);
   
   //Define interferometer network with IFOs.  The first run.networksize are actually used
-  struct interferometer *network[3] = {&database[0], &database[1], &database[2]}; //H1L1V
-  //struct interferometer *network[3] = {&database[0], &database[2], &database[1]}; //H1VL1
+  //struct interferometer *network[3] = {&database[0], &database[1], &database[2]}; //H1L1V
+  struct interferometer *network[3] = {&database[0], &database[2], &database[1]}; //H1VL1
   int networksize = run.networksize;
   
   //Initialise interferometers, read and prepare data, inject signal (takes some time)
@@ -250,7 +250,7 @@ int main(int argc, char * argv[])
       getparameterset(&par, 3.0,0.11,700009012.346140,3.0, 0.5,0.9,3.0,0.5, 1.0,0.1,2.0,3.0);
       
       //computeFishermatrixIFO(par,npar,network,networksize,0,matrix);
-      computeFishermatrix(&par,npar,network,networksize,matrix);
+      //computeFishermatrix(&par,npar,network,networksize,matrix);
       
       for(i=0;i<npar;i++) {
 	for(j=0;j<npar;j++) {

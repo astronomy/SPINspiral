@@ -96,10 +96,10 @@ void readinputfile(struct runpar *run)
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin); sscanf(bla,"%d",&run->selectdata);
   fgets(bla,500,fin); sscanf(bla,"%lf",&downsamplefactor);
-  fgets(bla,500,fin); sscanf(bla,"%lf",&databeforetc);
-  fgets(bla,500,fin); sscanf(bla,"%lf",&dataaftertc);
-  fgets(bla,500,fin); sscanf(bla,"%lf",&lowfrequencycut);
-  fgets(bla,500,fin); sscanf(bla,"%lf",&highfrequencycut);
+  fgets(bla,500,fin); sscanf(bla,"%lf",&run->databeforetc);
+  fgets(bla,500,fin); sscanf(bla,"%lf",&run->dataaftertc);
+  fgets(bla,500,fin); sscanf(bla,"%lf",&run->lowfrequencycut);
+  fgets(bla,500,fin); sscanf(bla,"%lf",&run->highfrequencycut);
 
   //Diverse:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
@@ -111,6 +111,9 @@ void readinputfile(struct runpar *run)
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
   for(i=0;i<npar;i++) fscanf(fin,"%lf",&truepar[i]);  //Read the array directly, because sscanf cannot be in a loop...
   prior_tc_mean = truepar[2];   //prior_tc_mean is used everywhere
+  //True parameter values:
+  for(i=0;i<npar;i++) fscanf(fin,"%lf",&run->startpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  if(offsetmcmc==0 || offsetmcmc==1) for(i=0;i<npar;i++) run->startpar[i] = truepar[i];  //Set the starting parameters equal to the true, injection parameters
   
   //Typical PDF widths:
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
@@ -164,11 +167,11 @@ void writeinputfile(struct runpar *run)
   
   
   fprintf(fout, "\n  #Start from offset values:\n");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",      offsetmcmc,    "offsetmcmc",     "Start the MCMC with offset initial parameters: 0-no, 1-yes.  The exact parameters to be offset are determined in offsetpar below.");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      offsetmcmc,    "offsetmcmc",     "Start the MCMC with offset initial parameters: 0-no: use injection parameters, 1-yes: randomly around the injected parameters, 2-yes: at the starting parameters, 3-yes: randomly around the starting parameters.  The individual parameters to be offset are determined in offsetpar below.");
   fprintf(fout, "  %-25.1f  %-18s  %-s\n",    offsetx,       "offsetx",        "Start the MCMC with an offset of x times the typical pdf sigma.");
   fprintf(fout, " ");
   for(i=0;i<npar;i++) fprintf(fout, "%2d",    offsetpar[i]);
-  fprintf(fout, "    %-18s  %-s\n",                          "offsetpar[12]",  "Parameters you want to start from offset values. At the moment only works if parameter is also 'fit' (i.e. value is 1 in fitpar).");
+  fprintf(fout, "    %-18s  %-s\n",                          "offsetpar[12]",  "Parameters you want to start from random offset values. At the moment only works if parameter is also 'fit' (i.e. value is 1 in fitpar).");
   
   
   fprintf(fout, "\n  #Correlated update proposals:\n");
@@ -205,10 +208,10 @@ void writeinputfile(struct runpar *run)
   fprintf(fout, "\n  #Data handling:\n");
   fprintf(fout, "  %-25d  %-18s  %-s\n",     run->selectdata,"selectdata",     "Select the data set to run on  (set to 0 to print a list of data sets). Make sure you set the true tc and datadir accordingly.");
   fprintf(fout, "  %-25.2f  %-18s  %-s\n", downsamplefactor,"downsamplefactor","Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8");
-  fprintf(fout, "  %-25.1f  %-18s  %-s\n", databeforetc, "databeforetc", "The stretch of data in seconds before presumed coalescence that is read in as part of the data segment");
-  fprintf(fout, "  %-25.1f  %-18s  %-s\n", dataaftertc, "dataaftertc", "The stretch of data in seconds after presumed coalescence that is read in as part of the data segment");
-  fprintf(fout, "  %-25.1f  %-18s  %-s\n", lowfrequencycut, "lowfrequencycut", "Templates and overlap integration start at this frequency");
-  fprintf(fout, "  %-25.1f  %-18s  %-s\n", highfrequencycut, "highfrequencycut", "Overlap integration ends at this frequency");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n", run->databeforetc, "databeforetc", "The stretch of data in seconds before presumed coalescence that is read in as part of the data segment");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n", run->dataaftertc, "dataaftertc", "The stretch of data in seconds after presumed coalescence that is read in as part of the data segment");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n", run->lowfrequencycut, "lowfrequencycut", "Templates and overlap integration start at this frequency");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n", run->highfrequencycut, "highfrequencycut", "Overlap integration ends at this frequency");
 
   
   fprintf(fout, "\n  #Diverse:\n");
@@ -222,7 +225,7 @@ void writeinputfile(struct runpar *run)
   
   
   fprintf(fout, "\n");
-  fprintf(fout, "\n  #True parameter values, *not* the exact MCMC parameters and units!  These are used to inject a signal and/or start the MCMC from.\n");
+  fprintf(fout, "\n  #Injection (first line) and starting (second line) parameter values, *not* the exact MCMC parameters and units!\n");
   fprintf(fout, "   M1(Mo)    M2(Mo)            t_c (GPS)   d_L(Mpc)    a_spin    th_SL(d)    R.A.(h)     dec(d)    phic(d)   th_Jo(d)   phi_Jo(d)  alpha(d)  \n");
   for(i=0;i<npar;i++) {
     if(i==2) {
@@ -231,8 +234,16 @@ void writeinputfile(struct runpar *run)
       fprintf(fout, "  %-9.4lf",truepar[i]);
     }
   }
-  
   fprintf(fout, "\n");
+  for(i=0;i<npar;i++) {
+    if(i==2) {
+      fprintf(fout, "  %-18.6lf",run->startpar[i]);
+    } else {
+      fprintf(fout, "  %-9.4lf",run->startpar[i]);
+    }
+  }
+  fprintf(fout, "\n");
+  
   fprintf(fout, "\n  #Typical PDF widths (used for first correlation matrix and offset run):\n");
   for(i=0;i<npar;i++) fprintf(fout, "  %-7.4f",pdfsigs[i]);
   
@@ -305,88 +316,6 @@ void setconstants(struct runpar *run)
   j = i;              //Keeps compiler from complaining:  variable "i" was set but never used
   i = j;
   
-  /*
-  iter           =  1e1;           // Total number of iterations to be computed (~1e7)
-  skip           =  10;             // Number of iterations to be skipped between stored steps (100 for 1d)
-  screenoutput   =  10;            // Number of iterations between screen outputs im the MCMC (1000 for 1d)
-  run->mcmcseed  =  0;             // Random number seed to start the MCMC 0-let system clock determine seed
-  adapt          =  1;             // Use adaptation: 0-no, 1-yes
-  run->blockfrac   =  0.1;           // Fraction of uncorrelated updates that is updated as a block of all parameters (<=0.0: none, >=1.0: all)
-  
-  
-
-  //Start from offset values:
-  offsetmcmc     =  0;             // Start the MCMC with offset initial parameters: 0-no, 1-yes.  The exact parameters to be offset are determined in offsetpar below.
-  offsetx     =  1.e1;          // Start the MCMC with an offset of x times the typical pdf sigma
-  //offsetpar[12]        =  {1,1,1,1, 1,1,1,1, 1,1,1,1};  //Parameters you want to start from offset values at the moment only works if parameter is also 'fit' (i.e. value is 1 in fitpar)
-  
-  for(i=0;i<12;i++) offsetpar[i] = 1;
-  
-  //Correlated update proposals:
-  corrupd        =  2;             // Do correlated update proposals: 0-no, 1-yes but update the matrix only once, 2-yes and update the matrix every ncorr iterations
-  ncorr          =  1e2;           // Number of iterations for which the covariance matrix is calculated
-  prmatrixinfo   =  1;             // Print information to screen on proposed matrix updates: 0-none, 1-some (default), 2-a lot
-  
-  //Annealing:
-  temp0       =  1.e0;          // Starting temperature of the chain set 1.0 for no temperature effect
-  nburn          =  1e5;           // Number of iterations for the burn-in phase (1e4) at this number, the temperature drops to 1.0
-  nburn0         =  1e5;           // Number of iterations during which temp=temp0 (e.g. 0.1*nburn, should be lower than ~0.9*nburn)
-  
-  //Parallel tempering:
-  partemp        =  2;             // Use parallel tempering:  0-no,  1-auto, fixed T ladder,  2-auto, sinusoid T ladder,  3-manual, fixed T ladder,  4-manual, sinusoid T ladder
-  ntemps         =  3;             // Number of steps in the temperature ladder for parallel tempering
-  tempmax     =  5.e1;          // Maximum temperature in automatic parallel-tempering ladder (equidistant in log(T))
-  savehotchains  =  0;             // Save all parallel-tempering chains: 0-no, 1-yes
-  prpartempinfo  =  2;             // Print information to screen on the temperature chains: 0-none, 1-some ladder info (default), 2-add chain-swap matrix
-  
-  //Output:
-  dosnr          =  1;             // Calculate the SNR: 0-no, 1-yes
-  domcmc         =  1;             // Do MCMC: 0-no, 1-yes
-  domatch        =  0;             // Calculate matches: 0-no, 1-yes
-  intscrout      =  0;             // Print initialisation output to screen: 0-no, 1-yes
-  writesignal    =  0;             // Write signal, noise, PSDs to file: 0-no, 1-yes
-  printmuch            =  0;             // Print long stretches of output (1) or not (0), global variable, so that you can decide to switch it on/off locally
-  
-  
-  truespin    =  0.8;           // True value of spin
-  truetheta   =  55.0;           // True value of theta_SL
-  //cutoff_a    =  7.5;           // Low value of a/M where signal should be cut off
-  prior_tc_mean = 700009012.345;  //Simulated data, the one MvdS used in the beginning
-  //prior_tc_mean = 839366100.345;  //Real (S5) data 1
-  //prior_tc_mean = 846226100.345;  //Real (S5) data 2
-  downsamplefactor = 16.0;       //Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0, shouldn't be higher than 8...
-  
-  //0:mc, 1:eta, 2:tc, 3:logdl,     4:spin, 5:kappa, 6: longi (->RA), 7:sinlati,      8:phase, 9:sinthJ0, 10:phiJ0, 11:alpha
-  //0,1,2,3, 4,5,6,7, 8,9,0,1
-  //Parameters you want to fit
-  //fitpar[12] = {1,1,1,1, 1,1,1,1, 1,1,1,1};  //All
-  for(i=0;i<12;i++) fitpar[i] = 1;
-  //fitpar[12] = {0,0,1,1, 0,0,1,1, 0,0,0,0};  //t_c, dist and sky position
-  //fitpar[12] = {0,0,1,1, 0,0,1,1, 1,1,1,1};  //Extrinsic parameters
-  //fitpar[12] = {1,1,0,0, 1,1,0,0, 0,0,0,0};  //Intrinsic parameters
-  
-  //pdfsigs[12] = {0.0233,0.0252,0.008,0.260,  0.1129,0.16,0.57,0.139,  1.5,0.135,0.282,1.5};  //Typical width of a PDF, for 1D, correlated updates, a=0.8: 90% range
-  pdfsigs[0]  = 0.0233;
-  pdfsigs[1]  = 0.0252;
-  pdfsigs[2]  = 0.008;
-  pdfsigs[3]  = 0.260;
-  pdfsigs[4]  = 0.1129;
-  pdfsigs[5]  = 0.16;
-  pdfsigs[6]  = 0.57;
-  pdfsigs[7]  = 0.139;
-  pdfsigs[8]  = 1.5;
-  pdfsigs[9]  = 0.135;
-  pdfsigs[10] = 0.282;
-  pdfsigs[11] = 1.5;
-  //pdfsigs[12] = {0.0233,0.0252,0.05,0.30,  0.1129,0.16,1.3,0.4,  1.5,0.135,0.282,1.5};  //Test run with only tc, d, RA and dec.
-  
-  //datadir[] = "/home/sluys/work/GW/programs/MCMC/data"; // Directory where the datafiles are located: Mac, Fugu
-  sprintf(datadir,"/home/sluys/work/GW/programs/MCMC/data");
-  //const char datadir[] = "/guest/sluys/work/GW/programs/MCMC/data"; // Directory where the datafiles are located: Tsunami
-  //const char datadir[] = "/attic/sluys/work/GW/programs/MCMC/data"; // Directory where the datafiles are located: Typhoon
-
-  
-  */
   
   /*
   //Not in MCMC units!
@@ -411,10 +340,6 @@ void setconstants(struct runpar *run)
   
   
   
-  /*  note that since `complex.h' is included BEFORE `fftw3.h',   */
-  /*  the data type `fftw_complex' equals `double complex'        */
-  /*  (see: http://www.fftw.org/fftw3_doc/Complex-numbers.html).  */
-  
   /*-- define some physical constants --*/
   /* Nelson Christensen wrote (18/03/'05):                                */
   /* > Christian and Mark                                                 */
@@ -438,31 +363,34 @@ void setconstants(struct runpar *run)
   //prior_dist_10    =  60.0; /* distance at which a 2-2Ms inspiral has 10% detection prob. */
   
   /*--- logfile for MCMC chain: --------------------------------------------------------------------------*/
-  parallelchains =    2; /* number of parallel chains                                        */
-  impodraws      =   10; /* number of importance-resampled starting draws                    */
-  logpostdiff    = 20.0; /* max. difference of log-post.-densities allowed in startsample    */
-  anneal         =   10; /* number of annealing iterations                                   */
-  annealtemp     =  1.0; /* `temperature' from which (variance) annealing starts             */
-  covest         = 29000; /* starting iteration for covariance estimation (9900000)          */
-  covfix         = 29500; /* number of iterations until covariance is fixed (no more updates) (9950000) */
-  covskip        = 100; /* iterations to be skipped between covariance updates (100)        */
-  initweight     = 1000; /* weight (in iterations) of initial covariance in later updates (1000000)   */
-  studentDF      =  3.0; /* degrees of freedom for Student-t jumps (0.0 indicates Normal)    */
-  modifiedStudent =   1; /* modify the (student-t) proposal                                  */
-  propscale      = 0.2 ; /* scale of proposal covariance relative to assumed posterior cov.  */
-  tukeywin       = 0.05; /* parameter for Tukey-window used in dataFT (non-flat fraction).   Use 0.15 for Virgo data  */
-  randomseed1    = 3335; /* random seed                                                      */
-  randomseed2    = 4449; /*   "     "                                                        */
-  unifMcJump     = 0.10; /* probability for uniform chirp mass  proposals                    */
-  unifTcJump     = 0.10; /* probability for uniform coalescence time proposals               */
-  unifDirectJump = 0.10; /* probability for uniform direction proposals                      */
-  invDirectJump  = 0.01; /* probability for inverse direction proposals                      */
-  wideDirectJump = 0.20; /* probability for 10 times as wide jumps                           */
-  unifOrientJump = 0.10; /* probability for uniform orientation proposals                    */
-  invPhaseJump   = 0.05; /* probability for inverse phase proposals  (phi + pi)              */
-  invIncliJump   = 0.05; /* probability for inverse inclination proposals  (pi - iota)       */
-  iter_per_min   = 60.0; /* (a guess in order to estimate the computation time)              */
-  mutationprob   = 0.75; /* mutation probability (remaining moves are crossovers)            */
+  /*
+  parallelchains =    2; // number of parallel chains                                        
+  impodraws      =   10; // number of importance-resampled starting draws                    
+  logpostdiff    = 20.0; // max. difference of log-post.-densities allowed in startsample    
+  anneal         =   10; // number of annealing iterations                                   
+  annealtemp     =  1.0; // `temperature' from which (variance) annealing starts             
+  covest         = 29000; // starting iteration for covariance estimation (9900000)          
+  covfix         = 29500; // number of iterations until covariance is fixed (no more updates) (9950000) 
+  covskip        = 100; // iterations to be skipped between covariance updates (100)        
+  initweight     = 1000; // weight (in iterations) of initial covariance in later updates (1000000)   
+  studentDF      =  3.0; // degrees of freedom for Student-t jumps (0.0 indicates Normal)    
+  modifiedStudent =   1; // modify the (student-t) proposal                                  
+  propscale      = 0.2 ; // scale of proposal covariance relative to assumed posterior cov.  
+  randomseed1    = 3335; // random seed                                                      
+  randomseed2    = 4449; //   "     "                                                        
+  unifMcJump     = 0.10; // probability for uniform chirp mass  proposals                    
+  unifTcJump     = 0.10; // probability for uniform coalescence time proposals               
+  unifDirectJump = 0.10; // probability for uniform direction proposals                      
+  invDirectJump  = 0.01; // probability for inverse direction proposals                      
+  wideDirectJump = 0.20; // probability for 10 times as wide jumps                           
+  unifOrientJump = 0.10; // probability for uniform orientation proposals                    
+  invPhaseJump   = 0.05; // probability for inverse phase proposals  (phi + pi)              
+  invIncliJump   = 0.05; // probability for inverse inclination proposals  (pi - iota)       
+  iter_per_min   = 60.0; // (a guess in order to estimate the computation time)              
+  mutationprob   = 0.75; // mutation probability (remaining moves are crossovers)            
+  */
+  
+  tukeywin       = 0.05; // parameter for Tukey-window used in dataFT (non-flat fraction).   Use 0.15 for Virgo data  
   
   //In mcmc.input now
   //inject            = 1; /* inject `homemade' signal?                                        */
@@ -556,6 +484,35 @@ void gettrueparameters(struct parset *par)  //Set the parameters for the 12-para
   par->sinthJ0  = sin(truepar[9]*d2r);           // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
   par->phiJ0    = truepar[10]*d2r;               // Phi_J0 ~ azimuthal            (125)
   par->alpha    = truepar[11]*d2r;               // Alpha_c                       (0.9 rad = 51.566202deg)
+  
+  par->loctc    = NULL;
+  par->localti  = NULL;
+  par->locazi   = NULL;
+  par->locpolar = NULL;
+}
+
+
+void getstartparameters(struct parset *par, struct runpar run)  //Set the parameters for the 12-parameter spinning template to the starting values for the MCMC chain
+{
+  par->m1       = run.startpar[0];                    // M1 (10.0)
+  par->m2       = run.startpar[1];                    // M2  (1.4)
+  par->m        = par->m1+par->m2;
+  par->mu       = par->m1*par->m2/par->m;
+  par->eta      = par->mu/par->m;                // mass ratio                
+  par->mc       = par->m*pow(par->eta,0.6);      // chirp mass. in Mo         
+  par->tc       = run.startpar[2];                    // coalescence time
+  par->logdl    = log(run.startpar[3]);               // log-distance (Mpc) (17.5)             
+  
+  par->spin     = run.startpar[4];                    // magnitude of total spin   (0.1)
+  par->kappa    = cos(run.startpar[5]*d2r);           // L^.S^, cos of angle between L^ & S^  (0.819152)
+  //par->longi    = run.startpar[6]*d2r;                // longitude (~'Greenwich hour angle', saved as RA)     (120)
+  par->longi    = fmod(longitude(run.startpar[6]*h2r,GMST(par->tc))+mtpi,tpi);  //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
+  par->sinlati  = sin(run.startpar[7]*d2r);           // sin latitude (sin(delta))  (40)     
+  
+  par->phase    = run.startpar[8]*d2r;                // orbital phase   (phi_c)   (0.2)
+  par->sinthJ0  = sin(run.startpar[9]*d2r);           // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
+  par->phiJ0    = run.startpar[10]*d2r;               // Phi_J0 ~ azimuthal            (125)
+  par->alpha    = run.startpar[11]*d2r;               // Alpha_c                       (0.9 rad = 51.566202deg)
   
   par->loctc    = NULL;
   par->localti  = NULL;
