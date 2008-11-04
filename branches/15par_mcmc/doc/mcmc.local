@@ -1,0 +1,4 @@
+  #Input file for spinning MCMC code, with system-dependent variables
+
+  #Data directory:
+  /home/sluys/work/GW/programs/MCMC/data         #Fugu/laptop: /home/sluys/work/GW/programs/MCMC/data, Tsunami: /guest/sluys/work/GW/programs/MCMC/data, Typhoon: /attic/sluys/work/GW/programs/MCMC/data                                                 

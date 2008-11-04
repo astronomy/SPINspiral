@@ -1,0 +1,74 @@
+  #Input file for spinning MCMC code.  The LINE NUMBER for each parameter should not change!!!
+
+  #Value:                    Variable:           Description:
+
+  #Basic settings:
+  1000                       iter                Total number of iterations to be computed (e.g. 1e7).
+  1                          skip                Number of iterations to be skipped between stored steps (100 for 1d).
+  1                          screenoutput        Number of iterations between screen outputs im the MCMC (1000 for 1d).
+  0                          mcmcseed            Random number seed to start the MCMC: 0-let system clock determine seed.
+  1                          inject              Inject a signal (1) or not (0).
+  0 0 0 0 0 0 0 0 0 0 0 0    setranpar[12]       Parameters you want to randomise before injecting the signal; 0: use the value in truepar below, 1: randomise.  These are the same parameters as trueval (ie M1, M2, etc!)
+  1000                       ranparseed          Random number seed for random injection parameters. Don't change between serial chains of the same run!
+  1                          adapt               Use adaptation: 0-no, 1-yes.
+  0.10                       blockfrac           Fraction of uncorrelated updates that is updated as a block of all parameters (<=0.0: none, >=1.0: all).
+  1 1 1 1 1 1 1 1 1 1 1 1    fitpar[12]          Parameters you want to fit for.
+
+  #Start from offset values:
+  0                          offsetmcmc          Start the MCMC with offset initial parameters: 0-no: use injection parameters, 1-yes: randomly around the injected parameters, 2-yes: at the starting parameters, 3-yes: randomly around the starting parameters.  The individual parameters to be offset are determined in offsetpar below.
+  10.0                       offsetx             Start the MCMC with an offset of x times the typical pdf sigma.
+  1 1 1 1 1 1 1 1 1 1 1 1    offsetpar[12]       Parameters you want to start from random offset values. At the moment only works if parameter is also 'fit' (i.e. value is 1 in fitpar).
+
+  #Correlated update proposals:
+  2                          corrupd             Do correlated update proposals: 0-no, 1-yes but update the matrix only once, 2-yes and update the matrix every ncorr iterations.
+  0.9                        corrfrac            Fraction of update proposals that is correlated (0.0-1.0, ~0.7 seems ok). corrupd must be 2. Should this replace corrupd?
+  1e+03                      ncorr               Number of iterations for which the covariance matrix is calculated.
+  0.5                        mataccfr            Fraction of elements on the diagonal that must 'improve' in order to accept a new covariance matrix. ???~0.6-0.8 for unimodal, 0.0-0.2 for multimodal???
+  1                          prmatrixinfo        Print information to screen on proposed matrix updates: 0-none, 1-some (default), 2-add the old and new matrices.
+
+  #Annealing:
+  1.00                       temp0               Starting temperature of the chain, e.g. 100.0. Set 1.0 for no temperature effect.
+  1e+05                      nburn               Number of iterations for the burn-in phase (1e4) at this number, the temperature drops to 1.0.
+  1e+05                      nburn0              Number of iterations during which temp=temp0 (e.g. 0.1*nburn, should be lower than ~0.9*nburn).
+
+  #Parallel tempering:
+  2                          partemp             Use parallel tempering:  0-no,  1-auto, fixed T ladder,  2-auto, sinusoid T ladder,  3-manual, fixed T ladder,  4-manual, sinusoid T ladder.  For a manual ladder, see near the bottom of the file.
+  5                          ntemps              Number of steps in the temperature ladder for parallel tempering, typically 5-10.
+  40.0                       tempmax             Maximum temperature in automatic parallel-tempering ladder (equidistant in log(T)), typically 20-100, e.g. 50.
+  100                        savehotchains       Save hot (T>1) parallel-tempering chains: 0-no (just the T=1 chain), >0-yes; for every saved T=1 point, save every savehotchains-th hot point.
+  2                          prpartempinfo       Print information to screen on the temperature chains: 0-none, 1-some ladder info (default), 2-add chain-swap matrix.
+
+  #Output:
+  1                          dosnr               Calculate the SNR: 0-no, 1-yes.
+  1                          domcmc              Do MCMC: 0-no, 1-yes.
+  0                          domatch             Calculate matches: 0-no, 1-yes.
+  1                          intscrout           Print initialisation output to screen: 0-no, 1-yes.
+  0                          writesignal         Write signal, noise, PSDs to file: 0-no, 1-yes.
+  0                          printmuch           Print long stretches of output (1) or not (0).
+
+  #Data handling:
+  5                          selectdata          Select the data set to run on  (set to 0 to print a list of data sets). Make sure you set the true tc and datadir accordingly.
+  1.0                        downsamplefactor    Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8
+  6.0                        databeforetc        The stretch of data in seconds before presumed coalescence that is read in as part of the data segment           
+  1.0                        dataaftertc         The stretch of data in seconds after presumed coalescence that is read in as part of the data segment           
+  40.0                       lowfrequencycut     Templates and overlap integration start at this frequency    
+  1800.0                     highfrequencycut    Overlap integration ends at this frequency
+
+  #Diverse:
+  1                          networksize         Set the number of detectors that make up the network: 1: H1, 2: H1L1, 3: H1L1V
+  0.0                        targetsnr           If > 0: scale the distance such that the network SNR becomes targetsnr
+  1                          waveformversion     Waveform version: 1 for 1.5PN 12-parameter non-LAL, 2 for 3.5PN 15-parameter LAL
+  
+
+  #Injection (first line) and starting (second line) parameter values, *not* the exact MCMC parameters and units!
+   M1(Mo)    M2(Mo)            t_c (GPS)   d_L(Mpc)    a_spin    th_SL(d)    R.A.(h)     dec(d)    phic(d)   th_Jo(d)   phi_Jo(d)  alpha(d)  
+   10.000   1.40000     894457172.398531     12.000    0.1000     20.0000    17.3230    48.8286   357.1577   -51.7308   288.8071   242.5834 
+   10.000   1.40000     894457172.398531     12.000    0.1000     20.0000    17.3230    48.8286   357.1577   -51.7308   288.8071   242.5834 
+
+  #Typical PDF widths (used for first correlation matrix and offset run):
+  0.0233   0.0252   0.0080   0.2600   0.1129   0.1600   0.5700   0.1390   1.5000   0.1350   0.2820   1.5000 
+
+  #Manual temperature ladder for parallel tempering:
+  1.00     2.00     4.00     0.00     0.00   
+
+
