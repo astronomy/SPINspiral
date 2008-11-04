@@ -50,8 +50,8 @@ int main(int argc, char * argv[])
   set_ifo_data(run, database);
   
   //Define interferometer network with IFOs.  The first run.networksize are actually used
-  //struct interferometer *network[3] = {&database[0], &database[1], &database[2]}; //H1L1V
-  struct interferometer *network[3] = {&database[0], &database[2], &database[1]}; //H1VL1
+  struct interferometer *network[3] = {&database[0], &database[1], &database[2]}; //H1L1V
+  //struct interferometer *network[3] = {&database[0], &database[2], &database[1]}; //H1VL1
   int networksize = run.networksize;
   
   //Initialise interferometers, read and prepare data, inject signal (takes some time)
