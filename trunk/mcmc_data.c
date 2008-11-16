@@ -143,17 +143,19 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     
     sprintf(ifo[0].ch1name,       "H1:STRAIN"); 
     sprintf(ifo[0].ch1filepath,   datadir);
-    sprintf(ifo[0].ch1fileprefix, "H1-NINJADATA-");
+//    sprintf(ifo[0].ch1fileprefix, "H1-NINJADATA-");
+    sprintf(ifo[0].ch1fileprefix, "HLV-NINJA_DATA-");
     sprintf(ifo[0].ch1filesuffix, "-1024.gwf");
     ifo[0].ch1filesize   = 1024; 
     ifo[0].ch1fileoffset = 743;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[0].ch1doubleprecision = 0;
     ifo[0].add2channels    = 0;  //0, unless you want to read a signal from file
     
-    ifo[0].noiseGPSstart   = 894457315; //894378400;  //894457315;
+    ifo[0].noiseGPSstart   = 894400500; //894457315; //894378400;  //894457315;
     sprintf(ifo[0].noisechannel,    "H1:STRAIN");
     sprintf(ifo[0].noisefilepath,   datadir);
-    sprintf(ifo[0].noisefileprefix, "H1-NINJADATA-");
+//    sprintf(ifo[0].noisefileprefix, "H1-NINJADATA-");
+    sprintf(ifo[0].noisefileprefix, "HLV-NINJA_DATA-");
     sprintf(ifo[0].noisefilesuffix, "-1024.gwf");
     ifo[0].noisefilesize   = 1024; 
     ifo[0].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
@@ -300,17 +302,19 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     
     sprintf(ifo[1].ch1name,       "L1:STRAIN"); 
     sprintf(ifo[1].ch1filepath,   datadir);
-    sprintf(ifo[1].ch1fileprefix, "L1-NINJADATA-");
+//    sprintf(ifo[1].ch1fileprefix, "L1-NINJADATA-");
+    sprintf(ifo[1].ch1fileprefix, "HLV-NINJA_DATA-");
     sprintf(ifo[1].ch1filesuffix, "-1024.gwf");
     ifo[1].ch1filesize   = 1024; 
     ifo[1].ch1fileoffset = 743;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[1].ch1doubleprecision = 0;
     ifo[1].add2channels    = 0;  //0, unless you want to read a signal from file
     
-    ifo[1].noiseGPSstart   = 894457315; //894378400;  //894457315;
+    ifo[1].noiseGPSstart   = 894400500; //894457315; //894378400;  //894457315;
     sprintf(ifo[1].noisechannel,    "L1:STRAIN");
     sprintf(ifo[1].noisefilepath,   datadir);
-    sprintf(ifo[1].noisefileprefix, "L1-NINJADATA-");
+    //sprintf(ifo[1].noisefileprefix, "L1-NINJADATA-");
+    sprintf(ifo[1].noisefileprefix, "HLV-NINJA_DATA-");
     sprintf(ifo[1].noisefilesuffix, "-1024.gwf");
     ifo[1].noisefilesize   = 1024; 
     ifo[1].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
@@ -391,17 +395,19 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     
     sprintf(ifo[2].ch1name,       "V1:STRAIN");
     sprintf(ifo[2].ch1filepath,   datadir);
-    sprintf(ifo[2].ch1fileprefix, "V1-NINJADATA-");
+//    sprintf(ifo[2].ch1fileprefix, "V1-NINJADATA-");
+    sprintf(ifo[2].ch1fileprefix, "HLV-NINJA_DATA-");
     sprintf(ifo[2].ch1filesuffix, "-1024.gwf");
     ifo[2].ch1filesize   = 1024;
     ifo[2].ch1fileoffset = 743;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[2].ch1doubleprecision = 0;
     ifo[2].add2channels    = 0;  //0, unless you want to read a signal from file
     
-    ifo[2].noiseGPSstart   = 894457315; //894378400;  //894457315;
+    ifo[2].noiseGPSstart   = 894400500; //894457315; //894378400;  //894457315;
     sprintf(ifo[2].noisechannel,    "V1:STRAIN");
     sprintf(ifo[2].noisefilepath,   datadir);
-    sprintf(ifo[2].noisefileprefix, "V1-NINJADATA-");
+//    sprintf(ifo[2].noisefileprefix, "V1-NINJADATA-");
+    sprintf(ifo[2].noisefileprefix, "HLV-NINJA_DATA-");
     sprintf(ifo[2].noisefilesuffix, "-1024.gwf");
     ifo[2].noisefilesize   = 1024;
     ifo[2].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
@@ -502,7 +508,7 @@ void ifoinit(struct interferometer **ifo, int networksize)
            360.0 - ifo[i]->rightarm*r2d, 360.0 - ifo[i]->leftarm*r2d);
     if(ifo[i]->ch1doubleprecision) if(intscrout==1) printf(" | frame file precision: double (64 bit)\n"); 
     else if(intscrout==1) printf(" | frame file precision: float (32 bit)\n"); 
-    //if(intscrout==1) printf(" | frequency range: %.0f to %.0f Hz.\n", ifo[i]->lowCut, ifo[i]->highCut);
+    if(intscrout==1) printf(" | frequency range: %.0f to %.0f Hz.\n", ifo[i]->lowCut, ifo[i]->highCut);
     if(intscrout==1) printf(" | initialising vectors etc...");
     
     
@@ -773,7 +779,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   }
   if(intscrout==1) printf(" | %s\n",filenames);
   // Read 1st channel (noise or noise+signal):
-  if(ifo[i]->ch1doubleprecision) //Seems precision is single
+  if(ifo[i]->ch1doubleprecision) //Seems precision is double
     nvect = FrFileIGetVectD(iFile, ifo[i]->ch1name, from, delta);
   else
     nvect = FrFileIGetVectF(iFile, ifo[i]->ch1name, from, delta);
@@ -843,22 +849,6 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     ifo[i]->FTstart = tempfrom;
     ifo[i]->samplesize = tempN;
     
-    // Write high-sampled injection signal to disc
-    if(writesignal && 1==2){
-      char filename[100]="";
-      sprintf(filename,"%s-injection.dat",ifo[i]->name);
-      FILE *dump = fopen(filename,"w");
-      fprintf(dump,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
-      fprintf(dump,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
-	      injectpar.m1,injectpar.m2,injectpar.mc,injectpar.eta,injectpar.tc,exp(injectpar.logdl),asin(injectpar.sinlati)*r2d,injectpar.longi*r2d,injectpar.phase,
-              injectpar.spin,injectpar.kappa,injectpar.sinthJ0,injectpar.phiJ0,injectpar.alpha);
-      fprintf(dump,"t Ht\n");
-      for(j=0; j<N; ++j)
-	fprintf(dump, "%9.9f %.6e\n", from+(((double)j)/((double) (ifo[i]->samplerate))), injection[j]);  //*******************************************************************************************
-      fclose(dump);
-      if(intscrout==1) printf(" : (signal written to file)\n");
-    }
-    
     freeparset(&injectpar);
   } // if(inject)
   else if(ifo[i]->add2channels) { // Read 2nd channel (signal only)  (if not doing a software injection)
@@ -925,7 +915,6 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   // Downsample (by factor downsamplefactor):    *** changes value of N ***
   if(intscrout==1) printf(" | downsampling... \n");
 
-/*NINJA*/
   filtercoef = filter(&ncoef, ifo[i]->samplerate, ifo[i]->highCut);
   ifo[i]->FTin = downsample(raw, &N, filtercoef, ncoef);
 
@@ -937,6 +926,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   ifo[i]->samplerate = (int)((double)ifo[i]->samplerate/downsamplefactor);
   free(raw);
   free(filtercoef);
+/*NINJA*/
 
 /*
   ifo[i]->FTin = (double*) fftw_malloc(sizeof(double)*N);
@@ -956,26 +946,6 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
   }
   
-  
-  // Write windowed, time-domain data (signal + noise) to disc
-  if(writesignal && 1==1){
-    char filename[1000]="";
-    sprintf(filename, "%s-data.dat", ifo[i]->name);  //Write in current dir
-    FILE *dump = fopen(filename,"w");
-    
-    // Get true signal parameters and write them to the header
-    struct parset par;
-    gettrueparameters(&par);
-    fprintf(dump,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
-    fprintf(dump,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
-	    par.m1,par.m2,par.mc,par.eta,par.tc,exp(par.logdl),asin(par.sinlati)*r2d,par.longi*r2d,par.phase,par.spin,par.kappa,par.sinthJ0,par.phiJ0,par.alpha);
-    fprintf(dump,"       GPS time (s)         H(t)\n");
-    for(j=0; j<N; ++j)
-      fprintf(dump, "%9.9f %.6e\n", ifo[i]->FTstart+(((double)j)/((double) (ifo[i]->samplerate))), ifo[i]->FTin[j]);
-    fclose(dump);
-    if(intscrout) printf(" : (signal written to file)\n");
-    freeparset(&par);
-  }
   
   
   // Allocate memory for Fourier-transform output:
@@ -1003,36 +973,6 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   for(j=0; j<ifo[i]->FTsize; ++j) ifo[i]->raw_dataTrafo[j] = ifo[i]->FTout[j];
   
   
-  
-  
-  // Write data FFT to disc (i.e., FFT or amplitude spectrum of signal+noise)
-  if(writesignal && 1==1){
-    double f=0.0;
-    double complex tempvar=0.0;
-    char filename[1000]="";
-    sprintf(filename, "%s-dataFFT.dat", ifo[i]->name);  //Write in current dir
-    FILE *dump1 = fopen(filename,"w");
-    
-    // Get true signal parameters and write them to the header
-    struct parset par;
-    gettrueparameters(&par);
-    fprintf(dump1,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
-    fprintf(dump1,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
-	    par.m1,par.m2,par.mc,par.eta,par.tc,exp(par.logdl),asin(par.sinlati)*r2d,par.longi*r2d,par.phase,par.spin,par.kappa,par.sinthJ0,par.phiJ0,par.alpha);
-    fprintf(dump1,"       f (Hz)    real(H(f))    imag(H(f))\n");
-    
-    double fact1a = ((double)ifo[i]->samplerate) / (2.0*(double)ifo[i]->FTsize);
-    double fact1b = sqrt(2.0)*2.0/ifo[i]->deltaFT;  //Extra factor of sqrt(2) to get the numbers right with the outside world
-    // Loop over the Fourier frequencies 
-    for(j=1; j<ifo[i]->FTsize; ++j){
-      f = fact1a * ((double)(j+ifo[i]->lowIndex));
-      //if(f>0.9*ifo[i]->lowCut) fprintf(dump1, "%9.9f %.6e\n", log10(f), log10(2.0*cabs( ifo[i]->raw_dataTrafo[j] )/ifo[i]->deltaFT )  );
-      tempvar = fact1b * ifo[i]->raw_dataTrafo[j];
-      if(f>0.9*ifo[i]->lowCut) fprintf(dump1, "%13.6e %13.6e %13.6e\n", f, creal(tempvar), cimag(tempvar) );  //Save the real and imaginary parts of the data FFT
-    }
-    fclose(dump1);
-    if(intscrout) printf(" : (data FFT written to file)\n");
-  }
   
   
 }
@@ -1285,3 +1225,59 @@ double interpol_log_noisePSD(double f, struct interferometer *ifo)
   double result   = weight1*ifo->raw_noisePSD[lowindex] + weight2*ifo->raw_noisePSD[highindex];
   return result;
 }
+
+
+void writeDataToFiles(struct interferometer *ifo[], int networksize){
+int i, j;
+for(i=0; i<networksize; i++){ 
+  // Write windowed, time-domain data (signal + noise) to disc
+  if(writesignal){
+    char filename[1000]="";
+    sprintf(filename, "%s-data.dat", ifo[i]->name);  //Write in current dir
+    FILE *dump = fopen(filename,"w");
+    
+    // Get true signal parameters and write them to the header
+    struct parset par;
+    gettrueparameters(&par);
+    fprintf(dump,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
+    fprintf(dump,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
+	    par.m1,par.m2,par.mc,par.eta,par.tc,exp(par.logdl),asin(par.sinlati)*r2d,par.longi*r2d,par.phase,par.spin,par.kappa,par.sinthJ0,par.phiJ0,par.alpha);
+    fprintf(dump,"       GPS time (s)         H(t)\n");
+    for(j=0; j<ifo[i]->samplesize; ++j)
+      fprintf(dump, "%9.9f %.6e\n", ifo[i]->FTstart+(((double)j)/((double) (ifo[i]->samplerate))), ifo[i]->FTin[j]);
+    fclose(dump);
+    if(intscrout) printf(" : (data written to file)\n");
+    freeparset(&par);
+  }
+  
+  // Write data FFT to disc (i.e., FFT or amplitude spectrum of signal+noise)
+  if(writesignal){
+    double f=0.0;
+    double complex tempvar=0.0;
+    char filename[1000]="";
+    sprintf(filename, "%s-dataFFT.dat", ifo[i]->name);  //Write in current dir
+    FILE *dump1 = fopen(filename,"w");
+    
+    // Get true signal parameters and write them to the header
+    struct parset par;
+    gettrueparameters(&par);
+    fprintf(dump1,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
+    fprintf(dump1,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
+	    par.m1,par.m2,par.mc,par.eta,par.tc,exp(par.logdl),asin(par.sinlati)*r2d,par.longi*r2d,par.phase,par.spin,par.kappa,par.sinthJ0,par.phiJ0,par.alpha);
+    fprintf(dump1,"       f (Hz)    real(H(f))    imag(H(f))\n");
+    
+    double fact1a = ((double)ifo[i]->samplerate) / (2.0*(double)ifo[i]->FTsize);
+    double fact1b = sqrt(2.0)*2.0/ifo[i]->deltaFT;  //Extra factor of sqrt(2) to get the numbers right with the outside world
+    // Loop over the Fourier frequencies 
+    for(j=1; j<ifo[i]->FTsize; ++j){
+      f = fact1a * ((double)(j+ifo[i]->lowIndex));
+      //if(f>0.9*ifo[i]->lowCut) fprintf(dump1, "%9.9f %.6e\n", log10(f), log10(2.0*cabs( ifo[i]->raw_dataTrafo[j] )/ifo[i]->deltaFT )  );
+      tempvar = fact1b * ifo[i]->raw_dataTrafo[j];
+      if(f>0.9*ifo[i]->lowCut) fprintf(dump1, "%13.6e %13.6e %13.6e\n", f, creal(tempvar), cimag(tempvar) );  //Save the real and imaginary parts of the data FFT
+    }
+    fclose(dump1);
+    if(intscrout) printf(" : (data FFT written to file)\n");
+  }
+}
+}
+  

@@ -67,6 +67,7 @@ int main(int argc, char * argv[])
     printf("   No signal was injected.\n");
   }
   
+  writeDataToFiles(network, networksize);
   
   //Get a parameter set to calculate SNR or write the wavefrom to disc
   struct parset dummypar;
