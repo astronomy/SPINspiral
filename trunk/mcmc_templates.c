@@ -266,8 +266,8 @@ void template12(struct parset *par, struct interferometer *ifo[], int ifonr)
   
   
   //Apply tapering
-  //int i1a = i1 + ceil(2.0*samplerate*pi/omegas[i1]);  //pi/omega_orb = 1/f_gw = lambda_gw.  *samplerate: number of points in first wavelength
-  int i2a = i2 - (int)ceil(2.0*samplerate*pi/omegas[i2]);  //pi/omega_orb = 1/f_gw = lambda_gw.  *samplerate: number of points in last wavelength
+  //int i1a = i1 + ceil(2.0*samplerate*pi/omegas[i1]);  //pi/omega_orb = 1/f_gw = P_gw.  *samplerate: number of points in first GW cycle
+  int i2a = i2 - (int)ceil(2.0*samplerate*pi/omegas[i2]);  //pi/omega_orb = 1/f_gw = P_gw.  *samplerate: number of points in last GW cycle
   for (i=i1;i<=i2;i++) {
     //ifo[ifonr]->FTin[i] *= 0.5*(1.0 - tanh(15000.0*(taperx[i1a]-taperx[i])));  //Taper beginning of template
     ifo[ifonr]->FTin[i] *= 0.5*(1.0 - tanh(100.0*(taperx[i]-taperx[i2a])));  //Taper end of template

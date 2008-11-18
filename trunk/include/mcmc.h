@@ -385,6 +385,8 @@ double tukey(int j, int N, double r);
 void noisePSDestimate(struct interferometer *ifo);
 double log_noisePSD(double f, struct interferometer *ifo);
 double interpol_log_noisePSD(double f, struct interferometer *ifo);
+void writeDataToFiles(struct interferometer *ifo[], int networksize);
+
 void antennaepattern(double altitude, double azimuth, double polarisation,
 		     double *Fplus, double *Fcross);
 void template(struct parset *par, struct interferometer *ifo[], int ifonr);

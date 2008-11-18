@@ -1015,9 +1015,9 @@ void noisePSDestimate(struct interferometer *ifo)
   int            filecount=0;
   
   
-  /* starting time of first(!) frame file to be read: */
+  // Starting time of first(!) frame file to be read:
   filestart = (((ifo->noiseGPSstart-ifo->noisefileoffset) / ifo->noisefilesize) * ifo->noisefilesize) + ifo->noisefileoffset;
-  /* Assemble the filename character string: */
+  // Assemble the filename character string:
   while (((double)filestart) < (((double)ifo->noiseGPSstart)+Nseconds)){
     if(filecount == 0) /* fill in filename for first file: */
       sprintf(filenames,"%s/%s%ld%s",ifo->noisefilepath,ifo->noisefileprefix,(long)filestart,ifo->noisefilesuffix);
@@ -1027,7 +1027,7 @@ void noisePSDestimate(struct interferometer *ifo)
     filecount += 1;
   }
   
-  /*-- open frame file --*/
+  // Open Frame file:
   if(intscrout==1) printf(" | opening %d noise data file(s)... \n",filecount);
   if(intscrout==1) printf(" | %s\n",filenames);
   iFile = FrFileINew(filenames);
@@ -1035,7 +1035,7 @@ void noisePSDestimate(struct interferometer *ifo)
     printf("\n\n   ERROR opening noise data file: %s, aborting.\n\n\n",filenames);
     exit(1);
   }
-  /*else if(intscrout==1) printf("ok.\n");*/
+  //else if(intscrout==1) printf("ok.\n");
   
   if(intscrout==1) printf(" | estimating noise PSD... ");
   /*-- read first two bits (2M seconds) --*/
@@ -1083,48 +1083,52 @@ void noisePSDestimate(struct interferometer *ifo)
   ifo->PSDsize = upper-lower;
   PSDrange     = ifo->PSDsize+2*smoothrange;
 
-  /*-- allocate memory for window: --*/
+  // Allocate memory for window:
   win = (double *) malloc(sizeof(double) * N);
-  /*-- compute windowing coefficients: --*/
+  // Compute windowing coefficients:
   for(i=0; i<N; ++i) {
     win[i] = hann(i, N);
     wss += win[i]*win[i];
   }
-  /*-- normalise window coefs as in Mark's/Nelson's code (see line 695): --*/
+  // Normalise window coefs as in Mark's/Nelson's code (see line 695):
   for(i=0; i<N; ++i) {
     win[i] /= sqrt(wss * ((double)(K-1)) * ((double)samplerate));
   }
-  /*-- apply to data: --*/
+  // Apply to data:
   for(i=0; i<N; ++i) {
     in[i] *= win[i];
   }
-  /*-- put last M values in first M places for following iterations: --*/
-  /*-- (`vect' vectors in later iterations are only half as long)    --*/
+  // Put last M values in first M places for following iterations:
+  //  ('vect' vectors in later iterations are only half as long)
   for(i=0; i<M; ++i)
     vect->dataF[i] = vect->dataF[i+M];
-  /*-- allocate memory for transform output --*/
+  
+  // Allocate memory for transform output
   out = fftw_malloc(sizeof(fftw_complex) * FTsize);  
-  /*-- contruct a transform plan --*/ 
+  
+  // Contruct a transform plan:
   FTplan = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE);
-  /*-- (`FFTW_MEASURE' option not appropriate here.) --*/
-  /*-- transform --*/
+  // ('FFTW_MEASURE' option not appropriate here.)
+  
+  // Execute Fourier transform:
   fftw_execute(FTplan);
   if(out == NULL){
     printf("\n\n   ERROR performing noise Fourier transform: %s, aborting.\n\n\n",filenames);
     exit(1);
   }
   fftw_free(in); 
-  /*-- allocate & initialize PSD vector --*/
+  
+  // Allocate & initialize PSD vector:
   PSD = (double *) malloc(PSDrange*sizeof(double));
   for(i=0; i<PSDrange; ++i)
     PSD[i] = pow(cabs(out[(lower-smoothrange)+i]), 2.0);
-
+  
   // Read segments 3 to K:
   for(j=3; j<=K; ++j){ 
-    /*-- copy first half of data from previous iteration (M seconds) --*/
+    // Copy first half of data from previous iteration (M seconds):
     for(i=0; i<M; ++i) 
       raw[i] = vect->dataF[i];
-    /*-- read 2nd half of data (again, M seconds) --*/
+    // Read 2nd half of data (again, M seconds):
     FrVectFree(vect);
     if(ifo->noisedoubleprecision)
       vect = FrFileIGetVectD(iFile, ifo->noisechannel, ((double)ifo->noiseGPSstart)+((double)(j-1))*Mseconds, Mseconds);
@@ -1151,7 +1155,7 @@ void noisePSDestimate(struct interferometer *ifo)
     for (i=0; i<N; ++i)
       in[i] = raw[i];
 */
-
+    
     // Window data:
     for(i=0; i<N; ++i)
       in[i] *= win[i];
@@ -1181,15 +1185,14 @@ void noisePSDestimate(struct interferometer *ifo)
   free(filtercoef);
   
   
-  // `PSD' now contains the squared FT magnitudes, summed over (K-1) segments
+  // 'PSD' now contains the squared FT magnitudes, summed over (K-1) segments
   
   // Normalise & log the summed PSD's:
   for(i=0; i<PSDrange; ++i)
     PSD[i] = log(PSD[i]) + log2;
   
   if(intscrout==1) printf("ok.\n");
-  /*if(intscrout==1) printf(" | averaged over %d overlapping segments of %1.0f s each (%.0f s total).\n", 
-    K-1, Mseconds*2, Nseconds);*/
+  //if(intscrout==1) printf(" | averaged over %d overlapping segments of %1.0fs each (%.0f s total).\n", K-1, Mseconds*2, Nseconds);
   if(screwcount>0){
     printf(" : %d missing data points in NOISE file(s) !!\n",screwcount);
     printf(" : (maybe the precision is incorrect)\n");
@@ -1203,9 +1206,8 @@ void noisePSDestimate(struct interferometer *ifo)
       sum += PSD[i+j];
     sPSD[i-smoothrange] = sum / (2.0*smoothrange+1.0);
   }
-  if(smoothrange>0) {
-    if(intscrout==1) printf(" | and a range of +/- %0.2f Hz.\n", (((double)smoothrange)/((double)FTsize))*nyquist);
-  }
+  if(smoothrange>0 && intscrout==1) printf(" | and a range of +/- %0.2f Hz.\n", (((double)smoothrange)/((double)FTsize))*nyquist);
+
   
   // PSD estimation finished
   free(PSD);
