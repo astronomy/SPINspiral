@@ -645,7 +645,7 @@ double *filter(int *order, int samplerate, double upperlimit)
   int totalcoef  = ncoef+ncoef-1;   /* total number of coefficients                    */
   double desired[2] = {1.0, 0.0};      /* desired gain                                    */
   double weights[2] = {1.0, 1.0};      /* weight for `loss' in pass- & stopband           */
-  double transitionbandwidth=0.05;  
+  double transitionbandwidth=0.025;  
 	//0.0125 was suggested by Christian Roever via 07/30/08 e-mail
   //place transition bandwidth half-way between upper edge of pass band, which is
   //(upperlimit/samplerate) in relative units, and new Nyquist frequency, which is
@@ -667,7 +667,7 @@ double *filter(int *order, int samplerate, double upperlimit)
   double endpassband= upperlimit/((double)samplerate) +
 	(0.5/(double)downsamplefactor - upperlimit/((double)samplerate) 
 		- transitionbandwidth)/2.0;
-  double endtransitionband=0.5/downsamplefactor - 
+  double endtransitionband=0.5/(double)downsamplefactor - 
 	(0.5/(double)downsamplefactor - upperlimit/((double)samplerate) 
 		- transitionbandwidth)/2.0;
   double bands[4]   = {0.0, endpassband, endtransitionband, 0.5};
