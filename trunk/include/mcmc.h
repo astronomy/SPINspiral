@@ -82,7 +82,8 @@ double tempmax;
 int dosnr,domcmc,domatch,intscrout,writesignal;
 int printmuch;
 
-double truespin,truetheta,prior_tc_mean,downsamplefactor;
+double truespin,truetheta,prior_tc_mean;
+int downsamplefactor;
 
 int tempi;
   

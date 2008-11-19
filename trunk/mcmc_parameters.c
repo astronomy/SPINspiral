@@ -95,7 +95,7 @@ void readinputfile(struct runpar *run)
   //Data handling:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin); sscanf(bla,"%d",&run->selectdata);
-  fgets(bla,500,fin); sscanf(bla,"%lf",&downsamplefactor);
+  fgets(bla,500,fin); sscanf(bla,"%d",&downsamplefactor);
   fgets(bla,500,fin); sscanf(bla,"%lf",&run->databeforetc);
   fgets(bla,500,fin); sscanf(bla,"%lf",&run->dataaftertc);
   fgets(bla,500,fin); sscanf(bla,"%lf",&run->lowfrequencycut);
@@ -207,7 +207,7 @@ void writeinputfile(struct runpar *run)
 
   fprintf(fout, "\n  #Data handling:\n");
   fprintf(fout, "  %-25d  %-18s  %-s\n",     run->selectdata,"selectdata",     "Select the data set to run on  (set to 0 to print a list of data sets). Make sure you set the true tc and datadir accordingly.");
-  fprintf(fout, "  %-25.2f  %-18s  %-s\n", downsamplefactor,"downsamplefactor","Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8");
+  fprintf(fout, "  %-25d  %-18s  %-s\n", downsamplefactor,"downsamplefactor","Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8");
   fprintf(fout, "  %-25.1f  %-18s  %-s\n", run->databeforetc, "databeforetc", "The stretch of data in seconds before presumed coalescence that is read in as part of the data segment");
   fprintf(fout, "  %-25.1f  %-18s  %-s\n", run->dataaftertc, "dataaftertc", "The stretch of data in seconds after presumed coalescence that is read in as part of the data segment");
   fprintf(fout, "  %-25.1f  %-18s  %-s\n", run->lowfrequencycut, "lowfrequencycut", "Templates and overlap integration start at this frequency");

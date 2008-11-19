@@ -645,27 +645,31 @@ double *filter(int *order, int samplerate, double upperlimit)
   int totalcoef  = ncoef+ncoef-1;   /* total number of coefficients                    */
   double desired[2] = {1.0, 0.0};      /* desired gain                                    */
   double weights[2] = {1.0, 1.0};      /* weight for `loss' in pass- & stopband           */
-  double transitionbandwidth=0.0125;  //suggested by Christian Roever via 07/30/08 e-mail
+  double transitionbandwidth=0.05;  
+	//0.0125 was suggested by Christian Roever via 07/30/08 e-mail
   //place transition bandwidth half-way between upper edge of pass band, which is
   //(upperlimit/samplerate) in relative units, and new Nyquist frequency, which is
   //0.5/downsamplefactor in relative units.
   //band vector contains 0, end of pass band, end of transition band, 0.5 (old Nyquist)
   //if there's not enough room for a transition band, we have a problem!
-  if(0.5/downsamplefactor - upperlimit/((double)samplerate) < transitionbandwidth){
+  if(0.5/(double)downsamplefactor - upperlimit/((double)samplerate) < transitionbandwidth){
 	printf(" Problem in filter() function while downsampling!\n");
 	printf(" New Nyquist frequency after downsampling by %g is %g\n",
-			downsamplefactor, ((double)samplerate)/downsamplefactor/2.0);
+			downsamplefactor, ((double)samplerate)/(double)downsamplefactor/2.0);
 	printf(" Desired upper limit is %g\n", upperlimit);
 	printf(" This doesn't leave enough room for a transition band of relative width %g\n",
 		transitionbandwidth);
-	printf(" Maximum upper limit: %g Hz.\n", (double)samplerate * (0.5/downsamplefactor - transitionbandwidth));
+	printf(" Maximum upper limit: %g Hz.\n", (double)samplerate * 
+		(0.5/(double)downsamplefactor - transitionbandwidth));
 	printf(" Aborting!\n");
 	exit(1);
   }
   double endpassband= upperlimit/((double)samplerate) +
-	(0.5/downsamplefactor - upperlimit/((double)samplerate) - transitionbandwidth)/2.0;
+	(0.5/(double)downsamplefactor - upperlimit/((double)samplerate) 
+		- transitionbandwidth)/2.0;
   double endtransitionband=0.5/downsamplefactor - 
-	(0.5/downsamplefactor - upperlimit/((double)samplerate) - transitionbandwidth)/2.0;
+	(0.5/(double)downsamplefactor - upperlimit/((double)samplerate) 
+		- transitionbandwidth)/2.0;
   double bands[4]   = {0.0, endpassband, endtransitionband, 0.5};
   double *coef;                        /* vector of coefficients (symmetric)               */
   coef = (double*) malloc(sizeof(double)*totalcoef);
@@ -687,14 +691,14 @@ double *downsample(double data[], int *datalength, double filtercoef[], int ncoe
 /* thus must be freed again using `fftw_free()'.             */
 {
      int flength = *datalength-2*(ncoef-1);
-     int tlength = (int)ceil(((double)flength)/downsamplefactor);
+     int tlength = (int)ceil(((double)flength)/(double)downsamplefactor);
   double *thinned;      /* vector of filtered & thinned data */
      int i,j,k;
 
   /*-- filter & thin data: --*/
   thinned = (double*) fftw_malloc(sizeof(double) * tlength);
   k = 0;
-  for(i=ncoef-1; i<*datalength-ncoef; i+=(int)downsamplefactor) {
+  for(i=ncoef-1; i<*datalength-ncoef; i+=downsamplefactor) {
     thinned[k] = filtercoef[ncoef-1]*data[i];
     for(j=1; j<ncoef; ++j)
       thinned[k] += filtercoef[(ncoef-1)+j]*(data[i-j]+data[i+j]);
@@ -913,31 +917,27 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   }
  
   // Downsample (by factor downsamplefactor):    *** changes value of N ***
-  if(intscrout==1) printf(" | downsampling... \n");
-
-  filtercoef = filter(&ncoef, ifo[i]->samplerate, ifo[i]->highCut);
-  ifo[i]->FTin = downsample(raw, &N, filtercoef, ncoef);
-
-  ifo[i]->FTstart = from + ((double)(ncoef-1))/((double)(ifo[i]->samplerate));
-  ifo[i]->deltaFT = delta - ((double)((ncoef-1)*2))/((double)(ifo[i]->samplerate));
-
-  ifo[i]->samplesize = N;
-  ifo[i]->FTsize = (N/2)+1;
-  ifo[i]->samplerate = (int)((double)ifo[i]->samplerate/downsamplefactor);
-  free(raw);
-  free(filtercoef);
-/*NINJA*/
-
-/*
-  ifo[i]->FTin = (double*) fftw_malloc(sizeof(double)*N);
-  for (j=0; j<N; ++j)
-    ifo[i]->FTin[j] = raw[j];
-  ifo[i]->FTstart = from;
-  ifo[i]->deltaFT = delta;
-  ifo[i]->samplesize = N;
-  ifo[i]->FTsize = (N/2)+1;  
-  free(raw);
-*/ 
+  if(downsamplefactor!=1 && intscrout==1){
+	printf(" | downsampling... \n");
+	filtercoef = filter(&ncoef, ifo[i]->samplerate, ifo[i]->highCut);
+  	ifo[i]->FTin = downsample(raw, &N, filtercoef, ncoef);
+	ifo[i]->FTstart = from + ((double)(ncoef-1))/((double)(ifo[i]->samplerate));
+  	ifo[i]->deltaFT = delta - ((double)((ncoef-1)*2))/((double)(ifo[i]->samplerate));
+	ifo[i]->samplesize = N;
+  	ifo[i]->FTsize = (N/2)+1;
+  	ifo[i]->samplerate = (int)((double)ifo[i]->samplerate/(double)downsamplefactor);
+  	free(raw);
+  	free(filtercoef);
+  }else{
+  	ifo[i]->FTin = (double*) fftw_malloc(sizeof(double)*N);
+  	for (j=0; j<N; ++j)
+    		ifo[i]->FTin[j] = raw[j];
+  	ifo[i]->FTstart = from;
+  	ifo[i]->deltaFT = delta;
+  	ifo[i]->samplesize = N;
+  	ifo[i]->FTsize = (N/2)+1;  
+	free(raw);
+  }
 
   // Window input data with a Tukey window:
   ifo[i]->FTwindow = malloc(sizeof(double) * N);
@@ -1036,7 +1036,6 @@ void noisePSDestimate(struct interferometer *ifo)
     exit(1);
   }
   //else if(intscrout==1) printf("ok.\n");
-  
   if(intscrout==1) printf(" | estimating noise PSD... ");
   /*-- read first two bits (2M seconds) --*/
   /*-- access (noise) channel           --*/
@@ -1048,6 +1047,7 @@ void noisePSDestimate(struct interferometer *ifo)
     printf("\n\n   ERROR reading noise data file: %s, aborting.\n\n\n",filenames);
     exit(1);
   }
+
   N = vect->nData; /* length of filtered & downsampled data (not yet!) */
   M = (int)(N/2.0);
   samplerate = (int)(1.0 / (vect->dx[0]) +0.5);
@@ -1057,7 +1057,6 @@ void noisePSDestimate(struct interferometer *ifo)
   raw = (double*)malloc(sizeof(double)*N);
   for(i=0; i<N; ++i)
     raw[i] = vect->dataF[i];
-  
   int screwcount = 0;
   for(i=0; i<N; ++i)
     if(!(raw[i]<HUGE_VAL))
@@ -1065,18 +1064,17 @@ void noisePSDestimate(struct interferometer *ifo)
   
   /*-- DOWNSAMPLE (by factor downsamplefactor)           --*/
   /*-- !! changes value of `N' as well !! --*/
-  /*NINJA*/ 
-  filtercoef = filter(&ncoef, samplerate, ifo->highCut);
-  in = downsample(raw, &N, filtercoef, ncoef);
-  FTsize = (N/2)+1;
-  samplerate = (int)((double)samplerate/downsamplefactor);
-/*
-  in = (double*) fftw_malloc(sizeof(double)*N);
-  for (i=0; i<N; ++i)
-    in[i] = raw[i];
-  FTsize = (N/2)+1;    
-*/
-
+  if(downsamplefactor!=1){
+  	filtercoef = filter(&ncoef, samplerate, ifo->highCut);
+  	in = downsample(raw, &N, filtercoef, ncoef);
+  	FTsize = (N/2)+1;
+  	samplerate = (int)((double)samplerate/(double)downsamplefactor);
+  } else{
+	in = (double*) fftw_malloc(sizeof(double)*N);
+  	for (i=0; i<N; ++i)
+    		in[i] = raw[i];
+  	FTsize = (N/2)+1;    
+  }
   nyquist      = ((double)samplerate)/2.0;
   lower        = (int)(floor((ifo->lowCut/nyquist)*(FTsize-1)));
   upper        = (int)(ceil((ifo->highCut/nyquist)*(FTsize-1)));
@@ -1147,14 +1145,14 @@ void noisePSDestimate(struct interferometer *ifo)
         ++screwcount;
     
     // Downsample:
-    /*NINJA*/ 
-    dummyN = 2*M;
-    in = downsample(raw, &dummyN, filtercoef, ncoef);
-/*
-    in = (double*) fftw_malloc(sizeof(double)*N);
-    for (i=0; i<N; ++i)
-      in[i] = raw[i];
-*/
+    if(downsamplefactor!=1){
+    	dummyN = 2*M;
+    	in = downsample(raw, &dummyN, filtercoef, ncoef);
+    }else{
+    	in = (double*) fftw_malloc(sizeof(double)*N);
+    	for (i=0; i<N; ++i)
+      		in[i] = raw[i];
+    }
     
     // Window data:
     for(i=0; i<N; ++i)
@@ -1182,7 +1180,7 @@ void noisePSDestimate(struct interferometer *ifo)
   fftw_destroy_plan(FTplan);
   fftw_free(out);
   free(win);
-  free(filtercoef);
+  if(downsamplefactor!=1)  free(filtercoef);
   
   
   // 'PSD' now contains the squared FT magnitudes, summed over (K-1) segments
@@ -1269,12 +1267,13 @@ for(i=0; i<networksize; i++){
     fprintf(dump1,"       f (Hz)    real(H(f))    imag(H(f))\n");
     
     double fact1a = ((double)ifo[i]->samplerate) / (2.0*(double)ifo[i]->FTsize);
-    double fact1b = sqrt(2.0)*2.0/ifo[i]->deltaFT;  //Extra factor of sqrt(2) to get the numbers right with the outside world
+    //double fact1b = sqrt(2.0)*2.0/ifo[i]->deltaFT;  //Extra factor of sqrt(2) to get the numbers right with the outside world
     // Loop over the Fourier frequencies 
     for(j=1; j<ifo[i]->FTsize; ++j){
       f = fact1a * ((double)(j+ifo[i]->lowIndex));
       //if(f>0.9*ifo[i]->lowCut) fprintf(dump1, "%9.9f %.6e\n", log10(f), log10(2.0*cabs( ifo[i]->raw_dataTrafo[j] )/ifo[i]->deltaFT )  );
-      tempvar = fact1b * ifo[i]->raw_dataTrafo[j];
+      //tempvar = fact1b * ifo[i]->raw_dataTrafo[j];
+      tempvar=ifo[i]->raw_dataTrafo[j];	
       if(f>0.9*ifo[i]->lowCut) fprintf(dump1, "%13.6e %13.6e %13.6e\n", f, creal(tempvar), cimag(tempvar) );  //Save the real and imaginary parts of the data FFT
     }
     fclose(dump1);
