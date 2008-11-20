@@ -917,8 +917,8 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   }
  
   // Downsample (by factor downsamplefactor):    *** changes value of N ***
-  if(downsamplefactor!=1 && intscrout==1){
-	printf(" | downsampling... \n");
+  if(downsamplefactor!=1){
+	if(intscrout==1) printf(" | downsampling... \n");
 	filtercoef = filter(&ncoef, ifo[i]->samplerate, ifo[i]->highCut);
   	ifo[i]->FTin = downsample(raw, &N, filtercoef, ncoef);
 	ifo[i]->FTstart = from + ((double)(ncoef-1))/((double)(ifo[i]->samplerate));
