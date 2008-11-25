@@ -25,24 +25,24 @@ double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[],
 //Calculate the loglikelihood for a (1) given IFO
 {
   int j=0;
-
+  
   // Fill `ifo[ifonr]->FTin' with time-domain template:
   template(par, ifo, ifonr);
-
+  
   // Window template:
   for(j=0; j<ifo[ifonr]->samplesize; ++j) 
 	ifo[ifonr]->FTin[j] *= ifo[ifonr]->FTwindow[j];
-
+  
   // Execute Fourier transform of signal template:
   fftw_execute(ifo[ifonr]->FTplan);
-
+  
   // Compute the overlap between waveform and data:
   double overlaphd = vecoverlap(ifo[ifonr]->raw_dataTrafo, 
 	ifo[ifonr]->FTout, ifo[ifonr]->noisePSD,
         ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
   //correct FFT for sampling rate of waveform
   overlaphd/=((double)ifo[ifonr]->samplerate);  
-
+  
   // Compute the overlap between waveform and itself:
   double overlaphh = vecoverlap(ifo[ifonr]->FTout,
         ifo[ifonr]->FTout, ifo[ifonr]->noisePSD,
@@ -50,9 +50,9 @@ double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[],
   //correct FFT for sampling rate of waveform
   overlaphh/=((double)ifo[ifonr]->samplerate);
   overlaphh/=((double)ifo[ifonr]->samplerate);
-
+  
   return (overlaphd-0.5*overlaphh);
-
+  
 /*
   //Alternative: about 8% slower because of extra copies of FFT output
   //   and division of each FFT point by ((double)ifo[ifonr]->samplerate)
@@ -102,6 +102,8 @@ double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int 
   // Correct FFT for sampling rate of waveform
   overlaphh/=((double)ifo[ifonr]->samplerate);
   overlaphh/=((double)ifo[ifonr]->samplerate);
+  
+  //printf("\n\n\n DELTAFT: %10.4f  %10d %10d  %10d\n\n\n" ,ifo[ifonr]->deltaFT,ifo[ifonr]->samplesize,ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex);
   
   return sqrt(overlaphh);
   
@@ -342,8 +344,8 @@ void signalFFT(fftw_complex * FFTout, struct parset *par,
 
   for(j=0; j<ifo[ifonr]->FTsize; j++)
 	FFTout[j]=ifo[ifonr]->FTout[j]/((double)ifo[ifonr]->samplerate);
-
-/*
+  
+  /*
   //Allocate the parset vectors, compute the local parameters and the time-domain template:
   localpar(&par, ifo, networksize);
   template(&par, ifo, ifonr); 
@@ -354,7 +356,7 @@ void signalFFT(fftw_complex * FFTout, struct parset *par,
   // Execute Fourier transform of signal template:
   fftw_execute(ifo[ifonr]->FTplan);
   for(j=ifo[ifonr]->lowIndex; j<=ifo[ifonr]->highIndex; ++j) FFT[j] = ifo[ifonr]->FTout[j];
-*/
+  */
 }
 
 

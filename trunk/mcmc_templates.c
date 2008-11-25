@@ -249,7 +249,7 @@ void template12(struct parset *par, struct interferometer *ifo[], int ifonr)
       }
     }  //end if ((omega_orb>=omega_low) && (terminate==0)) {  // After source comes into window, before tc and before frequency reaches its maximum  Careful, if t<0, omega = nan!!!
     else {
-      ifo[ifonr]->FTin[i]   = 0.0;  //  (after t_c or after termination)
+      ifo[ifonr]->FTin[i]   = 0.0;  //  (If before omega_low, after t_c or after termination)
     }
   }  //i
   
@@ -260,7 +260,8 @@ void template12(struct parset *par, struct interferometer *ifo[], int ifonr)
   //if(i2>=length-1 && par->mc>0.02)  printf("   **********    Warning: length is too small to fit waveform template, increase after_tc    **********\n"); //Don't print when doing null-likelihood
   //if(printmuch) 
   //printf("%10.2f  %10.2f  %10.2f  %10.1f  %10.2f  %10.2f",par->spin,acos(par->kappa)*r2d,(double)(i2-i1)*inversesamplerate,(phi2-phi1)/tpi,(alpha2-alpha1)/tpi,pow(M*oldomega,-2.0*c3rd));
-  //if(printmuch) printf("  term: %d  i1: %d  i2: %d  length: %d  f_gw,old: %lf  f_gw: %lf  f_gw,low: %lf  f_gw,high: %lf  f_gw1: %lf  f_gw2: %lf\n",terminate,i1,i2,length,oldomega/pi,omega_orb/pi,omega_low/pi,omega_high/pi,omegas[i1]/pi,omegas[i2]/pi);
+  //if(printmuch) 
+  //printf("  term: %d  i1: %d  i2: %d  i2-i1: %d  length: %d  f_gw,old:%9.3lf  f_gw:%9.3lf  f_gw,low:%9.3lf  f_gw,high:%9.3lf  f_gw1:%9.3lf  f_gw2:%9.3lf\n",terminate,i1,i2,i2-i1,length,oldomega/pi,omega_orb/pi,omega_low/pi,omega_high/pi,omegas[i1]/pi,omegas[i2]/pi);
   //Terminate: 1: t>tc, 2: df/dt<0, 3: f>f_high
   
   

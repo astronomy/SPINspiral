@@ -353,43 +353,6 @@ void setconstants(struct runpar *run)
   tpi  = 6.283185307179586;   // 2 pi
   mtpi = 6.283185307179586e6; // Large multiple of 2 pi
   
-  
-  
-  /*-- set some prior parameters: --*/
-  //prior_tc_margin  = 0.005;/*0.005;*/  /* margin around `prior_tc_mean' (seconds, see below) */
-  //prior_mass_lower =   1.0;/*0.9;*/  /* Ms  */
-  //prior_mass_upper =  10.0; /*2.1;*/
-  //prior_dist_90    =  50.0; /* distance at which a 2-2Ms inspiral has 90% detection prob. */
-  //prior_dist_10    =  60.0; /* distance at which a 2-2Ms inspiral has 10% detection prob. */
-  
-  /*--- logfile for MCMC chain: --------------------------------------------------------------------------*/
-  /*
-  parallelchains =    2; // number of parallel chains                                        
-  impodraws      =   10; // number of importance-resampled starting draws                    
-  logpostdiff    = 20.0; // max. difference of log-post.-densities allowed in startsample    
-  anneal         =   10; // number of annealing iterations                                   
-  annealtemp     =  1.0; // `temperature' from which (variance) annealing starts             
-  covest         = 29000; // starting iteration for covariance estimation (9900000)          
-  covfix         = 29500; // number of iterations until covariance is fixed (no more updates) (9950000) 
-  covskip        = 100; // iterations to be skipped between covariance updates (100)        
-  initweight     = 1000; // weight (in iterations) of initial covariance in later updates (1000000)   
-  studentDF      =  3.0; // degrees of freedom for Student-t jumps (0.0 indicates Normal)    
-  modifiedStudent =   1; // modify the (student-t) proposal                                  
-  propscale      = 0.2 ; // scale of proposal covariance relative to assumed posterior cov.  
-  randomseed1    = 3335; // random seed                                                      
-  randomseed2    = 4449; //   "     "                                                        
-  unifMcJump     = 0.10; // probability for uniform chirp mass  proposals                    
-  unifTcJump     = 0.10; // probability for uniform coalescence time proposals               
-  unifDirectJump = 0.10; // probability for uniform direction proposals                      
-  invDirectJump  = 0.01; // probability for inverse direction proposals                      
-  wideDirectJump = 0.20; // probability for 10 times as wide jumps                           
-  unifOrientJump = 0.10; // probability for uniform orientation proposals                    
-  invPhaseJump   = 0.05; // probability for inverse phase proposals  (phi + pi)              
-  invIncliJump   = 0.05; // probability for inverse inclination proposals  (pi - iota)       
-  iter_per_min   = 60.0; // (a guess in order to estimate the computation time)              
-  mutationprob   = 0.75; // mutation probability (remaining moves are crossovers)            
-  */
-  
   tukeywin       = 0.05; // parameter for Tukey-window used in dataFT (non-flat fraction).   Use 0.15 for Virgo data  
   
   //In mcmc.input now

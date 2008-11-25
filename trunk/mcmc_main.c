@@ -130,6 +130,20 @@ int main(int argc, char * argv[])
   
   
   
+  
+  
+  //Write some data parameters to screen:
+  printf("\n\n");
+  printf("%10s  %11s  %10s  %10s  %9s  %17s  %14s  %12s  %12s  %12s  %12s\n",
+	 "Detector","f_low","f_high","before tc","after tc","Sample start (GPS)","Sample length","Downsample","Sample rate","Sample size","FT size");
+  for(ifonr=0;ifonr<run.networksize;ifonr++) {
+    printf("%10s  %8.2lf Hz  %7.2lf Hz  %8.2lf s  %7.2lf s  %16.5lf s  %12.4lf s  %10d x  %9d Hz  %9d pt  %9d pt\n",
+	   network[ifonr]->name,network[ifonr]->lowCut,network[ifonr]->highCut,network[ifonr]->before_tc,network[ifonr]->after_tc,
+	   network[ifonr]->FTstart,network[ifonr]->deltaFT,downsamplefactor,network[ifonr]->samplerate,network[ifonr]->samplesize,network[ifonr]->FTsize);
+  }
+  
+  
+  
   //Calculate 'null-likelihood'
   struct parset nullpar;
   getnullparameters(&nullpar);
@@ -154,8 +168,8 @@ int main(int argc, char * argv[])
   writesignal=0;
   
   
-  //Write some injection-signal parameters to screen (used to be in the MCMC routine)
-  printf("\n\n");
+  //Write some injection parameters to screen:
+  printf("\n");
   printf("   Global     :    Source position:  RA: %5.2lfh, dec: %6.2lfd;  J0 points to:  RA: %5.2lfh, dec: %6.2lfd;   inclination J0: %5.2lfd  \n",rightAscension(dummypar.longi,GMST(dummypar.tc))*r2h,asin(dummypar.sinlati)*r2d,rightAscension(dummypar.phiJ0,GMST(dummypar.tc))*r2h,asin(dummypar.sinthJ0)*r2d,(pi/2.0-acos(dummypar.NdJ))*r2d);
   for(ifonr=0;ifonr<networksize;ifonr++) printf("   %-11s:    theta: %5.1lfd,  phi: %5.1lfd;   azimuth: %5.1lfd,  altitude: %5.1lfd\n",network[ifonr]->name,dummypar.localti[ifonr]*r2d,dummypar.locazi[ifonr]*r2d,fmod(pi-(dummypar.locazi[ifonr]+network[ifonr]->rightarm)+mtpi,tpi)*r2d,(pi/2.0-dummypar.localti[ifonr])*r2d);
   
