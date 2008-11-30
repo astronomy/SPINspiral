@@ -43,7 +43,7 @@
   1                          domcmc              Do MCMC: 0-no, 1-yes.
   0                          domatch             Calculate matches: 0-no, 1-yes.
   1                          intscrout           Print initialisation output to screen: 0-no, 1-yes.
-  0                          writesignal         Write signal, noise, PSDs to file: 0-no, 1-yes.
+  0                          writesignal         Write signal, noise, PSDs to file: 0-no, 1-yes without header, 2-yes with header.
   0                          printmuch           Print long stretches of output (1) or not (0).
 
   #Data handling:
