@@ -67,8 +67,6 @@ int main(int argc, char * argv[])
     printf("   No signal was injected.\n");
   }
   
-  writeDataToFiles(network, networksize);
-  
   //Get a parameter set to calculate SNR or write the wavefrom to disc
   struct parset dummypar;
   gettrueparameters(&dummypar);
@@ -156,17 +154,15 @@ int main(int argc, char * argv[])
   if(inject == 0) run.logL0 *= 1.01;  //If no signal is injected, presumably there is one present in the data; enlarge the range that log(L) can take by lowering Lo (since L>Lo is forced)
   
   
+
   
-  //Write the signal and its FFT to disc
-  if(writesignal) {
-    for(ifonr=0; ifonr<networksize; ++ifonr) {
-      //printmuch=1;
-      writesignaltodisc(&dummypar, network, ifonr);
-      //printmuch=0;
-    }
-  }
-  writesignal=0;
-  
+  //Write the data and its FFT, the signal and its FFT, and the noise ASD to disc
+  if(writesignal)
+  {
+     writeDataToFiles(network, networksize);
+     writeNoiseToFiles(network, networksize);
+     writeSignalsToFiles(network, networksize);
+  }  
   
   //Write some injection parameters to screen:
   printf("\n");

@@ -381,6 +381,9 @@ void noisePSDestimate(struct interferometer *ifo);
 double log_noisePSD(double f, struct interferometer *ifo);
 double interpol_log_noisePSD(double f, struct interferometer *ifo);
 void writeDataToFiles(struct interferometer *ifo[], int networksize);
+void writeNoiseToFiles(struct interferometer *ifo[], int networksize);
+void writeSignalsToFiles(struct interferometer *ifo[], int networksize);
+void printParameterHeaderToFile(FILE * dump);
 
 void antennaepattern(double altitude, double azimuth, double polarisation,
 		     double *Fplus, double *Fcross);
@@ -413,13 +416,13 @@ void computeFishermatrix(struct parset *par, int npar, struct interferometer *if
 double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int i);
 double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int i);
 double net_loglikelihood(struct parset *par, int networksize, struct interferometer *ifo[]);
-void writesignaltodisc(struct parset *par, struct interferometer *ifo[], int i);
 double logprior(struct parset *par);
 double logstartdens(struct parset *par);
 double logmultiplier(double mc, double eta, double logdl, double sinlati, double cosiota);
 double lgamma(double x);
 double logit(double x);
 double logitinverse(double x);
+
 
 double logdnorm(double x, double mu, double sigma);
 double logdlnorm(double x, double mu, double sigma);

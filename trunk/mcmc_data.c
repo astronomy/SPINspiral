@@ -1222,43 +1222,31 @@ double interpol_log_noisePSD(double f, struct interferometer *ifo)
 
 
 void writeDataToFiles(struct interferometer *ifo[], int networksize){
-int i, j;
-for(i=0; i<networksize; i++){ 
-  // Write windowed, time-domain data (signal + noise) to disc
-  if(writesignal){
+  int i, j;
+  for(i=0; i<networksize; i++){ 
+    // Write windowed, time-domain data (signal + noise) to disc
     char filename[1000]="";
     sprintf(filename, "%s-data.dat", ifo[i]->name);
     FILE *dump = fopen(filename,"w");
     
     // Get true signal parameters and write them to the header
-    struct parset par;
-    gettrueparameters(&par);
-    fprintf(dump,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
-    fprintf(dump,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
-	    par.m1,par.m2,par.mc,par.eta,par.tc,exp(par.logdl),asin(par.sinlati)*r2d,par.longi*r2d,par.phase,par.spin,par.kappa,par.sinthJ0,par.phiJ0,par.alpha);
-    fprintf(dump,"       GPS time (s)         H(t)\n");
+    printParameterHeaderToFile(dump);
+    fprintf(dump, "       GPS time (s)         H(t)\n");
+
     for(j=0; j<ifo[i]->samplesize; ++j)
       fprintf(dump, "%9.9f %.6e\n", ifo[i]->FTstart+(((double)j)/((double) (ifo[i]->samplerate))), ifo[i]->FTin[j]);
     fclose(dump);
     if(intscrout) printf(" : (data written to file)\n");
-    freeparset(&par);
-  }
   
-  // Write data FFT to disc (i.e., FFT or amplitude spectrum of signal+noise)
-  if(writesignal){
+    // Write data FFT to disc (i.e., FFT or amplitude spectrum of signal+noise)
     double f=0.0;
     double complex tempvar=0.0;
-    char filename[1000]="";
     sprintf(filename, "%s-dataFFT.dat", ifo[i]->name);
     FILE *dump1 = fopen(filename,"w");
     
     // Get true signal parameters and write them to the header
-    struct parset par;
-    gettrueparameters(&par);
-    fprintf(dump1,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
-    fprintf(dump1,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
-	    par.m1,par.m2,par.mc,par.eta,par.tc,exp(par.logdl),asin(par.sinlati)*r2d,par.longi*r2d,par.phase,par.spin,par.kappa,par.sinthJ0,par.phiJ0,par.alpha);
-    fprintf(dump1,"       f (Hz)    real(H(f))    imag(H(f))\n");
+    printParameterHeaderToFile(dump1);
+    fprintf(dump1, "       f (Hz)    real(H(f))    imag(H(f))\n");
     
     double fact1a = ((double)ifo[i]->samplerate) / (2.0*(double)ifo[i]->FTsize);
     //double fact1b = sqrt(2.0)*2.0/ifo[i]->deltaFT;  //Extra factor of sqrt(2) to get the numbers right with the outside world
@@ -1274,5 +1262,96 @@ for(i=0; i<networksize; i++){
     if(intscrout) printf(" : (data FFT written to file)\n");
   }
 }
-}
   
+void writeNoiseToFiles(struct interferometer *ifo[], int networksize){
+  int i, j;
+  for(i=0; i<networksize; i++){ 
+    //Write noise ASD  (Square root of the estimated noise PSD (i.e., no injected$
+    char filename[1000]="";
+    sprintf(filename, "%s-noiseASD.dat", ifo[i]->name);  // Write in current dir
+    FILE *dump = fopen(filename,"w");
+
+    printParameterHeaderToFile(dump);
+    fprintf(dump, "       f (Hz)          H(f)\n");
+
+    // Loop over the Fourier frequencies within operational range (some 40-1500 H$
+    double f=0.0;
+    double fact1a = (double)ifo[i]->samplerate/(2.0 * (double)ifo[i]->FTsize);  
+		//this is 1/deltaFT
+    for(j=0; j<ifo[i]->indexRange; ++j){
+      f = fact1a * (double)(j+ifo[i]->lowIndex);
+      fprintf(dump, "%13.6f %13.6e %13.6e\n",f, sqrt(ifo[i]->noisePSD[j]), 0.0);
+    }
+    fclose(dump);
+    if(intscrout) printf(" : (noise ASD written to file)\n");
+  }
+}
+
+void writeSignalsToFiles(struct interferometer *ifo[], int networksize){
+  int i, j;
+  //Set local values in parameter struct (needed for template computation)
+  struct parset par;
+  gettrueparameters(&par);
+  par.loctc    = (double*)calloc(networksize,sizeof(double));
+  par.localti  = (double*)calloc(networksize,sizeof(double));
+  par.locazi   = (double*)calloc(networksize,sizeof(double));
+  par.locpolar = (double*)calloc(networksize,sizeof(double));
+  localpar(&par, ifo, networksize);
+
+
+  for(i=0; i<networksize; i++){
+    //if(MvdSdebug) printf("Writesignaltodisc %d\n",i);
+    double rate = (double)ifo[i]->samplerate; // Double instead of int
+    double f=0.0;
+
+    // Fill `ifo[i]->FTin' with time-domain template:
+    template(&par, ifo, i);
+
+    // Write signal in time domain:
+    char filename[1000]="";
+    sprintf(filename, "%s-signal.dat", ifo[i]->name);  // Write in current dir
+    FILE *dump = fopen(filename,"w");
+    printParameterHeaderToFile(dump);
+    fprintf(dump, "       GPS time (s)         H(t)\n");
+    for(j=0; j<ifo[i]->samplesize; ++j)
+        fprintf(dump, "%9.9f %.6e\n", ifo[i]->FTstart+(((double)j)/rate),
+                ifo[i]->FTin[j]);
+    fclose(dump);             
+    if(intscrout) printf(" : (signal written to file)\n");
+
+    // Write signal FFT to disc (i.e., amplitude spectrum of signal w/o noise):
+    sprintf(filename, "%s-signalFFT.dat", ifo[i]->name);//Write in current dir
+    FILE *dump2 = fopen(filename,"w");
+    printParameterHeaderToFile(dump2);
+    fprintf(dump2, "       f (Hz)    real(H(f))    imag(H(f))\n");
+    double fact2a = rate / (2.0*(double)ifo[i]->FTsize);
+    double fact2b = sqrt(2.0)*2.0/(rate*sqrt(ifo[i]->deltaFT));  
+      //Extra factor of sqrt(2) to get the numbers right with the outside world
+    // Loop over the Fourier frequencies within operational range
+        //(some 40-1500 Hz or similar):
+    for(j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j){
+      f = fact2a * (double)j;
+      double complex tempvar = fact2b * ifo[i]->FTout[j];
+      fprintf(dump2, "%13.6e %13.6e %13.6e\n",f, creal(tempvar), 
+        cimag(tempvar) ); //Save the real and imaginary parts of the signal FFT
+    }
+    fclose(dump2);
+    if(intscrout) printf(" : (signal FFT written to file)\n");
+  }
+}
+
+
+
+
+void printParameterHeaderToFile(FILE * dump)
+{
+  if(writesignal==2){
+    struct parset par;
+    gettrueparameters(&par);
+    fprintf(dump,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
+    fprintf(dump,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
+	    par.m1,par.m2,par.mc,par.eta,par.tc,exp(par.logdl),asin(par.sinlati)*r2d,par.longi*r2d,par.phase,par.spin,par.kappa,par.sinthJ0,par.phiJ0,par.alpha);
+    freeparset(&par);
+  }
+}
+
