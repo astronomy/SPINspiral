@@ -380,9 +380,9 @@ double tukey(int j, int N, double r);
 void noisePSDestimate(struct interferometer *ifo);
 double log_noisePSD(double f, struct interferometer *ifo);
 double interpol_log_noisePSD(double f, struct interferometer *ifo);
-void writeDataToFiles(struct interferometer *ifo[], int networksize);
-void writeNoiseToFiles(struct interferometer *ifo[], int networksize);
-void writeSignalsToFiles(struct interferometer *ifo[], int networksize);
+void writeDataToFiles(struct interferometer *ifo[], int networksize, int mcmcseed);
+void writeNoiseToFiles(struct interferometer *ifo[], int networksize, int mcmcseed);
+void writeSignalsToFiles(struct interferometer *ifo[], int networksize, int mcmcseed);
 void printParameterHeaderToFile(FILE * dump);
 
 void antennaepattern(double altitude, double azimuth, double polarisation,

@@ -31,8 +31,7 @@ int main(int argc, char * argv[])
   
   readlocalfile();                //Read system-dependent data, e.g. path to data files
   readinputfile(&run);            //Read data for this run from input.mcmc
-  //setmcmcseed(&run);              //Set mcmcseed if 0, otherwise keep the current value
-  setseed(&run.mcmcseed);         //Set mcmcseed if 0, otherwise keep the current value; more general routine
+  setseed(&run.mcmcseed);         //Set mcmcseed if 0, otherwise keep the current value
   setrandomtrueparameters(&run);  //Randomise the injection parameters where wanted
   writeinputfile(&run);           //Write run data to nicely formatted input.mcmc.<mcmcseed>
   
@@ -159,9 +158,9 @@ int main(int argc, char * argv[])
   //Write the data and its FFT, the signal and its FFT, and the noise ASD to disc
   if(writesignal)
   {
-     writeDataToFiles(network, networksize);
-     writeNoiseToFiles(network, networksize);
-     writeSignalsToFiles(network, networksize);
+     writeDataToFiles(network, networksize, run.mcmcseed);
+     writeNoiseToFiles(network, networksize, run.mcmcseed);
+     writeSignalsToFiles(network, networksize, run.mcmcseed);
   }  
   
   //Write some injection parameters to screen:
