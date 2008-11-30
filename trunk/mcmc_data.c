@@ -623,6 +623,7 @@ void ifodispose(struct interferometer *ifo)
   free(ifo->freqpowers);         ifo->freqpowers = NULL;  
   fftw_destroy_plan(ifo->FTplan);
   fftw_free(ifo->FTin);          ifo->FTin = NULL;
+  fftw_free(ifo->rawDownsampledData); ifo->rawDownsampledData = NULL;  
   fftw_free(ifo->FTout);         ifo->FTout = NULL;
   free(ifo->FTwindow);           ifo->FTwindow = NULL;
 }
@@ -842,6 +843,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     double tempfrom = ifo[i]->FTstart;
     int tempN = ifo[i]->samplesize;
     ifo[i]->FTin = injection;
+    ifo[i]->rawDownsampledData = malloc(sizeof(double) *N);
     ifo[i]->FTstart = from;
     ifo[i]->samplesize = N;
     template(&injectpar,ifo,i);
@@ -917,6 +919,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     if(intscrout==1) printf(" | downsampling... \n");
     filtercoef = filter(&ncoef, ifo[i]->samplerate, ifo[i]->highCut);
     ifo[i]->FTin = downsample(raw, &N, filtercoef, ncoef);
+    ifo[i]->rawDownsampledData = downsample(raw, &N, filtercoef, ncoef);
     ifo[i]->FTstart = from + ((double)(ncoef-1))/((double)(ifo[i]->samplerate));
     ifo[i]->deltaFT = delta - ((double)((ncoef-1)*2))/((double)(ifo[i]->samplerate));
     ifo[i]->samplesize = N;
@@ -926,8 +929,11 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     free(filtercoef);
   }else{
     ifo[i]->FTin = (double*) fftw_malloc(sizeof(double)*N);
-    for (j=0; j<N; ++j)
+    ifo[i]->rawDownsampledData = (double*) fftw_malloc(sizeof(double)*N);
+    for (j=0; j<N; ++j){
       ifo[i]->FTin[j] = raw[j];
+      ifo[i]->rawDownsampledData[j] = raw[j];
+    }
     ifo[i]->FTstart = from;
     ifo[i]->deltaFT = delta;
     ifo[i]->samplesize = N;
@@ -1235,13 +1241,15 @@ void writeDataToFiles(struct interferometer *ifo[], int networksize, int mcmcsee
     	fprintf(dump, "       GPS time (s)         H(t)\n");
     }
     for(j=0; j<ifo[i]->samplesize; ++j)
-      fprintf(dump, "%9.9f %.6e\n", ifo[i]->FTstart+(((double)j)/((double) (ifo[i]->samplerate))), ifo[i]->FTin[j]);
+      fprintf(dump, "%9.9f %13.6e\n", 
+	ifo[i]->FTstart+(((double)j)/((double) (ifo[i]->samplerate))), 
+	ifo[i]->rawDownsampledData[j]);
     fclose(dump);
     if(intscrout) printf(" : (data written to file)\n");
   
     // Write data FFT to disc (i.e., FFT or amplitude spectrum of signal+noise)
-    double f=0.0;
-    double complex tempvar=0.0;
+    double f;
+    double complex FFTout;
     sprintf(filename, "%s-dataFFT.dat.%6.6d", ifo[i]->name, mcmcseed);  // Write in current dir
     FILE *dump1 = fopen(filename,"w");
     
@@ -1250,15 +1258,14 @@ void writeDataToFiles(struct interferometer *ifo[], int networksize, int mcmcsee
     	printParameterHeaderToFile(dump1);
     	fprintf(dump1, "       f (Hz)    real(H(f))    imag(H(f))\n");
     }
-    double fact1a = ((double)ifo[i]->samplerate) / (2.0*(double)ifo[i]->FTsize);
-    //double fact1b = sqrt(2.0)*2.0/ifo[i]->deltaFT;  //Extra factor of sqrt(2) to get the numbers right with the outside world
     // Loop over the Fourier frequencies 
     for(j=1; j<ifo[i]->FTsize; ++j){
-      f = fact1a * ((double)(j+ifo[i]->lowIndex));
-      //if(f>0.9*ifo[i]->lowCut) fprintf(dump1, "%9.9f %.6e\n", log10(f), log10(2.0*cabs( ifo[i]->raw_dataTrafo[j] )/ifo[i]->deltaFT )  );
-      //tempvar = fact1b * ifo[i]->raw_dataTrafo[j];
-      tempvar=ifo[i]->raw_dataTrafo[j];	
-      if(f>0.9*ifo[i]->lowCut) fprintf(dump1, "%13.6e %13.6e %13.6e\n", f, creal(tempvar), cimag(tempvar) );  //Save the real and imaginary parts of the data FFT
+      f = ((double)(j+ifo[i]->lowIndex))/((double) ifo[i]->deltaFT);
+      FFTout=ifo[i]->raw_dataTrafo[j]/((double)ifo[i]->samplerate);
+      //if(f>0.9*ifo[i]->lowCut) 
+      fprintf(dump1, "%13.6e %13.6e %13.6e\n", 
+	f, creal(FFTout), cimag(FFTout) );  
+	//Save the real and imaginary parts of the data FFT
     }
     fclose(dump1);
     if(intscrout) printf(" : (data FFT written to file)\n");
@@ -1280,10 +1287,8 @@ void writeNoiseToFiles(struct interferometer *ifo[], int networksize, int mcmcse
 
     // Loop over the Fourier frequencies within operational range (some 40-1500 H$
     double f=0.0;
-    double fact1a = (double)ifo[i]->samplerate/(2.0 * (double)ifo[i]->FTsize);  
-		//this is 1/deltaFT
     for(j=0; j<ifo[i]->indexRange; ++j){
-      f = fact1a * (double)(j+ifo[i]->lowIndex);
+      f = ((double)(j+ifo[i]->lowIndex))/((double) ifo[i]->deltaFT);
       fprintf(dump, "%13.6f %13.6e %13.6e\n",f, sqrt(ifo[i]->noisePSD[j]), 0.0);
     }
     fclose(dump);
@@ -1305,14 +1310,13 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networksize, int mcmc
 
   for(i=0; i<networksize; i++){
     //if(MvdSdebug) printf("Writesignaltodisc %d\n",i);
-    double rate = (double)ifo[i]->samplerate; // Double instead of int
-    double f=0.0;
+    double f;
+    double complex FFTout;
 
     // Fill `ifo[i]->FTin' with time-domain template:
     template(&par, ifo, i);
     // And FFT it
     fftw_execute(ifo[i]->FTplan);
-
 
     // Write signal in time domain:
     char filename[1000]="";
@@ -1323,7 +1327,8 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networksize, int mcmc
     	fprintf(dump, "       GPS time (s)         H(t)\n");
     }
     for(j=0; j<ifo[i]->samplesize; ++j)
-        fprintf(dump, "%9.9f %13.6e\n", ifo[i]->FTstart+(((double)j)/rate),
+        fprintf(dump, "%9.9f %13.6e\n", 
+		ifo[i]->FTstart+((double)j)/((double)ifo[i]->samplerate),
                 ifo[i]->FTin[j]);
     fclose(dump);             
     if(intscrout) printf(" : (signal written to file)\n");
@@ -1335,16 +1340,13 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networksize, int mcmc
     	printParameterHeaderToFile(dump2);
     	fprintf(dump2, "       f (Hz)    real(H(f))    imag(H(f))\n");
     }
-    double fact2a = rate / (2.0*(double)ifo[i]->FTsize);
-    double fact2b = sqrt(2.0)*2.0/(rate*sqrt(ifo[i]->deltaFT));  
-      //Extra factor of sqrt(2) to get the numbers right with the outside world
     // Loop over the Fourier frequencies within operational range
         //(some 40-1500 Hz or similar):
     for(j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j){
-      f = fact2a * (double)j;
-      double complex tempvar = fact2b * ifo[i]->FTout[j];
-      fprintf(dump2, "%13.6e %13.6e %13.6e\n",f, creal(tempvar), 
-        cimag(tempvar) ); //Save the real and imaginary parts of the signal FFT
+      f=((double) j)/((double) ifo[i]->deltaFT);
+      FFTout=ifo[i]->FTout[j]/((double)ifo[i]->samplerate);
+      fprintf(dump2, "%13.6e %13.6e %13.6e\n",f, creal(FFTout), 
+        cimag(FFTout) ); //Save the real and imaginary parts of the signal FFT
     }
     fclose(dump2);
     if(intscrout) printf(" : (signal FFT written to file)\n");

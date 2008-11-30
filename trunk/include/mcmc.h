@@ -293,7 +293,8 @@ fftw_complex *dataTrafo;              // copy of the dataFT stretch correspondin
   
       // Frequency-domain template stuff:
       double *FTin;                   // Fourier transform input                                  
-fftw_complex *FTout;                  // FT output (type here identical to `(double) complex')    
+fftw_complex *FTout;                  // FT output (type here identical to `(double) complex')
+      double *rawDownsampledData;     // Copy of raw data, downsampled, not windowed
       double *FTwindow;               // Fourier transform input window                           
    fftw_plan FTplan;                  // Fourier transform plan                                   
          int samplesize;              // number of samples (original data)                        
