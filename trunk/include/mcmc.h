@@ -118,7 +118,7 @@ double *chaintemp;                  // vector of temperatures for individual cha
 // That also means that this struct must be passed throughout much of the code.
 struct runpar{
   //int npar;            // Number of parameters in the MCMC/template
-  int ntemps;
+  int ntemps;		 // Size of temperature ladder
   int mcmcseed;          // Seed for MCMC
   int selectdata;        // Select which data set to run on
   int networksize;       // Number of IFOs in the detector network
@@ -131,7 +131,6 @@ struct runpar{
   double corrfrac;       // Fraction of MCMC updates that used the correlation matrix
   double mataccfr;       // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
   
-  double logL0;          // log of the 'null-likelihood'
   double netsnr;         // Total SNR of the network
   double targetsnr;      // Target total SNR of the network, scale the distance
   double temps[99];      // Temperature ladder for manual parallel tempering
@@ -155,7 +154,6 @@ struct mcmcvariables{
   
   
   double temp;           // The current temperature
-  double logL0;          // Log of the 'null-likelihood'
   double mataccfr;       // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
   double basetime;       // Base of time measurement, get rid of long GPS time format
   
@@ -313,7 +311,6 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[]);
 void setrandomtrueparameters(struct runpar *run);
 void gettrueparameters(struct parset *par);
 void getstartparameters(struct parset *par, struct runpar run);
-void getnullparameters(struct parset *par);
 void getparameterset(struct parset *par, double mc, double eta, double tc, double logdl, double spin, double kappa, 
 		     double longi, double sinlati, double phase, double sinthJ0, double phiJ0, double alpha);
 void allocparset(struct parset *par, int networksize);

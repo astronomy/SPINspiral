@@ -140,21 +140,6 @@ int main(int argc, char * argv[])
   }
   
   
-  
-  //Calculate 'null-likelihood'
-  struct parset nullpar;
-  getnullparameters(&nullpar);
-  nullpar.loctc    = (double*)calloc(networksize,sizeof(double));
-  nullpar.localti  = (double*)calloc(networksize,sizeof(double));
-  nullpar.locazi   = (double*)calloc(networksize,sizeof(double));
-  nullpar.locpolar = (double*)calloc(networksize,sizeof(double));
-  localpar(&nullpar, network, networksize);
-  run.logL0 = net_loglikelihood(&nullpar, networksize, network);
-  if(inject == 0) run.logL0 *= 1.01;  //If no signal is injected, presumably there is one present in the data; enlarge the range that log(L) can take by lowering Lo (since L>Lo is forced)
-  
-  
-
-  
   //Write the data and its FFT, the signal and its FFT, and the noise ASD to disc
   if(writesignal)
   {
@@ -168,10 +153,10 @@ int main(int argc, char * argv[])
   printf("   Global     :    Source position:  RA: %5.2lfh, dec: %6.2lfd;  J0 points to:  RA: %5.2lfh, dec: %6.2lfd;   inclination J0: %5.2lfd  \n",rightAscension(dummypar.longi,GMST(dummypar.tc))*r2h,asin(dummypar.sinlati)*r2d,rightAscension(dummypar.phiJ0,GMST(dummypar.tc))*r2h,asin(dummypar.sinthJ0)*r2d,(pi/2.0-acos(dummypar.NdJ))*r2d);
   for(ifonr=0;ifonr<networksize;ifonr++) printf("   %-11s:    theta: %5.1lfd,  phi: %5.1lfd;   azimuth: %5.1lfd,  altitude: %5.1lfd\n",network[ifonr]->name,dummypar.localti[ifonr]*r2d,dummypar.locazi[ifonr]*r2d,fmod(pi-(dummypar.locazi[ifonr]+network[ifonr]->rightarm)+mtpi,tpi)*r2d,(pi/2.0-dummypar.localti[ifonr])*r2d);
   
-  printf("\n  %10s  %10s  %6s  %20s  %6s  ","niter","nburn","seed","null likelihood","ndet");
+  printf("\n  %10s  %10s  %6s   %6s  ","niter","nburn","seed","ndet");
   for(ifonr=0;ifonr<networksize;ifonr++) printf("%16s%4s  ",network[ifonr]->name,"SNR");
   printf("%20s  ","Network SNR");
-  printf("\n  %10d  %10d  %6d  %20.10lf  %6d  ",iter,nburn,run.mcmcseed,run.logL0,networksize);
+  printf("\n  %10d  %10d  %6d  %6d  ",iter,nburn,run.mcmcseed,networksize);
   for(ifonr=0;ifonr<networksize;ifonr++) printf("%20.10lf  ",network[ifonr]->snr);
   printf("%20.10lf\n\n",run.netsnr);
   printf("    %8s  %8s  %17s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "Mc","eta","tc","logdL","spin","kappa","longi","sinlati","phase","sinthJ0","phiJ0","alpha");
@@ -287,7 +272,6 @@ int main(int argc, char * argv[])
   //Get rid of allocated memory and quit
   for(ifonr=0; ifonr<networksize; ++ifonr) ifodispose(network[ifonr]);
   free(run.setranpar);
-  freeparset(&nullpar);
   freeparset(&dummypar);
   
   clock_t time3 = clock();
