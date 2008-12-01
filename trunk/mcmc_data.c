@@ -573,7 +573,7 @@ void ifoinit(struct interferometer **ifo, int networksize)
     // First loop to determine index bounds & range:               
     ifo[i]->lowIndex = 0; ifo[i]->highIndex=0;
     for(j=1; j<ifo[i]->FTsize; ++j){
-      f = (((double)j)/((double)ifo[i]->FTsize*2.0)) * ((double) ifo[i]->samplerate);
+      f = (((double)j)/((double)ifo[i]->deltaFT));
       if((ifo[i]->lowIndex==0)  && (f>=ifo[i]->lowCut)) ifo[i]->lowIndex = j;
       if((ifo[i]->highIndex==0) && (f>ifo[i]->highCut)) ifo[i]->highIndex = j-1;
       // ...so `lowIndex' and `highIndex' are the extreme indexes WITHIN frequency band
@@ -587,7 +587,7 @@ void ifoinit(struct interferometer **ifo, int networksize)
     ifo[i]->dataTrafo  = ((fftw_complex*) malloc(sizeof(fftw_complex) * ifo[i]->indexRange));
     for(j=0; j<ifo[i]->indexRange; ++j){
       ifo[i]->freqpowers[j] = (double*) malloc(8*sizeof(double));
-      f = (((double)(j+ifo[i]->lowIndex))/((double)ifo[i]->FTsize*2.0)) * ((double) ifo[i]->samplerate);
+      f = (((double)(j+ifo[i]->lowIndex))/((double)ifo[i]->deltaFT));
       logf = log(f);
       ifo[i]->freqpowers[j][0] = f;                     // the `plain' frequency
       ifo[i]->freqpowers[j][1] = exp((-7.0/6.0)*logf);  // used in cosine chirp 
@@ -623,7 +623,7 @@ void ifodispose(struct interferometer *ifo)
   free(ifo->freqpowers);         ifo->freqpowers = NULL;  
   fftw_destroy_plan(ifo->FTplan);
   fftw_free(ifo->FTin);          ifo->FTin = NULL;
-  fftw_free(ifo->rawDownsampledData); ifo->rawDownsampledData = NULL;  
+  fftw_free(ifo->rawDownsampledWindowedData); ifo->rawDownsampledWindowedData = NULL;  
   fftw_free(ifo->FTout);         ifo->FTout = NULL;
   free(ifo->FTwindow);           ifo->FTwindow = NULL;
 }
@@ -843,7 +843,6 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     double tempfrom = ifo[i]->FTstart;
     int tempN = ifo[i]->samplesize;
     ifo[i]->FTin = injection;
-    ifo[i]->rawDownsampledData = malloc(sizeof(double) *N);
     ifo[i]->FTstart = from;
     ifo[i]->samplesize = N;
     template(&injectpar,ifo,i);
@@ -919,7 +918,6 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     if(intscrout==1) printf(" | downsampling... \n");
     filtercoef = filter(&ncoef, ifo[i]->samplerate, ifo[i]->highCut);
     ifo[i]->FTin = downsample(raw, &N, filtercoef, ncoef);
-    ifo[i]->rawDownsampledData = downsample(raw, &N, filtercoef, ncoef);
     ifo[i]->FTstart = from + ((double)(ncoef-1))/((double)(ifo[i]->samplerate));
     ifo[i]->deltaFT = delta - ((double)((ncoef-1)*2))/((double)(ifo[i]->samplerate));
     ifo[i]->samplesize = N;
@@ -929,11 +927,8 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     free(filtercoef);
   }else{
     ifo[i]->FTin = (double*) fftw_malloc(sizeof(double)*N);
-    ifo[i]->rawDownsampledData = (double*) fftw_malloc(sizeof(double)*N);
-    for (j=0; j<N; ++j){
+    for (j=0; j<N; ++j)
       ifo[i]->FTin[j] = raw[j];
-      ifo[i]->rawDownsampledData[j] = raw[j];
-    }
     ifo[i]->FTstart = from;
     ifo[i]->deltaFT = delta;
     ifo[i]->samplesize = N;
@@ -943,9 +938,11 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
 
   // Window input data with a Tukey window:
   ifo[i]->FTwindow = malloc(sizeof(double) * N);
+  ifo[i]->rawDownsampledWindowedData = (double*) fftw_malloc(sizeof(double)*N);
   for(j=0; j<N; ++j){
     ifo[i]->FTwindow[j] =  tukey(j, N, tukeywin);
     ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
+    ifo[i]->rawDownsampledWindowedData[j]=ifo[i]->FTin[j];    
   }
   
   
@@ -1243,13 +1240,12 @@ void writeDataToFiles(struct interferometer *ifo[], int networksize, int mcmcsee
     for(j=0; j<ifo[i]->samplesize; ++j)
       fprintf(dump, "%9.9f %13.6e\n", 
 	ifo[i]->FTstart+(((double)j)/((double) (ifo[i]->samplerate))), 
-	ifo[i]->rawDownsampledData[j]);
+	ifo[i]->rawDownsampledWindowedData[j]);
     fclose(dump);
     if(intscrout) printf(" : (data written to file)\n");
   
     // Write data FFT to disc (i.e., FFT or amplitude spectrum of signal+noise)
     double f;
-    double complex FFTout;
     sprintf(filename, "%s-dataFFT.dat.%6.6d", ifo[i]->name, mcmcseed);  // Write in current dir
     FILE *dump1 = fopen(filename,"w");
     
@@ -1259,13 +1255,13 @@ void writeDataToFiles(struct interferometer *ifo[], int networksize, int mcmcsee
     	fprintf(dump1, "       f (Hz)    real(H(f))    imag(H(f))\n");
     }
     // Loop over the Fourier frequencies 
-    for(j=1; j<ifo[i]->FTsize; ++j){
+    for(j=0; j<ifo[i]->indexRange; ++j){
       f = ((double)(j+ifo[i]->lowIndex))/((double) ifo[i]->deltaFT);
-      FFTout=ifo[i]->raw_dataTrafo[j]/((double)ifo[i]->samplerate);
       //if(f>0.9*ifo[i]->lowCut) 
       fprintf(dump1, "%13.6e %13.6e %13.6e\n", 
-	f, creal(FFTout), cimag(FFTout) );  
+	f, creal(ifo[i]->dataTrafo[j]), cimag(ifo[i]->dataTrafo[j]) );  
 	//Save the real and imaginary parts of the data FFT
+	//Note that data FFT is already properly normalized in dataFT()
     }
     fclose(dump1);
     if(intscrout) printf(" : (data FFT written to file)\n");
