@@ -646,7 +646,8 @@ double *filter(int *order, int samplerate, double upperlimit)
   int totalcoef  = ncoef+ncoef-1;   // total number of coefficients                  
   double desired[2] = {1.0, 0.0};      // desired gain                               
   double weights[2] = {1.0, 1.0};      // weight for `loss' in pass- & stopband      
-  double transitionbandwidth=0.025;    //0.0125 was suggested by Christian Roever via 07/30/08 e-mail
+  //double transitionbandwidth=0.0125;    //0.0125 was suggested by Christian Roever via 07/30/08 e-mail
+  double transitionbandwidth=0.025;    
   // Place transition bandwidth half-way between upper edge of pass band, which is
   // (upperlimit/samplerate) in relative units, and new Nyquist frequency, which is
   // 0.5/downsamplefactor in relative units.
@@ -1192,7 +1193,10 @@ void noisePSDestimate(struct interferometer *ifo)
   }
   
   // Smooth PSD:
-  sPSD = (double *) malloc((ifo->PSDsize)*sizeof(double));
+  //sPSD = (double *) malloc((ifo->PSDsize)*sizeof(double));
+  //Since ifo->raw_noisePSD = sPSD, ifo->raw_noisePSD[highindex] goes up to ifo->PSDsize+2 (perhaps more?) in interpol_log_noisePSD()
+  sPSD = (double *) malloc((ifo->PSDsize+10)*sizeof(double));
+  for(i=0;i<ifo->PSDsize+10;i++) sPSD[i] = 0.0;
   for(i=smoothrange; i<(PSDrange-smoothrange); ++i) {
     sum = 0.0;
     for(j=-smoothrange; j<=smoothrange; ++j)
