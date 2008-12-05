@@ -31,8 +31,7 @@ int main(int argc, char * argv[])
   
   readlocalfile();                //Read system-dependent data, e.g. path to data files
   readinputfile(&run);            //Read data for this run from input.mcmc
-  //setmcmcseed(&run);              //Set mcmcseed if 0, otherwise keep the current value
-  setseed(&run.mcmcseed);         //Set mcmcseed if 0, otherwise keep the current value; more general routine
+  setseed(&run.mcmcseed);         //Set mcmcseed if 0, otherwise keep the current value
   setrandomtrueparameters(&run);  //Randomise the injection parameters where wanted
   writeinputfile(&run);           //Write run data to nicely formatted input.mcmc.<mcmcseed>
   
@@ -66,7 +65,6 @@ int main(int argc, char * argv[])
   } else {
     printf("   No signal was injected.\n");
   }
-  
   
   //Get a parameter set to calculate SNR or write the wavefrom to disc
   struct parset dummypar;
@@ -129,39 +127,36 @@ int main(int argc, char * argv[])
   
   
   
-  //Calculate 'null-likelihood'
-  struct parset nullpar;
-  getnullparameters(&nullpar);
-  nullpar.loctc    = (double*)calloc(networksize,sizeof(double));
-  nullpar.localti  = (double*)calloc(networksize,sizeof(double));
-  nullpar.locazi   = (double*)calloc(networksize,sizeof(double));
-  nullpar.locpolar = (double*)calloc(networksize,sizeof(double));
-  localpar(&nullpar, network, networksize);
-  run.logL0 = net_loglikelihood(&nullpar, networksize, network);
-  if(inject == 0) run.logL0 *= 1.01;  //If no signal is injected, presumably there is one present in the data; enlarge the range that log(L) can take by lowering Lo (since L>Lo is forced)
   
   
-  
-  //Write the signal and its FFT to disc
-  if(writesignal) {
-    for(ifonr=0; ifonr<networksize; ++ifonr) {
-      //printmuch=1;
-      writesignaltodisc(&dummypar, network, ifonr);
-      //printmuch=0;
-    }
-  }
-  writesignal=0;
-  
-  
-  //Write some injection-signal parameters to screen (used to be in the MCMC routine)
+  //Write some data parameters to screen:
   printf("\n\n");
+  printf("%10s  %11s  %10s  %10s  %9s  %17s  %14s  %12s  %12s  %12s  %12s\n",
+	 "Detector","f_low","f_high","before tc","after tc","Sample start (GPS)","Sample length","Downsample","Sample rate","Sample size","FT size");
+  for(ifonr=0;ifonr<run.networksize;ifonr++) {
+    printf("%10s  %8.2lf Hz  %7.2lf Hz  %8.2lf s  %7.2lf s  %16.5lf s  %12.4lf s  %10d x  %9d Hz  %9d pt  %9d pt\n",
+	   network[ifonr]->name,network[ifonr]->lowCut,network[ifonr]->highCut,network[ifonr]->before_tc,network[ifonr]->after_tc,
+	   network[ifonr]->FTstart,network[ifonr]->deltaFT,downsamplefactor,network[ifonr]->samplerate,network[ifonr]->samplesize,network[ifonr]->FTsize);
+  }
+  
+  
+  //Write the data and its FFT, the signal and its FFT, and the noise ASD to disc
+  if(writesignal)
+  {
+     writeDataToFiles(network, networksize, run.mcmcseed);
+     writeNoiseToFiles(network, networksize, run.mcmcseed);
+     writeSignalsToFiles(network, networksize, run.mcmcseed);
+  }  
+  
+  //Write some injection parameters to screen:
+  printf("\n");
   printf("   Global     :    Source position:  RA: %5.2lfh, dec: %6.2lfd;  J0 points to:  RA: %5.2lfh, dec: %6.2lfd;   inclination J0: %5.2lfd  \n",rightAscension(dummypar.longi,GMST(dummypar.tc))*r2h,asin(dummypar.sinlati)*r2d,rightAscension(dummypar.phiJ0,GMST(dummypar.tc))*r2h,asin(dummypar.sinthJ0)*r2d,(pi/2.0-acos(dummypar.NdJ))*r2d);
   for(ifonr=0;ifonr<networksize;ifonr++) printf("   %-11s:    theta: %5.1lfd,  phi: %5.1lfd;   azimuth: %5.1lfd,  altitude: %5.1lfd\n",network[ifonr]->name,dummypar.localti[ifonr]*r2d,dummypar.locazi[ifonr]*r2d,fmod(pi-(dummypar.locazi[ifonr]+network[ifonr]->rightarm)+mtpi,tpi)*r2d,(pi/2.0-dummypar.localti[ifonr])*r2d);
   
-  printf("\n  %10s  %10s  %6s  %20s  %6s  ","niter","nburn","seed","null likelihood","ndet");
+  printf("\n  %10s  %10s  %6s   %6s  ","niter","nburn","seed","ndet");
   for(ifonr=0;ifonr<networksize;ifonr++) printf("%16s%4s  ",network[ifonr]->name,"SNR");
   printf("%20s  ","Network SNR");
-  printf("\n  %10d  %10d  %6d  %20.10lf  %6d  ",iter,nburn,run.mcmcseed,run.logL0,networksize);
+  printf("\n  %10d  %10d  %6d  %6d  ",iter,nburn,run.mcmcseed,networksize);
   for(ifonr=0;ifonr<networksize;ifonr++) printf("%20.10lf  ",network[ifonr]->snr);
   printf("%20.10lf\n\n",run.netsnr);
   printf("    %8s  %8s  %17s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "Mc","eta","tc","logdL","spin","kappa","longi","sinlati","phase","sinthJ0","phiJ0","alpha");
@@ -277,7 +272,6 @@ int main(int argc, char * argv[])
   //Get rid of allocated memory and quit
   for(ifonr=0; ifonr<networksize; ++ifonr) ifodispose(network[ifonr]);
   free(run.setranpar);
-  freeparset(&nullpar);
   freeparset(&dummypar);
   
   clock_t time3 = clock();

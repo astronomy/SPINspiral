@@ -50,12 +50,12 @@
 
 
 
-//Global constants (which must be variable in a multi-file C code) etc., assigned in setconstants()
+// Global constants etc., assigned in setconstants()
 
 //  *** PLEASE DON'T ADD ANY NEW ONES, BUT USE THE STRUCTS BELOW INSTEAD (e.g. runpar or mcmcvariables) ***
 //      (and if you're bored, go ahead and place the variables below in these structs as well)
 
-//The following global arrays have the size of the number of parameters, i.e. 12 or 15:
+//The following global arrays have the size of the number of parameters, i.e. 12 or 15, or ~20 to make sure we're always ok:
 
 int fitpar[12],offsetpar[12];
 double truepar[12],pdfsigs[12];
@@ -82,7 +82,8 @@ double tempmax;
 int dosnr,domcmc,domatch,intscrout,writesignal;
 int printmuch;
 
-double truespin,truetheta,prior_tc_mean,downsamplefactor;
+double truespin,truetheta,prior_tc_mean;
+int downsamplefactor;
 
 int tempi;
   
@@ -92,15 +93,6 @@ double Ms,Mpc,G,c,Mpcs,pi,tpi,mtpi;
 int useoldmcmcoutputformat;
 
 
-/*
-// Relics from Christian's code:
-int parallelchains,impodraws,anneal,covest,covfix,covskip,initweight,modifiedStudent;
-long randomseed1,randomseed2;
-double logpostdiff,annealtemp,studentDF,propscale,tukeywin;
-double unifMcJump,unifTcJump,unifDirectJump,invDirectJump,wideDirectJump,unifOrientJump;
-double invPhaseJump,invIncliJump,iter_per_min,mutationprob;
-*/
-
 double tukeywin;
 
 int inject;
@@ -108,7 +100,7 @@ double annealfact;
 
 double StartPropCov[8][8];
 
-double *chaintemp;                  /* vector of temperatures for individual chains (initialised later) */
+double *chaintemp;                  // vector of temperatures for individual chains (initialised later) 
 
 
 
@@ -126,7 +118,7 @@ double *chaintemp;                  /* vector of temperatures for individual cha
 // That also means that this struct must be passed throughout much of the code.
 struct runpar{
   //int npar;            // Number of parameters in the MCMC/template
-  int ntemps;
+  int ntemps;		 // Size of temperature ladder
   int mcmcseed;          // Seed for MCMC
   int selectdata;        // Select which data set to run on
   int networksize;       // Number of IFOs in the detector network
@@ -139,7 +131,6 @@ struct runpar{
   double corrfrac;       // Fraction of MCMC updates that used the correlation matrix
   double mataccfr;       // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
   
-  double logL0;          // log of the 'null-likelihood'
   double netsnr;         // Total SNR of the network
   double targetsnr;      // Target total SNR of the network, scale the distance
   double temps[99];      // Temperature ladder for manual parallel tempering
@@ -163,7 +154,6 @@ struct mcmcvariables{
   
   
   double temp;           // The current temperature
-  double logL0;          // Log of the 'null-likelihood'
   double mataccfr;       // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
   double basetime;       // Base of time measurement, get rid of long GPS time format
   
@@ -244,14 +234,14 @@ struct parset{
 struct interferometer{
         char name[16];
          int index;
-      double lati, longi;             /* position coordinates                                     */
-      double rightarm, leftarm;       /* arm directions (counter-clockwise (!) from true north)   */
-      double radius_pole, radius_eqt; /* earth radii at poles & equator (in metres)               */
-      double lowCut, highCut;         /* frequency cutoffs (Hz) (`seismic' & `high-frequency' c.) */
-      double before_tc;               /* seconds of flat (!) window before `prior_tc_mean'        */
-      double after_tc;                /* seconds of flat window after `prior_tc_mean'             */
+      double lati, longi;             // position coordinates                                     
+      double rightarm, leftarm;       // arm directions (counter-clockwise (!) from true north)   
+      double radius_pole, radius_eqt; // earth radii at poles & equator (in metres)               
+      double lowCut, highCut;         // frequency cutoffs (Hz) (`seismic' & `high-frequency' c.) 
+      double before_tc;               // seconds of flat (!) window before `prior_tc_mean'        
+      double after_tc;                // seconds of flat window after `prior_tc_mean'             
 
-        char ch1name[128];            /* specifications for channel 1                             */
+        char ch1name[128];            // specifications for channel 1                             
         char ch1filepath[128];
         char ch1fileprefix[128];
         char ch1filesuffix[128];
@@ -259,9 +249,9 @@ struct interferometer{
          int ch1fileoffset; 
          int ch1doubleprecision;
 
-         int add2channels;            /* flag: add 2nd channel to 1st ?                           */
+         int add2channels;            // flag: add 2nd channel to 1st ?                           
 
-        char ch2name[128];            /* specifications for channel 2                             */
+        char ch2name[128];            // specifications for channel 2                             
         char ch2filepath[128];
         char ch2fileprefix[128];
         char ch2filesuffix[128];
@@ -269,8 +259,8 @@ struct interferometer{
          int ch2fileoffset; 
          int ch2doubleprecision;
 
-        long noiseGPSstart;           /* starting time for noise PSD estimation                   */
-        char noisechannel[128];       /* specifications for noise channel                         */
+        long noiseGPSstart;           // starting time for noise PSD estimation                   
+        char noisechannel[128];       // specifications for noise channel                         
         char noisefilepath[128];
         char noisefileprefix[128];
         char noisefilesuffix[128];
@@ -278,36 +268,40 @@ struct interferometer{
          int noisefileoffset; 
          int noisedoubleprecision;
       double snr;                    // Save the calculated SNR for each detector
-      /*-- elements below this point are determined in `ifoinit()':                             --*/
-      double rightvec[3], leftvec[3], /* arm (unit-) vectors            */
-             normalvec[3],            /* normal vector of ifo arm plane */ 
-             orthoarm[3];             /* vector orthogonal to right arm and normal vector    */
-                                      /* (usually, but not necessarily identical to 2nd arm) */
-      double positionvec[3];          /* vector pointing to detector position on earth surface */
+  
+      // Elements below this point are determined in `ifoinit()':
+      double rightvec[3], leftvec[3], // arm (unit-) vectors            
+             normalvec[3],            // normal vector of ifo arm plane  
+             orthoarm[3];             // vector orthogonal to right arm and normal vector    
+                                      // (usually, but not necessarily identical to 2nd arm) 
+      double positionvec[3];          // vector pointing to detector position on earth surface 
       double *raw_noisePSD;
          int PSDsize;
 fftw_complex *raw_dataTrafo;
          int FTsize;
          int samplerate;
       double FTstart, deltaFT;
-      /*-- the following elements are the actual `interface' to the likelihood:                 --*/
-      double **freqpowers;            /* (indexRange x 8) - array of powers of Fourier frequencies; rows:   */
-                                      /* {f, f^(-7/6), f^(-5/3), f^(-1), f^(-2/3), f^(-1/3), log(f), 2pi*f} */
-      double *noisePSD;               /* noise PSD interpolated for the above set of frequencies            */
-fftw_complex *dataTrafo;              /* copy of the dataFT stretch corresponding to above frequencies      */
+  
+      // The following elements are the actual `interface' to the likelihood:
+      double **freqpowers;            // (indexRange x 8) - array of powers of Fourier frequencies; rows:   
+                                      // {f, f^(-7/6), f^(-5/3), f^(-1), f^(-2/3), f^(-1/3), log(f), 2pi*f} 
+      double *noisePSD;               // noise PSD interpolated for the above set of frequencies            
+fftw_complex *dataTrafo;              // copy of the dataFT stretch corresponding to above frequencies      
          int lowIndex, highIndex, indexRange;
-      /*-- frequency-domain template stuff:                                                     --*/
-      double *FTin;                   /* Fourier transform input                                  */
-fftw_complex *FTout;                  /* FT output (type here identical to `(double) complex')    */
-      double *FTwindow;               /* Fourier transform input window                           */
-   fftw_plan FTplan;                  /* Fourier transform plan                                   */
-         int samplesize;              /* number of samples (original data)                        */
+  
+      // Frequency-domain template stuff:
+      double *FTin;                   // Fourier transform input                                  
+fftw_complex *FTout;                  // FT output (type here identical to `(double) complex')
+      double *rawDownsampledWindowedData;     // Copy of raw data, downsampled and windowed
+      double *FTwindow;               // Fourier transform input window                           
+   fftw_plan FTplan;                  // Fourier transform plan                                   
+         int samplesize;              // number of samples (original data)                        
      
 };
 
 
 
-/*-- Declare functions (prototypes): --*/
+// Declare functions (prototypes):
 void readlocalfile();
 void readinputfile(struct runpar *run);
 void writeinputfile(struct runpar *run);
@@ -317,7 +311,6 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[]);
 void setrandomtrueparameters(struct runpar *run);
 void gettrueparameters(struct parset *par);
 void getstartparameters(struct parset *par, struct runpar run);
-void getnullparameters(struct parset *par);
 void getparameterset(struct parset *par, double mc, double eta, double tc, double logdl, double spin, double kappa, 
 		     double longi, double sinlati, double phase, double sinthJ0, double phiJ0, double alpha);
 void allocparset(struct parset *par, int networksize);
@@ -385,12 +378,17 @@ double tukey(int j, int N, double r);
 void noisePSDestimate(struct interferometer *ifo);
 double log_noisePSD(double f, struct interferometer *ifo);
 double interpol_log_noisePSD(double f, struct interferometer *ifo);
+void writeDataToFiles(struct interferometer *ifo[], int networksize, int mcmcseed);
+void writeNoiseToFiles(struct interferometer *ifo[], int networksize, int mcmcseed);
+void writeSignalsToFiles(struct interferometer *ifo[], int networksize, int mcmcseed);
+void printParameterHeaderToFile(FILE * dump);
+
 void antennaepattern(double altitude, double azimuth, double polarisation,
 		     double *Fplus, double *Fcross);
 void template(struct parset *par, struct interferometer *ifo[], int ifonr);
 void template12(struct parset *par, struct interferometer *ifo[], int ifonr);
 		  
-/**************************************************************************************************************************************************/
+//************************************************************************************************************************************************
 
 void template15(struct parset *par, struct interferometer *ifo[], int ifonr);
 
@@ -402,7 +400,7 @@ double LALFpFc(CoherentGW *waveform, double *wave, int length, struct parset *pa
 void LALfreedom(CoherentGW *waveform);
 */
 
-/**************************************************************************************************************************************************/
+//************************************************************************************************************************************************
 
 double overlapwithdata(struct parset *par, struct interferometer *ifo[], int ifonr);
 double match(struct parset *par, struct interferometer *ifo[], int i, int networksize);
@@ -416,13 +414,13 @@ void computeFishermatrix(struct parset *par, int npar, struct interferometer *if
 double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int i);
 double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int i);
 double net_loglikelihood(struct parset *par, int networksize, struct interferometer *ifo[]);
-void writesignaltodisc(struct parset *par, struct interferometer *ifo[], int i);
 double logprior(struct parset *par);
 double logstartdens(struct parset *par);
 double logmultiplier(double mc, double eta, double logdl, double sinlati, double cosiota);
 double lgamma(double x);
 double logit(double x);
 double logitinverse(double x);
+
 
 double logdnorm(double x, double mu, double sigma);
 double logdlnorm(double x, double mu, double sigma);
@@ -466,7 +464,6 @@ void metro(int networksize, struct interferometer *ifo[],
 void printtime();
 void printcov(double mat[8][8], int precise);
 
-/* Define functions: */
 
 
 

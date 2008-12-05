@@ -95,7 +95,7 @@ void readinputfile(struct runpar *run)
   //Data handling:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin); sscanf(bla,"%d",&run->selectdata);
-  fgets(bla,500,fin); sscanf(bla,"%lf",&downsamplefactor);
+  fgets(bla,500,fin); sscanf(bla,"%d",&downsamplefactor);
   fgets(bla,500,fin); sscanf(bla,"%lf",&run->databeforetc);
   fgets(bla,500,fin); sscanf(bla,"%lf",&run->dataaftertc);
   fgets(bla,500,fin); sscanf(bla,"%lf",&run->lowfrequencycut);
@@ -207,7 +207,7 @@ void writeinputfile(struct runpar *run)
 
   fprintf(fout, "\n  #Data handling:\n");
   fprintf(fout, "  %-25d  %-18s  %-s\n",     run->selectdata,"selectdata",     "Select the data set to run on  (set to 0 to print a list of data sets). Make sure you set the true tc and datadir accordingly.");
-  fprintf(fout, "  %-25.2f  %-18s  %-s\n", downsamplefactor,"downsamplefactor","Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8");
+  fprintf(fout, "  %-25d  %-18s  %-s\n", downsamplefactor,"downsamplefactor","Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8");
   fprintf(fout, "  %-25.1f  %-18s  %-s\n", run->databeforetc, "databeforetc", "The stretch of data in seconds before presumed coalescence that is read in as part of the data segment");
   fprintf(fout, "  %-25.1f  %-18s  %-s\n", run->dataaftertc, "dataaftertc", "The stretch of data in seconds after presumed coalescence that is read in as part of the data segment");
   fprintf(fout, "  %-25.1f  %-18s  %-s\n", run->lowfrequencycut, "lowfrequencycut", "Templates and overlap integration start at this frequency");
@@ -352,43 +352,6 @@ void setconstants(struct runpar *run)
   pi   = 3.141592653589793;   // pi
   tpi  = 6.283185307179586;   // 2 pi
   mtpi = 6.283185307179586e6; // Large multiple of 2 pi
-  
-  
-  
-  /*-- set some prior parameters: --*/
-  //prior_tc_margin  = 0.005;/*0.005;*/  /* margin around `prior_tc_mean' (seconds, see below) */
-  //prior_mass_lower =   1.0;/*0.9;*/  /* Ms  */
-  //prior_mass_upper =  10.0; /*2.1;*/
-  //prior_dist_90    =  50.0; /* distance at which a 2-2Ms inspiral has 90% detection prob. */
-  //prior_dist_10    =  60.0; /* distance at which a 2-2Ms inspiral has 10% detection prob. */
-  
-  /*--- logfile for MCMC chain: --------------------------------------------------------------------------*/
-  /*
-  parallelchains =    2; // number of parallel chains                                        
-  impodraws      =   10; // number of importance-resampled starting draws                    
-  logpostdiff    = 20.0; // max. difference of log-post.-densities allowed in startsample    
-  anneal         =   10; // number of annealing iterations                                   
-  annealtemp     =  1.0; // `temperature' from which (variance) annealing starts             
-  covest         = 29000; // starting iteration for covariance estimation (9900000)          
-  covfix         = 29500; // number of iterations until covariance is fixed (no more updates) (9950000) 
-  covskip        = 100; // iterations to be skipped between covariance updates (100)        
-  initweight     = 1000; // weight (in iterations) of initial covariance in later updates (1000000)   
-  studentDF      =  3.0; // degrees of freedom for Student-t jumps (0.0 indicates Normal)    
-  modifiedStudent =   1; // modify the (student-t) proposal                                  
-  propscale      = 0.2 ; // scale of proposal covariance relative to assumed posterior cov.  
-  randomseed1    = 3335; // random seed                                                      
-  randomseed2    = 4449; //   "     "                                                        
-  unifMcJump     = 0.10; // probability for uniform chirp mass  proposals                    
-  unifTcJump     = 0.10; // probability for uniform coalescence time proposals               
-  unifDirectJump = 0.10; // probability for uniform direction proposals                      
-  invDirectJump  = 0.01; // probability for inverse direction proposals                      
-  wideDirectJump = 0.20; // probability for 10 times as wide jumps                           
-  unifOrientJump = 0.10; // probability for uniform orientation proposals                    
-  invPhaseJump   = 0.05; // probability for inverse phase proposals  (phi + pi)              
-  invIncliJump   = 0.05; // probability for inverse inclination proposals  (pi - iota)       
-  iter_per_min   = 60.0; // (a guess in order to estimate the computation time)              
-  mutationprob   = 0.75; // mutation probability (remaining moves are crossovers)            
-  */
   
   tukeywin       = 0.05; // parameter for Tukey-window used in dataFT (non-flat fraction).   Use 0.15 for Virgo data  
   
@@ -539,34 +502,6 @@ void getparameterset(struct parset *par, double mc, double eta, double tc, doubl
   par->phiJ0    = phiJ0;                      // Phi_J0 ~ azimuthal            (125)
   par->alpha    = alpha;                      // Alpha_c                       (0.9 rad = 51.566202deg)
 }
-
-
-
-
-void getnullparameters(struct parset *par)  //Set the parameters for the 12-parameter spinning template to 'null values', to simulate absence of a signal
-{
-  par->mc       = 1.0;
-  par->eta      = 0.2;
-  par->m1       = 0.1;
-  par->m2       = 0.1;
-  par->tc       = prior_tc_mean;
-  par->logdl    = 10000.0;
-  par->sinlati  = 0.0;
-  par->longi    = 0.0;
-  par->phase    = 0.0;
-  par->spin     = 0.1;              // magnitude of total spin   
-  par->kappa    = 0.0;                   // L^.S^, cos of angle between L^ & S^
-  par->sinthJ0  = 0.1;              // sin Theta_J0 ~ latitude, pi/2=NP    
-  par->phiJ0    = 0.0;                   // Phi_J0 ~ azimuthal        
-  par->alpha    = 0.0;                   // Alpha_c                   
-  
-  par->loctc    = NULL;
-  par->localti  = NULL;
-  par->locazi   = NULL;
-  par->locpolar = NULL;
-}
-
-
 
 
 

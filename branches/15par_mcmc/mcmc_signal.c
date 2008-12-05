@@ -25,24 +25,24 @@ double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[],
 //Calculate the loglikelihood for a (1) given IFO
 {
   int j=0;
-
+  
   // Fill `ifo[ifonr]->FTin' with time-domain template:
   template(par, ifo, ifonr);
-
+  
   // Window template:
   for(j=0; j<ifo[ifonr]->samplesize; ++j) 
 	ifo[ifonr]->FTin[j] *= ifo[ifonr]->FTwindow[j];
-
+  
   // Execute Fourier transform of signal template:
   fftw_execute(ifo[ifonr]->FTplan);
-
+  
   // Compute the overlap between waveform and data:
   double overlaphd = vecoverlap(ifo[ifonr]->raw_dataTrafo, 
 	ifo[ifonr]->FTout, ifo[ifonr]->noisePSD,
         ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
   //correct FFT for sampling rate of waveform
   overlaphd/=((double)ifo[ifonr]->samplerate);  
-
+  
   // Compute the overlap between waveform and itself:
   double overlaphh = vecoverlap(ifo[ifonr]->FTout,
         ifo[ifonr]->FTout, ifo[ifonr]->noisePSD,
@@ -50,9 +50,9 @@ double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[],
   //correct FFT for sampling rate of waveform
   overlaphh/=((double)ifo[ifonr]->samplerate);
   overlaphh/=((double)ifo[ifonr]->samplerate);
-
+  
   return (overlaphd-0.5*overlaphh);
-
+  
 /*
   //Alternative: about 8% slower because of extra copies of FFT output
   //   and division of each FFT point by ((double)ifo[ifonr]->samplerate)
@@ -99,9 +99,12 @@ double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int 
   double overlaphh = vecoverlap(ifo[ifonr]->FTout,
         ifo[ifonr]->FTout, ifo[ifonr]->noisePSD,
         ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
+
   // Correct FFT for sampling rate of waveform
   overlaphh/=((double)ifo[ifonr]->samplerate);
   overlaphh/=((double)ifo[ifonr]->samplerate);
+
+  //printf("\n\n\n DELTAFT: %10.4f  %10d %10d  %10d\n\n\n" ,ifo[ifonr]->deltaFT,ifo[ifonr]->samplesize,ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex);
   
   return sqrt(overlaphh);
   
@@ -109,85 +112,6 @@ double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int 
   //Clean, but recomputes waveform multiple times
   return sqrt(paroverlap(par, par, ifo, ifonr));
   */
-}
-
-
-
-void writesignaltodisc(struct parset *par, struct interferometer *ifo[], int i)
-// Write data (signal, noise, and PSDs) to disc
-{
-  if(MvdSdebug) printf("Writesignaltodisc %d\n",i);
-  double rate = (double)ifo[i]->samplerate; // Double instead of int
-  double f=0.0;
-  int j=0;
-  
-  //printf(" %g %g %g\n",rate,(double)ifo[i]->FTsize,ifo[i]->deltaFT);
-  
-  
-  // Fill `ifo[i]->FTin' with time-domain template:
-  template(par, ifo, i);
-  
-  
-  // Write signal in time domain:
-  char filename[1000]="";
-  sprintf(filename, "%s-signal.dat", ifo[i]->name);  // Write in current dir
-  FILE *dump = fopen(filename,"w");
-  fprintf(dump,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
-  fprintf(dump,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
-	  par->m1,par->m2,par->mc,par->eta,par->tc,exp(par->logdl),asin(par->sinlati)*r2d,par->longi*r2d,par->phase,par->spin,par->kappa,par->sinthJ0,par->phiJ0,par->alpha);
-  
-  fprintf(dump,"       GPS time (s)         H(t)\n");
-  for(j=0; j<ifo[i]->samplesize; ++j)  fprintf(dump, "%9.9f %.6e\n", ifo[i]->FTstart+(((double)j)/rate),ifo[i]->FTin[j]);
-  fclose(dump);
-  if(intscrout) printf(" : (signal written to file)\n");
-  
-  
-  
-  
-  
-  //Write noise ASD  (Square root of the estimated noise PSD (i.e., no injected signal))
-  sprintf(filename, "%s-noiseASD.dat", ifo[i]->name);  // Write in current dir
-  FILE *dump1 = fopen(filename,"w");
-  
-  fprintf(dump1,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
-  fprintf(dump1,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
-	  par->m1,par->m2,par->mc,par->eta,par->tc,exp(par->logdl),asin(par->sinlati)*r2d,par->longi*r2d,par->phase,par->spin,par->kappa,par->sinthJ0,par->phiJ0,par->alpha);
-  fprintf(dump1,"       f (Hz)          H(f)\n");
-  
-  // Loop over the Fourier frequencies within operational range (some 40-1500 Hz or similar):
-  f=0.0;
-  double fact1a = rate/(2.0 * (double)ifo[i]->FTsize);
-  double fact1b = sqrt(2.0)*2.0/sqrt(ifo[i]->deltaFT);  //Extra factor of sqrt(2) to get the numbers right with the outside world
-  for(j=0; j<ifo[i]->indexRange; ++j){
-    f = fact1a * (double)(j+ifo[i]->lowIndex);
-    fprintf(dump1, "%13.6f %13.6e %13.6e\n",f, fact1b * sqrt(ifo[i]->noisePSD[j]), 0.0 ); // Add 0 to create output compatible with FFT
-  }
-  fclose(dump1);
-  if(intscrout) printf(" : (noise ASD written to file)\n");
-  
-  
-  
-  
-  // Write signal FFT to disc (i.e., amplitude spectrum of signal w/o noise):
-  sprintf(filename, "%s-signalFFT.dat", ifo[i]->name);  // Write in current dir
-  FILE *dump2 = fopen(filename,"w");
-  fprintf(dump2,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
-  fprintf(dump2,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
-	  par->m1,par->m2,par->mc,par->eta,par->tc,exp(par->logdl),asin(par->sinlati)*r2d,par->longi*r2d,par->phase,par->spin,par->kappa,par->sinthJ0,par->phiJ0,par->alpha);
-  fprintf(dump2,"       f (Hz)    real(H(f))    imag(H(f))\n");
-  
-  double fact2a = rate / (2.0*(double)ifo[i]->FTsize);
-  double fact2b = sqrt(2.0)*2.0/(rate*sqrt(ifo[i]->deltaFT));  //Extra factor of sqrt(2) to get the numbers right with the outside world
-  // Loop over the Fourier frequencies within operational range (some 40-1500 Hz or similar):
-  for(j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j){
-    f = fact2a * (double)j;
-    double complex tempvar = fact2b * ifo[i]->FTout[j];
-    //fprintf(dump2, "%13.6e %13.6e\n",log10(f), log10(sqrt(0.5)*cabs(tempvar))  ); //Produces the old output
-    fprintf(dump2, "%13.6e %13.6e %13.6e\n",f, creal(tempvar), cimag(tempvar) );  //Save the real and imaginary parts of the signal FFT
-  }
-  fclose(dump2); 
-  if(intscrout) printf(" : (signal FFT written to file)\n");
-  return;
 }
 
 
@@ -344,8 +268,8 @@ void signalFFT(fftw_complex * FFTout, struct parset *par,
 
   for(j=0; j<ifo[ifonr]->FTsize; j++)
 	FFTout[j]=ifo[ifonr]->FTout[j]/((double)ifo[ifonr]->samplerate);
-
-/*
+  
+  /*
   //Allocate the parset vectors, compute the local parameters and the time-domain template:
   localpar(&par, ifo, networksize);
   template(&par, ifo, ifonr); 
@@ -356,7 +280,7 @@ void signalFFT(fftw_complex * FFTout, struct parset *par,
   // Execute Fourier transform of signal template:
   fftw_execute(ifo[ifonr]->FTplan);
   for(j=ifo[ifonr]->lowIndex; j<=ifo[ifonr]->highIndex; ++j) FFT[j] = ifo[ifonr]->FTout[j];
-*/
+  */
 }
 
 
@@ -447,3 +371,5 @@ void printparset(struct parset par)
   printf("  phi: %20.10lf,   sinthJ0: %20.10lf,   phithJ0: %20.10lf,   alpha:   %20.10lf\n",par.phase,par.sinthJ0,par.phiJ0,par.alpha);
   printf("\n");
 }
+
+
