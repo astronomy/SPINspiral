@@ -7,7 +7,7 @@
 
 
 
-// Read the input file.
+// Read the main input file.
 // Please keep this routine in sync with writeinputfile() below.
 // All parameters that are read in here should become members of the runvar struct and lose their global status
 void readinputfile(struct runpar *run)
@@ -104,6 +104,9 @@ void readinputfile(struct runpar *run)
   //Diverse:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->networksize);
+  //for(i=0;i<9;i++) run->selectifos[i]=i; 
+  for(i=0;i<run->networksize;i++) fscanf(fin,"%d",&run->selectifos[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  fgets(bla,500,fin);  //Read the rest of the line
   fgets(bla,500,fin);  sscanf(bla,"%lf",&run->targetsnr);
   fgets(bla,500,fin);  sscanf(bla,"%d",&waveformversion);
   
@@ -119,9 +122,15 @@ void readinputfile(struct runpar *run)
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
   for(i=0;i<npar;i++) fscanf(fin,"%lf",&pdfsigs[i]);  //Read the array directly, because sscanf cannot be in a loop...
   
+  
   //Manual temperatures for parallel tempering:
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
   for(i=0;i<npar;i++) fscanf(fin,"%lf",&run->temps[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  
+  
+  //Secondary input files:
+  fgets(bla,500,fin); //Read the empty and comment line
+  fgets(bla,500,fin); sscanf(bla,"%s",run->datainfilename);
   
   fclose(fin);
 }
@@ -206,18 +215,22 @@ void writeinputfile(struct runpar *run)
   
 
   fprintf(fout, "\n  #Data handling:\n");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",     run->selectdata,"selectdata",     "Select the data set to run on  (set to 0 to print a list of data sets). Make sure you set the true tc and datadir accordingly.");
-  fprintf(fout, "  %-25d  %-18s  %-s\n", downsamplefactor,"downsamplefactor","Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8");
-  fprintf(fout, "  %-25.1f  %-18s  %-s\n", run->databeforetc, "databeforetc", "The stretch of data in seconds before presumed coalescence that is read in as part of the data segment");
-  fprintf(fout, "  %-25.1f  %-18s  %-s\n", run->dataaftertc, "dataaftertc", "The stretch of data in seconds after presumed coalescence that is read in as part of the data segment");
-  fprintf(fout, "  %-25.1f  %-18s  %-s\n", run->lowfrequencycut, "lowfrequencycut", "Templates and overlap integration start at this frequency");
-  fprintf(fout, "  %-25.1f  %-18s  %-s\n", run->highfrequencycut, "highfrequencycut", "Overlap integration ends at this frequency");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      run->selectdata,        "selectdata",       "Select the data set to run on:  0 use input file  (set to -1 to print a list of data sets). Make sure you set the true tc and datadir accordingly.");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      downsamplefactor,       "downsamplefactor", "Downsample the sampling frequency of the detector (16-20kHz for the detectors, 4kHz for NINJA) by this factor.  Default (for detectors): 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n",    run->databeforetc,      "databeforetc",     "The stretch of data in seconds before presumed coalescence that is read in as part of the data segment");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n",    run->dataaftertc,       "dataaftertc",      "The stretch of data in seconds after presumed coalescence that is read in as part of the data segment");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n",    run->lowfrequencycut,   "lowfrequencycut",  "Templates and overlap integration start at this frequency");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n",    run->highfrequencycut,  "highfrequencycut", "Overlap integration ends at this frequency");
 
   
   fprintf(fout, "\n  #Diverse:\n");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    run->networksize,"networksize",    "Set the number of detectors that make up the network: 1: H1, 2: H1L1, 3: H1L1V");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",    run->networksize,"networksize",    "Set the number of detectors that make up the network");
+  fprintf(fout, "  ");
+  for(i=0;i<run->networksize;i++) fprintf(fout, "%-3d",run->selectifos[i]);
+  for(i=0;i<24-3*(run->networksize-1);i++) fprintf(fout, " ");
+  fprintf(fout, "%-18s  %-s\n", "selectifos",    "Select the IFOs to use  1: H1, 2: L1, 3: V");
   fprintf(fout, "  %-25.1f  %-18s  %-s\n",   run->targetsnr, "targetsnr",      "If > 0: scale the distance such that the network SNR becomes targetsnr");
-  fprintf(fout, "  %-25d  %-18s  %-s\n", waveformversion, "waveformversion", "Waveform version: 1 for 1.5PN 12-parameter non-LAL, 2 for 3.5PN 15-parameter LAL");
+  fprintf(fout, "  %-25d  %-18s  %-s\n", waveformversion, "waveformversion", "Waveform version: 1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL");
 
 
   
@@ -226,7 +239,7 @@ void writeinputfile(struct runpar *run)
   
   fprintf(fout, "\n");
   fprintf(fout, "\n  #Injection (first line) and starting (second line) parameter values, *not* the exact MCMC parameters and units!\n");
-  fprintf(fout, "   M1(Mo)    M2(Mo)            t_c (GPS)   d_L(Mpc)    a_spin    th_SL(d)    R.A.(h)     dec(d)    phic(d)   th_Jo(d)   phi_Jo(d)  alpha(d)  \n");
+  fprintf(fout, "   M1(Mo)    M2(Mo)            t_c (GPS)   d_L(Mpc)    a_spin    th_SL(d)    R.A.(h)     dec(d)     phic(d)   th_Jo(d)  phi_Jo(d)   alpha(d)  \n");
   for(i=0;i<npar;i++) {
     if(i==2) {
       fprintf(fout, "  %-18.6lf",truepar[i]);
@@ -254,6 +267,9 @@ void writeinputfile(struct runpar *run)
   
   fprintf(fout, "\n");
   
+  fprintf(fout, "\n");
+  fprintf(fout, "\n  #Secondary input files:\n");
+  fprintf(fout, "  %-25s  %-18s  %-s\n",      run->datainfilename,       "datainfilename",        "File name of the data/noise input file, e.g. mcmc.data");
   
   /*
   Formats used:
@@ -294,6 +310,92 @@ void readlocalfile()
   
   fclose(fin);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+// Read the data input file.
+void readdatainputfile(struct runpar run, struct interferometer ifo[])
+{
+  int i=0,j=0,IFOdbaseSize=0;
+  double lati,longi,leftarm,rightarm;
+  char bla[500], subdir[500];
+  FILE *fin;
+  
+  if((fin = fopen(run.datainfilename,"r")) == NULL) {
+    printf("   Error reading file: %s, aborting.\n\n\n",run.datainfilename);
+    exit(1);
+  }
+  
+  
+  //Use and l for floats: %lf, %lg, etc, rather than %f, %g
+  
+  for(j=1;j<=4;j++) fgets(bla,500,fin);  //Read first 4 lines
+  
+  fgets(bla,500,fin);  sscanf(bla,"%d",&IFOdbaseSize);
+  
+  if(IFOdbaseSize<run.networksize) {
+    printf("\n   Error:  the number of detectors in the database (%d) is smaller than the number of detectors in the network (%d).\n\n",IFOdbaseSize,run.networksize);
+    exit(1);
+  }
+  if(IFOdbaseSize>run.maxIFOdbaseSize) {
+    printf("\n   Error:  the number of detectors in the database (%d) is larger than the maximum (%d).\n\n",IFOdbaseSize,run.maxIFOdbaseSize);
+    exit(1);
+  }
+  
+  for(i=0;i<IFOdbaseSize;i++){
+    fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
+    
+    fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].name);
+    fgets(bla,500,fin);  sscanf(bla,"%lf",&lati);
+    fgets(bla,500,fin);  sscanf(bla,"%lf",&longi);
+    fgets(bla,500,fin);  sscanf(bla,"%lf",&rightarm);
+    fgets(bla,500,fin);  sscanf(bla,"%lf",&leftarm);
+    
+    ifo[i].lati      = lati     /180.0*pi;
+    ifo[i].longi     = longi    /180.0*pi;
+    ifo[i].rightarm  = rightarm /180.0*pi;
+    ifo[i].leftarm   = leftarm  /180.0*pi;
+    
+    fgets(bla,500,fin);  //Read the empty line
+    
+    fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].ch1name);
+    //fgets(bla,500,fin);  sscanf(bla,"%s",&ifo[i].ch1filepath);
+    fgets(bla,500,fin);  sscanf(bla,"%s",subdir);
+    sprintf(ifo[i].ch1filepath,"%s%s%s",datadir,"/",subdir);
+    fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].ch1fileprefix);
+    fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].ch1filesuffix);
+    fgets(bla,500,fin);  sscanf(bla,"%d",&ifo[i].ch1filesize);
+    fgets(bla,500,fin);  sscanf(bla,"%d",&ifo[i].ch1fileoffset);
+    fgets(bla,500,fin);  sscanf(bla,"%d",&ifo[i].ch1doubleprecision);
+    fgets(bla,500,fin);  sscanf(bla,"%d",&ifo[i].add2channels);
+    
+    fgets(bla,500,fin);  //Read the empty line
+    
+    fgets(bla,500,fin);  sscanf(bla,"%ld",&ifo[i].noiseGPSstart);
+    fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].noisechannel);
+    //fgets(bla,500,fin);  sscanf(bla,"%s",&ifo[i].noisefilepath);
+    fgets(bla,500,fin);  sscanf(bla,"%s",subdir);
+    sprintf(ifo[i].noisefilepath,"%s%s%s",datadir,"/",subdir);
+    fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].noisefileprefix);
+    fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].noisefilesuffix);
+    fgets(bla,500,fin);  sscanf(bla,"%d",&ifo[i].noisefilesize);
+    fgets(bla,500,fin);  sscanf(bla,"%d",&ifo[i].noisefileoffset);
+    fgets(bla,500,fin);  sscanf(bla,"%d",&ifo[i].noisedoubleprecision);
+    
+  }
+  fclose(fin);
+  
+}
+
 
 
 

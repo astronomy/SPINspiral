@@ -16,6 +16,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   int i=0,numberofdatasets = 6;
   // Description of the data sets below
   char datadescriptions[10][99];
+  sprintf(datadescriptions[0],"File:  %s",run.datainfilename);
   sprintf(datadescriptions[1],"Gaussian, stationary noise (GPS ~894377000)");
   sprintf(datadescriptions[2],"clean S5 data (GPS ~846226044)");
   sprintf(datadescriptions[3],"playground trigger data (GPS ~845348295)");
@@ -24,35 +25,73 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   sprintf(datadescriptions[6],"Original Gaussian noise (GPS ~700006000)");
   
   //run.selectdata = max(min(run.selectdata,numberofdatasets),1);
-  if(run.selectdata < 1 || run.selectdata > numberofdatasets) {
-    printf("\n\n   Unknown dataset %d selected.  Please set the parameter  selectdata  in  %s  to a value between 1 and %d: \n",run.selectdata, run.infilename,numberofdatasets);
-    for(i=1;i<=numberofdatasets;i++) {
-      printf("     %3d:  %s.\n",i,datadescriptions[i]);
+  if(run.selectdata < 0 || run.selectdata > numberofdatasets) {
+    printf("\n\n   Unknown dataset %d selected.  Please set the parameter  selectdata  in  %s  to a value between 0 and %d: \n",run.selectdata, run.infilename,numberofdatasets);
+    for(i=0;i<=numberofdatasets;i++) {
+      printf("     %3d:  %s\n",i,datadescriptions[i]);
     }
     printf("\n\n");
     exit(0);
   }
   
-  // Print selected stretch of data:
-  printf("   Data used: %s.\n",datadescriptions[run.selectdata]);
+  
+  // Print selected type of data/noise:
+  printf("   Data used:  %s.\n",datadescriptions[run.selectdata]);
+  
+  
+  //*** Read detector position, orientation, file and channel names for detector strains from file (e.g. mcmc.data):
+  if(run.selectdata == 0) readdatainputfile(run,ifo);        //Read data on the noise files to use
   
   
   
-  // HANFORD, H1:
-  sprintf(ifo[0].name, "Hanford");
-  ifo[0].lati     = (  46.45/180.0)*pi;
-  ifo[0].longi    = (-119.41/180.0)*pi;
-  ifo[0].rightarm = (  36.80/180.0)*pi;
-  ifo[0].leftarm  = ( 126.80/180.0)*pi;
-  ifo[0].radius_eqt  = 6378137.0;       // WGS 84
-  ifo[0].radius_pole = 6356752.314;       
-  ifo[0].lowCut  =   run.lowfrequencycut;  //The other two detectors may use this low,highCut
-  ifo[0].highCut =   run.highfrequencycut;  //Define lower and upper limits of overlap integral
-  ifo[0].before_tc = run.databeforetc;   //The other two detectors may use this before,after_tc
-  ifo[0].after_tc = run.dataaftertc;   //Define data segment: [t_c-before_tc, t_c+after_tc]
+  //*** Set detector location and orientation when not reading them from file:
+  if(run.selectdata > 0) {
+    // HANFORD, H1:
+    sprintf(ifo[0].name, "Hanford");
+    ifo[0].lati     = (  46.45/180.0)*pi;
+    ifo[0].longi    = (-119.41/180.0)*pi;
+    ifo[0].rightarm = (  36.80/180.0)*pi;
+    ifo[0].leftarm  = ( 126.80/180.0)*pi;
+    
+    // LIVINGSTON, L1:
+    sprintf(ifo[1].name, "Livingston");
+    ifo[1].lati     = (  30.56/180.0)*pi;
+    ifo[1].longi    = ( -90.77/180.0)*pi;
+    ifo[1].rightarm = ( 108.00/180.0)*pi;
+    ifo[1].leftarm  = ( 198.00/180.0)*pi;
+    
+    // PISA, Virgo:
+    sprintf(ifo[2].name, "Pisa");
+    ifo[2].lati     = (  43.63/180.0)*pi;
+    ifo[2].longi    = (  10.50/180.0)*pi;
+    ifo[2].rightarm = ( 341.50/180.0)*pi;
+    ifo[2].leftarm  = (  71.50/180.0)*pi;
+  }
   
   
+  // WGS-84 data:
+  for(i=0;i<run.maxIFOdbaseSize;i++) {
+    ifo[i].radius_eqt  = 6378137.0;
+    ifo[i].radius_pole = 6356752.314;
+  }
+  
+  
+  //*** Data time and frequency cutoffs per detector (same for all detectors for now):
+  for(i=0;i<run.maxIFOdbaseSize;i++) {
+    ifo[i].lowCut    = run.lowfrequencycut;   // Define lower and upper limits of overlap integral
+    ifo[i].highCut   = run.highfrequencycut;
+    ifo[i].before_tc = run.databeforetc;      // Define data segment: [t_c-before_tc, t_c+after_tc]
+    ifo[i].after_tc  = run.dataaftertc;
+  }
+  
+  
+  
+  
+  
+  // ***  Set hardcoded data sets ***
+    
   if(run.selectdata == 1) {
+    // HANFORD, H1:
     // Gaussian, stationary noise
     sprintf(ifo[0].ch1name,       "H1:STRAIN"); 
     sprintf(ifo[0].ch1filepath,   datadir);
@@ -71,10 +110,54 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[0].noisefilesize   = 1024; 
     ifo[0].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[0].noisedoubleprecision = 0;
+
+
+    // LIVINGSTON, L1:
+    // Gaussian, stationary noise
+    sprintf(ifo[1].ch1name,       "L1:STRAIN"); 
+    sprintf(ifo[1].ch1filepath,   datadir);
+    sprintf(ifo[1].ch1fileprefix, "L-L1_NINJA_NOISE-");
+    sprintf(ifo[1].ch1filesuffix, "-1024.gwf");
+    ifo[1].ch1filesize   = 1024; 
+    ifo[1].ch1fileoffset = 743;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[1].ch1doubleprecision = 0;
+    ifo[1].add2channels    = 0;  //0, unless you want to read a signal from file
+    
+    ifo[1].noiseGPSstart   = 894377200;
+    sprintf(ifo[1].noisechannel,    "L1:STRAIN");
+    sprintf(ifo[1].noisefilepath,   datadir);
+    sprintf(ifo[1].noisefileprefix, "L-L1_NINJA_NOISE-");
+    sprintf(ifo[1].noisefilesuffix, "-1024.gwf");
+    ifo[1].noisefilesize   = 1024; 
+    ifo[1].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[1].noisedoubleprecision = 0;
+
+
+
+    // PISA, Virgo:
+    // Gaussian, stationary noise
+    sprintf(ifo[2].ch1name,       "V1:STRAIN"); 
+    sprintf(ifo[2].ch1filepath,   datadir);
+    sprintf(ifo[2].ch1fileprefix, "V-V1_NINJA_NOISE-");
+    sprintf(ifo[2].ch1filesuffix, "-1024.gwf");
+    ifo[2].ch1filesize   = 1024; 
+    ifo[2].ch1fileoffset = 743;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[2].ch1doubleprecision = 0;
+    ifo[2].add2channels    = 0;  //0, unless you want to read a signal from file
+    
+    ifo[2].noiseGPSstart   = 894377200;
+    sprintf(ifo[2].noisechannel,    "V1:STRAIN");
+    sprintf(ifo[2].noisefilepath,   datadir);
+    sprintf(ifo[2].noisefileprefix, "V-V1_NINJA_NOISE-");
+    sprintf(ifo[2].noisefilesuffix, "-1024.gwf");
+    ifo[2].noisefilesize   = 1024; 
+    ifo[2].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[2].noisedoubleprecision = 0;
   }
   
   
   if(run.selectdata == 2) {
+    // HANFORD, H1:
     // Clean S5 data 2
     sprintf(ifo[0].ch1name,       "H1:LSC-STRAIN");
     sprintf(ifo[0].ch1filepath,   datadir);
@@ -93,9 +176,32 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[0].noisefilesize   = 384;
     ifo[0].noisefileoffset = 242;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[0].noisedoubleprecision = 0;
+
+
+
+    // LIVINGSTON, L1:
+    //Clean S5 data 2
+    sprintf(ifo[1].ch1name,       "L1:LSC-STRAIN");
+    sprintf(ifo[1].ch1filepath,   datadir);
+    sprintf(ifo[1].ch1fileprefix, "L-L1_RDS_C03_L2-");
+    sprintf(ifo[1].ch1filesuffix, "-384.gwf");
+    ifo[1].ch1filesize   = 384;
+    ifo[1].ch1fileoffset = 262;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[1].ch1doubleprecision = 0;
+    ifo[1].add2channels    = 0;  //0, unless you want to read a signal from file
+    
+    ifo[1].noiseGPSstart   = 846226064;
+    sprintf(ifo[1].noisechannel,    "L1:LSC-STRAIN");
+    sprintf(ifo[1].noisefilepath,   datadir);
+    sprintf(ifo[1].noisefileprefix, "L-L1_RDS_C03_L2-");
+    sprintf(ifo[1].noisefilesuffix, "-384.gwf");
+    ifo[1].noisefilesize   = 384;
+    ifo[1].noisefileoffset = 262;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[1].noisedoubleprecision = 0;
   }
   
   if(run.selectdata == 3) {
+    // HANFORD, H1:
     // Playground trigger 845348295
     sprintf(ifo[0].ch1name,       "H1:LSC-STRAIN");
     sprintf(ifo[0].ch1filepath,   datadir);
@@ -114,9 +220,31 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[0].noisefilesize   = 128;
     ifo[0].noisefileoffset = 53;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[0].noisedoubleprecision = 0;
+
+  
+    // LIVINGSTON, L1:
+    // Playground trigger 845348295
+    sprintf(ifo[1].ch1name,       "L1:LSC-STRAIN");
+    sprintf(ifo[1].ch1filepath,   datadir);
+    sprintf(ifo[1].ch1fileprefix, "L-L1_RDS_C03_L2-");
+    sprintf(ifo[1].ch1filesuffix, "-128.gwf");
+    ifo[1].ch1filesize   = 128;
+    ifo[1].ch1fileoffset = 92;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[1].ch1doubleprecision = 0;
+    ifo[1].add2channels    = 0;  //0, unless you want to read a signal from file
+    
+    ifo[1].noiseGPSstart   = 845348573;
+    sprintf(ifo[1].noisechannel,    "L1:LSC-STRAIN");
+    sprintf(ifo[1].noisefilepath,   datadir);
+    sprintf(ifo[1].noisefileprefix, "L-L1_RDS_C03_L2-");
+    sprintf(ifo[1].noisefilesuffix, "-128.gwf");
+    ifo[1].noisefilesize   = 128;
+    ifo[1].noisefileoffset = 92;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[1].noisedoubleprecision = 0;
   }
   
   if(run.selectdata == 4) {
+    // HANFORD, H1:
     // glitchy data 
     sprintf(ifo[0].ch1name,       "H1:LSC-STRAIN");
     sprintf(ifo[0].ch1filepath,   datadir);
@@ -135,12 +263,38 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[0].noisefilesize   = 128;
     ifo[0].noisefileoffset = 49;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[0].noisedoubleprecision = 0;
+
+
+
+    // LIVINGSTON, L1:
+    // glitchy data
+    sprintf(ifo[1].ch1name,       "L1:LSC-STRAIN");
+    sprintf(ifo[1].ch1filepath,   datadir);
+    sprintf(ifo[1].ch1fileprefix, "L-L1_RDS_C03_L2-");
+    sprintf(ifo[1].ch1filesuffix, "-128.gwf");
+    ifo[1].ch1filesize   = 128;
+    ifo[1].ch1fileoffset = 125;
+    ifo[1].ch1doubleprecision = 0;
+    ifo[1].add2channels    = 0;  //0, unless you want to read a signal from file
+    
+    ifo[1].noiseGPSstart   = 846471038;
+    sprintf(ifo[1].noisechannel,    "L1:LSC-STRAIN");
+    sprintf(ifo[1].noisefilepath,   datadir);
+    sprintf(ifo[1].noisefileprefix, "L-L1_RDS_C03_L2-");
+    sprintf(ifo[1].noisefilesuffix, "-128.gwf");
+    ifo[1].noisefilesize   = 128;
+    ifo[1].noisefileoffset = 125;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[1].noisedoubleprecision = 0;
   }
   
   
+  
+  
+  
+  
   if(run.selectdata == 5) {
+    // HANFORD, H1:
     // NINJA data set
-    
     sprintf(ifo[0].ch1name,       "H1:STRAIN"); 
     sprintf(ifo[0].ch1filepath,   datadir);
 //    sprintf(ifo[0].ch1fileprefix, "H1-NINJADATA-");
@@ -160,9 +314,61 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[0].noisefilesize   = 1024; 
     ifo[0].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[0].noisedoubleprecision = 0;
+
+
+
+    // LIVINGSTON, L1:
+    // NINJA data set
+    sprintf(ifo[1].ch1name,       "L1:STRAIN"); 
+    sprintf(ifo[1].ch1filepath,   datadir);
+    //    sprintf(ifo[1].ch1fileprefix, "L1-NINJADATA-");
+    sprintf(ifo[1].ch1fileprefix, "HLV-NINJA_DATA-");
+    sprintf(ifo[1].ch1filesuffix, "-1024.gwf");
+    ifo[1].ch1filesize   = 1024; 
+    ifo[1].ch1fileoffset = 743;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[1].ch1doubleprecision = 0;
+    ifo[1].add2channels    = 0;  //0, unless you want to read a signal from file
+    
+    ifo[1].noiseGPSstart   = 894400500; //894457315; //894378400;  //894457315;
+    sprintf(ifo[1].noisechannel,    "L1:STRAIN");
+    sprintf(ifo[1].noisefilepath,   datadir);
+    //sprintf(ifo[1].noisefileprefix, "L1-NINJADATA-");
+    sprintf(ifo[1].noisefileprefix, "HLV-NINJA_DATA-");
+    sprintf(ifo[1].noisefilesuffix, "-1024.gwf");
+    ifo[1].noisefilesize   = 1024; 
+    ifo[1].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[1].noisedoubleprecision = 0;
+
+
+
+    // PISA, Virgo:
+    // NINJA data set
+    sprintf(ifo[2].ch1name,       "V1:STRAIN");
+    sprintf(ifo[2].ch1filepath,   datadir);
+    //sprintf(ifo[2].ch1fileprefix, "V1-NINJADATA-");
+    sprintf(ifo[2].ch1fileprefix, "HLV-NINJA_DATA-");
+    sprintf(ifo[2].ch1filesuffix, "-1024.gwf");
+    ifo[2].ch1filesize   = 1024;
+    ifo[2].ch1fileoffset = 743;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[2].ch1doubleprecision = 0;
+    ifo[2].add2channels    = 0;  //0, unless you want to read a signal from file
+    
+    ifo[2].noiseGPSstart   = 894400500; //894457315; //894378400;  //894457315;
+    sprintf(ifo[2].noisechannel,    "V1:STRAIN");
+    sprintf(ifo[2].noisefilepath,   datadir);
+    //sprintf(ifo[2].noisefileprefix, "V1-NINJADATA-");
+    sprintf(ifo[2].noisefileprefix, "HLV-NINJA_DATA-");
+    sprintf(ifo[2].noisefilesuffix, "-1024.gwf");
+    ifo[2].noisefilesize   = 1024;
+    ifo[2].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
+    ifo[2].noisedoubleprecision = 0;
   }
   
+
+  
+  
   if(run.selectdata == 6) {
+    // HANFORD, H1:
     // Original Gaussian, stationary noise, which we used 2007-2008
     sprintf(ifo[0].ch1name,       "H1:STRAIN"); 
     sprintf(ifo[0].ch1filepath,   datadir);
@@ -190,138 +396,10 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[0].noisefilesize   = 6000; 
     ifo[0].noisefileoffset = 4000;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[0].noisedoubleprecision = 0;
-  }
-  
-  
-  
-  
-  
-  
-  
-  // LIVINGSTON, L1
-  sprintf(ifo[1].name, "Livingston");
-  ifo[1].lati     = (  30.56/180.0)*pi;
-  ifo[1].longi    = ( -90.77/180.0)*pi;
-  ifo[1].rightarm = ( 108.00/180.0)*pi;
-  ifo[1].leftarm  = ( 198.00/180.0)*pi;
-  ifo[1].radius_eqt  = 6378137.0;       // WGS 84
-  ifo[1].radius_pole = 6356752.314;       
-  ifo[1].lowCut  =  ifo[0].lowCut;
-  ifo[1].highCut = ifo[0].highCut;
-  ifo[1].before_tc = ifo[0].before_tc;
-  ifo[1].after_tc = ifo[0].after_tc;
-  
-  if(run.selectdata == 1) {
-    // Gaussian, stationary noise
-    sprintf(ifo[1].ch1name,       "L1:STRAIN"); 
-    sprintf(ifo[1].ch1filepath,   datadir);
-    sprintf(ifo[1].ch1fileprefix, "L-L1_NINJA_NOISE-");
-    sprintf(ifo[1].ch1filesuffix, "-1024.gwf");
-    ifo[1].ch1filesize   = 1024; 
-    ifo[1].ch1fileoffset = 743;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
-    ifo[1].ch1doubleprecision = 0;
-    ifo[1].add2channels    = 0;  //0, unless you want to read a signal from file
-    
-    ifo[1].noiseGPSstart   = 894377200;
-    sprintf(ifo[1].noisechannel,    "L1:STRAIN");
-    sprintf(ifo[1].noisefilepath,   datadir);
-    sprintf(ifo[1].noisefileprefix, "L-L1_NINJA_NOISE-");
-    sprintf(ifo[1].noisefilesuffix, "-1024.gwf");
-    ifo[1].noisefilesize   = 1024; 
-    ifo[1].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
-    ifo[1].noisedoubleprecision = 0;
 
 
-  }
-    
-  if(run.selectdata == 2) {
-    //Clean S5 data 2
-    sprintf(ifo[1].ch1name,       "L1:LSC-STRAIN");
-    sprintf(ifo[1].ch1filepath,   datadir);
-    sprintf(ifo[1].ch1fileprefix, "L-L1_RDS_C03_L2-");
-    sprintf(ifo[1].ch1filesuffix, "-384.gwf");
-    ifo[1].ch1filesize   = 384;
-    ifo[1].ch1fileoffset = 262;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
-    ifo[1].ch1doubleprecision = 0;
-    ifo[1].add2channels    = 0;  //0, unless you want to read a signal from file
-    
-    ifo[1].noiseGPSstart   = 846226064;
-    sprintf(ifo[1].noisechannel,    "L1:LSC-STRAIN");
-    sprintf(ifo[1].noisefilepath,   datadir);
-    sprintf(ifo[1].noisefileprefix, "L-L1_RDS_C03_L2-");
-    sprintf(ifo[1].noisefilesuffix, "-384.gwf");
-    ifo[1].noisefilesize   = 384;
-    ifo[1].noisefileoffset = 262;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
-    ifo[1].noisedoubleprecision = 0;
-  }
-  
-  if(run.selectdata == 3) {
-    // Playground trigger 845348295
-    sprintf(ifo[1].ch1name,       "L1:LSC-STRAIN");
-    sprintf(ifo[1].ch1filepath,   datadir);
-    sprintf(ifo[1].ch1fileprefix, "L-L1_RDS_C03_L2-");
-    sprintf(ifo[1].ch1filesuffix, "-128.gwf");
-    ifo[1].ch1filesize   = 128;
-    ifo[1].ch1fileoffset = 92;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
-    ifo[1].ch1doubleprecision = 0;
-    ifo[1].add2channels    = 0;  //0, unless you want to read a signal from file
-    
-    ifo[1].noiseGPSstart   = 845348573;
-    sprintf(ifo[1].noisechannel,    "L1:LSC-STRAIN");
-    sprintf(ifo[1].noisefilepath,   datadir);
-    sprintf(ifo[1].noisefileprefix, "L-L1_RDS_C03_L2-");
-    sprintf(ifo[1].noisefilesuffix, "-128.gwf");
-    ifo[1].noisefilesize   = 128;
-    ifo[1].noisefileoffset = 92;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
-    ifo[1].noisedoubleprecision = 0;
-  }
-  
-  if(run.selectdata == 4) {
-    // glitchy data
-    sprintf(ifo[1].ch1name,       "L1:LSC-STRAIN");
-    sprintf(ifo[1].ch1filepath,   datadir);
-    sprintf(ifo[1].ch1fileprefix, "L-L1_RDS_C03_L2-");
-    sprintf(ifo[1].ch1filesuffix, "-128.gwf");
-    ifo[1].ch1filesize   = 128;
-    ifo[1].ch1fileoffset = 125;
-    ifo[1].ch1doubleprecision = 0;
-    ifo[1].add2channels    = 0;  //0, unless you want to read a signal from file
-    
-    ifo[1].noiseGPSstart   = 846471038;
-    sprintf(ifo[1].noisechannel,    "L1:LSC-STRAIN");
-    sprintf(ifo[1].noisefilepath,   datadir);
-    sprintf(ifo[1].noisefileprefix, "L-L1_RDS_C03_L2-");
-    sprintf(ifo[1].noisefilesuffix, "-128.gwf");
-    ifo[1].noisefilesize   = 128;
-    ifo[1].noisefileoffset = 125;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
-    ifo[1].noisedoubleprecision = 0;
-  }
-  
-  if(run.selectdata == 5) {
-    // NINJA data set
-    
-    sprintf(ifo[1].ch1name,       "L1:STRAIN"); 
-    sprintf(ifo[1].ch1filepath,   datadir);
-//    sprintf(ifo[1].ch1fileprefix, "L1-NINJADATA-");
-    sprintf(ifo[1].ch1fileprefix, "HLV-NINJA_DATA-");
-    sprintf(ifo[1].ch1filesuffix, "-1024.gwf");
-    ifo[1].ch1filesize   = 1024; 
-    ifo[1].ch1fileoffset = 743;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
-    ifo[1].ch1doubleprecision = 0;
-    ifo[1].add2channels    = 0;  //0, unless you want to read a signal from file
-    
-    ifo[1].noiseGPSstart   = 894400500; //894457315; //894378400;  //894457315;
-    sprintf(ifo[1].noisechannel,    "L1:STRAIN");
-    sprintf(ifo[1].noisefilepath,   datadir);
-    //sprintf(ifo[1].noisefileprefix, "L1-NINJADATA-");
-    sprintf(ifo[1].noisefileprefix, "HLV-NINJA_DATA-");
-    sprintf(ifo[1].noisefilesuffix, "-1024.gwf");
-    ifo[1].noisefilesize   = 1024; 
-    ifo[1].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
-    ifo[1].noisedoubleprecision = 0;
-  }
-  
-  if(run.selectdata == 6) {
+
+    // LIVINGSTON, L1:
     // Original Gaussian, stationary noise, which we used 2007-2008
     sprintf(ifo[1].ch1name,       "L1:STRAIN");
     sprintf(ifo[1].ch1filepath,   datadir);
@@ -349,74 +427,11 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[1].noisefilesize   = 6000;
     ifo[1].noisefileoffset = 4000;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[1].noisedoubleprecision = 0;
-  }
-    
-  
-  
-  
-  
-  // PISA, Virgo.
-  sprintf(ifo[2].name, "Pisa");
-  ifo[2].lati     = (  43.63/180.0)*pi;
-  ifo[2].longi    = (  10.50/180.0)*pi;
-  ifo[2].rightarm = ( 341.50/180.0)*pi;
-  ifo[2].leftarm  = (  71.50/180.0)*pi;
-  ifo[2].radius_eqt  = 6378137.0;    // 6378000.0;     // WGS 84
-  ifo[2].radius_pole = 6356752.314;  // 6378000.0;
-  ifo[2].lowCut  =  ifo[0].lowCut;
-  ifo[2].highCut = ifo[0].highCut;
-  ifo[2].before_tc = ifo[0].before_tc;
-  ifo[2].after_tc = ifo[0].after_tc;
-  
-  if(run.selectdata == 1) {
-    // Gaussian, stationary noise
 
-    sprintf(ifo[2].ch1name,       "V1:STRAIN"); 
-    sprintf(ifo[2].ch1filepath,   datadir);
-    sprintf(ifo[2].ch1fileprefix, "V-V1_NINJA_NOISE-");
-    sprintf(ifo[2].ch1filesuffix, "-1024.gwf");
-    ifo[2].ch1filesize   = 1024; 
-    ifo[2].ch1fileoffset = 743;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
-    ifo[2].ch1doubleprecision = 0;
-    ifo[2].add2channels    = 0;  //0, unless you want to read a signal from file
-    
-    ifo[2].noiseGPSstart   = 894377200;
-    sprintf(ifo[2].noisechannel,    "V1:STRAIN");
-    sprintf(ifo[2].noisefilepath,   datadir);
-    sprintf(ifo[2].noisefileprefix, "V-V1_NINJA_NOISE-");
-    sprintf(ifo[2].noisefilesuffix, "-1024.gwf");
-    ifo[2].noisefilesize   = 1024; 
-    ifo[2].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
-    ifo[0].noisedoubleprecision = 0;
-  }
-  
-  if(run.selectdata == 5) {
-    // NINJA data set
-    
-    sprintf(ifo[2].ch1name,       "V1:STRAIN");
-    sprintf(ifo[2].ch1filepath,   datadir);
-//    sprintf(ifo[2].ch1fileprefix, "V1-NINJADATA-");
-    sprintf(ifo[2].ch1fileprefix, "HLV-NINJA_DATA-");
-    sprintf(ifo[2].ch1filesuffix, "-1024.gwf");
-    ifo[2].ch1filesize   = 1024;
-    ifo[2].ch1fileoffset = 743;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
-    ifo[2].ch1doubleprecision = 0;
-    ifo[2].add2channels    = 0;  //0, unless you want to read a signal from file
-    
-    ifo[2].noiseGPSstart   = 894400500; //894457315; //894378400;  //894457315;
-    sprintf(ifo[2].noisechannel,    "V1:STRAIN");
-    sprintf(ifo[2].noisefilepath,   datadir);
-//    sprintf(ifo[2].noisefileprefix, "V1-NINJADATA-");
-    sprintf(ifo[2].noisefileprefix, "HLV-NINJA_DATA-");
-    sprintf(ifo[2].noisefilesuffix, "-1024.gwf");
-    ifo[2].noisefilesize   = 1024;
-    ifo[2].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
-    ifo[2].noisedoubleprecision = 0;
-  }
-  
-  // You might want to set the parameter tukeywin from 0.05 to 0.15 when including the Virgo data 6
-  if(run.selectdata == 6) {
-    // Original Gaussian, stationary noise, which we used 2007-2008
+
+
+    // PISA, Virgo:
+    // Original Gaussian, stationary noise, which we used 2007-2008    // You might want to set the parameter tukeywin from 0.05 to 0.15 when including the Virgo data 6
     sprintf(ifo[2].ch1name,       "V1:noise");
     sprintf(ifo[2].ch1filepath,   datadir);
     sprintf(ifo[2].ch1fileprefix, "V-");
@@ -476,6 +491,9 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   }
   
 }
+// End of set_ifo_data()
+
+
 
 
 
@@ -562,14 +580,16 @@ void ifoinit(struct interferometer **ifo, int networksize)
     // if(intscrout==1) printf(" : f=%f  e^2=%f  v=%f \n", flattening, eccentricitySQ, curvatureradius);
     
     
-    printf("   Reading noise...\n");
+    // Read noise and estimate PSD
+    if(printmuch>=1) printf("   Reading noise for the detector in %s...\n",ifo[i]->name);
     noisePSDestimate(ifo[i]);
     
-    printf("   Reading data...\n");
+    // Read data for injection
+    if(printmuch>=1) printf("   Reading data for the detector in %s...\n",ifo[i]->name);
     dataFT(ifo,i,networksize);
     
-    // initialise array of different powers of Fourier frequencies 
-    // corresponding to the elements of `ifo[i]->dataTrafo':       
+    
+    // Initialise array of different powers of Fourier frequencies corresponding to the elements of `ifo[i]->dataTrafo':       
     // First loop to determine index bounds & range:               
     ifo[i]->lowIndex = 0; ifo[i]->highIndex=0;
     for(j=1; j<ifo[i]->FTsize; ++j){
@@ -581,7 +601,7 @@ void ifoinit(struct interferometer **ifo, int networksize)
     ifo[i]->indexRange = ifo[i]->highIndex - (ifo[i]->lowIndex - 1);
     // `lowIndex' and `highIndex' are the indices analogous to `lowCut' and `highCut'
     // but in order to access the respective elements of `raw_dataTrafo'.
-
+    
     ifo[i]->freqpowers = ((double**) malloc(sizeof(double*) * ifo[i]->indexRange));
     ifo[i]->noisePSD   = ((double*) malloc(sizeof(double) * ifo[i]->indexRange));
     ifo[i]->dataTrafo  = ((fftw_complex*) malloc(sizeof(fftw_complex) * ifo[i]->indexRange));
@@ -600,15 +620,18 @@ void ifoinit(struct interferometer **ifo, int networksize)
       ifo[i]->noisePSD[j]      = interpol_log_noisePSD(f,ifo[i]);
       // Although smoothing was done for log noise, we store real noise on output
       ifo[i]->noisePSD[j] = exp(ifo[i]->noisePSD[j]);
-
+      
       ifo[i]->dataTrafo[j]     = ifo[i]->raw_dataTrafo[j+ifo[i]->lowIndex];
     }
     if(intscrout==1) printf(" | %d Fourier frequencies within operational range %.0f--%.0f Hz.\n", 
-           ifo[i]->indexRange, ifo[i]->lowCut, ifo[i]->highCut);
+			    ifo[i]->indexRange, ifo[i]->lowCut, ifo[i]->highCut);
     if(i<networksize-1)
       if(intscrout==1) printf(" | --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --\n");
   }
 }
+
+
+
 
 
 void ifodispose(struct interferometer *ifo)
@@ -654,23 +677,23 @@ double *filter(int *order, int samplerate, double upperlimit)
   // band vector contains 0, end of pass band, end of transition band, 0.5 (old Nyquist)
   // if there's not enough room for a transition band, we have a problem!
   if(0.5/(double)downsamplefactor - upperlimit/((double)samplerate) < transitionbandwidth){
-	printf(" Problem in filter() function while downsampling!\n");
+    printf(" Problem in filter() function while downsampling!\n");
 	printf(" New Nyquist frequency after downsampling by %d is %g\n",
-			downsamplefactor, ((double)samplerate)/(double)downsamplefactor/2.0);
+	       downsamplefactor, ((double)samplerate)/(double)downsamplefactor/2.0);
 	printf(" Desired upper limit is %g\n", upperlimit);
 	printf(" This doesn't leave enough room for a transition band of relative width %g\n",
-		transitionbandwidth);
+	       transitionbandwidth);
 	printf(" Maximum upper limit: %g Hz.\n", (double)samplerate * 
-		(0.5/(double)downsamplefactor - transitionbandwidth));
+	       (0.5/(double)downsamplefactor - transitionbandwidth));
 	printf(" Aborting!\n");
 	exit(1);
   }
   double endpassband= upperlimit/((double)samplerate) +
-	(0.5/(double)downsamplefactor - upperlimit/((double)samplerate) 
-		- transitionbandwidth)/2.0;
+    (0.5/(double)downsamplefactor - upperlimit/((double)samplerate) 
+	 - transitionbandwidth)/2.0;
   double endtransitionband=0.5/(double)downsamplefactor - 
-	(0.5/(double)downsamplefactor - upperlimit/((double)samplerate) 
-		- transitionbandwidth)/2.0;
+    (0.5/(double)downsamplefactor - upperlimit/((double)samplerate) 
+	 - transitionbandwidth)/2.0;
   double bands[4]   = {0.0, endpassband, endtransitionband, 0.5};
   double *coef;                        // Vector of coefficients (symmetric)
   coef = (double*) malloc(sizeof(double)*totalcoef);
@@ -679,6 +702,9 @@ double *filter(int *order, int samplerate, double upperlimit)
   *order = ncoef;
   return coef;
 }
+
+
+
 
 
 double *downsample(double data[], int *datalength, double filtercoef[], int ncoef)
@@ -736,6 +762,7 @@ double tukey(int j, int N, double r)
 
 
 void dataFT(struct interferometer *ifo[], int i, int networksize)
+// Read the data and do a software injection
 // Computes the Fourier Transform for the specified range of the specified Frame (".gwf") file,
 // after adding up the two (signal & noise) channels, or injecting a waveform template into the noise.
 // Also takes care of preparing FT stuff  (ifo[i]->FTplan, ->FTin, ->FTout, ...).
@@ -936,7 +963,7 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
     ifo[i]->FTsize = (N/2)+1;  
     free(raw);
   }
-
+  
   // Window input data with a Tukey window:
   ifo[i]->FTwindow = malloc(sizeof(double) * N);
   ifo[i]->rawDownsampledWindowedData = (double*) fftw_malloc(sizeof(double)*N);
@@ -972,11 +999,14 @@ void dataFT(struct interferometer *ifo[], int i, int networksize)
   ifo[i]->raw_dataTrafo = fftw_malloc(sizeof(fftw_complex) * (ifo[i]->FTsize));  
   for(j=0; j<ifo[i]->FTsize; ++j) ifo[i]->raw_dataTrafo[j] = ifo[i]->FTout[j];
   
-  
-  
-  
 }
 // End dataFT()
+
+
+
+
+
+
 
 
 
@@ -1013,7 +1043,6 @@ void noisePSDestimate(struct interferometer *ifo)
   char    filenames[2000];
   long             filestart;
   int            filecount=0;
-  
   
   // Starting time of first(!) frame file to be read:
   filestart = (((ifo->noiseGPSstart-ifo->noisefileoffset) / ifo->noisefilesize) * ifo->noisefilesize) + ifo->noisefileoffset;
@@ -1215,6 +1244,10 @@ void noisePSDestimate(struct interferometer *ifo)
 
 
 
+
+
+
+
 double interpol_log_noisePSD(double f, struct interferometer *ifo)
 // Returns linearly interpolated (log-) noise PSD.
 {
@@ -1226,6 +1259,10 @@ double interpol_log_noisePSD(double f, struct interferometer *ifo)
   double result   = weight1*ifo->raw_noisePSD[lowindex] + weight2*ifo->raw_noisePSD[highindex];
   return result;
 }
+
+
+
+
 
 
 void writeDataToFiles(struct interferometer *ifo[], int networksize, int mcmcseed){
@@ -1271,7 +1308,11 @@ void writeDataToFiles(struct interferometer *ifo[], int networksize, int mcmcsee
     if(intscrout) printf(" : (data FFT written to file)\n");
   }
 }
-  
+
+
+
+
+
 void writeNoiseToFiles(struct interferometer *ifo[], int networksize, int mcmcseed){
   int i, j;
   for(i=0; i<networksize; i++){ 
@@ -1295,6 +1336,11 @@ void writeNoiseToFiles(struct interferometer *ifo[], int networksize, int mcmcse
     if(intscrout) printf(" : (noise ASD written to file)\n");
   }
 }
+
+
+
+
+
 
 void writeSignalsToFiles(struct interferometer *ifo[], int networksize, int mcmcseed){
   int i, j;

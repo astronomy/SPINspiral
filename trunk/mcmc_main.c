@@ -30,7 +30,7 @@ int main(int argc, char * argv[])
   if(argc > 1) sprintf(run.infilename,argv[1]);
   
   readlocalfile();                //Read system-dependent data, e.g. path to data files
-  readinputfile(&run);            //Read data for this run from input.mcmc
+  readinputfile(&run);            //Read main input data file for this run from input.mcmc
   setseed(&run.mcmcseed);         //Set mcmcseed if 0, otherwise keep the current value
   setrandomtrueparameters(&run);  //Randomise the injection parameters where wanted
   writeinputfile(&run);           //Write run data to nicely formatted input.mcmc.<mcmcseed>
@@ -40,31 +40,46 @@ int main(int argc, char * argv[])
   } else if(waveformversion==2) {
     printf("   Using LAL, 3.5PN, 15-parameter waveform.\n");
   } else {
-    printf("   Unknown waveform: %d.\n",waveformversion);
+    printf("   Unknown waveform: %d.   Available waveforms:\n",waveformversion);
+    printf("     1: Apostolatos, simple precession, 12 parameters\n");
+    printf("     2: LAL, single spin, 12 parameters\n");
+    printf("\n");
     exit(1);
   }
   
-  //Set up the data for the IFOs you may want to use (H1,L1 + VIRGO by default)
-  struct interferometer database[3];
+  
+  
+  //Set up the data for the IFOs in an IFO database you may want to use (H1,L1 + VIRGO by default)
+  run.maxIFOdbaseSize = 4;  //The maximum number of IFOs to read the properties in for from the data input file (mcmc.data or equivalent)
+  struct interferometer database[run.maxIFOdbaseSize];
   set_ifo_data(run, database);
   
+  
+  
   //Define interferometer network with IFOs.  The first run.networksize are actually used
-  struct interferometer *network[3] = {&database[0], &database[1], &database[2]}; //H1L1V
-  //struct interferometer *network[3] = {&database[0], &database[2], &database[1]}; //H1VL1
+  //struct interferometer *network[3] = {&database[0], &database[1], &database[2]}; //H1L1V
+  struct interferometer *network[run.networksize];
+  for(ifonr=0;ifonr<run.networksize;ifonr++) network[ifonr] = &database[run.selectifos[ifonr]-1];
   int networksize = run.networksize;
+  
+  
   
   //Initialise interferometers, read and prepare data, inject signal (takes some time)
   if(networksize == 1) {
-    printf("   Initialising 1 IFO, reading noise and data...\n");
+    printf("   Initialising 1 IFO: %s, reading noise and data...\n",database[run.selectifos[0]-1].name);
   } else {
-    printf("   Initialising %d IFOs, reading noise and data files...\n",networksize);
+    printf("   Initialising %d IFOs: ",networksize);
+    for(ifonr=0;ifonr<run.networksize;ifonr++) printf(" %s,",database[run.selectifos[ifonr]-1].name);
+    printf(" reading noise and data files...\n");
   }
-  ifoinit(network, networksize);
+  ifoinit(network, networksize); //Do the actual initialisation
   if(inject) {
     if(run.targetsnr < 0.001) printf("   A signal with the 'true' parameter values was injected.\n");
   } else {
     printf("   No signal was injected.\n");
   }
+  
+  
   
   //Get a parameter set to calculate SNR or write the wavefrom to disc
   struct parset dummypar;
@@ -76,20 +91,19 @@ int main(int argc, char * argv[])
   localpar(&dummypar, network, networksize);
   
   
-  //printf("  %lf  %lf  %lf  %lf\n",*dummypar.loctc,*dummypar.localti,*dummypar.locazi,*dummypar.locpolar);
   
   //Calculate SNR
   run.netsnr = 0.0;
   if(dosnr==1) {
     for(ifonr=0; ifonr<networksize; ++ifonr) {
-      //printmuch=1;
       snr = signaltonoiseratio(&dummypar, network, ifonr);
-      //printmuch=0;
       network[ifonr]->snr = snr;
       run.netsnr += snr*snr;
     }
     run.netsnr = sqrt(run.netsnr);
   }
+  
+  
   
   //Get the desired SNR by scaling the distance
   if(run.targetsnr > 0.001 && inject==1) {
@@ -153,7 +167,7 @@ int main(int argc, char * argv[])
   printf("   Global     :    Source position:  RA: %5.2lfh, dec: %6.2lfd;  J0 points to:  RA: %5.2lfh, dec: %6.2lfd;   inclination J0: %5.2lfd  \n",rightAscension(dummypar.longi,GMST(dummypar.tc))*r2h,asin(dummypar.sinlati)*r2d,rightAscension(dummypar.phiJ0,GMST(dummypar.tc))*r2h,asin(dummypar.sinthJ0)*r2d,(pi/2.0-acos(dummypar.NdJ))*r2d);
   for(ifonr=0;ifonr<networksize;ifonr++) printf("   %-11s:    theta: %5.1lfd,  phi: %5.1lfd;   azimuth: %5.1lfd,  altitude: %5.1lfd\n",network[ifonr]->name,dummypar.localti[ifonr]*r2d,dummypar.locazi[ifonr]*r2d,fmod(pi-(dummypar.locazi[ifonr]+network[ifonr]->rightarm)+mtpi,tpi)*r2d,(pi/2.0-dummypar.localti[ifonr])*r2d);
   
-  printf("\n  %10s  %10s  %6s   %6s  ","niter","nburn","seed","ndet");
+  printf("\n  %10s  %10s  %6s  %6s  ","niter","nburn","seed","ndet");
   for(ifonr=0;ifonr<networksize;ifonr++) printf("%16s%4s  ",network[ifonr]->name,"SNR");
   printf("%20s  ","Network SNR");
   printf("\n  %10d  %10d  %6d  %6d  ",iter,nburn,run.mcmcseed,networksize);

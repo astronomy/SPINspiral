@@ -2,6 +2,13 @@
   ChangeLog for the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    83: sluys, 05/12/2008
+     - Fixed bug: ifo[2].noisedoubleprecision was ifo[2].noisedoubleprecision 
+       for data set 1 in mcmc_data.c
+     - Added a new input file: mcmc.data (name specified in mcmc.input, 
+       set selectdata=0 to use it).  See doc/mcmc.data for an example.
+     - The parameter selectifos in mcmc.input selects the IFOs for the network
+        
     65: sluys, 22/10/2008
      - Added possibility to start chains from specified values (new values for offsetmcmc)
        The input file has now one extra line 'starting values' below 'injection values'

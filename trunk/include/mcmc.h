@@ -114,32 +114,39 @@ double *chaintemp;                  // vector of temperatures for individual cha
 
 
 // Structure with run parameters.  
-// This should eventually include all variables in the input file and replace many of the global variables.
+// This should eventually include all variables in the input files and replace many of the global variables.
 // That also means that this struct must be passed throughout much of the code.
 struct runpar{
-  //int npar;            // Number of parameters in the MCMC/template
-  int ntemps;		 // Size of temperature ladder
-  int mcmcseed;          // Seed for MCMC
-  int selectdata;        // Select which data set to run on
-  int networksize;       // Number of IFOs in the detector network
-  //int adapt;           // Use adaptation or not
+  //int npar;                     // Number of parameters in the MCMC/template
+  int ntemps;		          // Size of temperature ladder
+  int mcmcseed;                   // Seed for MCMC
+  int selectdata;                 // Select which data set to run on
+  int networksize;                // Number of IFOs in the detector network
+  int maxIFOdbaseSize;            // Maximum number of IFOs for which the properties are read in (e.g. from mcmc.data)
+  int selectifos[9];              // Select IFOs to use for the analysis
+  
+  //int adapt;                    // Use adaptation or not
   //double *fitpar;
-  int *setranpar;        // Set random true (i.e., injection) parameters 
-  int ranparseed;        // Seed to randomise true parameters (i.e., injection)
+  int *setranpar;                 // Set random true (i.e., injection) parameters 
+  int ranparseed;                 // Seed to randomise true parameters (i.e., injection)
   
-  double blockfrac;      // Fraction of non-correlated updates that is a block update
-  double corrfrac;       // Fraction of MCMC updates that used the correlation matrix
-  double mataccfr;       // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
+  double blockfrac;               // Fraction of non-correlated updates that is a block update
+  double corrfrac;                // Fraction of MCMC updates that used the correlation matrix
+  double mataccfr;                // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
   
-  double netsnr;         // Total SNR of the network
-  double targetsnr;      // Target total SNR of the network, scale the distance
-  double temps[99];      // Temperature ladder for manual parallel tempering
-  double startpar[12];   // Starting parameters for the MCMC chains (may be different from true parameters)
+  double netsnr;                  // Total SNR of the network
+  double targetsnr;               // Target total SNR of the network, scale the distance
+  double temps[99];               // Temperature ladder for manual parallel tempering
+  double startpar[12];            // Starting parameters for the MCMC chains (may be different from true parameters)
   
-  double databeforetc, dataaftertc, lowfrequencycut, highfrequencycut;
+  double databeforetc;            // Data stretch in the time domain before t_c to use in the analysis
+  double dataaftertc;             // Data stretch in the time domain after t_c to use in the analysis
+  double lowfrequencycut;         // Lower frequency cutoff to compute the overlap for
+  double highfrequencycut;        // Upper frequency cutoff to compute the overlap for
   
-  char infilename[99];   // Run input file name
-  char outfilename[99];  // Copy of input file name
+  char infilename[99];            // Run input file name
+  char outfilename[99];           // Copy of input file name
+  char datainfilename[99];        // Run data input file name
 };
 
 
@@ -305,6 +312,7 @@ fftw_complex *FTout;                  // FT output (type here identical to `(dou
 void readlocalfile();
 void readinputfile(struct runpar *run);
 void writeinputfile(struct runpar *run);
+void readdatainputfile(struct runpar run, struct interferometer ifo[]);
 void setconstants(struct runpar *run);
 void set_ifo_data(struct runpar run, struct interferometer ifo[]);
 

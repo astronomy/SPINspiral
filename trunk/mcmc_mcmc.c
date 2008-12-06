@@ -909,7 +909,7 @@ void write_mcmc_header(struct interferometer *ifo[], struct mcmcvariables mcmc, 
   if(offsetmcmc==1) printf("   Starting MCMC from initial parameters randomly offset around the injection\n\n");
   if(offsetmcmc==2) printf("   Starting MCMC from specified (offset) initial parameters\n\n");
   if(offsetmcmc==3) printf("   Starting MCMC from initial parameters randomly offset around the specified values\n\n");
-
+  
   // *** Open the output file and write run parameters in the header ***
   for(tempi=0;tempi<mcmc.ntemps;tempi++) {
     if(tempi==0 || savehotchains>0) {
