@@ -41,8 +41,8 @@ void template15(struct parset *par, struct interferometer *ifo[], int ifonr)
   length     = ifo[ifonr]->samplesize;
   //printf("length = %d\n",length);
   
- // double hplusLAL[length+2];
- // double hcrossLAL[length+2];
+  // double hplusLAL[length+2];
+  // double hcrossLAL[length+2];
   //double wave[length+2];
   double *wave = (double*)calloc(length+2,sizeof(double));  //MvdS: should this make a difference? Vivien: no it shouldn't.
   int lengthLAL = 0;
@@ -54,8 +54,8 @@ void template15(struct parset *par, struct interferometer *ifo[], int ifonr)
   LALHpHc(&thewaveform, &lengthLAL, par, ifo[ifonr]);  //MvdS: ifonr never used. This routine computes and returns hplusLAL, hcrossLAL, which are never used... However, this information should also be contained in thewaveform
 																					//Vivien: ifonr is only used in a commented printf to know which interferometer called the routine. Just for debugging purposes
 																					//Vivien: hplusLAL and hcrossLAL are indeed unecessary (was before I used the structure thewaveform)
-																					
-   
+  
+  
   // Compute the detector response
   //double delay = LALFpFc(&thewaveform, wave, &lengthLAL, length, par, ifonr);
   double delay = LALFpFc(&thewaveform, wave, length, par, ifonr); //MvdS: lengthLAL never used or set. Uses waveforms in thewaveform to compute the detector response in wave (?)
@@ -109,8 +109,15 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
   
   INT4        i;
   int			lengthLAL;
-  REAL8       a1, a2, phi, shift;
+  //REAL8       a1, a2, phi, shift;
   pi=M_PI;
+  
+  
+  //Print input:
+  //printf("  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf\n",
+  //	 par->mc,par->eta,par->tc,par->logdl,par->spin,par->kappa,par->longi,par->sinlati,par->phase,par->sinthJ0,par->phiJ0,par->alpha);
+
+  
   
   ////////////////////////////////////////////////////////////initialisation of memory/////////////////////////////////
   
@@ -231,28 +238,28 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
   addvec(tvec1,tvec4,tvec7);                                                                                       //Construct Eq.41e
   addvec(tvec7,tvec6,n_L);
   //Eq.41e: n_L=L^
-    
-  LdotN  = dotproduct(n_L,n_N);
   
-  double r,e;
+  LdotN = dotproduct(n_L,n_N);
   
-  r=pow(M/(omega_orb*omega_orb),1.0/3.0);
-    
-  e=(16.0/5.0)*sqrt((M/r)*(M/r)*(M/r))/((1+(3.0/4.0)*m2/m1)*(1.0+2.0*par->kappa*Y+Y*Y));
- 
+  double r = pow(M/(omega_orb*omega_orb),1.0/3.0);
+  double e = (16.0/5.0)*sqrt((M/r)*(M/r)*(M/r)) / ((1.0+(3.0/4.0)*m2/m1)*(1.0+2.0*par->kappa*Y+Y*Y));
+  double e2 = e*e;
+  double e3 = e2*e;
+  
+  
   double n_S[3];
   
-  n_S[0]=(-(-n_J0[0]-n_J0[1]*n_L[2]*e+n_L[1]*n_J0[2]*e-n_L[0]*n_L[0]*n_J0[0]*e*e-n_L[0]*n_L[1]*n_J0[1]*e*e-n_L[0]*n_L[2]*n_J0[2]*e*e)/(1+n_L[0]*e*e*e+n_L[1]*n_L[1]*e*e+n_L[2]*n_L[2]*e*e));//-n_L[0];
-  n_S[1]=(-(-n_J0[1]+n_J0[0]*n_L[2]*e-n_L[0]*n_J0[2]*e-n_L[0]*n_J0[0]*n_L[1]*e*e-n_L[1]*n_L[1]*n_J0[1]*e*e-n_L[1]*n_L[2]*n_J0[2]*e*e)/(1+n_L[0]*e*e*e+n_L[1]*n_L[1]*e*e+n_L[2]*n_L[2]*e*e));//-n_L[1];
-  n_S[2]=(-(-n_J0[2]-n_J0[0]*n_L[1]*e+n_L[0]*n_J0[1]*e-n_L[0]*n_J0[0]*n_L[2]*e*e-n_L[1]*n_J0[1]*n_L[2]*e*e-n_L[2]*n_L[2]*n_J0[2]*e*e)/(1+n_L[0]*e*e*e+n_L[1]*n_L[1]*e*e+n_L[2]*n_L[2]*e*e));//-n_L[2];
+  n_S[0] = -(-n_J0[0] - n_J0[1]*n_L[2]*e + n_L[1]*n_J0[2]*e - n_L[0]*n_L[0]*n_J0[0]*e2 - n_L[0]*n_L[1]*n_J0[1]*e2 - n_L[0]*n_L[2]*n_J0[2]*e2) / (1.0 + n_L[0]*e3 + n_L[1]*n_L[1]*e2 + n_L[2]*n_L[2]*e2);  //-n_L[0];
+  n_S[1] = -(-n_J0[1] + n_J0[0]*n_L[2]*e - n_L[0]*n_J0[2]*e - n_L[0]*n_J0[0]*n_L[1]*e2 - n_L[1]*n_L[1]*n_J0[1]*e2 - n_L[1]*n_L[2]*n_J0[2]*e2) / (1.0 + n_L[0]*e3 + n_L[1]*n_L[1]*e2 + n_L[2]*n_L[2]*e2);  //-n_L[1];
+  n_S[2] = -(-n_J0[2] - n_J0[0]*n_L[1]*e + n_L[0]*n_J0[1]*e - n_L[0]*n_J0[0]*n_L[2]*e2 - n_L[1]*n_J0[1]*n_L[2]*e2 - n_L[2]*n_L[2]*n_J0[2]*e2) / (1.0 + n_L[0]*e3 + n_L[1]*n_L[1]*e2 + n_L[2]*n_L[2]*e2);  //-n_L[2];
   
-  n_S[0]=n_S[0]*G*l_L-l_L*n_L[0];
-  n_S[1]=n_S[1]*G*l_L-l_L*n_L[1];
-  n_S[2]=n_S[2]*G*l_L-l_L*n_L[2];
+  n_S[0] = n_S[0]*G*l_L - l_L*n_L[0];
+  n_S[1] = n_S[1]*G*l_L - l_L*n_L[1];
+  n_S[2] = n_S[2]*G*l_L - l_L*n_L[2];
   
   double xloc[3],yloc[3],zloc[3];                        // coordinates in the global frame (in which N is defined) of the local vectors (e.g. z=N)                                                                          
   for(i=0;i<3;i++) zloc[i] = n_N[i];                                                             
-  for(i=0;i<3;i++) yloc [i] = 0.0;
+  for(i=0;i<3;i++) yloc[i] = 0.0;
   for(i=0;i<3;i++) xloc[i] = 0.0;
   
   crossproduct(zloc,n_L,yloc);
@@ -270,16 +277,16 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
   for(i=0;i<3;i++) n_S[i] = n_Sloc[i];
   
   
-  n_S[0]=par->spin*n_S[0];
-  n_S[1]=par->spin*n_S[1];
-  n_S[2]=par->spin*n_S[2];
+  n_S[0] = par->spin*n_S[0];
+  n_S[1] = par->spin*n_S[1];
+  n_S[2] = par->spin*n_S[2];
   
   ////////////////////////////////////////////////////////////now we fill the injParam structure with the converted parameters//////////////
   
   injParams.mass1 = (float)(m1/M0);//par->m1;//M1;
   injParams.mass2 = (float)(m2/M0);//par->m2;//M2;
   
-  injParams.f_final = ifo->highCut;
+  injParams.f_final = (float)ifo->highCut;  //It seems injParams.f_final gets overwritten by LALGenerateInspiral; it's an output parameter rather than input. This will also somewhat affect SNR comparisons with the Apostolatos waveform.
   injParams.f_lower = (float)f_lower;
   
   LALSnprintf(injParams.waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTaylorthreePointFivePN");//"SpinTaylortwoPN");
@@ -288,7 +295,7 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
   injParams.distance = (float)exp(par->logdl);//d_L;
   
   injParams.inclination = (float)acos(LdotN);
-    
+  
   injParams.spin1x = (float)n_S[0];
   injParams.spin1y = (float)n_S[1];
   injParams.spin1z = (float)n_S[2];
@@ -306,6 +313,12 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
   ppnParams.deltaT = inversesamplerate;//1.0 / 4096.0;
   
   
+  //Print output:
+  //  printf("  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf\n",
+  //	 injParams.mass1,injParams.mass2,injParams.f_final,injParams.f_lower,injParams.distance,injParams.inclination,injParams.spin1x,injParams.spin1y,injParams.spin1z,
+  //	 injParams.spin2x,injParams.spin2y,injParams.spin2z,injParams.coa_phase,injParams.longitude,injParams.latitude,injParams.polarization);
+  
+  
   /* --- now we can call the injection function --- */
   
   LALGenerateInspiral( &mystatus, waveform, &injParams, &ppnParams );
@@ -318,11 +331,26 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
   lengthLAL  = waveform->phi->data->length;
   *l = lengthLAL;
   
+  //Print output:
+  //printf("  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf\n",
+  //	 injParams.mass1,injParams.mass2,injParams.f_final,injParams.f_lower,injParams.distance,injParams.inclination,injParams.spin1x,injParams.spin1y,injParams.spin1z,
+  //	 injParams.spin2x,injParams.spin2y,injParams.spin2z,injParams.coa_phase,injParams.longitude,injParams.latitude,injParams.polarization);
   
   
   ///////////////////////////////////////////////////////at this point the structure waveform is still allocated in memory and will have to be freed. See LALfreedom below//////////
   
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -334,7 +362,7 @@ double LALFpFc(CoherentGW *waveform, double *wave, int length, struct parset *pa
   
   memset( &stat, 0, sizeof(LALStatus) );
   
-    int i;
+  int i;
   
   
   DetectorResponse detector;   // the detector in question 
@@ -353,7 +381,7 @@ double LALFpFc(CoherentGW *waveform, double *wave, int length, struct parset *pa
   
   
   REAL4TimeSeries signal;        // GW signal 
-    
+  
   signal.epoch.gpsSeconds = (INT4)par->tc;
   signal.epoch.gpsNanoSeconds = (INT4)(100000000.0*(par->tc - (double)signal.epoch.gpsSeconds));
   
@@ -375,11 +403,11 @@ double LALFpFc(CoherentGW *waveform, double *wave, int length, struct parset *pa
   
   /*********TIME DELAY***********/
   
-
+  
   REAL8            delay;
   DetTimeAndASource     det1_and_source;
   LALPlaceAndGPS        det1_and_gps;
-   
+  
   det1_and_gps.p_detector = detector.site;
   det1_and_gps.p_gps      = &(signal.epoch);
   
@@ -389,8 +417,8 @@ double LALFpFc(CoherentGW *waveform, double *wave, int length, struct parset *pa
   LALTimeDelayFromEarthCenter(&stat, &delay, &det1_and_source);
   
   LALSDestroyVector( &stat, &( signal.data ) );
- // if(waveform->position.system==COORDINATESYSTEM_EQUATORIAL) printf("youpi\n");
- // printf("position=%f,%f\n",waveform->position.longitude,waveform->position.latitude);
+  // if(waveform->position.system==COORDINATESYSTEM_EQUATORIAL) printf("youpi\n");
+  // printf("position=%f,%f\n",waveform->position.longitude,waveform->position.latitude);
   
   return -delay;
   

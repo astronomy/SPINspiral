@@ -19,7 +19,7 @@ void template15(struct parset *par, struct interferometer *ifo[], int ifonr)
   printf("\n\n");
   printf("\n    *** ERROR ***");
   printf("\n    You have compiled the MCMC code without LAL support, but are trying to run it with the LAL waveform.");
-  printf("\n    Please make up your mind for once; set  waveformversion = 1  in mcmc_main.c, OR compile with LAL support.");
+  printf("\n    Please set  waveformversion = 1  in the main input file (e.g. mcmc.input),  *OR*  compile with LAL support.");
   printf("\n\n\n");
   exit(1);
 }

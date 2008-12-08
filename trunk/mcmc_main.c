@@ -11,10 +11,10 @@ int main(int argc, char * argv[])
   // Interferometers are managed via the `database'; the `network' is a vector of pointers to the database (see below).
   // The interferometers that are actually used need to be initialised via the `ifoinit()'-function in order to determine noise PSD, signal FT &c.
   
-  clock_t time0 = clock();
-  
   if(domcmc>=1) printf("\n");
   printf("\n   Starting MCMC code...\n");
+  
+  clock_t time0 = clock();
   int ifonr=0;
   double snr=0.0;
   
@@ -38,7 +38,7 @@ int main(int argc, char * argv[])
   if(waveformversion==1) {
     printf("   Using Apostolatos, 1.5PN, 12-parameter waveform.\n");
   } else if(waveformversion==2) {
-    printf("   Using LAL, 3.5PN, 15-parameter waveform.\n");
+    printf("   Using LAL, 3.5PN, 12-parameter waveform.\n");
   } else {
     printf("   Unknown waveform: %d.   Available waveforms:\n",waveformversion);
     printf("     1: Apostolatos, simple precession, 12 parameters\n");

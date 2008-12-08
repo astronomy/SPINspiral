@@ -15,7 +15,7 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
 
 
 void template12(struct parset *par, struct interferometer *ifo[], int ifonr)
-// Simplified spinning template in restricted 1.5PN order with 1 spin (Apostolatos)
+// Spinning, 'simple-precession' template in restricted 1.5PN order with 1 spin (Apostolatos et al., 1994, PhRvD..49.6274A)
 //  The output vector `output' is of length `length',  starting at `tstart' and with resolution `samplerate'.
 {
   //if(MvdSdebug) printf("      Template for ifo %d\n", ifonr);
