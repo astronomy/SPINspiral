@@ -36,7 +36,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   
   
   // Print selected type of data/noise:
-  printf("   Data used:  %s.\n",datadescriptions[run.selectdata]);
+  printf("   Using data set %d: %s.\n",run.selectdata,datadescriptions[run.selectdata]);
   
   
   //*** Read detector position, orientation, file and channel names for detector strains from file (e.g. mcmc.data):
@@ -89,7 +89,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   
   
   // ***  Set hardcoded data sets ***
-    
+  
   if(run.selectdata == 1) {
     // HANFORD, H1:
     // Gaussian, stationary noise
@@ -110,8 +110,8 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[0].noisefilesize   = 1024; 
     ifo[0].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[0].noisedoubleprecision = 0;
-
-
+    
+    
     // LIVINGSTON, L1:
     // Gaussian, stationary noise
     sprintf(ifo[1].ch1name,       "L1:STRAIN"); 
@@ -156,6 +156,10 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   }
   
   
+  
+  
+  
+  
   if(run.selectdata == 2) {
     // HANFORD, H1:
     // Clean S5 data 2
@@ -176,9 +180,9 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[0].noisefilesize   = 384;
     ifo[0].noisefileoffset = 242;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[0].noisedoubleprecision = 0;
-
-
-
+    
+    
+    
     // LIVINGSTON, L1:
     //Clean S5 data 2
     sprintf(ifo[1].ch1name,       "L1:LSC-STRAIN");
@@ -198,7 +202,19 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[1].noisefilesize   = 384;
     ifo[1].noisefileoffset = 262;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[1].noisedoubleprecision = 0;
+    
+    for(i=0;i<run.networksize;i++) {
+      if(run.selectifos[i]>2) {
+	printf("\n\n   Error:  You're trying to use detector %d (%s) with data set %d (%s), which is not available for this detector.\n\n\n",run.selectifos[i],ifo[run.selectifos[i]-1].name,run.selectdata,datadescriptions[run.selectdata]);
+	exit(1);
+      }
+    }
+    
   }
+  
+  
+  
+  
   
   if(run.selectdata == 3) {
     // HANFORD, H1:
@@ -220,8 +236,8 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[0].noisefilesize   = 128;
     ifo[0].noisefileoffset = 53;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[0].noisedoubleprecision = 0;
-
-  
+    
+    
     // LIVINGSTON, L1:
     // Playground trigger 845348295
     sprintf(ifo[1].ch1name,       "L1:LSC-STRAIN");
@@ -241,7 +257,19 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[1].noisefilesize   = 128;
     ifo[1].noisefileoffset = 92;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[1].noisedoubleprecision = 0;
+
+    for(i=0;i<run.networksize;i++) {
+      if(run.selectifos[i]>2) {
+	printf("\n\n   Error:  You're trying to use detector %d (%s) with data set %d (%s), which is not available for this detector.\n\n\n",run.selectifos[i],ifo[run.selectifos[i]-1].name,run.selectdata,datadescriptions[run.selectdata]);
+	exit(1);
+      }
+    }
+    
   }
+  
+  
+  
+  
   
   if(run.selectdata == 4) {
     // HANFORD, H1:
@@ -263,9 +291,9 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[0].noisefilesize   = 128;
     ifo[0].noisefileoffset = 49;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[0].noisedoubleprecision = 0;
-
-
-
+    
+    
+    
     // LIVINGSTON, L1:
     // glitchy data
     sprintf(ifo[1].ch1name,       "L1:LSC-STRAIN");
@@ -285,6 +313,14 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[1].noisefilesize   = 128;
     ifo[1].noisefileoffset = 125;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[1].noisedoubleprecision = 0;
+
+    for(i=0;i<run.networksize;i++) {
+      if(run.selectifos[i]>2) {
+	printf("\n\n   Error:  You're trying to use detector %d (%s) with data set %d (%s), which is not available for this detector.\n\n\n",run.selectifos[i],ifo[run.selectifos[i]-1].name,run.selectdata,datadescriptions[run.selectdata]);
+	exit(1);
+      }
+    }
+    
   }
   
   
@@ -314,9 +350,9 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[0].noisefilesize   = 1024; 
     ifo[0].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[0].noisedoubleprecision = 0;
-
-
-
+    
+    
+    
     // LIVINGSTON, L1:
     // NINJA data set
     sprintf(ifo[1].ch1name,       "L1:STRAIN"); 
@@ -338,9 +374,9 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[1].noisefilesize   = 1024; 
     ifo[1].noisefileoffset = 743;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[1].noisedoubleprecision = 0;
-
-
-
+    
+    
+    
     // PISA, Virgo:
     // NINJA data set
     sprintf(ifo[2].ch1name,       "V1:STRAIN");
@@ -364,7 +400,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[2].noisedoubleprecision = 0;
   }
   
-
+  
   
   
   if(run.selectdata == 6) {
@@ -396,9 +432,9 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[0].noisefilesize   = 6000; 
     ifo[0].noisefileoffset = 4000;   //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[0].noisedoubleprecision = 0;
-
-
-
+    
+    
+    
     // LIVINGSTON, L1:
     // Original Gaussian, stationary noise, which we used 2007-2008
     sprintf(ifo[1].ch1name,       "L1:STRAIN");
@@ -419,7 +455,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[1].ch2fileoffset = 4000;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[1].ch2doubleprecision = 0;
     ifo[1].noiseGPSstart   = 700007000;
-  
+    
     sprintf(ifo[1].noisechannel,    "L1:STRAIN");
     sprintf(ifo[1].noisefilepath,   datadir);
     sprintf(ifo[1].noisefileprefix, "HL-SIM-");
@@ -427,9 +463,9 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[1].noisefilesize   = 6000;
     ifo[1].noisefileoffset = 4000;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[1].noisedoubleprecision = 0;
-
-
-
+    
+    
+    
     // PISA, Virgo:
     // Original Gaussian, stationary noise, which we used 2007-2008    // You might want to set the parameter tukeywin from 0.05 to 0.15 when including the Virgo data 6
     sprintf(ifo[2].ch1name,       "V1:noise");
@@ -1005,23 +1041,28 @@ void noisePSDestimate(struct interferometer *ifo)
 // windowed and transformed.
   
 {
-  struct FrFile  *iFile=NULL;  // Frame File                          
-  struct FrVect   *vect=NULL; 
-  double           *raw=NULL;  // FFTW vectors etc.                   
+  struct FrFile  *iFile=NULL;  // Frame File
+  struct FrVect   *vect=NULL;
+  double           *raw=NULL;  // FFTW vectors etc.               
   double            *in=NULL;
   fftw_complex     *out=NULL;
   fftw_plan           FTplan;
-  double           *PSD=NULL;  // vector containing PSD               
-  double          *sPSD=NULL;  // vector containing smoothed PSD      
-  double           *win=NULL;  // window                              
-  double      Mseconds=  8.0;  // M expressed in seconds              
-  double      Nseconds=256.0;  // total seconds                       
+  double           *PSD=NULL;  // vector containing PSD
+  double          *sPSD=NULL;  // vector containing smoothed PSD
+  double           *win=NULL;  // window
+  
+  double      Mseconds=  8.0;  // M expressed in seconds
+  double      Nseconds=256.0;  // total seconds
+  //double      Mseconds=  4.0;  // M expressed in seconds
+  //double      Nseconds= 32.0;  // total seconds
+  //printf("\n\n *** Warning: non-default PSD estimation *** \n\n");
+  
   int  K=(int)(Nseconds/Mseconds);  // number of 8-second-segments         
   double wss=0.0,log2=log(2.0);  // squared & summed window coefficients  etc.
   int     i, j, M, N, dummyN;
   int             samplerate;
   int           lower, upper;  // indices of lower & upper frequency bounds in FT vector
-  double             nyquist;  // the critical nyquist frequency      
+  double             nyquist;  // the critical nyquist frequency
   int          smoothrange=0;  // number of samples to left & right that are averaged (=0!!)
   int               PSDrange;
   double                 sum;
@@ -1031,6 +1072,7 @@ void noisePSDestimate(struct interferometer *ifo)
   char    filenames[2000];
   long             filestart;
   int            filecount=0;
+  
   
   // Starting time of first(!) frame file to be read:
   filestart = (((ifo->noiseGPSstart-ifo->noisefileoffset) / ifo->noisefilesize) * ifo->noisefilesize) + ifo->noisefileoffset;

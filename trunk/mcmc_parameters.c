@@ -343,7 +343,7 @@ void readdatainputfile(struct runpar run, struct interferometer ifo[])
   fgets(bla,500,fin);  sscanf(bla,"%d",&IFOdbaseSize);
   
   if(IFOdbaseSize<run.networksize) {
-    printf("\n   Error:  the number of detectors in the database (%d) is smaller than the number of detectors in the network (%d).\n\n",IFOdbaseSize,run.networksize);
+    printf("\n   Error:  the number of detectors in the database (%d detectors in %s) is smaller than the number of detectors in the network (%d).\n\n",IFOdbaseSize,run.datainfilename,run.networksize);
     exit(1);
   }
   if(IFOdbaseSize>run.maxIFOdbaseSize) {
