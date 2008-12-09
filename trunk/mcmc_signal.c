@@ -103,7 +103,7 @@ double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int 
   // Correct FFT for sampling rate of waveform
   overlaphh/=((double)ifo[ifonr]->samplerate);
   overlaphh/=((double)ifo[ifonr]->samplerate);
-
+  
   //printf("\n\n\n DELTAFT: %10.4f  %10d %10d  %10d\n\n\n" ,ifo[ifonr]->deltaFT,ifo[ifonr]->samplesize,ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex);
   
   return sqrt(overlaphh);

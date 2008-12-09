@@ -411,57 +411,24 @@ void readdatainputfile(struct runpar run, struct interferometer ifo[])
 // This routine should eventually disappear.
 void setconstants(struct runpar *run)
 {
-  int i=0,j=0;
   npar           =  12;            // Number of parameters, not *really* a variable... (yet anyway)
   
-  i = run->mcmcseed;  //Keeps compiler from complaining:  parameter "run" was never referenced
-  j = i;              //Keeps compiler from complaining:  variable "i" was set but never used
-  i = j;
-  
-  
-  /*
-  //Not in MCMC units!
-  truepar[0]  = 10.0;              // M1
-  truepar[1]  = 1.4;               // M2
-  truepar[2]  = 700009012.345000;  // tc
-  truepar[3]  = 13.0;              // d_L
-  truepar[4]  = 0.8;               // spin
-  truepar[5]  = 55.0;              // theta (deg)
-  truepar[6]  = 91.0;              // 'Greenwich hour angle' (saved as RA) (deg)
-  truepar[7]  = 40.0;              // declination (deg)
-  truepar[8]  = 11.459156;         // phase (deg)
-  truepar[9]  = 15.0;              // theta_J0 (deg)
-  truepar[10] = 125.0;             // phiJ0 (deg)
-  truepar[11] = 51.566202;         // alpha (deg)
-  */
-  
-  //--- Program control: --------------------------------------------------------------------------------------
   tempi = 0; //A global variable that determines the current chain (temperature) in the temperature ladder
   
   
-  
-  
-  
-  /*-- define some physical constants --*/
-  /* Nelson Christensen wrote (18/03/'05):                                */
-  /* > Christian and Mark                                                 */
-  /* > For the data we are using we need to use the following constants:  */
-  Ms   = 1.9889194662e30;   /* solar mass (kg)                                            */ 
-  Mpc  = 3.08568025e22;     /* metres in a Mpc  (LAL: 3.0856775807e22)                    */
-  G    = 6.67259e-11;       /* 6.674215e-11; */ /* gravity constant (SI)                  */
-  c    = 299792458.0;       /* speed of light (m/s)                                       */
-  Mpcs = 1.029272137e14;    /* seconds in a Mpc  (Mpc/c)                                  */
+  // Define some physical constants:
+  Ms   = 1.9889194662e30;   // solar mass (kg)
+  Mpc  = 3.08568025e22;     // metres in a Mpc  (LAL: 3.0856775807e22)
+  G    = 6.67259e-11;       // 6.674215e-11; */ /* gravity constant (SI)
+  c    = 299792458.0;       // speed of light (m/s)
+  Mpcs = 1.029272137e14;    // seconds in a Mpc  (Mpc/c)
   pi   = 3.141592653589793;   // pi
   tpi  = 6.283185307179586;   // 2 pi
-  mtpi = 6.283185307179586e6; // Large multiple of 2 pi
+  mtpi = 6.283185307179586e6; // Large multiple of 2 pi (2 megapi)
   
-  tukeywin       = 0.05; // parameter for Tukey-window used in dataFT (non-flat fraction).   Use 0.15 for Virgo data  
-  
-  //In mcmc.input now
-  //inject            = 1; /* inject `homemade' signal?                                        */
+  tukeywin       = 0.15; // parameter for Tukey-window used in dataFT (non-flat fraction).   Use 0.15 for Virgo data  
   
   annealfact = 2.0;      /* temperature increase factor for subsequent chains                */
-  
 }
 
 
@@ -607,7 +574,7 @@ void getparameterset(struct parset *par, double mc, double eta, double tc, doubl
 
 
 
-//Allocate the vectors in the struct parset
+//Allocate memory for the vectors in the struct parset
 void allocparset(struct parset *par, int networksize)
 {
   par->loctc    = NULL;

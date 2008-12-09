@@ -2,6 +2,9 @@
   ChangeLog for the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    85: sluys, 08/12/2008
+     - set tukeywin to 0.15
+    
     83: sluys, 05/12/2008
      - Fixed bug: ifo[2].noisedoubleprecision was ifo[2].noisedoubleprecision 
        for data set 1 in mcmc_data.c

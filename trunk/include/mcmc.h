@@ -98,8 +98,6 @@ double tukeywin;
 int inject;
 double annealfact;
 
-double StartPropCov[8][8];
-
 double *chaintemp;                  // vector of temperatures for individual chains (initialised later) 
 
 
@@ -230,7 +228,7 @@ struct parset{
   
   double NdJ;        // N^.J_o^; inclination of J_o
 
-  // derived quantities (see also `parupdate()'):
+  // derived quantities (see also `localpar()'):
   double *loctc;     // vector of `local coalescence times' (w.r.t. FT'd data!)         
   double *localti;   // vector of local altitudes                                       
   double *locazi;    // vector of local azimuths                                        
@@ -289,9 +287,6 @@ fftw_complex *raw_dataTrafo;
          int samplerate;
       double FTstart, deltaFT;
   
-      // The following elements are the actual `interface' to the likelihood:
-      double **freqpowers;            // (indexRange x 8) - array of powers of Fourier frequencies; rows:   
-                                      // {f, f^(-7/6), f^(-5/3), f^(-1), f^(-2/3), f^(-1/3), log(f), 2pi*f} 
       double *noisePSD;               // noise PSD interpolated for the above set of frequencies            
 fftw_complex *dataTrafo;              // copy of the dataFT stretch corresponding to above frequencies      
          int lowIndex, highIndex, indexRange;
@@ -305,6 +300,8 @@ fftw_complex *FTout;                  // FT output (type here identical to `(dou
          int samplesize;              // number of samples (original data)                        
      
 };
+
+
 
 
 
@@ -376,7 +373,6 @@ void choleskyinv(double randlibout[], double inverse[]);
 
 void ifoinit(struct interferometer **ifo, int networksize);
 void ifodispose(struct interferometer *ifo);
-//void parupdate(struct parset *par, struct interferometer *ifo[], int networksize, int time, int dir, int polar);
 void localpar(struct parset *par, struct interferometer *ifo[], int networksize);
 double *filter(int *order, int samplerate, double upperlimit);
 double *downsample(double data[], int *datalength, double coef[], int ncoef);
@@ -428,50 +424,6 @@ double logmultiplier(double mc, double eta, double logdl, double sinlati, double
 double lgamma(double x);
 double logit(double x);
 double logitinverse(double x);
-
-
-double logdnorm(double x, double mu, double sigma);
-double logdlnorm(double x, double mu, double sigma);
-double logdlogitnorm(double x, double mu, double sigma);
-double genstudent(double mu, double sigma, double df);
-double logdstudent(double x, double mu, double sigma, double df);
-double logdlstudent(double x, double mu, double sigma, double df);
-double logdlogitstudent(double x, double mu, double sigma, double df);
-void genunivect(double x[3]);
-
-double temperature(int iter, double startfactor, int annealtime);
-void jump(struct parset *par, double MVNpar[45], 
-	  double InvCov[8][8], double *jumpforth, double *jumpback, double temp,
-	  struct interferometer *ifo[], int networksize);
-double logjumpdens(struct parset arg, struct parset par, double InvCov[8][8]);
-void parcopy(struct parset *from, struct parset *to, int uninitialised, 
-	     int networksize, struct interferometer *ifo[]);
-void priordraw(struct parset *par);
-void startdraw(struct parset *par, struct interferometer *ifo[], int networksize);
-void importancedraw(int n, int m, struct parset par[], 
-		    int networksize, struct interferometer *ifo[]);
-void postmodedraw(int n, int m, double postdiff, struct parset par[m], 
-		  int networksize, struct interferometer *ifo[]);
-void mutate(struct parset *state, double *loglikeli, double *logposterior, int *move, 
-	    double MVNpar[45], double InvCov[8][8],
-	    int networksize, struct interferometer *ifo[],int iter, double temp);
-void realcrossover(struct parset *state1, double *loglikeli1, double *logposterior1, 
-		   double temp1, int *move1, 
-		   struct parset *state2, double *loglikeli2, double *logposterior2, 
-		   double temp2, int *move2, 
-		   int networksize, struct interferometer *ifo[], int iter);
-void snooker(struct parset *state1, double *loglikeli1, double *logposterior1, 
-                       double temp1, int *move1, 
-	     struct parset *state2, double *loglikeli2, double *logposterior2, 
-	     double temp2, int *move2, 
-	     int networksize, struct interferometer *ifo[], int iter);
-void metro(int networksize, struct interferometer *ifo[],
-	   double sPropCov[8][8],
-	   char logfilename[], int iter, int thin, int multiple);
-
-void printtime();
-void printcov(double mat[8][8], int precise);
-
 
 
 
