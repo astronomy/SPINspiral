@@ -143,7 +143,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
       mcmc.param[tempi][j1] = mcmc.param[0][j1];
     }
     mcmc.logL[tempi] = mcmc.logL[0];
-    write_mcmc_output(mcmc);  //Write output line to screen and/or file
+    write_mcmc_output(mcmc, ifo);  //Write output line to screen and/or file
   }
   tempi = 0;  //MUST be zero
 
@@ -250,7 +250,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
       mcmc.param[tempi][j1] = mcmc.param[0][j1];
     }
     mcmc.logL[tempi] = mcmc.logL[0];
-    write_mcmc_output(mcmc);  //Write output line to screen and/or file
+    write_mcmc_output(mcmc, ifo);  //Write output line to screen and/or file
   }
   tempi = 0;  //MUST be zero
   
@@ -355,7 +355,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
 	
 	// *** WRITE STATE TO SCREEN AND FILE *******************************************************************************************************************************************
 	
-	write_mcmc_output(mcmc);  //Write output line to screen and/or file
+	write_mcmc_output(mcmc, ifo);  //Write output line to screen and/or file
 	
 	
 	
@@ -947,7 +947,7 @@ void write_mcmc_header(struct interferometer *ifo[], struct mcmcvariables mcmc, 
 	
 //Write an MCMC line to screen and/or file
 //****************************************************************************************************************************************************  
-void write_mcmc_output(struct mcmcvariables mcmc)
+void write_mcmc_output(struct mcmcvariables mcmc, struct interferometer *ifo[])
 //****************************************************************************************************************************************************  
 {
   int p=0, tempi=mcmc.tempi, iteri=mcmc.iteri;
@@ -962,8 +962,13 @@ void write_mcmc_output(struct mcmcvariables mcmc)
       if((iteri % screenoutput)==0 || iteri<0)  printf("%10d  %15.6lf  %8.5f  %8.5f  %16.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f\n",
 						       iteri,mcmc.logL[tempi],mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2],mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
     } else { //Use new, shorter screen output format
+/*ILYA*/
+      if((iteri % (50*screenoutput))==0 || iteri<0) printf("Previous iteration has match of %10g with true signal\n\n", 
+		matchBetweenParameterArrayAndTrueParameters(mcmc.param[tempi], ifo, mcmc.networksize));
+
       if((iteri % (50*screenoutput))==0 || iteri<0)  printf("\n%9s %10s  %7s %7s %8s %6s %6s %6s %6s %6s %6s %6s %6s %6s\n",
 							    "cycle","logL","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","snthJ0","phiJ0","alpha");
+
       if((iteri % screenoutput)==0 || iteri<0)  printf("%9d %10.3lf  %7.4f %7.4f %8.4lf %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f\n",
 						       iteri,mcmc.logL[tempi],mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2]-mcmc.basetime,mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
     }

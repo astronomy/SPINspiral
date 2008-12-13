@@ -338,7 +338,7 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
 void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
 
 void write_mcmc_header(struct interferometer *ifo[], struct mcmcvariables mcmc, struct runpar *run);
-void write_mcmc_output(struct mcmcvariables mcmc);
+void write_mcmc_output(struct mcmcvariables mcmc, struct interferometer *ifo[]);
 void allocate_mcmcvariables(struct mcmcvariables *mcmc);
 void free_mcmcvariables(struct mcmcvariables *mcmc);
 
@@ -406,18 +406,20 @@ void LALfreedom(CoherentGW *waveform);
 
 //************************************************************************************************************************************************
 
+double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int i);
+double net_loglikelihood(struct parset *par, int networksize, struct interferometer *ifo[]);
+double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int i);
 double overlapwithdata(struct parset *par, struct interferometer *ifo[], int ifonr);
-double match(struct parset *par, struct interferometer *ifo[], int i, int networksize);
 double parmatch(struct parset *par1,struct parset *par2, struct interferometer *ifo[], int networksize);
 double paroverlap(struct parset *par1, struct parset *par2, struct interferometer *ifo[], int ifonr);
 double vecoverlap(fftw_complex *vec1, fftw_complex *vec2, double * noise, int j1, int j2, double deltaFT);
 void signalFFT(fftw_complex * FFTout, struct parset *par, struct interferometer *ifo[], int ifonr);
-void computeFishermatrixIFO(struct parset *par, int npar, struct interferometer *ifo[], int networksize, int ifonr, double **matrix);
-void computeFishermatrix(struct parset *par, int npar, struct interferometer *ifo[], int networksize, double **matrix);
+double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct interferometer *ifo[], int networksize);
+//void computeFishermatrixIFO(struct parset *par, int npar, struct interferometer *ifo[], int networksize, int ifonr, double **matrix);
+//void computeFishermatrix(struct parset *par, int npar, struct interferometer *ifo[], int networksize, double **matrix);
+//double match(struct parset *par, struct interferometer *ifo[], int i, int networksize);
 
-double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int i);
-double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int i);
-double net_loglikelihood(struct parset *par, int networksize, struct interferometer *ifo[]);
+
 double logprior(struct parset *par);
 double logstartdens(struct parset *par);
 double logmultiplier(double mc, double eta, double logdl, double sinlati, double cosiota);

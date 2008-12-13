@@ -114,7 +114,7 @@ void readinputfile(struct runpar *run)
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
   for(i=0;i<npar;i++) fscanf(fin,"%lf",&truepar[i]);  //Read the array directly, because sscanf cannot be in a loop...
   prior_tc_mean = truepar[2];   //prior_tc_mean is used everywhere
-  //True parameter values:
+  //Starting parameter values:
   for(i=0;i<npar;i++) fscanf(fin,"%lf",&run->startpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
   if(offsetmcmc==0 || offsetmcmc==1) for(i=0;i<npar;i++) run->startpar[i] = truepar[i];  //Set the starting parameters equal to the true, injection parameters
   

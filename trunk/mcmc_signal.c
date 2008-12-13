@@ -22,7 +22,7 @@ double net_loglikelihood(struct parset *par, int networksize, struct interferome
 
 double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], 
 	int ifonr)
-//Calculate the loglikelihood for a (1) given IFO
+//Calculate the loglikelihood for a single given IFO
 {
   int j=0;
   
@@ -116,75 +116,46 @@ double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int 
 
 
 
-double match(struct parset *par, struct interferometer *ifo[], int i, int networksize)
-//Calculate the match between two waveforms
-{
-  if(MvdSdebug) printf("    Match %d\n",i);
-  double match = 0.0;
-  int j=0;
-  fftw_complex *FTout1,*FTout2;                  // FT output (type here identical to `(double) complex')
-  FTout1 = fftw_malloc(sizeof(fftw_complex) * (ifo[i]->FTsize));
-  FTout2 = fftw_malloc(sizeof(fftw_complex) * (ifo[i]->FTsize));
-  struct parset truepar;
-  double m1m2=0.0,m1m1=0.0,m2m2=0.0;
-  
-  // Fill `ifo[i]->FTin' with time-domain template:
-  template(par, ifo, i); 
-  
-  // Window template:
-  for(j=0; j<ifo[i]->samplesize; ++j) ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
-  
-  // Execute Fourier transform of signal template:
-  fftw_execute(ifo[i]->FTplan);
-  for(j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j) FTout1[j] = ifo[i]->FTout[j];
-  
-  //Get the true parameters and the corresponding waveform template:
-  gettrueparameters(&truepar);
-  truepar.loctc    = (double*)calloc(networksize,sizeof(double));
-  truepar.localti  = (double*)calloc(networksize,sizeof(double));
-  truepar.locazi   = (double*)calloc(networksize,sizeof(double));
-  truepar.locpolar = (double*)calloc(networksize,sizeof(double));
-  localpar(&truepar, ifo, networksize);
-  template(&truepar, ifo, i);
-  
-  
-  // Window template:
-  for(j=0; j<ifo[i]->samplesize; ++j)  ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
-  
-  // Execute Fourier transform of signal template:
-  fftw_execute(ifo[i]->FTplan);
-  for(j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j) FTout2[j] = ifo[i]->FTout[j];
-  
-  // Sum over the Fourier frequencies within operational range (some 40-1500 Hz or similar):
-  for (j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j){
-    m1m2 += (double)( (conj(FTout1[j])*FTout2[j] + FTout1[j]*conj(FTout2[j])) / (ifo[i]->noisePSD[j-ifo[i]->lowIndex]) ); // 1/rate cancels out
-    m1m1 += (double)( (conj(FTout1[j])*FTout1[j] + FTout1[j]*conj(FTout1[j])) / (ifo[i]->noisePSD[j-ifo[i]->lowIndex]) );
-    m2m2 += (double)( (conj(FTout2[j])*FTout2[j] + FTout2[j]*conj(FTout2[j])) / (ifo[i]->noisePSD[j-ifo[i]->lowIndex]) );
-  }
-  fftw_free(FTout1);
-  fftw_free(FTout2);
-  //  printf("%g %g %g\n",m1m2,m1m1,m2m2);
-  match = m1m2/sqrt(m1m1*m2m2);
-  return match;
-}
-
 
 
 
 double parmatch(struct parset * par1,struct parset * par2, struct interferometer *ifo[], int networksize)
 // Compute match between waveforms with parameter sets par1 and par2
 {
+  double overlap11=0.0, overlap12=0.0, overlap22=0.0;
+  int ifonr;
+  fftw_complex *FFT1, *FFT2; 
+     
+  for(ifonr=0; ifonr<networksize; ifonr++){
+    FFT1 = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
+    FFT2 = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
+    signalFFT(FFT1, par1, ifo, ifonr);
+    signalFFT(FFT2, par2, ifo, ifonr);
+    overlap11 += vecoverlap(FFT1, FFT1, ifo[ifonr]->noisePSD,
+        ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
+    overlap12 += vecoverlap(FFT1, FFT2, ifo[ifonr]->noisePSD,
+        ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
+    overlap22 += vecoverlap(FFT2, FFT2, ifo[ifonr]->noisePSD,
+        ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
+  }
+  double match=overlap12/sqrt(overlap11*overlap22);
+  free(FFT1);
+  free(FFT2);
+
+  return match;   
+
+/*Clean but slow
   double match=0.0,ovrlp11=0.0,ovrlp12=0.0,ovrlp22=0.0;
   int ifonr=0;
   
   for(ifonr=0; ifonr<networksize; ifonr++){
-    ovrlp11 = paroverlap(par1,par1,ifo,ifonr);
-    ovrlp22 = paroverlap(par2,par2,ifo,ifonr);
-    ovrlp12 = paroverlap(par1,par2,ifo,ifonr);
-    match += ovrlp12/sqrt(ovrlp11*ovrlp22);
+    ovrlp11 += paroverlap(par1,par1,ifo,ifonr);
+    ovrlp22 += paroverlap(par2,par2,ifo,ifonr);
+    ovrlp12 += paroverlap(par1,par2,ifo,ifonr);
   }
-  match /= (double)networksize;
+  match = ovrlp12/sqrt(ovrlp11*ovrlp22);
   return match;
+*/
 }
 
 
@@ -248,7 +219,6 @@ void signalFFT(fftw_complex * FFTout, struct parset *par,
 //Compute the FFT of a waveform with given parameter set
 {
   int j=0;
-  
   if(FFTout==NULL)
   {
 	printf("Memory should be allocated for FFTout vector");
@@ -258,7 +228,6 @@ void signalFFT(fftw_complex * FFTout, struct parset *par,
 
   // Fill `ifo[i]->FTin' with time-domain template:
   template(par, ifo, ifonr);
-
   // Window template:
   for(j=0; j<ifo[ifonr]->samplesize; ++j) 
 	ifo[ifonr]->FTin[j] *= ifo[ifonr]->FTwindow[j];
@@ -273,16 +242,96 @@ void signalFFT(fftw_complex * FFTout, struct parset *par,
   //Allocate the parset vectors, compute the local parameters and the time-domain template:
   localpar(&par, ifo, networksize);
   template(&par, ifo, ifonr); 
-  
-  // Window the time-domain template:
-  for(j=0; j<ifo[ifonr]->samplesize; ++j) ifo[ifonr]->FTin[j] *= ifo[ifonr]->FTwindow[j];
-  
-  // Execute Fourier transform of signal template:
-  fftw_execute(ifo[ifonr]->FTplan);
-  for(j=ifo[ifonr]->lowIndex; j<=ifo[ifonr]->highIndex; ++j) FFT[j] = ifo[ifonr]->FTout[j];
   */
 }
 
+
+
+void printparset(struct parset par) // Print the parameter set par to screen 
+{
+  printf("\n");
+  printf("  Mc:  %20.10lf,   eta:     %20.10lf,   tc:      %20.10lf,   logdl:   %20.10lf\n",par.mc,par.eta,par.tc,par.logdl);
+  printf("  a:   %20.10lf,   kappa:   %20.10lf,   longi:   %20.10lf,   sinlati: %20.10lf\n",par.spin,par.kappa,par.longi,par.sinlati);
+  printf("  phi: %20.10lf,   sinthJ0: %20.10lf,   phithJ0: %20.10lf,   alpha:   %20.10lf\n",par.phase,par.sinthJ0,par.phiJ0,par.alpha);
+  printf("\n");
+}
+
+double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct interferometer *ifo[], int networksize)
+{
+  struct parset par, truepar;
+  arr2par(pararray, &par);
+  par.loctc    = (double*)calloc(networksize,sizeof(double));
+  par.localti  = (double*)calloc(networksize,sizeof(double));
+  par.locazi   = (double*)calloc(networksize,sizeof(double));
+  par.locpolar = (double*)calloc(networksize,sizeof(double));
+  localpar(&par, ifo, networksize);
+
+  //Get the true parameters
+  gettrueparameters(&truepar);
+  truepar.loctc    = (double*)calloc(networksize,sizeof(double));
+  truepar.localti  = (double*)calloc(networksize,sizeof(double));
+  truepar.locazi   = (double*)calloc(networksize,sizeof(double));
+  truepar.locpolar = (double*)calloc(networksize,sizeof(double));
+  localpar(&truepar, ifo, networksize);
+  
+  return parmatch(&truepar, &par, ifo, networksize);
+}
+
+
+
+/* NO LONGER USED
+double match(struct parset *par, struct interferometer *ifo[], int i, int networksize)
+//Calculate the match between two waveforms
+{
+  if(MvdSdebug) printf("    Match %d\n",i);
+  double match = 0.0;
+  int j=0;
+  fftw_complex *FTout1,*FTout2;                  // FT output (type here identical to `(double) complex')
+  FTout1 = fftw_malloc(sizeof(fftw_complex) * (ifo[i]->FTsize));
+  FTout2 = fftw_malloc(sizeof(fftw_complex) * (ifo[i]->FTsize));
+  struct parset truepar;
+  double m1m2=0.0,m1m1=0.0,m2m2=0.0;
+  
+  // Fill `ifo[i]->FTin' with time-domain template:
+  template(par, ifo, i); 
+  
+  // Window template:
+  for(j=0; j<ifo[i]->samplesize; ++j) ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
+  
+  // Execute Fourier transform of signal template:
+  fftw_execute(ifo[i]->FTplan);
+  for(j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j) FTout1[j] = ifo[i]->FTout[j];
+  
+  //Get the true parameters and the corresponding waveform template:
+  gettrueparameters(&truepar);
+  truepar.loctc    = (double*)calloc(networksize,sizeof(double));
+  truepar.localti  = (double*)calloc(networksize,sizeof(double));
+  truepar.locazi   = (double*)calloc(networksize,sizeof(double));
+  truepar.locpolar = (double*)calloc(networksize,sizeof(double));
+  localpar(&truepar, ifo, networksize);
+  template(&truepar, ifo, i);
+  
+  
+  // Window template:
+  for(j=0; j<ifo[i]->samplesize; ++j)  ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
+  
+  // Execute Fourier transform of signal template:
+  fftw_execute(ifo[i]->FTplan);
+  for(j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j) FTout2[j] = ifo[i]->FTout[j];
+  
+  // Sum over the Fourier frequencies within operational range (some 40-1500 Hz or similar):
+  for (j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j){
+    m1m2 += (double)( (conj(FTout1[j])*FTout2[j] + FTout1[j]*conj(FTout2[j])) / (ifo[i]->noisePSD[j-ifo[i]->lowIndex]) ); // 1/rate cancels out
+    m1m1 += (double)( (conj(FTout1[j])*FTout1[j] + FTout1[j]*conj(FTout1[j])) / (ifo[i]->noisePSD[j-ifo[i]->lowIndex]) );
+    m2m2 += (double)( (conj(FTout2[j])*FTout2[j] + FTout2[j]*conj(FTout2[j])) / (ifo[i]->noisePSD[j-ifo[i]->lowIndex]) );
+  }
+  fftw_free(FTout1);
+  fftw_free(FTout2);
+  //  printf("%g %g %g\n",m1m2,m1m1,m2m2);
+  match = m1m2/sqrt(m1m1*m2m2);
+  return match;
+}
+*/
 
 
 /*
@@ -358,18 +407,3 @@ void computeFishermatrix(struct parset *par, int npar, struct interferometer *if
   }
 }
 */
-
-
-
-
-void printparset(struct parset par)
-// Print the parameter set par to screen
-{
-  printf("\n");
-  printf("  Mc:  %20.10lf,   eta:     %20.10lf,   tc:      %20.10lf,   logdl:   %20.10lf\n",par.mc,par.eta,par.tc,par.logdl);
-  printf("  a:   %20.10lf,   kappa:   %20.10lf,   longi:   %20.10lf,   sinlati: %20.10lf\n",par.spin,par.kappa,par.longi,par.sinlati);
-  printf("  phi: %20.10lf,   sinthJ0: %20.10lf,   phithJ0: %20.10lf,   alpha:   %20.10lf\n",par.phase,par.sinthJ0,par.phiJ0,par.alpha);
-  printf("\n");
-}
-
-
