@@ -310,7 +310,7 @@ void readlocalfile();
 void readinputfile(struct runpar *run);
 void writeinputfile(struct runpar *run);
 void readdatainputfile(struct runpar run, struct interferometer ifo[]);
-void setconstants(struct runpar *run);
+void setconstants();
 void set_ifo_data(struct runpar run, struct interferometer ifo[]);
 
 void setrandomtrueparameters(struct runpar *run);

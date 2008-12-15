@@ -582,14 +582,26 @@ int prior(double *par, int p)
   ub = (double*)calloc(12,sizeof(double));
   
   //Lower and upper boundaries:
-  lb[0] = 1.0; //Mc
+  //Mc:
+  lb[0] = 1.0;
   ub[0] = 6.0;
+  //lb[0] = 0.609; //Mc for 1.4+1.4Mo: /2 - *2:  1.4+1.4->Mc=1.22; use range Mc/2 - Mc*2: 0.609-2.44
+  //ub[0] = 2.44;
+  //lb[0] = 1.30; //Mc for 3+3Mo: /2 - *2
+  //ub[0] = 5.22;
+  //lb[0] = 1.50; //Mc for 10+1.4Mo: /2 - *2
+  //ub[0] = 5.99;
+  //lb[0] = 4.35; //Mc for 10+10Mo: /2 - *2
+  //ub[0] = 17.4;
+
   
-  lb[1] = 0.03; //eta
+  //eta:
+  //lb[1] = 0.001; //Chains get stuck at low \eta and very high L!
+  lb[1] = 0.03;
   //ub[1] = 0.245;
-  //lb[1] = 0.001; //eta; Chains get stuck at low \eta and very high L!
   ub[1] = 0.25;
   
+  //t_c:
   dt = 0.05; //This is dt/2  For known signals
   //dt = 0.5; //This is dt/2  For unknown signals
   lb[2] = prior_tc_mean - dt; //t_c

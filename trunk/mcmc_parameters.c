@@ -409,8 +409,9 @@ void readdatainputfile(struct runpar run, struct interferometer ifo[])
 // Set the global variables.
 // Many of these are now in the input file or unused.
 // This routine should eventually disappear.
-void setconstants(struct runpar *run)
+void setconstants()
 {
+  
   npar           =  12;            // Number of parameters, not *really* a variable... (yet anyway)
   
   tempi = 0; //A global variable that determines the current chain (temperature) in the temperature ladder

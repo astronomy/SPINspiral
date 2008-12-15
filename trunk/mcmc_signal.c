@@ -29,7 +29,7 @@ double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[],
   // Fill `ifo[ifonr]->FTin' with time-domain template:
   template(par, ifo, ifonr);
   
-  // Window template:
+  // Window template, FTwindow is a Tukey window:
   for(j=0; j<ifo[ifonr]->samplesize; ++j) 
 	ifo[ifonr]->FTin[j] *= ifo[ifonr]->FTwindow[j];
   
@@ -88,7 +88,7 @@ double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int 
   // Fill `ifo[ifonr]->FTin' with time-domain template:
   template(par, ifo, ifonr);
   
-  // Window template:
+  // Window template, FTwindow is a Tukey window:
   for(j=0; j<ifo[ifonr]->samplesize; ++j)
         ifo[ifonr]->FTin[j] *= ifo[ifonr]->FTwindow[j];
   
@@ -228,7 +228,7 @@ void signalFFT(fftw_complex * FFTout, struct parset *par,
 
   // Fill `ifo[i]->FTin' with time-domain template:
   template(par, ifo, ifonr);
-  // Window template:
+  // Window template, FTwindow is a Tukey window:
   for(j=0; j<ifo[ifonr]->samplesize; ++j) 
 	ifo[ifonr]->FTin[j] *= ifo[ifonr]->FTwindow[j];
 
@@ -295,7 +295,7 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
   // Fill `ifo[i]->FTin' with time-domain template:
   template(par, ifo, i); 
   
-  // Window template:
+  // Window template, FTwindow is a Tukey window:
   for(j=0; j<ifo[i]->samplesize; ++j) ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
   
   // Execute Fourier transform of signal template:
@@ -312,7 +312,7 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
   template(&truepar, ifo, i);
   
   
-  // Window template:
+  // Window template, FTwindow is a Tukey window:
   for(j=0; j<ifo[i]->samplesize; ++j)  ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
   
   // Execute Fourier transform of signal template:

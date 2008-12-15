@@ -24,7 +24,7 @@ int main(int argc, char * argv[])
   
   //Initialise stuff for the run
   struct runpar run;
-  setconstants(&run);    //Set the global constants (which are variable in C). This routine should eventually disappear.
+  setconstants();    //Set the global constants (which are variable in C). This routine should eventually disappear.
   run.setranpar  = (int*)calloc(npar,sizeof(int));
   sprintf(run.infilename,"mcmc.input"); //Default input filename
   if(argc > 1) sprintf(run.infilename,argv[1]);
@@ -196,6 +196,7 @@ int main(int argc, char * argv[])
   
   //Calculate matches between two signals
   if(domatch==1) {
+    /*
     if(1==2) {
       printf("\n\n");
       gettrueparameters(&dummypar);
@@ -219,7 +220,7 @@ int main(int argc, char * argv[])
       }
       fclose(fout);
     }
-    
+    */
     
     //Compute match between waveforms with parameter sets par1 and par2
     if(1==1) {

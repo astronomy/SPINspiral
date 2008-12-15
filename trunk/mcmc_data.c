@@ -687,6 +687,7 @@ double *filter(int *order, int samplerate, double upperlimit)
 // For details & filter properties see downsampling function below.
 {
   // Specify filter characteristics:
+  //int ncoef      = 129;  // number of filter coefficients... 129 should be sufficient
   int ncoef      = 129;  // number of filter coefficients... 129 should be sufficient
   int totalcoef  = ncoef+ncoef-1;   // total number of coefficients                  
   double desired[2] = {1.0, 0.0};      // desired gain                               
@@ -698,24 +699,22 @@ double *filter(int *order, int samplerate, double upperlimit)
   // 0.5/downsamplefactor in relative units.
   // band vector contains 0, end of pass band, end of transition band, 0.5 (old Nyquist)
   // if there's not enough room for a transition band, we have a problem!
+  
   if(0.5/(double)downsamplefactor - upperlimit/((double)samplerate) < transitionbandwidth){
     printf(" Problem in filter() function while downsampling!\n");
-	printf(" New Nyquist frequency after downsampling by %d is %g\n",
-	       downsamplefactor, ((double)samplerate)/(double)downsamplefactor/2.0);
-	printf(" Desired upper limit is %g\n", upperlimit);
-	printf(" This doesn't leave enough room for a transition band of relative width %g\n",
-	       transitionbandwidth);
-	printf(" Maximum upper limit: %g Hz.\n", (double)samplerate * 
-	       (0.5/(double)downsamplefactor - transitionbandwidth));
-	printf(" Aborting!\n");
-	exit(1);
+    printf(" New Nyquist frequency after downsampling by %d is %g\n",
+	   downsamplefactor, ((double)samplerate)/(double)downsamplefactor/2.0);
+    printf(" Desired upper limit is %g\n", upperlimit);
+    printf(" This doesn't leave enough room for a transition band of relative width %g\n",
+	   transitionbandwidth);
+    printf(" Maximum upper limit: %g Hz.\n", (double)samplerate * 
+	   (0.5/(double)downsamplefactor - transitionbandwidth));
+    printf(" Aborting!\n");
+    exit(1);
   }
-  double endpassband= upperlimit/((double)samplerate) +
-    (0.5/(double)downsamplefactor - upperlimit/((double)samplerate) 
-	 - transitionbandwidth)/2.0;
-  double endtransitionband=0.5/(double)downsamplefactor - 
-    (0.5/(double)downsamplefactor - upperlimit/((double)samplerate) 
-	 - transitionbandwidth)/2.0;
+  
+  double endpassband= upperlimit/((double)samplerate) + (0.5/(double)downsamplefactor - upperlimit/((double)samplerate) - transitionbandwidth)/2.0;
+  double endtransitionband=0.5/(double)downsamplefactor -  (0.5/(double)downsamplefactor - upperlimit/((double)samplerate)  - transitionbandwidth)/2.0;
   double bands[4]   = {0.0, endpassband, endtransitionband, 0.5};
   double *coef;                        // Vector of coefficients (symmetric)
   coef = (double*) malloc(sizeof(double)*totalcoef);
@@ -969,6 +968,15 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize)
   if(downsamplefactor!=1){
     if(intscrout==1) printf(" | downsampling... \n");
     filtercoef = filter(&ncoef, ifo[ifonr]->samplerate, ifo[ifonr]->highCut);
+    
+    /*
+    //Print the filter coefficients:
+    for(j=1; j<ncoef; ++j) {
+      printf("  %d  %lf\n",j,filtercoef[ncoef-1+j]);
+    }
+    printf("\n\n");
+    */
+    
     ifo[ifonr]->FTin = downsample(raw, &N, filtercoef, ncoef);
     ifo[ifonr]->FTstart = from + ((double)(ncoef-1))/((double)(ifo[ifonr]->samplerate));
     ifo[ifonr]->deltaFT = delta - ((double)((ncoef-1)*2))/((double)(ifo[ifonr]->samplerate));
@@ -1106,11 +1114,12 @@ void noisePSDestimate(struct interferometer *ifo)
     printf("\n\n   ERROR reading noise data file: %s, aborting.\n\n\n",filenames);
     exit(1);
   }
-
+  
   N = vect->nData; // Length of filtered & downsampled data (not yet!)
   M = (int)(N/2.0);
   samplerate = (int)(1.0 / (vect->dx[0]) + 0.5);
   // Add 0.5 for correct truncation/rounding
+  
   
   // Copy data to vector `raw'
   raw = (double*)malloc(sizeof(double)*N);
@@ -1140,9 +1149,13 @@ void noisePSDestimate(struct interferometer *ifo)
   ifo->PSDsize = upper-lower;
   PSDrange     = ifo->PSDsize+2*smoothrange;
   
+  
+  
+  // *** Window the data
   // Allocate memory for window:
   win = (double *) malloc(sizeof(double) * N);
-  // Compute windowing coefficients:
+  
+  // Compute Hahn windowing coefficients:
   for(i=0; i<N; ++i) {
     win[i] = hann(i, N);
     wss += win[i]*win[i];
@@ -1151,10 +1164,14 @@ void noisePSDestimate(struct interferometer *ifo)
   for(i=0; i<N; ++i) {
     win[i] /= sqrt(wss * ((double)(K-1)) * ((double)samplerate));
   }
-  // Apply to data:
+  
+  // Apply window to data:
   for(i=0; i<N; ++i) {
     in[i] *= win[i];
   }
+  
+  
+  
   // Put last M values in first M places for following iterations:
   //  ('vect' vectors in later iterations are only half as long)
   for(i=0; i<M; ++i)
@@ -1175,10 +1192,12 @@ void noisePSDestimate(struct interferometer *ifo)
   }
   fftw_free(in); 
   
+  
   // Allocate & initialize PSD vector:
   PSD = (double *) malloc(PSDrange*sizeof(double));
   for(i=0; i<PSDrange; ++i)
     PSD[i] = pow(cabs(out[(lower-smoothrange)+i]), 2.0);
+  
   
   // Read segments 3 to K:
   for(j=3; j<=K; ++j){ 
