@@ -143,7 +143,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
       mcmc.param[tempi][j1] = mcmc.param[0][j1];
     }
     mcmc.logL[tempi] = mcmc.logL[0];
-    write_mcmc_output(mcmc);  //Write output line to screen and/or file
+    write_mcmc_output(mcmc, ifo);  //Write output line to screen and/or file
   }
   tempi = 0;  //MUST be zero
 
@@ -250,7 +250,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
       mcmc.param[tempi][j1] = mcmc.param[0][j1];
     }
     mcmc.logL[tempi] = mcmc.logL[0];
-    write_mcmc_output(mcmc);  //Write output line to screen and/or file
+    write_mcmc_output(mcmc, ifo);  //Write output line to screen and/or file
   }
   tempi = 0;  //MUST be zero
   
@@ -355,7 +355,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
 	
 	// *** WRITE STATE TO SCREEN AND FILE *******************************************************************************************************************************************
 	
-	write_mcmc_output(mcmc);  //Write output line to screen and/or file
+	write_mcmc_output(mcmc, ifo);  //Write output line to screen and/or file
 	
 	
 	
@@ -582,14 +582,26 @@ int prior(double *par, int p)
   ub = (double*)calloc(12,sizeof(double));
   
   //Lower and upper boundaries:
-  lb[0] = 1.0; //Mc
+  //Mc:
+  lb[0] = 1.0;
   ub[0] = 6.0;
+  //lb[0] = 0.609; //Mc for 1.4+1.4Mo: /2 - *2:  1.4+1.4->Mc=1.22; use range Mc/2 - Mc*2: 0.609-2.44
+  //ub[0] = 2.44;
+  //lb[0] = 1.30; //Mc for 3+3Mo: /2 - *2
+  //ub[0] = 5.22;
+  //lb[0] = 1.50; //Mc for 10+1.4Mo: /2 - *2
+  //ub[0] = 5.99;
+  //lb[0] = 4.35; //Mc for 10+10Mo: /2 - *2
+  //ub[0] = 17.4;
+
   
-  lb[1] = 0.03; //eta
+  //eta:
+  //lb[1] = 0.001; //Chains get stuck at low \eta and very high L!
+  lb[1] = 0.03;
   //ub[1] = 0.245;
-  //lb[1] = 0.001; //eta; Chains get stuck at low \eta and very high L!
   ub[1] = 0.25;
   
+  //t_c:
   dt = 0.05; //This is dt/2  For known signals
   //dt = 0.5; //This is dt/2  For unknown signals
   lb[2] = prior_tc_mean - dt; //t_c
@@ -909,7 +921,7 @@ void write_mcmc_header(struct interferometer *ifo[], struct mcmcvariables mcmc, 
   if(offsetmcmc==1) printf("   Starting MCMC from initial parameters randomly offset around the injection\n\n");
   if(offsetmcmc==2) printf("   Starting MCMC from specified (offset) initial parameters\n\n");
   if(offsetmcmc==3) printf("   Starting MCMC from initial parameters randomly offset around the specified values\n\n");
-
+  
   // *** Open the output file and write run parameters in the header ***
   for(tempi=0;tempi<mcmc.ntemps;tempi++) {
     if(tempi==0 || savehotchains>0) {
@@ -947,7 +959,7 @@ void write_mcmc_header(struct interferometer *ifo[], struct mcmcvariables mcmc, 
 	
 //Write an MCMC line to screen and/or file
 //****************************************************************************************************************************************************  
-void write_mcmc_output(struct mcmcvariables mcmc)
+void write_mcmc_output(struct mcmcvariables mcmc, struct interferometer *ifo[])
 //****************************************************************************************************************************************************  
 {
   int p=0, tempi=mcmc.tempi, iteri=mcmc.iteri;
@@ -962,8 +974,13 @@ void write_mcmc_output(struct mcmcvariables mcmc)
       if((iteri % screenoutput)==0 || iteri<0)  printf("%10d  %15.6lf  %8.5f  %8.5f  %16.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f\n",
 						       iteri,mcmc.logL[tempi],mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2],mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
     } else { //Use new, shorter screen output format
+/*ILYA*/
+      if((iteri % (50*screenoutput))==0 || iteri<0) printf("Previous iteration has match of %10g with true signal\n\n", 
+		matchBetweenParameterArrayAndTrueParameters(mcmc.param[tempi], ifo, mcmc.networksize));
+
       if((iteri % (50*screenoutput))==0 || iteri<0)  printf("\n%9s %10s  %7s %7s %8s %6s %6s %6s %6s %6s %6s %6s %6s %6s\n",
 							    "cycle","logL","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","snthJ0","phiJ0","alpha");
+
       if((iteri % screenoutput)==0 || iteri<0)  printf("%9d %10.3lf  %7.4f %7.4f %8.4lf %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f\n",
 						       iteri,mcmc.logL[tempi],mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2]-mcmc.basetime,mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],rightAscension(mcmc.param[tempi][6],GMST(mcmc.param[tempi][2])),mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
     }

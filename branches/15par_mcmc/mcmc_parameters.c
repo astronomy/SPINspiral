@@ -7,7 +7,7 @@
 
 
 
-// Read the input file.
+// Read the main input file.
 // Please keep this routine in sync with writeinputfile() below.
 // All parameters that are read in here should become members of the runvar struct and lose their global status
 void readinputfile(struct runpar *run)
@@ -33,6 +33,10 @@ void readinputfile(struct runpar *run)
 
   //Basic settings
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
+  fgets(bla,500,fin);  sscanf(bla,"%d",&npar);
+ 
+  run->setranpar  = (int*)calloc(npar,sizeof(int)); //Now that npar is known, initialise the array.... 
+  
   fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);    
   iter = (int)tmpdbl;
   fgets(bla,500,fin);  sscanf(bla,"%d",&skip);
@@ -104,6 +108,9 @@ void readinputfile(struct runpar *run)
   //Diverse:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->networksize);
+  //for(i=0;i<9;i++) run->selectifos[i]=i; 
+  for(i=0;i<run->networksize;i++) fscanf(fin,"%d",&run->selectifos[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  fgets(bla,500,fin);  //Read the rest of the line
   fgets(bla,500,fin);  sscanf(bla,"%lf",&run->targetsnr);
   fgets(bla,500,fin);  sscanf(bla,"%d",&waveformversion);
   
@@ -111,7 +118,7 @@ void readinputfile(struct runpar *run)
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
   for(i=0;i<npar;i++) fscanf(fin,"%lf",&truepar[i]);  //Read the array directly, because sscanf cannot be in a loop...
   prior_tc_mean = truepar[2];   //prior_tc_mean is used everywhere
-  //True parameter values:
+  //Starting parameter values:
   for(i=0;i<npar;i++) fscanf(fin,"%lf",&run->startpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
   if(offsetmcmc==0 || offsetmcmc==1) for(i=0;i<npar;i++) run->startpar[i] = truepar[i];  //Set the starting parameters equal to the true, injection parameters
   
@@ -119,9 +126,15 @@ void readinputfile(struct runpar *run)
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
   for(i=0;i<npar;i++) fscanf(fin,"%lf",&pdfsigs[i]);  //Read the array directly, because sscanf cannot be in a loop...
   
+  
   //Manual temperatures for parallel tempering:
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
   for(i=0;i<npar;i++) fscanf(fin,"%lf",&run->temps[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  
+  
+  //Secondary input files:
+  fgets(bla,500,fin); //Read the empty and comment line
+  fgets(bla,500,fin); sscanf(bla,"%s",run->datainfilename);
   
   fclose(fin);
 }
@@ -206,18 +219,22 @@ void writeinputfile(struct runpar *run)
   
 
   fprintf(fout, "\n  #Data handling:\n");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",     run->selectdata,"selectdata",     "Select the data set to run on  (set to 0 to print a list of data sets). Make sure you set the true tc and datadir accordingly.");
-  fprintf(fout, "  %-25d  %-18s  %-s\n", downsamplefactor,"downsamplefactor","Downsample the sampling frequency of the detector (16384 or 20000 Hz) by this factor. Default: 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8");
-  fprintf(fout, "  %-25.1f  %-18s  %-s\n", run->databeforetc, "databeforetc", "The stretch of data in seconds before presumed coalescence that is read in as part of the data segment");
-  fprintf(fout, "  %-25.1f  %-18s  %-s\n", run->dataaftertc, "dataaftertc", "The stretch of data in seconds after presumed coalescence that is read in as part of the data segment");
-  fprintf(fout, "  %-25.1f  %-18s  %-s\n", run->lowfrequencycut, "lowfrequencycut", "Templates and overlap integration start at this frequency");
-  fprintf(fout, "  %-25.1f  %-18s  %-s\n", run->highfrequencycut, "highfrequencycut", "Overlap integration ends at this frequency");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      run->selectdata,        "selectdata",       "Select the data set to run on:  0 use input file  (set to -1 to print a list of data sets). Make sure you set the true tc and datadir accordingly.");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      downsamplefactor,       "downsamplefactor", "Downsample the sampling frequency of the detector (16-20kHz for the detectors, 4kHz for NINJA) by this factor.  Default (for detectors): 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n",    run->databeforetc,      "databeforetc",     "The stretch of data in seconds before presumed coalescence that is read in as part of the data segment");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n",    run->dataaftertc,       "dataaftertc",      "The stretch of data in seconds after presumed coalescence that is read in as part of the data segment");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n",    run->lowfrequencycut,   "lowfrequencycut",  "Templates and overlap integration start at this frequency");
+  fprintf(fout, "  %-25.1f  %-18s  %-s\n",    run->highfrequencycut,  "highfrequencycut", "Overlap integration ends at this frequency");
 
   
   fprintf(fout, "\n  #Diverse:\n");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",    run->networksize,"networksize",    "Set the number of detectors that make up the network: 1: H1, 2: H1L1, 3: H1L1V");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",    run->networksize,"networksize",    "Set the number of detectors that make up the network");
+  fprintf(fout, "  ");
+  for(i=0;i<run->networksize;i++) fprintf(fout, "%-3d",run->selectifos[i]);
+  for(i=0;i<24-3*(run->networksize-1);i++) fprintf(fout, " ");
+  fprintf(fout, "%-18s  %-s\n", "selectifos",    "Select the IFOs to use  1: H1, 2: L1, 3: V");
   fprintf(fout, "  %-25.1f  %-18s  %-s\n",   run->targetsnr, "targetsnr",      "If > 0: scale the distance such that the network SNR becomes targetsnr");
-  fprintf(fout, "  %-25d  %-18s  %-s\n", waveformversion, "waveformversion", "Waveform version: 1 for 1.5PN 12-parameter non-LAL, 2 for 3.5PN 15-parameter LAL");
+  fprintf(fout, "  %-25d  %-18s  %-s\n", waveformversion, "waveformversion", "Waveform version: 1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL");
 
 
   
@@ -226,7 +243,7 @@ void writeinputfile(struct runpar *run)
   
   fprintf(fout, "\n");
   fprintf(fout, "\n  #Injection (first line) and starting (second line) parameter values, *not* the exact MCMC parameters and units!\n");
-  fprintf(fout, "   M1(Mo)    M2(Mo)            t_c (GPS)   d_L(Mpc)    a_spin    th_SL(d)    R.A.(h)     dec(d)    phic(d)   th_Jo(d)   phi_Jo(d)  alpha(d)  \n");
+  fprintf(fout, "   M1(Mo)    M2(Mo)            t_c (GPS)   d_L(Mpc)    a_spin    th_SL(d)    R.A.(h)     dec(d)     phic(d)   th_Jo(d)  phi_Jo(d)   alpha(d)  \n");
   for(i=0;i<npar;i++) {
     if(i==2) {
       fprintf(fout, "  %-18.6lf",truepar[i]);
@@ -254,6 +271,9 @@ void writeinputfile(struct runpar *run)
   
   fprintf(fout, "\n");
   
+  fprintf(fout, "\n");
+  fprintf(fout, "\n  #Secondary input files:\n");
+  fprintf(fout, "  %-25s  %-18s  %-s\n",      run->datainfilename,       "datainfilename",        "File name of the data/noise input file, e.g. mcmc.data");
   
   /*
   Formats used:
@@ -304,62 +324,116 @@ void readlocalfile()
 
 
 
+
+
+// Read the data input file.
+void readdatainputfile(struct runpar run, struct interferometer ifo[])
+{
+  int i=0,j=0,IFOdbaseSize=0;
+  double lati,longi,leftarm,rightarm;
+  char bla[500], subdir[500];
+  FILE *fin;
+  
+  if((fin = fopen(run.datainfilename,"r")) == NULL) {
+    printf("   Error reading file: %s, aborting.\n\n\n",run.datainfilename);
+    exit(1);
+  }
+  
+  
+  //Use and l for floats: %lf, %lg, etc, rather than %f, %g
+  
+  for(j=1;j<=4;j++) fgets(bla,500,fin);  //Read first 4 lines
+  
+  fgets(bla,500,fin);  sscanf(bla,"%d",&IFOdbaseSize);
+  
+  if(IFOdbaseSize<run.networksize) {
+    printf("\n   Error:  the number of detectors in the database (%d detectors in %s) is smaller than the number of detectors in the network (%d).\n\n",IFOdbaseSize,run.datainfilename,run.networksize);
+    exit(1);
+  }
+  if(IFOdbaseSize>run.maxIFOdbaseSize) {
+    printf("\n   Error:  the number of detectors in the database (%d) is larger than the maximum (%d).\n\n",IFOdbaseSize,run.maxIFOdbaseSize);
+    exit(1);
+  }
+  
+  for(i=0;i<IFOdbaseSize;i++){
+    fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
+    
+    fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].name);
+    fgets(bla,500,fin);  sscanf(bla,"%lf",&lati);
+    fgets(bla,500,fin);  sscanf(bla,"%lf",&longi);
+    fgets(bla,500,fin);  sscanf(bla,"%lf",&rightarm);
+    fgets(bla,500,fin);  sscanf(bla,"%lf",&leftarm);
+    
+    ifo[i].lati      = lati     /180.0*pi;
+    ifo[i].longi     = longi    /180.0*pi;
+    ifo[i].rightarm  = rightarm /180.0*pi;
+    ifo[i].leftarm   = leftarm  /180.0*pi;
+    
+    fgets(bla,500,fin);  //Read the empty line
+    
+    fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].ch1name);
+    //fgets(bla,500,fin);  sscanf(bla,"%s",&ifo[i].ch1filepath);
+    fgets(bla,500,fin);  sscanf(bla,"%s",subdir);
+    sprintf(ifo[i].ch1filepath,"%s%s%s",datadir,"/",subdir);
+    fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].ch1fileprefix);
+    fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].ch1filesuffix);
+    fgets(bla,500,fin);  sscanf(bla,"%d",&ifo[i].ch1filesize);
+    fgets(bla,500,fin);  sscanf(bla,"%d",&ifo[i].ch1fileoffset);
+    fgets(bla,500,fin);  sscanf(bla,"%d",&ifo[i].ch1doubleprecision);
+    fgets(bla,500,fin);  sscanf(bla,"%d",&ifo[i].add2channels);
+    
+    fgets(bla,500,fin);  //Read the empty line
+    
+    fgets(bla,500,fin);  sscanf(bla,"%ld",&ifo[i].noiseGPSstart);
+    fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].noisechannel);
+    //fgets(bla,500,fin);  sscanf(bla,"%s",&ifo[i].noisefilepath);
+    fgets(bla,500,fin);  sscanf(bla,"%s",subdir);
+    sprintf(ifo[i].noisefilepath,"%s%s%s",datadir,"/",subdir);
+    fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].noisefileprefix);
+    fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].noisefilesuffix);
+    fgets(bla,500,fin);  sscanf(bla,"%d",&ifo[i].noisefilesize);
+    fgets(bla,500,fin);  sscanf(bla,"%d",&ifo[i].noisefileoffset);
+    fgets(bla,500,fin);  sscanf(bla,"%d",&ifo[i].noisedoubleprecision);
+    
+  }
+  fclose(fin);
+  
+}
+
+
+
+
+
+
+
+
+
+
+
 // Set the global variables.
 // Many of these are now in the input file or unused.
 // This routine should eventually disappear.
-void setconstants(struct runpar *run)
+void setconstants()
 {
-  int i=0,j=0;
-  npar           =  12;            // Number of parameters, not *really* a variable... (yet anyway)
   
-  i = run->mcmcseed;  //Keeps compiler from complaining:  parameter "run" was never referenced
-  j = i;              //Keeps compiler from complaining:  variable "i" was set but never used
-  i = j;
+  //npar           =  12;            // Number of parameters, not *really* a variable... (yet anyway)
   
-  
-  /*
-  //Not in MCMC units!
-  truepar[0]  = 10.0;              // M1
-  truepar[1]  = 1.4;               // M2
-  truepar[2]  = 700009012.345000;  // tc
-  truepar[3]  = 13.0;              // d_L
-  truepar[4]  = 0.8;               // spin
-  truepar[5]  = 55.0;              // theta (deg)
-  truepar[6]  = 91.0;              // 'Greenwich hour angle' (saved as RA) (deg)
-  truepar[7]  = 40.0;              // declination (deg)
-  truepar[8]  = 11.459156;         // phase (deg)
-  truepar[9]  = 15.0;              // theta_J0 (deg)
-  truepar[10] = 125.0;             // phiJ0 (deg)
-  truepar[11] = 51.566202;         // alpha (deg)
-  */
-  
-  //--- Program control: --------------------------------------------------------------------------------------
   tempi = 0; //A global variable that determines the current chain (temperature) in the temperature ladder
   
   
-  
-  
-  
-  /*-- define some physical constants --*/
-  /* Nelson Christensen wrote (18/03/'05):                                */
-  /* > Christian and Mark                                                 */
-  /* > For the data we are using we need to use the following constants:  */
-  Ms   = 1.9889194662e30;   /* solar mass (kg)                                            */ 
-  Mpc  = 3.08568025e22;     /* metres in a Mpc  (LAL: 3.0856775807e22)                    */
-  G    = 6.67259e-11;       /* 6.674215e-11; */ /* gravity constant (SI)                  */
-  c    = 299792458.0;       /* speed of light (m/s)                                       */
-  Mpcs = 1.029272137e14;    /* seconds in a Mpc  (Mpc/c)                                  */
+  // Define some physical constants:
+  Ms   = 1.9889194662e30;   // solar mass (kg)
+  Mpc  = 3.08568025e22;     // metres in a Mpc  (LAL: 3.0856775807e22)
+  G    = 6.67259e-11;       // 6.674215e-11; */ /* gravity constant (SI)
+  c    = 299792458.0;       // speed of light (m/s)
+  Mpcs = 1.029272137e14;    // seconds in a Mpc  (Mpc/c)
   pi   = 3.141592653589793;   // pi
   tpi  = 6.283185307179586;   // 2 pi
-  mtpi = 6.283185307179586e6; // Large multiple of 2 pi
+  mtpi = 6.283185307179586e6; // Large multiple of 2 pi (2 megapi)
   
-  tukeywin       = 0.05; // parameter for Tukey-window used in dataFT (non-flat fraction).   Use 0.15 for Virgo data  
-  
-  //In mcmc.input now
-  //inject            = 1; /* inject `homemade' signal?                                        */
+  tukeywin       = 0.15; // parameter for Tukey-window used in dataFT (non-flat fraction).   Use 0.15 for Virgo data  
   
   annealfact = 2.0;      /* temperature increase factor for subsequent chains                */
-  
 }
 
 
@@ -372,7 +446,7 @@ void setrandomtrueparameters(struct runpar *run)  //Get random values for the 't
   double rannr = 0.0;
   ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
   if(1==2) {  //Select a random seed, *** ONLY FOR TESTING ***
-    printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setrandumtrueparameters() \n\n");
+    printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setrandomtrueparameters() \n\n");
     run->ranparseed = 0;
     setseed(&run->ranparseed);
     //printf("  Seed: %d\n", run->ranparseed);
@@ -381,8 +455,8 @@ void setrandomtrueparameters(struct runpar *run)  //Get random values for the 't
   
   //Lower and upper boundaries:
   double *lb,*ub,db,dt;
-  lb = (double*)calloc(12,sizeof(double));
-  ub = (double*)calloc(12,sizeof(double));
+  lb = (double*)calloc(npar,sizeof(double));
+  ub = (double*)calloc(npar,sizeof(double));
   lb[0] = 5.0;       //M1 (Mo)
   ub[0] = 15.0;
   lb[1] = 1.2;       //M2 (Mo)
@@ -408,6 +482,14 @@ void setrandomtrueparameters(struct runpar *run)  //Get random values for the 't
   ub[10] = 360.0;
   lb[11] = 0.0;      //alpha_c (deg)
   ub[11] = 360.0;
+  
+  lb[12] = 1.e-10;   //a_spin2 (0-1)
+  ub[12] = 0.999999;
+  lb[13] = 0.0;      //theta_spin2 (deg)
+  ub[13] = 360.0;
+  lb[14] = 0.0;      //phi_spin2 (deg)
+  ub[14] = 180.0;
+ 
   
   for(i=0;i<npar;i++) {
     db = ub[i]-lb[i];
@@ -505,7 +587,7 @@ void getparameterset(struct parset *par, double mc, double eta, double tc, doubl
 
 
 
-//Allocate the vectors in the struct parset
+//Allocate memory for the vectors in the struct parset
 void allocparset(struct parset *par, int networksize)
 {
   par->loctc    = NULL;

@@ -15,7 +15,7 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
 
 
 void template12(struct parset *par, struct interferometer *ifo[], int ifonr)
-// Simplified spinning template in restricted 1.5PN order with 1 spin (Apostolatos)
+// Spinning, 'simple-precession' template in restricted 1.5PN order with 1 spin (Apostolatos et al., 1994, PhRvD..49.6274A)
 //  The output vector `output' is of length `length',  starting at `tstart' and with resolution `samplerate'.
 {
   //if(MvdSdebug) printf("      Template for ifo %d\n", ifonr);
@@ -78,7 +78,7 @@ void template12(struct parset *par, struct interferometer *ifo[], int ifonr)
   
   //if(printmuch) {printf("Ms: eta: %g  Mc: %g  m1: %g  m2: %g  M: %g  mu: %g  Mo: %g\n",par->eta,Mc/M0,m1/M0,m2/M0,M/M0,mu/M0,M0);}
   //printf("  %d  %lf  %lf  %lf  %lf  %d\n",ifonr,localtc,altitude,azimuth,samplerate,length);
-  //printf("  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf",
+  //printf("  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf\n",
   // par->mc,par->eta,par->tc,par->logdl,par->spin,par->kappa,par->longi,par->sinlati,par->phase,par->sinthJ0,par->phiJ0,par->alpha);
   
   double beta = 1.0/12.0*(113.0*(m1*m1)/(M*M) + 75.0*par->eta)*par->kappa*spin/(m1*m1);                                 // Eq.20, for S2=0 or m1=m2,S1=S2:  kappa*spin/(m1*m1) = L^.S/m1^2, see Blanchet et al., PRL 74, 3515, 1995
@@ -292,29 +292,29 @@ void localpar(struct parset *par, struct interferometer *ifo[], int networksize)
 //    par   :  pointer to parameter set (struct)
 //    ifo   :  pointer to interferometer data (struct)
 {
-  int i,j;
+  int ifonr,j;
   double lineofsight[3], dummyvec[3], scalprod1, delay;
   
   // Determine local coalescence times:
   coord2vec(par->sinlati, par->longi, lineofsight);
-  for (i=0; i<networksize; i++){
-    scalprod1 =  ifo[i]->positionvec[0]*lineofsight[0]  +  ifo[i]->positionvec[1]*lineofsight[1]  +  ifo[i]->positionvec[2]*lineofsight[2];  // Project line of sight onto positionvec, scalprod1 is in units of metres
+  for (ifonr=0; ifonr<networksize; ifonr++){
+    scalprod1 =  ifo[ifonr]->positionvec[0]*lineofsight[0]  +  ifo[ifonr]->positionvec[1]*lineofsight[1]  +  ifo[ifonr]->positionvec[2]*lineofsight[2];  // Project line of sight onto positionvec, scalprod1 is in units of metres
     delay = scalprod1 / c;                                         // Time delay (wrt geocentre) in seconds
-    par->loctc[i] = ((par->tc - ifo[i]->FTstart) - delay);
+    par->loctc[ifonr] = ((par->tc - ifo[ifonr]->FTstart) - delay);
   }
   
   // Determine local sky position:
-  for (i=0; i<networksize; i++){
+  for (ifonr=0; ifonr<networksize; ifonr++){
     // 'Altitude' in the ifo' frame:
-    par->localti[i] = angle(ifo[i]->normalvec, lineofsight);       // Actually, this is the colatitude in the ifo' frame (i.e. 0deg=zenith, 90deg=horizon)
+    par->localti[ifonr] = angle(ifo[ifonr]->normalvec, lineofsight);       // Actually, this is the colatitude in the ifo' frame (i.e. 0deg=zenith, 90deg=horizon)
     
     // 'Azimuth' in the ifo' frame:
     for (j=0; j<3; ++j) dummyvec[j] = lineofsight[j];              // Temp vector with line of sight
-    orthoproject(dummyvec, ifo[i]->rightvec, ifo[i]->orthoarm);    // Project line of sight into ifo' arm plane
-    par->locazi[i] = angle(dummyvec, ifo[i]->rightvec);            // The 'true' azimuth (N=0,E=90deg) of the source at the location of the detector is:  pi - (par->locazi[i] + ifo[i]->rightarm) 
-    if (!righthanded(ifo[i]->rightvec, dummyvec, ifo[i]->normalvec)) par->locazi[i] = 2.0*pi - par->locazi[i];
+    orthoproject(dummyvec, ifo[ifonr]->rightvec, ifo[ifonr]->orthoarm);    // Project line of sight into ifo' arm plane
+    par->locazi[ifonr] = angle(dummyvec, ifo[ifonr]->rightvec);            // The 'true' azimuth (N=0,E=90deg) of the source at the location of the detector is:  pi - (par->locazi[ifonr] + ifo[ifonr]->rightarm) 
+    if (!righthanded(ifo[ifonr]->rightvec, dummyvec, ifo[ifonr]->normalvec)) par->locazi[ifonr] = 2.0*pi - par->locazi[ifonr];
     
-    //printf("  %d  %lf  %lf  %s\n",i,ifo[i]->lati/pi*180.0,ifo[i]->longi/pi*180.0,ifo[i]->name);
+    //printf("  %d  %lf  %lf  %s\n",i,ifo[ifonr]->lati/pi*180.0,ifo[ifonr]->longi/pi*180.0,ifo[ifonr]->name);
   }
   return;
 }
