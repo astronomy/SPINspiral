@@ -57,8 +57,8 @@
 
 //The following global arrays have the size of the number of parameters, i.e. 12 or 15, or ~20 to make sure we're always ok:
 
-int fitpar[12],offsetpar[12];
-double truepar[12],pdfsigs[12];
+int fitpar[20],offsetpar[20];
+double truepar[20],pdfsigs[20];
 int waveformversion;
 
 
@@ -98,8 +98,6 @@ double tukeywin;
 int inject;
 double annealfact;
 
-double StartPropCov[8][8];
-
 double *chaintemp;                  // vector of temperatures for individual chains (initialised later) 
 
 
@@ -114,32 +112,39 @@ double *chaintemp;                  // vector of temperatures for individual cha
 
 
 // Structure with run parameters.  
-// This should eventually include all variables in the input file and replace many of the global variables.
+// This should eventually include all variables in the input files and replace many of the global variables.
 // That also means that this struct must be passed throughout much of the code.
 struct runpar{
-  //int npar;            // Number of parameters in the MCMC/template
-  int ntemps;		 // Size of temperature ladder
-  int mcmcseed;          // Seed for MCMC
-  int selectdata;        // Select which data set to run on
-  int networksize;       // Number of IFOs in the detector network
-  //int adapt;           // Use adaptation or not
+  //int npar;                     // Number of parameters in the MCMC/template
+  int ntemps;		          // Size of temperature ladder
+  int mcmcseed;                   // Seed for MCMC
+  int selectdata;                 // Select which data set to run on
+  int networksize;                // Number of IFOs in the detector network
+  int maxIFOdbaseSize;            // Maximum number of IFOs for which the properties are read in (e.g. from mcmc.data)
+  int selectifos[9];              // Select IFOs to use for the analysis
+  
+  //int adapt;                    // Use adaptation or not
   //double *fitpar;
-  int *setranpar;        // Set random true (i.e., injection) parameters 
-  int ranparseed;        // Seed to randomise true parameters (i.e., injection)
+  int *setranpar;                 // Set random true (i.e., injection) parameters 
+  int ranparseed;                 // Seed to randomise true parameters (i.e., injection)
   
-  double blockfrac;      // Fraction of non-correlated updates that is a block update
-  double corrfrac;       // Fraction of MCMC updates that used the correlation matrix
-  double mataccfr;       // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
+  double blockfrac;               // Fraction of non-correlated updates that is a block update
+  double corrfrac;                // Fraction of MCMC updates that used the correlation matrix
+  double mataccfr;                // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
   
-  double netsnr;         // Total SNR of the network
-  double targetsnr;      // Target total SNR of the network, scale the distance
-  double temps[99];      // Temperature ladder for manual parallel tempering
-  double startpar[12];   // Starting parameters for the MCMC chains (may be different from true parameters)
+  double netsnr;                  // Total SNR of the network
+  double targetsnr;               // Target total SNR of the network, scale the distance
+  double temps[99];               // Temperature ladder for manual parallel tempering
+  double startpar[20];            // Starting parameters for the MCMC chains (may be different from true parameters)
   
-  double databeforetc, dataaftertc, lowfrequencycut, highfrequencycut;
+  double databeforetc;            // Data stretch in the time domain before t_c to use in the analysis
+  double dataaftertc;             // Data stretch in the time domain after t_c to use in the analysis
+  double lowfrequencycut;         // Lower frequency cutoff to compute the overlap for
+  double highfrequencycut;        // Upper frequency cutoff to compute the overlap for
   
-  char infilename[99];   // Run input file name
-  char outfilename[99];  // Copy of input file name
+  char infilename[99];            // Run input file name
+  char outfilename[99];           // Copy of input file name
+  char datainfilename[99];        // Run data input file name
 };
 
 
@@ -204,6 +209,9 @@ struct mcmcvariables{
 
 // Structure for spin parameter set with 12 parameters
 struct parset{
+
+  double par[20];
+
   double m1;         // mass 1                    
   double m2;         // mass 2                    
   double m;          // total mass                
@@ -223,7 +231,7 @@ struct parset{
   
   double NdJ;        // N^.J_o^; inclination of J_o
 
-  // derived quantities (see also `parupdate()'):
+  // derived quantities (see also `localpar()'):
   double *loctc;     // vector of `local coalescence times' (w.r.t. FT'd data!)         
   double *localti;   // vector of local altitudes                                       
   double *locazi;    // vector of local azimuths                                        
@@ -282,9 +290,6 @@ fftw_complex *raw_dataTrafo;
          int samplerate;
       double FTstart, deltaFT;
   
-      // The following elements are the actual `interface' to the likelihood:
-      double **freqpowers;            // (indexRange x 8) - array of powers of Fourier frequencies; rows:   
-                                      // {f, f^(-7/6), f^(-5/3), f^(-1), f^(-2/3), f^(-1/3), log(f), 2pi*f} 
       double *noisePSD;               // noise PSD interpolated for the above set of frequencies            
 fftw_complex *dataTrafo;              // copy of the dataFT stretch corresponding to above frequencies      
          int lowIndex, highIndex, indexRange;
@@ -301,14 +306,20 @@ fftw_complex *FTout;                  // FT output (type here identical to `(dou
 
 
 
+
+
 // Declare functions (prototypes):
 void readlocalfile();
 void readinputfile(struct runpar *run);
 void writeinputfile(struct runpar *run);
-void setconstants(struct runpar *run);
+void readdatainputfile(struct runpar run, struct interferometer ifo[]);
+void setconstants();
 void set_ifo_data(struct runpar run, struct interferometer ifo[]);
 
 void setrandomtrueparameters(struct runpar *run);
+void setrandomtrueparameters1(struct runpar *run);
+void setrandomtrueparameters2(struct runpar *run);
+
 void gettrueparameters(struct parset *par);
 void getstartparameters(struct parset *par, struct runpar run);
 void getparameterset(struct parset *par, double mc, double eta, double tc, double logdl, double spin, double kappa, 
@@ -327,13 +338,15 @@ void arr2par(double *param, struct parset *par);
 void par2arrt(struct parset par, double **param); //For the case of parallel tempering
 void arr2part(double **param, struct parset *par);
 int prior(double *par, int p);
+int prior1(double *par, int p);
+int prior2(double *par, int p);
 
 void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
 void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
 void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
 
 void write_mcmc_header(struct interferometer *ifo[], struct mcmcvariables mcmc, struct runpar *run);
-void write_mcmc_output(struct mcmcvariables mcmc);
+void write_mcmc_output(struct mcmcvariables mcmc, struct interferometer *ifo[]);
 void allocate_mcmcvariables(struct mcmcvariables *mcmc);
 void free_mcmcvariables(struct mcmcvariables *mcmc);
 
@@ -368,7 +381,6 @@ void choleskyinv(double randlibout[], double inverse[]);
 
 void ifoinit(struct interferometer **ifo, int networksize);
 void ifodispose(struct interferometer *ifo);
-//void parupdate(struct parset *par, struct interferometer *ifo[], int networksize, int time, int dir, int polar);
 void localpar(struct parset *par, struct interferometer *ifo[], int networksize);
 double *filter(int *order, int samplerate, double upperlimit);
 double *downsample(double data[], int *datalength, double coef[], int ncoef);
@@ -402,68 +414,26 @@ void LALfreedom(CoherentGW *waveform);
 
 //************************************************************************************************************************************************
 
+double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int i);
+double net_loglikelihood(struct parset *par, int networksize, struct interferometer *ifo[]);
+double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int i);
 double overlapwithdata(struct parset *par, struct interferometer *ifo[], int ifonr);
-double match(struct parset *par, struct interferometer *ifo[], int i, int networksize);
 double parmatch(struct parset *par1,struct parset *par2, struct interferometer *ifo[], int networksize);
 double paroverlap(struct parset *par1, struct parset *par2, struct interferometer *ifo[], int ifonr);
 double vecoverlap(fftw_complex *vec1, fftw_complex *vec2, double * noise, int j1, int j2, double deltaFT);
 void signalFFT(fftw_complex * FFTout, struct parset *par, struct interferometer *ifo[], int ifonr);
-void computeFishermatrixIFO(struct parset *par, int npar, struct interferometer *ifo[], int networksize, int ifonr, double **matrix);
-void computeFishermatrix(struct parset *par, int npar, struct interferometer *ifo[], int networksize, double **matrix);
+double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct interferometer *ifo[], int networksize);
+//void computeFishermatrixIFO(struct parset *par, int npar, struct interferometer *ifo[], int networksize, int ifonr, double **matrix);
+//void computeFishermatrix(struct parset *par, int npar, struct interferometer *ifo[], int networksize, double **matrix);
+//double match(struct parset *par, struct interferometer *ifo[], int i, int networksize);
 
-double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int i);
-double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int i);
-double net_loglikelihood(struct parset *par, int networksize, struct interferometer *ifo[]);
+
 double logprior(struct parset *par);
 double logstartdens(struct parset *par);
 double logmultiplier(double mc, double eta, double logdl, double sinlati, double cosiota);
 double lgamma(double x);
 double logit(double x);
 double logitinverse(double x);
-
-
-double logdnorm(double x, double mu, double sigma);
-double logdlnorm(double x, double mu, double sigma);
-double logdlogitnorm(double x, double mu, double sigma);
-double genstudent(double mu, double sigma, double df);
-double logdstudent(double x, double mu, double sigma, double df);
-double logdlstudent(double x, double mu, double sigma, double df);
-double logdlogitstudent(double x, double mu, double sigma, double df);
-void genunivect(double x[3]);
-
-double temperature(int iter, double startfactor, int annealtime);
-void jump(struct parset *par, double MVNpar[45], 
-	  double InvCov[8][8], double *jumpforth, double *jumpback, double temp,
-	  struct interferometer *ifo[], int networksize);
-double logjumpdens(struct parset arg, struct parset par, double InvCov[8][8]);
-void parcopy(struct parset *from, struct parset *to, int uninitialised, 
-	     int networksize, struct interferometer *ifo[]);
-void priordraw(struct parset *par);
-void startdraw(struct parset *par, struct interferometer *ifo[], int networksize);
-void importancedraw(int n, int m, struct parset par[], 
-		    int networksize, struct interferometer *ifo[]);
-void postmodedraw(int n, int m, double postdiff, struct parset par[m], 
-		  int networksize, struct interferometer *ifo[]);
-void mutate(struct parset *state, double *loglikeli, double *logposterior, int *move, 
-	    double MVNpar[45], double InvCov[8][8],
-	    int networksize, struct interferometer *ifo[],int iter, double temp);
-void realcrossover(struct parset *state1, double *loglikeli1, double *logposterior1, 
-		   double temp1, int *move1, 
-		   struct parset *state2, double *loglikeli2, double *logposterior2, 
-		   double temp2, int *move2, 
-		   int networksize, struct interferometer *ifo[], int iter);
-void snooker(struct parset *state1, double *loglikeli1, double *logposterior1, 
-                       double temp1, int *move1, 
-	     struct parset *state2, double *loglikeli2, double *logposterior2, 
-	     double temp2, int *move2, 
-	     int networksize, struct interferometer *ifo[], int iter);
-void metro(int networksize, struct interferometer *ifo[],
-	   double sPropCov[8][8],
-	   char logfilename[], int iter, int thin, int multiple);
-
-void printtime();
-void printcov(double mat[8][8], int precise);
-
 
 
 

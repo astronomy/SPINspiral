@@ -163,6 +163,7 @@ void writeinputfile(struct runpar *run)
   
   
   fprintf(fout, "\n  #Basic settings:\n");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      npar,          "napr",           "Dimension of the parameter space. Not the number of parameters to be fitted.");
   fprintf(fout, "  %-25.3g  %-18s  %-s\n",    (double)iter,  "iter",           "Total number of iterations to be computed (e.g. 1e7).");
   fprintf(fout, "  %-25d  %-18s  %-s\n",      skip,          "skip",           "Number of iterations to be skipped between stored steps (100 for 1d).");
   fprintf(fout, "  %-25d  %-18s  %-s\n",      screenoutput,  "screenoutput",   "Number of iterations between screen outputs im the MCMC (1000 for 1d).");
@@ -438,78 +439,18 @@ void setconstants()
 
 
 
-void setrandomtrueparameters(struct runpar *run)  //Get random values for the 'true' parameters for the 12-parameter spinning template.  
-// *** This changes the injected signal!!! ***
-{
-  int i=0;
-  gsl_rng *ran;
-  double rannr = 0.0;
-  ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
-  if(1==2) {  //Select a random seed, *** ONLY FOR TESTING ***
-    printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setrandomtrueparameters() \n\n");
-    run->ranparseed = 0;
-    setseed(&run->ranparseed);
-    //printf("  Seed: %d\n", run->ranparseed);
-  }
-  gsl_rng_set(ran, run->ranparseed);     // Set seed
-  
-  //Lower and upper boundaries:
-  double *lb,*ub,db,dt;
-  lb = (double*)calloc(npar,sizeof(double));
-  ub = (double*)calloc(npar,sizeof(double));
-  lb[0] = 5.0;       //M1 (Mo)
-  ub[0] = 15.0;
-  lb[1] = 1.2;       //M2 (Mo)
-  ub[1] = 1.6;
-  dt = 0.5; //This is dt/2
-  lb[2] = prior_tc_mean - dt; //t_c
-  ub[2] = prior_tc_mean + dt;
-  lb[3] = 10.0;      //d_L (Mpc)  !Linear!
-  ub[3] = 30.0;
-  lb[4] = 1.e-10;    //a_spin (0-1)
-  ub[4] = 0.999999;
-  lb[5] = 0.001;     //th_SL (deg) (not used)
-  ub[5] = 179.999;
-  lb[6] = 0.0;       //RA (h)
-  ub[6] = 24.0;
-  lb[7] = -89.999;   //dec (deg) (not used)
-  ub[7] = 89.999;
-  lb[8] = 0.0;       //phi_c (deg)
-  ub[8] = 360.0;
-  lb[9] = -89.999;   //theta_J0 (deg) (not used)
-  ub[9] = 89.999;
-  lb[10] = 0.0;      //phi_Jo (deg)
-  ub[10] = 360.0;
-  lb[11] = 0.0;      //alpha_c (deg)
-  ub[11] = 360.0;
-  
-  lb[12] = 1.e-10;   //a_spin2 (0-1)
-  ub[12] = 0.999999;
-  lb[13] = 0.0;      //theta_spin2 (deg)
-  ub[13] = 360.0;
-  lb[14] = 0.0;      //phi_spin2 (deg)
-  ub[14] = 180.0;
- 
-  
-  for(i=0;i<npar;i++) {
-    db = ub[i]-lb[i];
-    rannr = gsl_rng_uniform(ran);                                                        //This assures you always draw the same number of random variables
-    if(run->setranpar[i]==1) truepar[i] = rannr*db + lb[i];
-    if(i==5 && run->setranpar[i]==1) truepar[i] = acos(rannr*2.0 - 1.0)*r2d;             //kappa -> th_SL
-    if((i==7 || i==9)  && run->setranpar[i]==1) truepar[i] = asin(rannr*2.0 - 1.0)*r2d;  //sin(dec)->dec, sin(th_J0)->th_J0
-    //printf("  %d  %lf  %lf  %lf  %lf\n",i,lb[i],ub[i],db,truepar[i]);
-  }
-  
-  free(lb);
-  free(ub);
-  gsl_rng_free(ran);
-}
+
 
 
 
 
 void gettrueparameters(struct parset *par)  //Set the parameters for the 12-parameter spinning template to the 'true values'
 {
+  int i=0;
+  for(i=0;i<npar;i++) {
+  par->par[i]      = truepar[i];
+  }
+  
   par->m1       = truepar[0];                    // M1 (10.0)
   par->m2       = truepar[1];                    // M2  (1.4)
   par->m        = par->m1+par->m2;
@@ -539,6 +480,12 @@ void gettrueparameters(struct parset *par)  //Set the parameters for the 12-para
 
 void getstartparameters(struct parset *par, struct runpar run)  //Set the parameters for the 12-parameter spinning template to the starting values for the MCMC chain
 {
+
+  int i=0;
+  for(i=0;i<npar;i++) {
+  par->par[i]      = run.startpar[i];
+  }
+
   par->m1       = run.startpar[0];                    // M1 (10.0)
   par->m2       = run.startpar[1];                    // M2  (1.4)
   par->m        = par->m1+par->m2;

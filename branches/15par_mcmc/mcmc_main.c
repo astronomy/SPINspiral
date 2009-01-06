@@ -181,7 +181,12 @@ int main(int argc, char * argv[])
   printf("    %8s  %8s  %17s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "M1","M2","tc","d_L","spin","th_SL","RA","Dec","phase","th_J0","phi_J0","alpha");
   printf("    %8.5f  %8.5f  %17.6lf  %8.2f  %8.5f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f\n\n", dummypar.m1,dummypar.m2,dummypar.tc,exp(dummypar.logdl),dummypar.spin,acos(dummypar.kappa)*r2d,rightAscension(dummypar.longi,GMST(dummypar.tc))*r2h,asin(dummypar.sinlati)*r2d,dummypar.phase*r2d,asin(dummypar.sinthJ0)*r2d,dummypar.phiJ0*r2d,dummypar.alpha*r2d);
   
-  
+  int i=0;
+  for(i=0;i<npar;i++)
+  {
+  printf("    %8.5f",dummypar.par[i]);
+  }
+  printf("\n\n");
   
   
   //Do MCMC
@@ -226,7 +231,7 @@ int main(int argc, char * argv[])
     */
     
     //Compute match between waveforms with parameter sets par1 and par2
-    if(1==1) {
+    if(1==2) {
       printf("\n\n");
       struct parset par1;
       allocparset(&par1, networksize);
@@ -253,7 +258,7 @@ int main(int argc, char * argv[])
     }
   
     //Compute Fisher matrix for parameter set par
-    if(1==1) {
+    if(1==2) {
       printf("\n\n  Computing Fisher matrix...\n\n");
       int i=0, j=0;
       struct parset par;

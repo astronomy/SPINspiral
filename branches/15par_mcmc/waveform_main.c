@@ -20,7 +20,7 @@ int main(int argc, char * argv[])
   
   //Initialise stuff for the run
   struct runpar run;
-  setconstants(&run);    //Set the global constants (which are variable in C). This routine should eventually disappear.
+  setconstants();    //Set the global constants (which are variable in C). This routine should eventually disappear.
   run.setranpar  = (int*)calloc(npar,sizeof(int));
   sprintf(run.infilename,"mcmc.input"); //Default input filename
   if(argc > 1) sprintf(run.infilename,argv[1]);
