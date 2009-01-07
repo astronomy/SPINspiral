@@ -24,7 +24,7 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
   
   double pmc       =par->par[0];
   double peta      =par->par[1];
-  double ptc       =par->par[2];
+  //double ptc       =par->par[2];
   double plogdl    =par->par[3];
   double pspin     =par->par[4];
   double pkappa    =par->par[5];
@@ -314,9 +314,9 @@ void localpar(struct parset *par, struct interferometer *ifo[], int networksize)
   int ifonr,j;
   double lineofsight[3], dummyvec[3], scalprod1, delay;
   
-   double ptc       =par->par[2];
-   double plongi    =par->par[6];
-   double psinlati  =par->par[7];
+  double ptc       = par->par[2];
+  double plongi    = par->par[6];
+  double psinlati  = par->par[7];
   
   // Determine local coalescence times:
   coord2vec(psinlati, plongi, lineofsight);
@@ -337,7 +337,7 @@ void localpar(struct parset *par, struct interferometer *ifo[], int networksize)
     par->locazi[ifonr] = angle(dummyvec, ifo[ifonr]->rightvec);            // The 'true' azimuth (N=0,E=90deg) of the source at the location of the detector is:  pi - (par->locazi[ifonr] + ifo[ifonr]->rightarm) 
     if (!righthanded(ifo[ifonr]->rightvec, dummyvec, ifo[ifonr]->normalvec)) par->locazi[ifonr] = 2.0*pi - par->locazi[ifonr];
     
-    //printf("  %d  %lf  %lf  %s\n",i,ifo[ifonr]->lati/pi*180.0,ifo[ifonr]->longi/pi*180.0,ifo[ifonr]->name);
+    //printf("  %d  %lf  %lf  %s\n",ifonr,ifo[ifonr]->lati/pi*180.0,ifo[ifonr]->longi/pi*180.0,ifo[ifonr]->name);
   }
   return;
 }

@@ -260,7 +260,8 @@ int main(int argc, char * argv[])
     //Compute Fisher matrix for parameter set par
     if(1==2) {
       printf("\n\n  Computing Fisher matrix...\n\n");
-      int i=0, j=0;
+      i = 0;
+      int j=0;
       struct parset par;
       double **matrix  = (double**)calloc(npar,sizeof(double*));
       for(i=0;i<npar;i++) matrix[i]  = (double*)calloc(npar,sizeof(double));

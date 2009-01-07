@@ -560,7 +560,7 @@ void ifoinit(struct interferometer **ifo, int networksize)
            floor(fabs(ifo[ifonr]->lati*r2d)),  (fabs(ifo[ifonr]->lati*r2d)-floor(fabs(ifo[ifonr]->lati*r2d)))*60.0, latchar,
            floor(fabs(ifo[ifonr]->longi*r2d)), (fabs(ifo[ifonr]->longi*r2d)-floor(fabs(ifo[ifonr]->longi*r2d)))*60.0, longchar,
            360.0 - ifo[ifonr]->rightarm*r2d, 360.0 - ifo[ifonr]->leftarm*r2d);
-    if(ifo[ifonr]->ch1doubleprecision) if(intscrout==1) printf(" | frame file precision: double (64 bit)\n"); 
+    if(ifo[ifonr]->ch1doubleprecision && intscrout==1) printf(" | frame file precision: double (64 bit)\n"); 
     else if(intscrout==1) printf(" | frame file precision: float (32 bit)\n"); 
     if(intscrout==1) printf(" | frequency range: %.0f to %.0f Hz.\n", ifo[ifonr]->lowCut, ifo[ifonr]->highCut);
     if(intscrout==1) printf(" | initialising vectors etc...");

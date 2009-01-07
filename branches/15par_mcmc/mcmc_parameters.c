@@ -448,13 +448,16 @@ void gettrueparameters(struct parset *par)  //Set the parameters for the 12-para
 {
   int i=0;
   for(i=0;i<npar;i++) {
-  par->par[i]      = truepar[i];
+    par->par[i]      = truepar[i];
   }
+  par->par[6] = fmod(longitude(truepar[6],GMST(truepar[2]))+mtpi,tpi);  //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
+  
   
   par->m1       = truepar[0];                    // M1 (10.0)
   par->m2       = truepar[1];                    // M2  (1.4)
   par->m        = par->m1+par->m2;
   par->mu       = par->m1*par->m2/par->m;
+  
   par->eta      = par->mu/par->m;                // mass ratio                
   par->mc       = par->m*pow(par->eta,0.6);      // chirp mass. in Mo         
   par->tc       = truepar[2];                    // coalescence time
@@ -480,12 +483,14 @@ void gettrueparameters(struct parset *par)  //Set the parameters for the 12-para
 
 void getstartparameters(struct parset *par, struct runpar run)  //Set the parameters for the 12-parameter spinning template to the starting values for the MCMC chain
 {
-
+  
   int i=0;
   for(i=0;i<npar;i++) {
-  par->par[i]      = run.startpar[i];
+    par->par[i]      = run.startpar[i];
   }
-
+  par->par[6] = fmod(longitude(run.startpar[6],GMST(run.startpar[2]))+mtpi,tpi);  //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
+  
+  
   par->m1       = run.startpar[0];                    // M1 (10.0)
   par->m2       = run.startpar[1];                    // M2  (1.4)
   par->m        = par->m1+par->m2;
@@ -505,6 +510,7 @@ void getstartparameters(struct parset *par, struct runpar run)  //Set the parame
   par->sinthJ0  = sin(run.startpar[9]*d2r);           // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
   par->phiJ0    = run.startpar[10]*d2r;               // Phi_J0 ~ azimuthal            (125)
   par->alpha    = run.startpar[11]*d2r;               // Alpha_c                       (0.9 rad = 51.566202deg)
+  
   
   par->loctc    = NULL;
   par->localti  = NULL;
