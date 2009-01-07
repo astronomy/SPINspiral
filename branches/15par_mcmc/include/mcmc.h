@@ -341,6 +341,8 @@ int prior(double *par, int p);
 int prior1(double *par, int p);
 int prior2(double *par, int p);
 
+double uncorrelated_mcmc_single_update_angle_prior(double sigma, int p);
+
 void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
 void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
 void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);

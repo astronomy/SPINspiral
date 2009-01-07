@@ -754,7 +754,7 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
 	  if(adapt==1){
 	    gamma = mcmc->scale[tempi][p]*pow(1.0/((double)(mcmc->iteri+1)),1.0/6.0);
 	    mcmc->sig[tempi][p] = max(0.0,mcmc->sig[tempi][p] + gamma*(1.0 - alphastar)); //Accept
-	    if(p==6 || p==8 || p==10 || p==11) mcmc->sig[tempi][p] = min(tpi,mcmc->sig[tempi][p]);  //Bring the sigma between 0 and 2pi
+	    uncorrelated_mcmc_single_update_angle_prior(mcmc->sig[tempi][p], p);  //Bring the sigma between 0 and 2pi
 	  }
 	  mcmc->accepted[tempi][p] += 1;
 	}
@@ -763,7 +763,7 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
 	  if(adapt==1){
 	    gamma = mcmc->scale[tempi][p]*pow(1.0/((double)(mcmc->iteri+1)),1.0/6.0);
 	    mcmc->sig[tempi][p] = max(0.0,mcmc->sig[tempi][p] - gamma*alphastar); //Reject
-	    if(p==6 || p==8 || p==10 || p==11) mcmc->sig[tempi][p] = min(tpi,mcmc->sig[tempi][p]);  //Bring the sigma between 0 and 2pi
+	    uncorrelated_mcmc_single_update_angle_prior(mcmc->sig[tempi][p], p);  //Bring the sigma between 0 and 2pi
 	    //mcmc->sig[tempi][p] = max(0.01*mcmc->sig[tempi][p], mcmc->sig[tempi][p] - gamma*alphastar);
 	  }
 	}
@@ -773,7 +773,7 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
 	if(adapt==1) {
 	  gamma = mcmc->scale[tempi][p]*pow(1.0/((double)(mcmc->iteri+1)),1.0/6.0);
 	  mcmc->sig[tempi][p] = max(0.0,mcmc->sig[tempi][p] - gamma*alphastar); //Reject
-	  if(p==6 || p==8 || p==10 || p==11) mcmc->sig[tempi][p] = min(tpi,mcmc->sig[tempi][p]);  //Bring the sigma between 0 and 2pi
+	  uncorrelated_mcmc_single_update_angle_prior(mcmc->sig[tempi][p], p);  //Bring the sigma between 0 and 2pi
 	}
       } //if(mcmc->acceptprior[tempi]==1)
     } //if(fitpar[p]==1)

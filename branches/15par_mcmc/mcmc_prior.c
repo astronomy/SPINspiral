@@ -8,15 +8,15 @@ int prior(double *par, int p)
 // Call the prior routine, the global variable waveformversion determines which one
 {
   if(waveformversion==1) {
-    prior1(par, p);  // Apostolatos 12-parameter template
+   return prior1(par, p);  // Apostolatos 12-parameter template
   } 
   else if(waveformversion==2) {
-    prior1(par, p);  // LAL 12-parameter template
+   return prior1(par, p);  // LAL 12-parameter template
   }
   else if(waveformversion==3) {
-    prior2(par, p);  // LAL 15-parameter template
+   return prior2(par, p);  // LAL 15-parameter template
   }
-
+else return 0;
 }
 
 
@@ -35,6 +35,27 @@ void setrandomtrueparameters(struct runpar *run)
   }
 
 }
+
+
+double uncorrelated_mcmc_single_update_angle_prior(double sigma, int p)
+// Call the prior routine, the global variable waveformversion determines which one
+{
+  if(waveformversion==1) { // Apostolatos 12-parameter template
+    if(p==6 || p==8 || p==10 || p==11) return min(tpi,sigma);  //Bring the sigma between 0 and 2pi;
+	else return sigma; 
+  } 
+  else if(waveformversion==2) { // LAL 12-parameter template
+    if(p==6 || p==8 || p==10 || p==11) return min(tpi,sigma);  //Bring the sigma between 0 and 2pi;
+    else return sigma; 
+  }
+  else if(waveformversion==3) { // LAL 15-parameter template
+    if(p==4 || p==7 || p==8 || p==10 || p==11 || p==13 || p==14) return min(tpi,sigma); //Bring the sigma between 0 and 2pi;
+    if(p==11 || p==14) return min(pi,sigma);   //Bring the sigma between 0 and pi;
+	else return sigma; 
+  }
+else return 0.0;
+}
+
 
 
 
@@ -273,12 +294,16 @@ int prior2(double *par, int p) //LAL 15-parameter priors
   
  if(p==4 || p==7 || p==8 || p==10 || p==13) {                                    // Periodic boundary condition to bring the variable between 0 and 2pi
     *par = fmod(*par+mtpi,tpi);
-  } else {                                                                // Bounce back from the wall
+  } else {																
+  
+      if(p==11 || p==14) {                                                      // Periodic boundary condition to bring the variable between 0 and pi
+    *par = fmod(*par+mtpi,pi);
+      } else {																		// Bounce back from the wall
     //while(*par<lb[p] || *par>ub[p]) {                                     // Do as many bounces as necessary to get between the walls
     //  if(*par<lb[p])  *par = lb[p] + fabs(*par - lb[p]);
     //  if(*par>ub[p])  *par = ub[p] - fabs(*par - ub[p]);
     //}
-    if(*par<lb[p] || *par>ub[p]) {                                        // Do only one bounce
+           if(*par<lb[p] || *par>ub[p]) {                                        // Do only one bounce
       if(*par<lb[p]) {
 	*par = lb[p] + fabs(*par - lb[p]);
       } else {
@@ -286,8 +311,8 @@ int prior2(double *par, int p) //LAL 15-parameter priors
       }
       if(*par<lb[p] || *par>ub[p]) prior = 0;                             // If, after bouncing once, still outside the range, reject
     }
+	 }
   }
-  
   
   //printf("%20.6f  %d  \n",*par,prior);
   
