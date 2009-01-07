@@ -2,6 +2,9 @@
   ChangeLog for the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    93: sluys, 06/01/2009
+     - allow for 0.25<eta<0.50 in template12() (Apostolatos)
+    
     85: sluys, 08/12/2008
      - set tukeywin to 0.15
     

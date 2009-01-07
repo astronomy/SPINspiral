@@ -134,7 +134,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
   par2arrt(state, mcmc.param);  //Put the variables in their array
   localpar(&state, ifo, networksize);
   mcmc.logL[tempi] = net_loglikelihood(&state, networksize, ifo);  //Calculate the likelihood
-
+  
   mcmc.iteri = -1;
   mcmc.tempi = tempi;
   for(tempi=0;tempi<mcmc.ntemps;tempi++) {
@@ -146,9 +146,9 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
     write_mcmc_output(mcmc, ifo);  //Write output line to screen and/or file
   }
   tempi = 0;  //MUST be zero
-
   
-  //Determine the number of parameters that is actually fitted/varied (i.e. not kept fixed at the true values)
+  
+  //Determine the number of parameters that is actually fitted/varied (i.e. not kept fixed at the initial values)
   for(i=0;i<npar;i++) {
     if(fitpar[i]==1) mcmc.nparfit += 1;
   }
@@ -191,7 +191,9 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
 	if(fitpar[i]==1 && offsetpar[i]==1) {
 	  mcmc.param[tempi][i] = mcmc.nparam[tempi][i] + offsetx * (gsl_rng_uniform(mcmc.ran) - 0.5) * pdfsigs[i];
 	  //0:Mc, 1:eta, 2:tc, 3:logd, 4:a, 5:kappa, 6:RA, 7:sindec, 8:phi, 9:sintheta_Jo, 10: phi_Jo, 11:alpha
-	  if(i==1 && (mcmc.param[tempi][i]<=0.01 || mcmc.param[tempi][i] > 0.25)) mcmc.param[tempi][i] = max(min(gsl_rng_uniform(mcmc.ran)*0.25,1.0),0.01);  //Eta: 0.01<eta<0.25  \__ If it's that far outside, you may as well take a random value
+	  if(i==1 && (mcmc.param[tempi][i]<=0.03 || mcmc.param[tempi][i] > 0.25)) mcmc.param[tempi][i] = max(min(gsl_rng_uniform(mcmc.ran)*0.25,0.25),0.03);  //Eta: 0.01<eta<0.25  \__ If it's that far outside, you may as well take a random value
+	  //Allow eta>0.25 (imaginary masses):
+	  //if(i==1 && (mcmc.param[tempi][i]<=0.03 || mcmc.param[tempi][i] > 0.47)) mcmc.param[tempi][i] = max(min(gsl_rng_uniform(mcmc.ran)*0.47,0.47),0.03);  //Eta: 0.01<eta<0.47  \__ If it's that far outside, you may as well take a random value
 	  if(i==4 && (mcmc.param[tempi][i]<=1.e-5 || mcmc.param[tempi][i] > 1.0)) mcmc.param[tempi][i] = max(min(gsl_rng_uniform(mcmc.ran),1.0),1.e-5);      //Spin: 0<a<1         /   over the range of this parameter
 	  if((i==5 || i==7 || i==9) && (mcmc.param[tempi][i] < -2.0 || mcmc.param[tempi][i] > 2.0)) mcmc.param[tempi][i] = gsl_rng_uniform(mcmc.ran)*2.0 - 1.0;
 	  if(i==5 || i==7 || i==9) mcmc.param[tempi][i] = fmod(mcmc.param[tempi][i]+1001.0,2.0) - 1.0;
@@ -596,10 +598,9 @@ int prior(double *par, int p)
 
   
   //eta:
-  //lb[1] = 0.001; //Chains get stuck at low \eta and very high L!
-  lb[1] = 0.03;
-  //ub[1] = 0.245;
+  lb[1] = 0.03; //Chains get stuck at low \eta and very high L!
   ub[1] = 0.25;
+  //ub[1] = 0.47; //Allow imaginary masses, chains probably get stuck when too close to 0.5
   
   //t_c:
   dt = 0.05; //This is dt/2  For known signals

@@ -62,15 +62,18 @@ void template12(struct parset *par, struct interferometer *ifo[], int ifonr)
   
   par->NdJ = dotproduct(n_N,n_J0);                                                                                      //Inclination of J_0; only for printing purposes, should be removed from this routine
   
-  //Get masses from Mch and eta
-  double root = sqrt(0.25-par->eta);
-  double fraction = (0.5-root) / (0.5+root);
-  double inversefraction = 1.0/fraction;
+  //Get masses from Mch and eta:
   double Mc = par->mc*M0;                                                                                               //Chirp mass in seconds
-  x = exp(0.6*log(fraction));
-  m1 = Mc * (pow(1.0+fraction,0.2) / x);
-  m2 = Mc * (pow(1.0+inversefraction,0.2) * x);
-  M = m1+m2;                                                                                                            // Eq.16a
+  M = Mc*exp(-0.6*log(par->eta));
+  if(par->eta<=0.25) {
+    double tvar = sqrt(1.0-4.0*par->eta);
+    m1 = M/2.0 * (1.0 + tvar);
+    m2 = M/2.0 * (1.0 - tvar);
+  } else {                                                                                                              //Allow 0.25<eta<0.50 (for eta>0.50, m1<0 in this definition
+    double tvar = sqrt(4.0*par->eta-1.0);
+    m1 = M/2.0 * (1.0 - tvar);
+    m2 = M/2.0 * (1.0 + tvar);
+  }    
   mu = m1*m2/M;                                                                                                         // Eq.16b
   spin = par->spin*m1*m1;
   
