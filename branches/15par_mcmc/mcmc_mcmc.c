@@ -478,6 +478,11 @@ void par2arr(struct parset par, double *param)
 //Put the mcmc parameters from their struct into their array
 //0:mc, 1:eta, 2:tc, 3:logdl, 4:spin, 5:kappa, 6: longi (->RA), 7:sindec, 8:phase, 9:sinthJ0, 10:phiJ0, 11:alpha
 {
+int i;
+for(i=0;i<npar;i++){
+     param[i] = par.par[i];
+}
+/*
   param[0]  =  par.mc      ;
   param[1]  =  par.eta     ;
   param[2]  =  par.tc      ;
@@ -490,6 +495,8 @@ void par2arr(struct parset par, double *param)
   param[9]  =  par.sinthJ0 ;
   param[10] =  par.phiJ0   ;
   param[11] =  par.alpha   ;
+  */
+  
 }
 //End par2arr
 //****************************************************************************************************************************************************  
@@ -499,6 +506,11 @@ void arr2par(double *param, struct parset *par)
 //Get the mcmc parameters from their array into their struct
 //0:mc, 1:eta, 2:tc, 3:logdl, 4:spin, 5:kappa, 6: longi (->RA), 7:sindec, 8:phase, 9:sinthJ0, 10:phiJ0, 11:alpha
 {
+int i;
+for(i=0;i<npar;i++){
+     par->par[i] = param[i];
+}
+/*
   par->mc      =  param[0]   ;
   par->eta     =  param[1]   ;
   par->tc      =  param[2]   ;
@@ -511,6 +523,7 @@ void arr2par(double *param, struct parset *par)
   par->sinthJ0 =  param[9]   ;
   par->phiJ0   =  param[10]  ;
   par->alpha   =  param[11]  ;
+  */
 }
 //End arr2par
 //****************************************************************************************************************************************************  
@@ -524,6 +537,11 @@ void par2arrt(struct parset par, double **param)
 //Put the mcmc parameters from their struct into their array, for the case of parallel tempering
 //0:mc, 1:eta, 2:tc, 3:logdl, 4:spin, 5:kappa, 6: longi (->RA), 7:sindec, 8:phase, 9:sinthJ0, 10:phiJ0, 11:alpha
 {
+int i;
+for(i=0;i<npar;i++){
+     param[tempi][i] = par.par[i];
+}
+/*
   param[tempi][0]  =  par.mc      ;
   param[tempi][1]  =  par.eta     ;
   param[tempi][2]  =  par.tc      ;
@@ -536,6 +554,7 @@ void par2arrt(struct parset par, double **param)
   param[tempi][9]  =  par.sinthJ0 ;
   param[tempi][10] =  par.phiJ0   ;
   param[tempi][11] =  par.alpha   ;
+  */
 }
 //End par2arrt
 //****************************************************************************************************************************************************  
@@ -545,6 +564,11 @@ void arr2part(double **param, struct parset *par)
 //Get the mcmc parameters from their array into their struct, for the case of parallel tempering
 //0:mc, 1:eta, 2:tc, 3:logdl, 4:spin, 5:kappa, 6: longi (->RA), 7:sindec, 8:phase, 9:sinthJ0, 10:phiJ0, 11:alpha
 {
+int i;
+for(i=0;i<npar;i++){
+     par->par[i] = param[tempi][i];
+}
+/*
   par->mc      =  param[tempi][0]   ;
   par->eta     =  param[tempi][1]   ;
   par->tc      =  param[tempi][2]   ;
@@ -557,6 +581,7 @@ void arr2part(double **param, struct parset *par)
   par->sinthJ0 =  param[tempi][9]   ;
   par->phiJ0   =  param[tempi][10]  ;
   par->alpha   =  param[tempi][11]  ;
+  */
 }
 //End arr2part
 //****************************************************************************************************************************************************  

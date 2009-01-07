@@ -5,19 +5,38 @@ void template(struct parset *par, struct interferometer *ifo[], int ifonr)
 // Call a waveform template, the global variable waveformversion determines which one
 {
   if(waveformversion==1) {
-    template12(par, ifo, ifonr);  // Apostolatos 12-parameter template
+    templateApo(par, ifo, ifonr);  // Apostolatos 12-parameter template
   } else if(waveformversion==2) {
-    template15(par, ifo, ifonr);  // LAL 15-parameter template
+    templateLAL12(par, ifo, ifonr);  // LAL 12-parameter template
+  } else if(waveformversion==3) {
+    templateLAL15(par, ifo, ifonr);  // LAL 15-parameter template
   }
 }
 
 
 
 
-void template12(struct parset *par, struct interferometer *ifo[], int ifonr)
+void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
 // Spinning, 'simple-precession' template in restricted 1.5PN order with 1 spin (Apostolatos et al., 1994, PhRvD..49.6274A)
 //  The output vector `output' is of length `length',  starting at `tstart' and with resolution `samplerate'.
 {
+
+  
+  double pmc       =par->par[0];
+  double peta      =par->par[1];
+  double ptc       =par->par[2];
+  double plogdl    =par->par[3];
+  double pspin     =par->par[4];
+  double pkappa    =par->par[5];
+  double plongi    =par->par[6];
+  double psinlati  =par->par[7];
+  double pphase    =par->par[8];
+  double psinthJ0  =par->par[9];
+  double pphiJ0    =par->par[10];
+  double palpha    =par->par[11];
+  
+
+
   //if(MvdSdebug) printf("      Template for ifo %d\n", ifonr);
   double x;
   double m1=0.0,m2=0.0,M=0.0,mu=0.0;
@@ -52,27 +71,27 @@ void template12(struct parset *par, struct interferometer *ifo[], int ifonr)
   double n_z[3] = {0.0,0.0,1.0};                                                                                        //North in global coordinates
   double normalvec[3];                                                                                                  
   for(i=0;i<3;i++) normalvec[i] = ifo[ifonr]->normalvec[i];                                                             //Detector position normal vector = local zenith vector z'
-  double D_L = exp(par->logdl)*Mpcs;                                                                                    //Source luminosity distance, in seconds
-  double coslati = sqrt(1.0-par->sinlati*par->sinlati);
-  double n_N[3] = { cos(par->longi)*coslati , sin(par->longi)*coslati , par->sinlati };                                 //n_N: Position unit vector = N^
+  double D_L = exp(plogdl)*Mpcs;                                                                                    //Source luminosity distance, in seconds
+  double coslati = sqrt(1.0-psinlati*psinlati);
+  double n_N[3] = { cos(plongi)*coslati , sin(plongi)*coslati , psinlati };                                 //n_N: Position unit vector = N^
   
-  double sthJ0   = par->sinthJ0;                                                                                        //n_J0: 'total' AM unit vector, J0^  (almost equal to the real J, see Eq.15)
+  double sthJ0   = psinthJ0;                                                                                        //n_J0: 'total' AM unit vector, J0^  (almost equal to the real J, see Eq.15)
   double cthJ0   = sqrt(1.0 - sthJ0*sthJ0);
-  double n_J0[3] = { cos(par->phiJ0)*cthJ0 , sin(par->phiJ0)*cthJ0 , sthJ0 };                                           //Here, theta_Jo is a latitude-like angle like Dec (-pi/2-pi/2).
+  double n_J0[3] = { cos(pphiJ0)*cthJ0 , sin(pphiJ0)*cthJ0 , sthJ0 };                                           //Here, theta_Jo is a latitude-like angle like Dec (-pi/2-pi/2).
   
   par->NdJ = dotproduct(n_N,n_J0);                                                                                      //Inclination of J_0; only for printing purposes, should be removed from this routine
   
   //Get masses from Mch and eta
-  double root = sqrt(0.25-par->eta);
+  double root = sqrt(0.25-peta);
   double fraction = (0.5-root) / (0.5+root);
   double inversefraction = 1.0/fraction;
-  double Mc = par->mc*M0;                                                                                               //Chirp mass in seconds
+  double Mc = pmc*M0;                                                                                               //Chirp mass in seconds
   x = exp(0.6*log(fraction));
   m1 = Mc * (pow(1.0+fraction,0.2) / x);
   m2 = Mc * (pow(1.0+inversefraction,0.2) * x);
   M = m1+m2;                                                                                                            // Eq.16a
   mu = m1*m2/M;                                                                                                         // Eq.16b
-  spin = par->spin*m1*m1;
+  spin = pspin*m1*m1;
   
   
   
@@ -81,11 +100,11 @@ void template12(struct parset *par, struct interferometer *ifo[], int ifonr)
   //printf("  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf\n",
   // par->mc,par->eta,par->tc,par->logdl,par->spin,par->kappa,par->longi,par->sinlati,par->phase,par->sinthJ0,par->phiJ0,par->alpha);
   
-  double beta = 1.0/12.0*(113.0*(m1*m1)/(M*M) + 75.0*par->eta)*par->kappa*spin/(m1*m1);                                 // Eq.20, for S2=0 or m1=m2,S1=S2:  kappa*spin/(m1*m1) = L^.S/m1^2, see Blanchet et al., PRL 74, 3515, 1995
+  double beta = 1.0/12.0*(113.0*(m1*m1)/(M*M) + 75.0*peta)*pkappa*spin/(m1*m1);                                 // Eq.20, for S2=0 or m1=m2,S1=S2:  kappa*spin/(m1*m1) = L^.S/m1^2, see Blanchet et al., PRL 74, 3515, 1995
   
-  double cst1 = 743.0/336.0 + 11.0/4.0*par->eta;
+  double cst1 = 743.0/336.0 + 11.0/4.0*peta;
   double cst2 = (4.0*pi-beta);
-  double cst5 = spin*sqrt(1.0-par->kappa*par->kappa);
+  double cst5 = spin*sqrt(1.0-pkappa*pkappa);
   
   //Constant vector 1 for the construction of Eq.41e
   facvec(n_J0,-sthJ0,tvec1);                                                                                             //tvec1 = -J0^*cos(theta_J0)   MvdS: theta_J0 is a latitude, not a co-latitude
@@ -150,7 +169,7 @@ void template12(struct parset *par, struct interferometer *ifo[], int ifonr)
       if(terminate==0) terminate = 1;  //Set to 1 only if it was 0
     }
     else {
-      tau    = par->eta/(5.0*M)*t;   //t = localtc-t already
+      tau    = peta/(5.0*M)*t;   //t = localtc-t already
       tau18  = exp(0.125*log(tau));  //tau^(1/8)
       tau28  = tau18*tau18;
       tau38  = tau28*tau18;
@@ -186,22 +205,22 @@ void template12(struct parset *par, struct interferometer *ifo[], int ifonr)
         l_L = m1*m2*exp(-c3rd*log(omega_orb*M));
         
         //GW and orbital phase
-        phi_gw = par->phase - 2.0/par->eta * (tau58 + 0.625*c3rd*cst1*tau38 - 0.1875*cst2*tau28);                       // GW phase
+        phi_gw = pphase - 2.0/peta * (tau58 + 0.625*c3rd*cst1*tau38 - 0.1875*cst2*tau28);                       // GW phase
 	if(fabs(phi1)<1.e-30) phi1 = phi_gw;   //Save initial phi
 	//phi2 = phi_gw;                       //Save final phi
         
         Y = spin/l_L;                                                                                                    //Y = |S|/|L|, Eq.43
-        Gsq = 1.0 + 2.0*par->kappa*Y + Y*Y;                                                                                      //G^2, Eq.46
+        Gsq = 1.0 + 2.0*pkappa*Y + Y*Y;                                                                                      //G^2, Eq.46
         G   = sqrt(Gsq);
         
-        cst4 = l_L + par->kappa*spin;
+        cst4 = l_L + pkappa*spin;
         x = mu*M;
         x1 = x*x*x;
         x = G*l_L;
         x2 = x*x*x;
         x3 = spin*spin*spin;
-        alpha = par->alpha - 5.0/(96.0*x1) * (1.0+0.75*m2/m1) * 
-	  (2.0*x2 - 3.0*par->kappa*spin*cst4*G*l_L - 3.0*par->kappa*x3*(1.0-par->kappa*par->kappa) * asinh(cst4/cst5));                                            //Eq.47
+        alpha = palpha - 5.0/(96.0*x1) * (1.0+0.75*m2/m1) * 
+	  (2.0*x2 - 3.0*pkappa*spin*cst4*G*l_L - 3.0*pkappa*x3*(1.0-pkappa*pkappa) * asinh(cst4/cst5));                                            //Eq.47
 	if(fabs(alpha1)<1.e-30) alpha1 = alpha;  //Save initial alpha
 	//alpha2 = alpha;                         //Save final alpha
 	
@@ -295,12 +314,16 @@ void localpar(struct parset *par, struct interferometer *ifo[], int networksize)
   int ifonr,j;
   double lineofsight[3], dummyvec[3], scalprod1, delay;
   
+   double ptc       =par->par[2];
+   double plongi    =par->par[6];
+   double psinlati  =par->par[7];
+  
   // Determine local coalescence times:
-  coord2vec(par->sinlati, par->longi, lineofsight);
+  coord2vec(psinlati, plongi, lineofsight);
   for (ifonr=0; ifonr<networksize; ifonr++){
     scalprod1 =  ifo[ifonr]->positionvec[0]*lineofsight[0]  +  ifo[ifonr]->positionvec[1]*lineofsight[1]  +  ifo[ifonr]->positionvec[2]*lineofsight[2];  // Project line of sight onto positionvec, scalprod1 is in units of metres
     delay = scalprod1 / c;                                         // Time delay (wrt geocentre) in seconds
-    par->loctc[ifonr] = ((par->tc - ifo[ifonr]->FTstart) - delay);
+    par->loctc[ifonr] = ((ptc - ifo[ifonr]->FTstart) - delay);
   }
   
   // Determine local sky position:

@@ -29,7 +29,7 @@
 
 
 
-void template15(struct parset *par, struct interferometer *ifo[], int ifonr)
+void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr)
 //Use the LAL 3.5/2.5 PN spinning waveform, with 2 spinning objects (15 parameters)
 {
   int i=0;
@@ -51,7 +51,7 @@ void template15(struct parset *par, struct interferometer *ifo[], int ifonr)
   
   // Compute h_+ and h_x
   //LALHpHc(&thewaveform, hplusLAL, hcrossLAL, &lengthLAL, length, par, ifo[ifonr], ifonr);
-  LALHpHc(&thewaveform, &lengthLAL, par, ifo[ifonr]);  //MvdS: ifonr never used. This routine computes and returns hplusLAL, hcrossLAL, which are never used... However, this information should also be contained in thewaveform
+  LALHpHc12(&thewaveform, &lengthLAL, par, ifo[ifonr]);  //MvdS: ifonr never used. This routine computes and returns hplusLAL, hcrossLAL, which are never used... However, this information should also be contained in thewaveform
 																					//Vivien: ifonr is only used in a commented printf to know which interferometer called the routine. Just for debugging purposes
 																					//Vivien: hplusLAL and hcrossLAL are indeed unecessary (was before I used the structure thewaveform)
   
@@ -59,7 +59,7 @@ void template15(struct parset *par, struct interferometer *ifo[], int ifonr)
   // Compute the detector response
   //double delay = LALFpFc(&thewaveform, wave, &lengthLAL, length, par, ifonr);
   double delay = LALFpFc(&thewaveform, wave, length, par, ifonr); //MvdS: lengthLAL never used or set. Uses waveforms in thewaveform to compute the detector response in wave (?)
-																	//Vivien: lentghLAL is set line 535 of LALinteface.c But is is also availble in the structure thewaveform (which holds h+,x) and the structure wave (which holds F+,x)
+																	//Vivien: lentghLAL is set in LALinteface.c But is is also availble in the structure thewaveform (which holds h+,x) and the structure wave (which holds F+,x)
   
   // printf("LALdelay = %10.10f\n", delay);
   
@@ -67,10 +67,10 @@ void template15(struct parset *par, struct interferometer *ifo[], int ifonr)
   
   // printf("localtc = %f\n", localtc);
   
-  localtc = ((par->tc - ifo[ifonr]->FTstart) - delay);
+  localtc = ((par->par[2] - ifo[ifonr]->FTstart) - delay);
   
   int indexstart;
-  indexstart = (int) (localtc/inversesamplerate - (double)lengthLAL);   //MvdS: lengthLAL is used here, but seems never to be set in LALFpFc. Is it set in LALHpHc? Vivien: Yes it is (line 535) but it is also available in thewaveform and wave
+  indexstart = (int) (localtc/inversesamplerate - (double)lengthLAL);   //MvdS: lengthLAL is used here, but seems never to be set in LALFpFc. Is it set in LALHpHc? Vivien: Yes it is but it is also available in thewaveform and wave
   if (indexstart<0) indexstart = 0;
   
   //printf("localtc2 = %f\n", localtc2);
@@ -99,7 +99,7 @@ void template15(struct parset *par, struct interferometer *ifo[], int ifonr)
 
 
 
-void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferometer *ifo) {
+void LALHpHc12(CoherentGW *waveform, int *l, struct parset *par, struct interferometer *ifo) {
   // Compute h_+ and h_x form the parameters in par and interferometer information in ifo. l is a pointer to get the lenght of the waveform computed. this length is also available in waveform->phi->data->length
   
   static LALStatus    mystatus;
@@ -128,6 +128,20 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
   
   
   ////////////////////////////////////////////////////////////conversion between the parameter set of the Apostolatos waveform (parameter stored in par) to the parameter set used in LAL//////////////
+  
+  
+  double pmc       =par->par[0];
+  double peta      =par->par[1];
+  double ptc       =par->par[2];
+  double plogdl    =par->par[3];
+  double pspin     =par->par[4];
+  double pkappa    =par->par[5];
+  double plongi    =par->par[6];
+  double psinlati  =par->par[7];
+  double pphase    =par->par[8];
+  double psinthJ0  =par->par[9];
+  double pphiJ0    =par->par[10];
+  double palpha    =par->par[11];
   
   double x;
   double m1=0.0,m2=0.0,M=0.0,mu=0.0;
@@ -166,31 +180,31 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
   // for(i=0;i<3;i++) normalvec[i]=n_z[i];
   
   
-  //double D_L = exp(par->logdl)*Mpcs;                                                                                    //Source luminosity distance, in seconds
-  double coslati = sqrt(1.0-par->sinlati*par->sinlati);
+  //double D_L = exp(plogdl)*Mpcs;                                                                                    //Source luminosity distance, in seconds
+  double coslati = sqrt(1.0-psinlati*psinlati);
                                         
-  double n_N[3] = {cos(par->longi)*coslati,sin(par->longi)*coslati,par->sinlati};										//n_N: Position unit vector = N^
+  double n_N[3] = {cos(plongi)*coslati,sin(plongi)*coslati,psinlati};										//n_N: Position unit vector = N^
   
-  double sthJ0   = par->sinthJ0;                                                                                        //n_J0: 'total' AM unit vector, J0^  (almost equal to the real J, see Eq.15)
+  double sthJ0   = psinthJ0;                                                                                        //n_J0: 'total' AM unit vector, J0^  (almost equal to the real J, see Eq.15)
   double cthJ0   = sqrt(1. - sthJ0*sthJ0);
-  double n_J0[3] = { cos(par->phiJ0)*cthJ0 , sin(par->phiJ0)*cthJ0 , sthJ0 };
+  double n_J0[3] = { cos(pphiJ0)*cthJ0 , sin(pphiJ0)*cthJ0 , sthJ0 };
   
   par->NdJ = dotproduct(n_N,n_J0);																						//Inclination of J_0; only for printing purposes, should be removed from this routine
   
   //Get masses from Mch and eta
-  double root = sqrt(0.25-par->eta);
+  double root = sqrt(0.25-peta);
   double fraction = (0.5-root) / (0.5+root);
   double inversefraction = 1.0/fraction;
-  double Mc = par->mc*M0;                                                                                               //Chirp mass in seconds
+  double Mc = pmc*M0;                                                                                               //Chirp mass in seconds
   x = exp(0.6*log(fraction));
   m1 = Mc * (pow(1.0+fraction,0.2) / x);
   m2 = Mc * (pow(1.0+inversefraction,0.2) * x);
   M = m1+m2;                                                                                                            // Eq.16a
   mu = m1*m2/M;                                                                                                         // Eq.16b
-  spin = par->spin*m1*m1;
+  spin = pspin*m1*m1;
   
   
-  double cst5 = spin*sqrt(1.0-par->kappa*par->kappa);
+  double cst5 = spin*sqrt(1.0-pkappa*pkappa);
      
   facvec(n_J0,-sthJ0,tvec1);      
   addvec(n_z,tvec1,tvec2);                                                                                                      //cvec1 = (n_z - J0^*cos(theta_J0))/sin(theta_J0)
@@ -216,17 +230,17 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
   
     
   Y = spin/l_L;                                                                                                    //Y = |S|/|L|, Eq.43
-  Gsq = 1.0 + 2.0*par->kappa*Y + Y*Y;                                                                                      //G^2, Eq.46
+  Gsq = 1.0 + 2.0*pkappa*Y + Y*Y;                                                                                      //G^2, Eq.46
   G   = sqrt(Gsq);
   
-  cst4 = l_L+par->kappa*spin;
+  cst4 = l_L+pkappa*spin;
   x = mu*M;
   x1 = x*x*x;
   x = G*l_L;
   x2 = x*x*x;
   x3 = spin*spin*spin;
-  alpha = par->alpha - 5.0/(96.0*x1) * (1.0+0.75*m2/m1) * 
-    (2.0*x2 - 3.0*par->kappa*spin*cst4*G*l_L - 3.0*par->kappa*x3*(1.0-par->kappa*par->kappa) * asinh(cst4/cst5));                                            //Eq.47
+  alpha = palpha - 5.0/(96.0*x1) * (1.0+0.75*m2/m1) * 
+    (2.0*x2 - 3.0*pkappa*spin*cst4*G*l_L - 3.0*pkappa*x3*(1.0-pkappa*pkappa) * asinh(cst4/cst5));                                            //Eq.47
   
   slamL = cst5/(l_L*G);                                                                                            //sin(lambda_L), Eq.48a
   clamL = cst4/(l_L*G);                                                                                            //cos(lambda_L), Eq.48b
@@ -242,7 +256,7 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
   LdotN = dotproduct(n_L,n_N);
   
   double r = pow(M/(omega_orb*omega_orb),1.0/3.0);
-  double e = (16.0/5.0)*sqrt((M/r)*(M/r)*(M/r)) / ((1.0+(3.0/4.0)*m2/m1)*(1.0+2.0*par->kappa*Y+Y*Y));
+  double e = (16.0/5.0)*sqrt((M/r)*(M/r)*(M/r)) / ((1.0+(3.0/4.0)*m2/m1)*(1.0+2.0*pkappa*Y+Y*Y));
   double e2 = e*e;
   double e3 = e2*e;
   
@@ -277,14 +291,14 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
   for(i=0;i<3;i++) n_S[i] = n_Sloc[i];
   
   
-  n_S[0] = par->spin*n_S[0];
-  n_S[1] = par->spin*n_S[1];
-  n_S[2] = par->spin*n_S[2];
+  n_S[0] = pspin*n_S[0];
+  n_S[1] = pspin*n_S[1];
+  n_S[2] = pspin*n_S[2];
   
   ////////////////////////////////////////////////////////////now we fill the injParam structure with the converted parameters//////////////
   
-  injParams.mass1 = (float)(m1/M0);//par->m1;//M1;
-  injParams.mass2 = (float)(m2/M0);//par->m2;//M2;
+  injParams.mass1 = (float)(m1/M0);
+  injParams.mass2 = (float)(m2/M0);
   
   injParams.f_final = (float)ifo->highCut;  //It seems injParams.f_final gets overwritten by LALGenerateInspiral; it's an output parameter rather than input. This will also somewhat affect SNR comparisons with the Apostolatos waveform.
   injParams.f_lower = (float)f_lower;
@@ -292,7 +306,7 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
   LALSnprintf(injParams.waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTaylorthreePointFivePN");//"SpinTaylortwoPN");
   
   /* this is given in Mpc */    
-  injParams.distance = (float)exp(par->logdl);//d_L;
+  injParams.distance = (float)exp(plogdl);//d_L;
   
   injParams.inclination = (float)acos(LdotN);
   
@@ -305,13 +319,185 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
   injParams.spin2z = 0.0;
   
   // 4 parameters used after the computation of h+,x ********************//
-  injParams.coa_phase = (float)par->phase;
-  injParams.longitude = (float)par->longi;
-  injParams.latitude = (float)asin(par->sinlati);
-  injParams.polarization = (float)par->alpha;    
+  injParams.coa_phase = (float)pphase;
+  injParams.longitude = (float)plongi;
+  injParams.latitude = (float)asin(psinlati);
+  injParams.polarization = (float)palpha;    
   
   ppnParams.deltaT = inversesamplerate;//1.0 / 4096.0;
   
+  
+  //Print output:
+  //  printf("  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf\n",
+  //	 injParams.mass1,injParams.mass2,injParams.f_final,injParams.f_lower,injParams.distance,injParams.inclination,injParams.spin1x,injParams.spin1y,injParams.spin1z,
+  //	 injParams.spin2x,injParams.spin2y,injParams.spin2z,injParams.coa_phase,injParams.longitude,injParams.latitude,injParams.polarization);
+  
+  
+  /* --- now we can call the injection function --- */
+  
+  LALGenerateInspiral( &mystatus, waveform, &injParams, &ppnParams );
+  if ( mystatus.statusCode )
+    {
+      fprintf( stderr, "LALSTPNWaveformTest: error generating waveform\n" );
+      exit( 1 );
+    }
+  
+  lengthLAL  = waveform->phi->data->length;
+  *l = lengthLAL;
+  
+  //Print output:
+  //printf("  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf\n",
+  //	 injParams.mass1,injParams.mass2,injParams.f_final,injParams.f_lower,injParams.distance,injParams.inclination,injParams.spin1x,injParams.spin1y,injParams.spin1z,
+  //	 injParams.spin2x,injParams.spin2y,injParams.spin2z,injParams.coa_phase,injParams.longitude,injParams.latitude,injParams.polarization);
+  
+  
+  ///////////////////////////////////////////////////////at this point the structure waveform is still allocated in memory and will have to be freed. See LALfreedom below//////////
+  
+}
+
+
+void templateLAL15(struct parset *par, struct interferometer *ifo[], int ifonr)
+//Use the LAL 3.5/2.5 PN spinning waveform, with 2 spinning objects (15 parameters)
+{
+  int i=0;
+  double localtc=0.0,samplerate=0.0,inversesamplerate=0.0;
+  int length=0;
+  
+  samplerate = (double)ifo[ifonr]->samplerate;
+  inversesamplerate = 1.0/samplerate;
+  length     = ifo[ifonr]->samplesize;
+  //printf("length = %d\n",length);
+  
+  // double hplusLAL[length+2];
+  // double hcrossLAL[length+2];
+  //double wave[length+2];
+  double *wave = (double*)calloc(length+2,sizeof(double));  //MvdS: should this make a difference? Vivien: no it shouldn't.
+  int lengthLAL = 0;
+  
+  CoherentGW thewaveform;
+  
+  // Compute h_+ and h_x
+  //LALHpHc(&thewaveform, hplusLAL, hcrossLAL, &lengthLAL, length, par, ifo[ifonr], ifonr);
+  LALHpHc15(&thewaveform, &lengthLAL, par, ifo[ifonr]);  //MvdS: ifonr never used. This routine computes and returns hplusLAL, hcrossLAL, which are never used... However, this information should also be contained in thewaveform
+																					//Vivien: ifonr is only used in a commented printf to know which interferometer called the routine. Just for debugging purposes
+																					//Vivien: hplusLAL and hcrossLAL are indeed unecessary (was before I used the structure thewaveform)
+  
+  
+  // Compute the detector response
+  //double delay = LALFpFc(&thewaveform, wave, &lengthLAL, length, par, ifonr);
+  double delay = LALFpFc(&thewaveform, wave, length, par, ifonr); //MvdS: lengthLAL never used or set. Uses waveforms in thewaveform to compute the detector response in wave (?)
+																	//Vivien: lentghLAL is set in LALinteface.c But is is also availble in the structure thewaveform (which holds h+,x) and the structure wave (which holds F+,x)
+  
+  // printf("LALdelay = %10.10f\n", delay);
+  
+  LALfreedom(&thewaveform);
+  
+  // printf("localtc = %f\n", localtc);
+  
+  localtc = ((par->par[2] - ifo[ifonr]->FTstart) - delay);
+  
+  int indexstart;
+  indexstart = (int) (localtc/inversesamplerate - (double)lengthLAL);   //MvdS: lengthLAL is used here, but seems never to be set in LALFpFc. Is it set in LALHpHc? Vivien: Yes it is but it is also available in thewaveform and wave
+  if (indexstart<0) indexstart = 0;
+  
+  //printf("localtc2 = %f\n", localtc2);
+  //printf("i1 = %d\n", i1);
+  //printf("indexstart = %d\n" , indexstart);
+  //printf("ifo[%d]->FTstart = %f\n", ifonr, ifo[ifonr]->FTstart);
+  //printf("lengthLAL = %d\n", lengthLAL);
+  //printf("length: %d,  lengthLAL: %d,  i1: %d,  i2: %d\n", length, lengthLAL,indexstart, indexstart+lengthLAL);
+  
+  for (i=0; i<length; ++i){
+    //MvdS:  Reduce the number of if statements:
+    //if(i<indexstart) ifo[ifonr]->FTin[i]   = 0.0;
+    //if(i>=indexstart && i<(indexstart+lengthLAL)) ifo[ifonr]->FTin[i] = wave[i-indexstart];
+    //if(i>=(indexstart+lengthLAL)) ifo[ifonr]->FTin[i]   = 0.0;
+    ifo[ifonr]->FTin[i] = 0.0;
+    if(i>=indexstart && i<(indexstart+lengthLAL)) ifo[ifonr]->FTin[i] = wave[i-indexstart];
+  }
+  
+  free(wave);
+  
+}
+
+
+
+void LALHpHc15(CoherentGW *waveform, int *l, struct parset *par, struct interferometer *ifo) {
+  // Compute h_+ and h_x form the parameters in par and interferometer information in ifo. l is a pointer to get the lenght of the waveform computed. this length is also available in waveform->phi->data->length
+  
+  static LALStatus    mystatus;
+  
+  SimInspiralTable    injParams;
+  PPNParamStruc       ppnParams;
+  
+  INT4        i;
+  int			lengthLAL;
+  //REAL8       a1, a2, phi, shift;
+  pi=M_PI;
+  
+  
+  //Print input:
+  //printf("  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf\n",
+  //	 par->mc,par->eta,par->tc,par->logdl,par->spin,par->kappa,par->longi,par->sinlati,par->phase,par->sinthJ0,par->phiJ0,par->alpha);
+
+  
+  
+  ////////////////////////////////////////////////////////////initialisation of memory/////////////////////////////////
+  
+  memset( &mystatus, 0, sizeof(LALStatus) );
+  memset( waveform, 0, sizeof(CoherentGW));
+  memset( &injParams, 0, sizeof(SimInspiralTable) );
+  memset( &ppnParams, 0, sizeof(PPNParamStruc) );
+  
+  ////////////////////////////////////////////////////////////conversion/////////////////////////////////
+
+
+  double f_lower=ifo->lowCut;
+  
+  double samplerate = (double)ifo->samplerate;
+  double inversesamplerate = 1.0/samplerate;
+  
+
+
+  //Get masses from Mch and eta
+  double root = sqrt(0.25-par->par[1]);
+  double fraction = (0.5-root) / (0.5+root);
+  double inversefraction = 1.0/fraction;                                                                                             //Chirp mass in seconds
+  double x = exp(0.6*log(fraction));
+  double m1 = par->par[0] * (pow(1.0+fraction,0.2) / x);
+  double m2 = par->par[0] * (pow(1.0+inversefraction,0.2) * x);
+
+  ////////////////////////////////////////////////////////////now we fill the injParam structure with the parameters//////////////
+  
+  injParams.mass1 = m1;
+  injParams.mass2 = m2;
+  
+  injParams.f_final = (float)ifo->highCut;  //It seems injParams.f_final gets overwritten by LALGenerateInspiral; it's an output parameter rather than input. This will also somewhat affect SNR comparisons with the Apostolatos waveform.
+  injParams.f_lower = (float)f_lower;
+  
+  LALSnprintf(injParams.waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTaylorthreePointFivePN");//"SpinTaylortwoPN");
+  
+  /* this is given in Mpc */    
+  injParams.distance = (float)exp(par->par[3]);//d_L;
+  
+  injParams.inclination = (float)acos(par->par[6]);
+  
+  injParams.spin1x = (float)(par->par[9]*cos(par->par[10])*sin(par->par[11]));
+  injParams.spin1y = (float)(par->par[9]*sin(par->par[10])*sin(par->par[11]));
+  injParams.spin1z = (float)(par->par[9]*cos(par->par[11]));
+  
+  injParams.spin2x = (float)(par->par[12]*cos(par->par[13])*sin(par->par[14]));
+  injParams.spin2y = (float)(par->par[12]*sin(par->par[13])*sin(par->par[14]));
+  injParams.spin2z = (float)(par->par[12]*cos(par->par[14]));
+    
+  // 4 parameters used after the computation of h+,x ********************//
+  injParams.coa_phase = (float)par->par[7];
+  injParams.longitude = (float)par->par[4];
+  injParams.latitude = (float)asin(par->par[5]);
+  injParams.polarization = (float)par->par[8];    
+  
+  ppnParams.deltaT = inversesamplerate;
+    
   
   //Print output:
   //  printf("  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf\n",
@@ -348,12 +534,6 @@ void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferom
 
 
 
-
-
-
-
-
-
 // Compute the detector response for a given detector (ifonr) and h_+,h_x. the structure waveform must already hold the computed values of h+,x (or just a1, a2, phi and shift as a function of time)
 
 double LALFpFc(CoherentGW *waveform, double *wave, int length, struct parset *par, int ifonr) {
@@ -382,8 +562,8 @@ double LALFpFc(CoherentGW *waveform, double *wave, int length, struct parset *pa
   
   REAL4TimeSeries signal;        // GW signal 
   
-  signal.epoch.gpsSeconds = (INT4)par->tc;
-  signal.epoch.gpsNanoSeconds = (INT4)(100000000.0*(par->tc - (double)signal.epoch.gpsSeconds));
+  signal.epoch.gpsSeconds = (INT4)par->par[2];
+  signal.epoch.gpsNanoSeconds = (INT4)(100000000.0*(par->par[2] - (double)signal.epoch.gpsSeconds));
   
   waveform->f->epoch = waveform->phi->epoch = waveform->a->epoch = signal.epoch; 
   

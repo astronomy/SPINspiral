@@ -398,11 +398,12 @@ void printParameterHeaderToFile(FILE * dump);
 void antennaepattern(double altitude, double azimuth, double polarisation,
 		     double *Fplus, double *Fcross);
 void template(struct parset *par, struct interferometer *ifo[], int ifonr);
-void template12(struct parset *par, struct interferometer *ifo[], int ifonr);
+void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr);
 		  
 //************************************************************************************************************************************************
 
-void template15(struct parset *par, struct interferometer *ifo[], int ifonr);
+void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr);
+void templateLAL15(struct parset *par, struct interferometer *ifo[], int ifonr);
 
 /*
 //void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr);

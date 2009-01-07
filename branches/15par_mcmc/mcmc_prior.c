@@ -152,38 +152,38 @@ void setrandomtrueparameters1(struct runpar *run)  //Get random values for the '
   double *lb,*ub,db,dt;
   lb = (double*)calloc(npar,sizeof(double));
   ub = (double*)calloc(npar,sizeof(double));
-  lb[0] = 5.0;       //M1 (Mo)
-  ub[0] = 15.0;
-  lb[1] = 1.2;       //M2 (Mo)
-  ub[1] = 1.6;
+  lb[0] = 2.0;       //M1 (Mo)
+  ub[0] = 4.0;
+  lb[1] = 0.05;       //M2 (Mo)
+  ub[1] = 0.15;
   dt = 0.5; //This is dt/2
   lb[2] = prior_tc_mean - dt; //t_c
   ub[2] = prior_tc_mean + dt;
-  lb[3] = 10.0;      //d_L (Mpc)  !Linear!
-  ub[3] = 30.0;
+  lb[3] = 2.3;      //d_L (Mpc)  !Linear!
+  ub[3] = 3.4;
   lb[4] = 1.e-10;    //a_spin (0-1)
   ub[4] = 0.999999;
-  lb[5] = 0.001;     //th_SL (deg) (not used)
-  ub[5] = 179.999;
+  lb[5] = -0.999999; //kappa
+  ub[5] = 0.999999;
   lb[6] = 0.0;       //RA (h)
-  ub[6] = 24.0;
-  lb[7] = -89.999;   //dec (deg) (not used)
-  ub[7] = 89.999;
+  ub[6] = tpi;
+  lb[7] = -0.999999; //sin(dec)
+  ub[7] = 0.999999;
   lb[8] = 0.0;       //phi_c (deg)
-  ub[8] = 360.0;
-  lb[9] = -89.999;   //theta_J0 (deg) (not used)
-  ub[9] = 89.999;
+  ub[8] = tpi;
+  lb[9] = -0.999999; //sin(theta_J0)
+  ub[9] = 0.999999;
   lb[10] = 0.0;      //phi_Jo (deg)
-  ub[10] = 360.0;
+  ub[10] = tpi;
   lb[11] = 0.0;      //alpha_c (deg)
-  ub[11] = 360.0;
+  ub[11] = tpi;
   
   for(i=0;i<npar;i++) {
     db = ub[i]-lb[i];
     rannr = gsl_rng_uniform(ran);                                                        //This assures you always draw the same number of random variables
     if(run->setranpar[i]==1) truepar[i] = rannr*db + lb[i];
-    if(i==5 && run->setranpar[i]==1) truepar[i] = acos(rannr*2.0 - 1.0)*r2d;             //kappa -> th_SL
-    if((i==7 || i==9)  && run->setranpar[i]==1) truepar[i] = asin(rannr*2.0 - 1.0)*r2d;  //sin(dec)->dec, sin(th_J0)->th_J0
+   // if(i==5 && run->setranpar[i]==1) truepar[i] = acos(rannr*2.0 - 1.0)*r2d;             //kappa -> th_SL
+   // if((i==7 || i==9)  && run->setranpar[i]==1) truepar[i] = asin(rannr*2.0 - 1.0)*r2d;  //sin(dec)->dec, sin(th_J0)->th_J0
     //printf("  %d  %lf  %lf  %lf  %lf\n",i,lb[i],ub[i],db,truepar[i]);
   }
   
@@ -213,7 +213,7 @@ int prior2(double *par, int p) //LAL 15-parameter priors
   lb[0] = 1.0;
   ub[0] = 6.0;
 
-  lb[1] = 0.03;
+  lb[1] = 0.03;//eta
   ub[1] = 0.25;
   
   //t_c:
@@ -225,38 +225,38 @@ int prior2(double *par, int p) //LAL 15-parameter priors
   lb[3] = -6.9; //ln(d_L); ln(-6.9) = 0.001Mpc = 1kpc
   ub[3] = 4.6;  //ln(4.6) = 100Mpc
   
-  lb[4] = -0.999999; //RA
-  ub[4] = 0.999999;
+  lb[4] = 0.0; //RA
+  ub[4] = tpi;
   
   lb[5] = -0.999999; //sin(dec)
   ub[5] = 0.999999;
   
-  lb[6] = -0.999999; //sin(dec)
+  lb[6] = -0.999999; //cos(i)
   ub[6] = 0.999999;
   
-  lb[7] = -0.999999; //sin(theta_J0)
-  ub[7] = 0.999999;
+  lb[7] = 0.0; //phi_c
+  ub[7] = tpi;
   
-  lb[8] = -0.999999; //kappa
-  ub[8] = 0.999999;
+  lb[8] = 0.0; //psi
+  ub[8] = tpi;
   
-  lb[9] = 1.e-10; //a_spin
+  lb[9] = 1.e-10; //a_spin1
   ub[9] = 0.999999;
   
-  lb[10] = -0.999999; //sin(theta_J0)
-  ub[10] = 0.999999;
+  lb[10] = 0.0; //theta_1
+  ub[10] = tpi;
 
-  lb[11] = -0.999999; //kappa
-  ub[11] = 0.999999;
+  lb[11] = 0.0; //phi_1
+  ub[11] = pi;
   
-  lb[12] = 1.e-10; //a_spin
+  lb[12] = 1.e-10; //a_spin2
   ub[12] = 0.999999;
   
-  lb[13] = -0.999999; //sin(theta_J0)
-  ub[13] = 0.999999;
+  lb[13] = 0.0; //theta_2
+  ub[13] = tpi;
 
-  lb[14] = -0.999999; //kappa
-  ub[14] = 0.999999;
+  lb[14] = 0.0; //phi_2
+  ub[14] = pi;
    
   //Set prior to 0 if outside range: Seems very inefficient for correlated update proposals
   /*
@@ -271,7 +271,7 @@ int prior2(double *par, int p) //LAL 15-parameter priors
   //printf("%2d  %20.6f  %20.6f  %20.6f  ",p,lb[p],ub[p],*par);
   
   
-  if(p==6 || p==8 || p==10 || p==11) {                                    // Periodic boundary condition to bring the variable between 0 and 2pi
+ if(p==4 || p==7 || p==8 || p==10 || p==13) {                                    // Periodic boundary condition to bring the variable between 0 and 2pi
     *par = fmod(*par+mtpi,tpi);
   } else {                                                                // Bounce back from the wall
     //while(*par<lb[p] || *par>ub[p]) {                                     // Do as many bounces as necessary to get between the walls
@@ -287,6 +287,7 @@ int prior2(double *par, int p) //LAL 15-parameter priors
       if(*par<lb[p] || *par>ub[p]) prior = 0;                             // If, after bouncing once, still outside the range, reject
     }
   }
+  
   
   //printf("%20.6f  %d  \n",*par,prior);
   
@@ -318,47 +319,61 @@ void setrandomtrueparameters2(struct runpar *run)  //Get random values for the '
   double *lb,*ub,db,dt;
   lb = (double*)calloc(npar,sizeof(double));
   ub = (double*)calloc(npar,sizeof(double));
-  lb[0] = 5.0;       //M1 (Mo)
-  ub[0] = 15.0;
-  lb[1] = 1.2;       //M2 (Mo)
-  ub[1] = 1.6;
-  dt = 0.5; //This is dt/2
-  lb[2] = prior_tc_mean - dt; //t_c
-  ub[2] = prior_tc_mean + dt;
-  lb[3] = 10.0;      //d_L (Mpc)  !Linear!
-  ub[3] = 30.0;
-  lb[4] = 1.e-10;    //a_spin (0-1)
-  ub[4] = 0.999999;
-  lb[5] = 0.001;     //th_SL (deg) (not used)
-  ub[5] = 179.999;
-  lb[6] = 0.0;       //RA (h)
-  ub[6] = 24.0;
-  lb[7] = -89.999;   //dec (deg) (not used)
-  ub[7] = 89.999;
-  lb[8] = 0.0;       //phi_c (deg)
-  ub[8] = 360.0;
-  lb[9] = -89.999;   //theta_J0 (deg) (not used)
-  ub[9] = 89.999;
-  lb[10] = 0.0;      //phi_Jo (deg)
-  ub[10] = 360.0;
-  lb[11] = 0.0;      //alpha_c (deg)
-  ub[11] = 360.0;
+
+  //Mc:
+  lb[0] = 2.0;
+  ub[0] = 4.0;
+
+  lb[1] = 0.05;//eta
+  ub[1] = 0.15;
   
-  lb[12] = 1.e-10;   //a_spin2 (0-1)
+  //t_c:
+  dt = 0.5; //This is dt/2
+  lb[2] = prior_tc_mean - dt;
+  ub[2] = prior_tc_mean + dt;
+  
+  lb[3] = 2.3; // 10Mpc
+  ub[3] = 3.4; // 30Mpc
+  
+  lb[4] = 0.0; //RA
+  ub[4] = tpi;
+  
+  lb[5] = -0.999999; //sin(dec)
+  ub[5] = 0.999999;
+  
+  lb[6] = -0.999999; //cos(i)
+  ub[6] = 0.999999;
+  
+  lb[7] = 0.0; //phi_c
+  ub[7] = tpi;
+  
+  lb[8] = 0.0; //psi
+  ub[8] = tpi;
+  
+  lb[9] = 1.e-10; //a_spin1
+  ub[9] = 0.999999;
+  
+  lb[10] = 0.0; //theta_1
+  ub[10] = tpi;
+
+  lb[11] = 0.0; //phi_1
+  ub[11] = pi;
+  
+  lb[12] = 1.e-10; //a_spin2
   ub[12] = 0.999999;
-  lb[13] = 0.0;      //theta_spin2 (deg)
-  ub[13] = 360.0;
-  lb[14] = 0.0;      //phi_spin2 (deg)
-  ub[14] = 180.0;
+  
+  lb[13] = 0.0; //theta_2
+  ub[13] = tpi;
+
+  lb[14] = 0.0; //phi_2
+  ub[14] = pi;
  
   
   for(i=0;i<npar;i++) {
     db = ub[i]-lb[i];
     rannr = gsl_rng_uniform(ran);                                                        //This assures you always draw the same number of random variables
     if(run->setranpar[i]==1) truepar[i] = rannr*db + lb[i];
-    if(i==5 && run->setranpar[i]==1) truepar[i] = acos(rannr*2.0 - 1.0)*r2d;             //kappa -> th_SL
-    if((i==7 || i==9)  && run->setranpar[i]==1) truepar[i] = asin(rannr*2.0 - 1.0)*r2d;  //sin(dec)->dec, sin(th_J0)->th_J0
-    //printf("  %d  %lf  %lf  %lf  %lf\n",i,lb[i],ub[i],db,truepar[i]);
+	//printf("  %d  %lf  %lf  %lf  %lf\n",i,lb[i],ub[i],db,truepar[i]);
   }
   
   free(lb);
