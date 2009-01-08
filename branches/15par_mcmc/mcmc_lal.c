@@ -136,7 +136,7 @@ void LALHpHc12(CoherentGW *waveform, int *l, struct parset *par, struct interfer
   double plogdl    =par->par[3];
   double pspin     =par->par[4];
   double pkappa    =par->par[5];
-  double plongi    =par->par[6];
+  double plongi    = fmod(longitude(par->par[6],GMST(ptc))+mtpi,tpi)  //par[6] contains RA
   double psinlati  =par->par[7];
   double pphase    =par->par[8];
   double psinthJ0  =par->par[9];

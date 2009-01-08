@@ -450,7 +450,6 @@ void gettrueparameters(struct parset *par)  //Set the parameters for the 12-para
   for(i=0;i<npar;i++) {
     par->par[i]      = truepar[i];
   }
-  par->par[6] = fmod(longitude(truepar[6],GMST(truepar[2]))+mtpi,tpi);  //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
   
   
   par->m1       = truepar[0];                    // M1 (10.0)
@@ -488,7 +487,6 @@ void getstartparameters(struct parset *par, struct runpar run)  //Set the parame
   for(i=0;i<npar;i++) {
     par->par[i]      = run.startpar[i];
   }
-  par->par[6] = fmod(longitude(run.startpar[6],GMST(run.startpar[2]))+mtpi,tpi);  //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
   
   
   par->m1       = run.startpar[0];                    // M1 (10.0)

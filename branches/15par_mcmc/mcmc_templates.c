@@ -24,11 +24,11 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
   
   double pmc       =par->par[0];
   double peta      =par->par[1];
-  //double ptc       =par->par[2];
+  double ptc       =par->par[2];
   double plogdl    =par->par[3];
   double pspin     =par->par[4];
   double pkappa    =par->par[5];
-  double plongi    =par->par[6];
+  double plongi    = fmod(longitude(par->par[6],GMST(ptc))+mtpi,tpi);  //par[6] contains RA
   double psinlati  =par->par[7];
   double pphase    =par->par[8];
   double psinthJ0  =par->par[9];
@@ -315,7 +315,7 @@ void localpar(struct parset *par, struct interferometer *ifo[], int networksize)
   double lineofsight[3], dummyvec[3], scalprod1, delay;
   
   double ptc       = par->par[2];
-  double plongi    = par->par[6];
+  double plongi    = fmod(longitude(par->par[6],GMST(ptc))+mtpi,tpi);  //par[6] contains RA
   double psinlati  = par->par[7];
   
   // Determine local coalescence times:
