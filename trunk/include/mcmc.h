@@ -57,8 +57,8 @@
 
 //The following global arrays have the size of the number of parameters, i.e. 12 or 15, or ~20 to make sure we're always ok:
 
-int fitpar[12],offsetpar[12];
-double truepar[12],pdfsigs[12];
+int fitpar[20],offsetpar[20];
+double truepar[20],pdfsigs[20];
 int waveformversion;
 
 
@@ -135,7 +135,7 @@ struct runpar{
   double netsnr;                  // Total SNR of the network
   double targetsnr;               // Target total SNR of the network, scale the distance
   double temps[99];               // Temperature ladder for manual parallel tempering
-  double startpar[12];            // Starting parameters for the MCMC chains (may be different from true parameters)
+  double startpar[20];            // Starting parameters for the MCMC chains (may be different from true parameters)
   
   double databeforetc;            // Data stretch in the time domain before t_c to use in the analysis
   double dataaftertc;             // Data stretch in the time domain after t_c to use in the analysis
@@ -209,6 +209,9 @@ struct mcmcvariables{
 
 // Structure for spin parameter set with 12 parameters
 struct parset{
+
+  double par[20];
+
   double m1;         // mass 1                    
   double m2;         // mass 2                    
   double m;          // total mass                
@@ -314,6 +317,9 @@ void setconstants();
 void set_ifo_data(struct runpar run, struct interferometer ifo[]);
 
 void setrandomtrueparameters(struct runpar *run);
+void setrandomtrueparameters1(struct runpar *run);
+void setrandomtrueparameters2(struct runpar *run);
+
 void gettrueparameters(struct parset *par);
 void getstartparameters(struct parset *par, struct runpar run);
 void getparameterset(struct parset *par, double mc, double eta, double tc, double logdl, double spin, double kappa, 
@@ -332,6 +338,10 @@ void arr2par(double *param, struct parset *par);
 void par2arrt(struct parset par, double **param); //For the case of parallel tempering
 void arr2part(double **param, struct parset *par);
 int prior(double *par, int p);
+int prior1(double *par, int p);
+int prior2(double *par, int p);
+
+double uncorrelated_mcmc_single_update_angle_prior(double sigma, int p);
 
 void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
 void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
@@ -390,11 +400,12 @@ void printParameterHeaderToFile(FILE * dump);
 void antennaepattern(double altitude, double azimuth, double polarisation,
 		     double *Fplus, double *Fcross);
 void template(struct parset *par, struct interferometer *ifo[], int ifonr);
-void template12(struct parset *par, struct interferometer *ifo[], int ifonr);
+void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr);
 		  
 //************************************************************************************************************************************************
 
-void template15(struct parset *par, struct interferometer *ifo[], int ifonr);
+void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr);
+void templateLAL15(struct parset *par, struct interferometer *ifo[], int ifonr);
 
 /*
 //void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr);

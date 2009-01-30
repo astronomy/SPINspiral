@@ -7,34 +7,28 @@
 
 //*** MASSES ***//
 
-double chirpmass(double m1, double m2)
-// Chirp mass (Mc) for given individual masses
-{
-  return pow(m1*m2,0.6) / pow(m1+m2,0.2);
-}
-
 double massratio(double m1, double m2)
-// Symmetric mass ratio (eta) for given individual masses
+/* mass ratio (eta) for given masses */
 {
   return (m1*m2)/pow(m1+m2,2.0);
 }
 
-void mc2masses(double Mc, double eta, double *m1, double *m2)
-// Individual masses (m1,m2) for given mass ratio & chirp mass
+void mc2masses(double mc, double eta, double *m1, double *m2)
+/* total mass (mt) for given mass ratio & chirp mass */
 {
-  if(eta<=0.25) {
-    double Mtot = Mc*exp(-0.6*log(eta));
-    double tvar = sqrt(1.0-4.0*eta);
-    *m1 = Mtot/2.0 * (1.0 + tvar);
-    *m2 = Mtot/2.0 * (1.0 - tvar);
-  } else {                                                                                                              //Allow 0.25<eta<0.50 (for eta>0.50, m1<0 in this definition
-    double eta1 = 0.5 - eta;
-    double Mtot = Mc*exp(-0.6*log(eta1));
-    double tvar = sqrt(1.0-4.0*eta1);
-    *m1 = Mtot/2.0 * (1.0 - tvar);
-    *m2 = Mtot/2.0 * (1.0 + tvar);
-  }    
+  double root = sqrt(0.25-eta);
+  double fraction = (0.5+root) / (0.5-root);
+  double inversefraction = (0.5-root) / (0.5+root);
+  *m1 = mc * (pow(1+fraction,0.2) / pow(fraction,0.6));
+  *m2 = mc * (pow(1+inversefraction,0.2) / pow(inversefraction,0.6));
 }
+
+double chirpmass(double m1, double m2)
+/* chirp mass (mc) for given masses */
+{
+  return pow(m1*m2,0.6) / pow(m1+m2,0.2);
+}
+
 
 
 

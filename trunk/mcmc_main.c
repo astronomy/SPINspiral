@@ -25,7 +25,7 @@ int main(int argc, char * argv[])
   //Initialise stuff for the run
   struct runpar run;
   setconstants();    //Set the global constants (which are variable in C). This routine should eventually disappear.
-  run.setranpar  = (int*)calloc(npar,sizeof(int));
+ //run.setranpar  = (int*)calloc(npar,sizeof(int));
   sprintf(run.infilename,"mcmc.input"); //Default input filename
   if(argc > 1) sprintf(run.infilename,argv[1]);
   
@@ -39,10 +39,13 @@ int main(int argc, char * argv[])
     printf("   Using Apostolatos, 1.5PN, 12-parameter waveform.\n");
   } else if(waveformversion==2) {
     printf("   Using LAL, 3.5PN, 12-parameter waveform.\n");
+  } else if(waveformversion==3) {
+    printf("   Using LAL, 3.5PN, 15-parameter waveform.\n");
   } else {
-    printf("   Unknown waveform: %d.   Available waveforms:\n",waveformversion);
+    printf("   Unknown waveform: %d.   Available waveforms (for now):\n",waveformversion);
     printf("     1: Apostolatos, simple precession, 12 parameters\n");
     printf("     2: LAL, single spin, 12 parameters\n");
+	printf("     3: LAL, double spin, 15 parameters\n");
     printf("\n");
     exit(1);
   }
@@ -173,12 +176,17 @@ int main(int argc, char * argv[])
   printf("\n  %10d  %10d  %6d  %6d  ",iter,nburn,run.mcmcseed,networksize);
   for(ifonr=0;ifonr<networksize;ifonr++) printf("%20.10lf  ",network[ifonr]->snr);
   printf("%20.10lf\n\n",run.netsnr);
-  printf("    %8s  %8s  %17s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "Mc","eta","tc","logdL","spin","kappa","longi","sinlati","phase","sinthJ0","phiJ0","alpha");
-  printf("    %8.5f  %8.5f  %17.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f\n\n", dummypar.mc,dummypar.eta,dummypar.tc,dummypar.logdl,dummypar.spin,dummypar.kappa,dummypar.longi,dummypar.sinlati,dummypar.phase,dummypar.sinthJ0,dummypar.phiJ0,dummypar.alpha);
-  printf("    %8s  %8s  %17s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "M1","M2","tc","d_L","spin","th_SL","RA","Dec","phase","th_J0","phi_J0","alpha");
-  printf("    %8.5f  %8.5f  %17.6lf  %8.2f  %8.5f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f\n\n", dummypar.m1,dummypar.m2,dummypar.tc,exp(dummypar.logdl),dummypar.spin,acos(dummypar.kappa)*r2d,rightAscension(dummypar.longi,GMST(dummypar.tc))*r2h,asin(dummypar.sinlati)*r2d,dummypar.phase*r2d,asin(dummypar.sinthJ0)*r2d,dummypar.phiJ0*r2d,dummypar.alpha*r2d);
-  
-  
+  //printf("    %8s  %8s  %17s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "Mc","eta","tc","logdL","spin","kappa","longi","sinlati","phase","sinthJ0","phiJ0","alpha");
+  //printf("    %8.5f  %8.5f  %17.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f\n\n", dummypar.mc,dummypar.eta,dummypar.tc,dummypar.logdl,dummypar.spin,dummypar.kappa,dummypar.longi,dummypar.sinlati,dummypar.phase,dummypar.sinthJ0,dummypar.phiJ0,dummypar.alpha);
+  //printf("    %8s  %8s  %17s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "M1","M2","tc","d_L","spin","th_SL","RA","Dec","phase","th_J0","phi_J0","alpha");
+  //printf("    %8.5f  %8.5f  %17.6lf  %8.2f  %8.5f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f\n\n", dummypar.m1,dummypar.m2,dummypar.tc,exp(dummypar.logdl),dummypar.spin,acos(dummypar.kappa)*r2d,rightAscension(dummypar.longi,GMST(dummypar.tc))*r2h,asin(dummypar.sinlati)*r2d,dummypar.phase*r2d,asin(dummypar.sinthJ0)*r2d,dummypar.phiJ0*r2d,dummypar.alpha*r2d);
+   printf("Injection parameters\n");
+  int i=0;
+  for(i=0;i<npar;i++)
+  {
+  printf("    %8.5f",dummypar.par[i]);
+  }
+  printf("\n\n");
   
   
   //Do MCMC
@@ -223,7 +231,7 @@ int main(int argc, char * argv[])
     */
     
     //Compute match between waveforms with parameter sets par1 and par2
-    if(1==1) {
+    if(1==2) {
       printf("\n\n");
       struct parset par1;
       allocparset(&par1, networksize);
@@ -250,9 +258,10 @@ int main(int argc, char * argv[])
     }
   
     //Compute Fisher matrix for parameter set par
-    if(1==1) {
+    if(1==2) {
       printf("\n\n  Computing Fisher matrix...\n\n");
-      int i=0, j=0;
+      i = 0;
+      int j=0;
       struct parset par;
       double **matrix  = (double**)calloc(npar,sizeof(double*));
       for(i=0;i<npar;i++) matrix[i]  = (double*)calloc(npar,sizeof(double));

@@ -264,6 +264,7 @@ double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct int
   par.localti  = (double*)calloc(networksize,sizeof(double));
   par.locazi   = (double*)calloc(networksize,sizeof(double));
   par.locpolar = (double*)calloc(networksize,sizeof(double));
+  //allocparset(&par,networksize);
   localpar(&par, ifo, networksize);
 
   //Get the true parameters
@@ -272,9 +273,12 @@ double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct int
   truepar.localti  = (double*)calloc(networksize,sizeof(double));
   truepar.locazi   = (double*)calloc(networksize,sizeof(double));
   truepar.locpolar = (double*)calloc(networksize,sizeof(double));
+  //allocparset(&truepar,networksize);
   localpar(&truepar, ifo, networksize);
   
   return parmatch(&truepar, &par, ifo, networksize);
+  
+  //Shouldn't these guys be freed?
 }
 
 

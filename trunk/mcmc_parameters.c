@@ -33,6 +33,10 @@ void readinputfile(struct runpar *run)
 
   //Basic settings
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
+  fgets(bla,500,fin);  sscanf(bla,"%d",&npar);
+ 
+  run->setranpar  = (int*)calloc(npar,sizeof(int)); //Now that npar is known, initialise the array.... 
+  
   fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);    
   iter = (int)tmpdbl;
   fgets(bla,500,fin);  sscanf(bla,"%d",&skip);
@@ -159,6 +163,7 @@ void writeinputfile(struct runpar *run)
   
   
   fprintf(fout, "\n  #Basic settings:\n");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      npar,          "napr",           "Dimension of the parameter space. Not the number of parameters to be fitted.");
   fprintf(fout, "  %-25.3g  %-18s  %-s\n",    (double)iter,  "iter",           "Total number of iterations to be computed (e.g. 1e7).");
   fprintf(fout, "  %-25d  %-18s  %-s\n",      skip,          "skip",           "Number of iterations to be skipped between stored steps (100 for 1d).");
   fprintf(fout, "  %-25d  %-18s  %-s\n",      screenoutput,  "screenoutput",   "Number of iterations between screen outputs im the MCMC (1000 for 1d).");
@@ -412,7 +417,7 @@ void readdatainputfile(struct runpar run, struct interferometer ifo[])
 void setconstants()
 {
   
-  npar           =  12;            // Number of parameters, not *really* a variable... (yet anyway)
+  //npar           =  12;            // Number of parameters, not *really* a variable... (yet anyway)
   
   tempi = 0; //A global variable that determines the current chain (temperature) in the temperature ladder
   
@@ -434,74 +439,24 @@ void setconstants()
 
 
 
-void setrandomtrueparameters(struct runpar *run)  //Get random values for the 'true' parameters for the 12-parameter spinning template.  
-// *** This changes the injected signal!!! ***
-{
-  int i=0;
-  gsl_rng *ran;
-  double rannr = 0.0;
-  ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
-  if(1==2) {  //Select a random seed, *** ONLY FOR TESTING ***
-    printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setrandumtrueparameters() \n\n");
-    run->ranparseed = 0;
-    setseed(&run->ranparseed);
-    //printf("  Seed: %d\n", run->ranparseed);
-  }
-  gsl_rng_set(ran, run->ranparseed);     // Set seed
-  
-  //Lower and upper boundaries:
-  double *lb,*ub,db,dt;
-  lb = (double*)calloc(12,sizeof(double));
-  ub = (double*)calloc(12,sizeof(double));
-  lb[0] = 5.0;       //M1 (Mo)
-  ub[0] = 15.0;
-  lb[1] = 1.2;       //M2 (Mo)
-  ub[1] = 1.6;
-  dt = 0.5; //This is dt/2
-  lb[2] = prior_tc_mean - dt; //t_c
-  ub[2] = prior_tc_mean + dt;
-  lb[3] = 10.0;      //d_L (Mpc)  !Linear!
-  ub[3] = 30.0;
-  lb[4] = 1.e-10;    //a_spin (0-1)
-  ub[4] = 0.999999;
-  lb[5] = 0.001;     //th_SL (deg) (not used)
-  ub[5] = 179.999;
-  lb[6] = 0.0;       //RA (h)
-  ub[6] = 24.0;
-  lb[7] = -89.999;   //dec (deg) (not used)
-  ub[7] = 89.999;
-  lb[8] = 0.0;       //phi_c (deg)
-  ub[8] = 360.0;
-  lb[9] = -89.999;   //theta_J0 (deg) (not used)
-  ub[9] = 89.999;
-  lb[10] = 0.0;      //phi_Jo (deg)
-  ub[10] = 360.0;
-  lb[11] = 0.0;      //alpha_c (deg)
-  ub[11] = 360.0;
-  
-  for(i=0;i<npar;i++) {
-    db = ub[i]-lb[i];
-    rannr = gsl_rng_uniform(ran);                                                        //This assures you always draw the same number of random variables
-    if(run->setranpar[i]==1) truepar[i] = rannr*db + lb[i];
-    if(i==5 && run->setranpar[i]==1) truepar[i] = acos(rannr*2.0 - 1.0)*r2d;             //kappa -> th_SL
-    if((i==7 || i==9)  && run->setranpar[i]==1) truepar[i] = asin(rannr*2.0 - 1.0)*r2d;  //sin(dec)->dec, sin(th_J0)->th_J0
-    //printf("  %d  %lf  %lf  %lf  %lf\n",i,lb[i],ub[i],db,truepar[i]);
-  }
-  
-  free(lb);
-  free(ub);
-  gsl_rng_free(ran);
-}
+
 
 
 
 
 void gettrueparameters(struct parset *par)  //Set the parameters for the 12-parameter spinning template to the 'true values'
 {
+  int i=0;
+  for(i=0;i<npar;i++) {
+    par->par[i]      = truepar[i];
+  }
+  
+  
   par->m1       = truepar[0];                    // M1 (10.0)
   par->m2       = truepar[1];                    // M2  (1.4)
   par->m        = par->m1+par->m2;
   par->mu       = par->m1*par->m2/par->m;
+  
   par->eta      = par->mu/par->m;                // mass ratio                
   par->mc       = par->m*pow(par->eta,0.6);      // chirp mass. in Mo         
   par->tc       = truepar[2];                    // coalescence time
@@ -527,6 +482,13 @@ void gettrueparameters(struct parset *par)  //Set the parameters for the 12-para
 
 void getstartparameters(struct parset *par, struct runpar run)  //Set the parameters for the 12-parameter spinning template to the starting values for the MCMC chain
 {
+  
+  int i=0;
+  for(i=0;i<npar;i++) {
+    par->par[i]      = run.startpar[i];
+  }
+  
+  
   par->m1       = run.startpar[0];                    // M1 (10.0)
   par->m2       = run.startpar[1];                    // M2  (1.4)
   par->m        = par->m1+par->m2;
@@ -546,6 +508,7 @@ void getstartparameters(struct parset *par, struct runpar run)  //Set the parame
   par->sinthJ0  = sin(run.startpar[9]*d2r);           // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
   par->phiJ0    = run.startpar[10]*d2r;               // Phi_J0 ~ azimuthal            (125)
   par->alpha    = run.startpar[11]*d2r;               // Alpha_c                       (0.9 rad = 51.566202deg)
+  
   
   par->loctc    = NULL;
   par->localti  = NULL;
