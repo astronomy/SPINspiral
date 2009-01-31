@@ -482,19 +482,23 @@ void LALHpHc15(CoherentGW *waveform, int *l, struct parset *par, struct interfer
   
   injParams.inclination = (float)acos(par->par[6]);
   
-  injParams.spin1x = (float)(par->par[9]*cos(par->par[10])*sin(par->par[11]));
-  injParams.spin1y = (float)(par->par[9]*sin(par->par[10])*sin(par->par[11]));
-  injParams.spin1z = (float)(par->par[9]*cos(par->par[11]));
+  double sin1=sqrt(1.0 - par->par[10]*par->par[10]);
   
-  injParams.spin2x = (float)(par->par[12]*cos(par->par[13])*sin(par->par[14]));
-  injParams.spin2y = (float)(par->par[12]*sin(par->par[13])*sin(par->par[14]));
-  injParams.spin2z = (float)(par->par[12]*cos(par->par[14]));
+  injParams.spin1x = (float)(par->par[9]*sin1*cos(par->par[11]));
+  injParams.spin1y = (float)(par->par[9]*sin1*sin(par->par[11]));
+  injParams.spin1z = (float)(par->par[9]*par->par[10]);
+  
+  double sin2=sqrt(1.0 - par->par[13]*par->par[13]);
+  
+  injParams.spin2x = (float)(par->par[12]*sin2*cos(par->par[14]));
+  injParams.spin2y = (float)(par->par[12]*sin2*sin(par->par[14]));
+  injParams.spin2z = (float)(par->par[12]*par->par[13]);
     
   // 4 parameters used after the computation of h+,x ********************//
   injParams.coa_phase = (float)par->par[7];
   injParams.longitude = (float)par->par[4];
   injParams.latitude = (float)asin(par->par[5]);
-  injParams.polarization = (float)par->par[8];    
+  injParams.polarization = (float)par->par[8];
   
   ppnParams.deltaT = inversesamplerate;
     

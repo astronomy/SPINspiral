@@ -49,8 +49,7 @@ double uncorrelated_mcmc_single_update_angle_prior(double sigma, int p)
     else return sigma; 
   }
   else if(waveformversion==3) { // LAL 15-parameter template
-    if(p==4 || p==7 || p==8 || p==10 || p==11 || p==13 || p==14) return min(tpi,sigma); //Bring the sigma between 0 and 2pi;
-    if(p==11 || p==14) return min(pi,sigma);   //Bring the sigma between 0 and pi;
+    if(p==4 || p==7 || p==8 || p==11 || p==14) return min(tpi,sigma); //Bring the sigma between 0 and 2pi;
 	else return sigma; 
   }
 else return 0.0;
@@ -264,20 +263,20 @@ int prior2(double *par, int p) //LAL 15-parameter priors
   lb[9] = 1.e-10; //a_spin1
   ub[9] = 0.999999;
   
-  lb[10] = 0.0; //theta_1
-  ub[10] = tpi;
+  lb[10] = -0.999999; //cos(theta_1)
+  ub[10] = 0.999999;
 
   lb[11] = 0.0; //phi_1
-  ub[11] = pi;
+  ub[11] = tpi;
   
   lb[12] = 1.e-10; //a_spin2
   ub[12] = 0.999999;
   
-  lb[13] = 0.0; //theta_2
-  ub[13] = tpi;
+  lb[13] = -0.999999; //cos(theta_2)
+  ub[13] = 0.999999;
 
   lb[14] = 0.0; //phi_2
-  ub[14] = pi;
+  ub[14] = tpi;
    
   //Set prior to 0 if outside range: Seems very inefficient for correlated update proposals
   /*
@@ -292,13 +291,12 @@ int prior2(double *par, int p) //LAL 15-parameter priors
   //printf("%2d  %20.6f  %20.6f  %20.6f  ",p,lb[p],ub[p],*par);
   
   
- if(p==4 || p==7 || p==8 || p==10 || p==13) {                                    // Periodic boundary condition to bring the variable between 0 and 2pi
+ if(p==4 || p==7 || p==8 || p==11 || p==14) {                                    // Periodic boundary condition to bring the variable between 0 and 2pi
     *par = fmod(*par+mtpi,tpi);
   } else {																
   
-      if(p==11 || p==14) {                                                      // Periodic boundary condition to bring the variable between 0 and pi
-    *par = fmod(*par+mtpi,pi);
-      } else {																		// Bounce back from the wall
+
+																		    // Bounce back from the wall
     //while(*par<lb[p] || *par>ub[p]) {                                     // Do as many bounces as necessary to get between the walls
     //  if(*par<lb[p])  *par = lb[p] + fabs(*par - lb[p]);
     //  if(*par>ub[p])  *par = ub[p] - fabs(*par - ub[p]);
@@ -311,7 +309,7 @@ int prior2(double *par, int p) //LAL 15-parameter priors
       }
       if(*par<lb[p] || *par>ub[p]) prior = 0;                             // If, after bouncing once, still outside the range, reject
     }
-	 }
+	 
   }
   
   //printf("%20.6f  %d  \n",*par,prior);
@@ -378,21 +376,21 @@ void setrandomtrueparameters2(struct runpar *run)  //Get random values for the '
   lb[9] = 1.e-10; //a_spin1
   ub[9] = 0.999999;
   
-  lb[10] = 0.0; //theta_1
-  ub[10] = tpi;
+  lb[10] = -0.999999; //cos(theta_1)
+  ub[10] = 0.999999;
 
   lb[11] = 0.0; //phi_1
-  ub[11] = pi;
+  ub[11] = tpi;
   
   lb[12] = 1.e-10; //a_spin2
   ub[12] = 0.999999;
   
-  lb[13] = 0.0; //theta_2
-  ub[13] = tpi;
+  lb[13] = -0.999999; //cos(theta_2)
+  ub[13] = 0.999999;
 
   lb[14] = 0.0; //phi_2
-  ub[14] = pi;
- 
+  ub[14] = tpi;
+   
   
   for(i=0;i<npar;i++) {
     db = ub[i]-lb[i];
