@@ -33,7 +33,28 @@ void readinputfile(struct runpar *run)
 
   //Basic settings
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%d",&npar);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&waveformversion);
+ 
+ 
+ if(waveformversion==1) {
+    printf("   Using Apostolatos, 1.5PN, 12-parameter waveform.\n");
+	npar=12;
+  } else if(waveformversion==2) {
+    printf("   Using LAL, 3.5PN, 12-parameter waveform.\n");
+	npar=12;
+  } else if(waveformversion==3) {
+    printf("   Using LAL, 3.5PN, 15-parameter waveform.\n");
+	npar=15;
+  } else {
+    printf("   Unknown waveform: %d.   Available waveforms (for now):\n",waveformversion);
+    printf("     1: Apostolatos, simple precession, 12 parameters\n");
+    printf("     2: LAL, single spin, 12 parameters\n");
+	printf("     3: LAL, double spin, 15 parameters\n");
+    printf("\n");
+    exit(1);
+  }
+ 
+ 
  
   run->setranpar  = (int*)calloc(npar,sizeof(int)); //Now that npar is known, initialise the array.... 
   
@@ -112,7 +133,7 @@ void readinputfile(struct runpar *run)
   for(i=0;i<run->networksize;i++) fscanf(fin,"%d",&run->selectifos[i]);  //Read the array directly, because sscanf cannot be in a loop...
   fgets(bla,500,fin);  //Read the rest of the line
   fgets(bla,500,fin);  sscanf(bla,"%lf",&run->targetsnr);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&waveformversion);
+
   
   //True parameter values:
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
@@ -163,7 +184,7 @@ void writeinputfile(struct runpar *run)
   
   
   fprintf(fout, "\n  #Basic settings:\n");
-  fprintf(fout, "  %-25d  %-18s  %-s\n",      npar,          "napr",           "Dimension of the parameter space. Not the number of parameters to be fitted.");
+  fprintf(fout, "  %-25d  %-18s  %-s\n",      waveformversion, "waveformversion", "Waveform version: 1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL, 3 for 3.5PN 15-parameter LAL");
   fprintf(fout, "  %-25.3g  %-18s  %-s\n",    (double)iter,  "iter",           "Total number of iterations to be computed (e.g. 1e7).");
   fprintf(fout, "  %-25d  %-18s  %-s\n",      skip,          "skip",           "Number of iterations to be skipped between stored steps (100 for 1d).");
   fprintf(fout, "  %-25d  %-18s  %-s\n",      screenoutput,  "screenoutput",   "Number of iterations between screen outputs im the MCMC (1000 for 1d).");
@@ -235,7 +256,7 @@ void writeinputfile(struct runpar *run)
   for(i=0;i<24-3*(run->networksize-1);i++) fprintf(fout, " ");
   fprintf(fout, "%-18s  %-s\n", "selectifos",    "Select the IFOs to use  1: H1, 2: L1, 3: V");
   fprintf(fout, "  %-25.1f  %-18s  %-s\n",   run->targetsnr, "targetsnr",      "If > 0: scale the distance such that the network SNR becomes targetsnr");
-  fprintf(fout, "  %-25d  %-18s  %-s\n", waveformversion, "waveformversion", "Waveform version: 1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL");
+  
 
 
   

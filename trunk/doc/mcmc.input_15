@@ -3,7 +3,7 @@
   #Value:                    Variable:           Description:
 
   #Basic settings:
-  15                         npar                Dimension of the parameter space. Not the number of parameters to be fitted.
+  3                          waveformversion     Waveform version: 1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL, 3 for 3.5PN 15-parameter LAL
   1e8                        iter                Total number of iterations to be computed (e.g. 1e7).
   1                         skip                Number of iterations to be skipped between stored steps (100 for 1d).
   1                        screenoutput        Number of iterations between screen outputs im the MCMC (1000 for 1d).
@@ -59,7 +59,6 @@
   1                          networksize         Set the number of detectors that make up the network
   1  2  3                    selectifos          Select the IFOs to use  1: H1, 2: L1, 3: V
   0                          targetsnr           If > 0: scale the distance such that the network SNR becomes targetsnr
-  3                          waveformversion     Waveform version: 1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL
 
 
   #Injection (first line) and starting (second line) parameter values, *not* the exact MCMC parameters and units!

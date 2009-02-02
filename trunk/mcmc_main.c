@@ -35,21 +35,6 @@ int main(int argc, char * argv[])
   setrandomtrueparameters(&run);  //Randomise the injection parameters where wanted
   writeinputfile(&run);           //Write run data to nicely formatted input.mcmc.<mcmcseed>
   
-  if(waveformversion==1) {
-    printf("   Using Apostolatos, 1.5PN, 12-parameter waveform.\n");
-  } else if(waveformversion==2) {
-    printf("   Using LAL, 3.5PN, 12-parameter waveform.\n");
-  } else if(waveformversion==3) {
-    printf("   Using LAL, 3.5PN, 15-parameter waveform.\n");
-  } else {
-    printf("   Unknown waveform: %d.   Available waveforms (for now):\n",waveformversion);
-    printf("     1: Apostolatos, simple precession, 12 parameters\n");
-    printf("     2: LAL, single spin, 12 parameters\n");
-	printf("     3: LAL, double spin, 15 parameters\n");
-    printf("\n");
-    exit(1);
-  }
-  
   
   
   //Set up the data for the IFOs in an IFO database you may want to use (H1,L1 + VIRGO by default)
