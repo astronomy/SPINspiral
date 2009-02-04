@@ -1,7 +1,10 @@
 
   ChangeLog for the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
-    
+   	 
+   104: sluys, 30/01/2009
+     - copied the n-parameter branch into the trunk
+     
     94: sluys, 07/01/2009
      - map 0.25<eta<0.50 to 0.5-eta consistently in template12()
     

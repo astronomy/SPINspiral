@@ -469,8 +469,8 @@ void LALHpHc15(CoherentGW *waveform, int *l, struct parset *par, struct interfer
 
   ////////////////////////////////////////////////////////////now we fill the injParam structure with the parameters//////////////
   
-  injParams.mass1 = m1;
-  injParams.mass2 = m2;
+  injParams.mass1 = (float)m1;
+  injParams.mass2 = (float)m2;
   
   injParams.f_final = (float)ifo->highCut;  //It seems injParams.f_final gets overwritten by LALGenerateInspiral; it's an output parameter rather than input. This will also somewhat affect SNR comparisons with the Apostolatos waveform.
   injParams.f_lower = (float)f_lower;
