@@ -4,16 +4,16 @@
 
 // *** Routines to handle Priors ***
 
-int prior(double *par, int p)
-// Call the prior routine, the global variable waveformversion determines which one
+int prior(double *par, int p, int waveformVersion)
+// Call the prior routine, the variable waveformVersion determines which one
 {
-  if(waveformversion==1) {
+  if(waveformVersion==1) {
    return prior1(par, p);  // Apostolatos 12-parameter template
   } 
-  else if(waveformversion==2) {
+  else if(waveformVersion==2) {
    return prior1(par, p);  // LAL 12-parameter template
   }
-  else if(waveformversion==3) {
+  else if(waveformVersion==3) {
    return prior2(par, p);  // LAL 15-parameter template
   }
 else return 0;
@@ -21,34 +21,34 @@ else return 0;
 
 
 
-void setrandomtrueparameters(struct runpar *run)
-// Call the prior for the random injection, the global variable waveformversion determines which one
+void setRandomInjectionParameters(struct runpar *run)
+// Set random injection parameters, the variable run->injectionWaveform determines which one
 {
-  if(waveformversion==1) {
-    setrandomtrueparameters1(run);  // Apostolatos 12-parameter template
+  if(run->injectionWaveform==1) {
+    setRandomInjectionParameters1(run);  // Apostolatos 12-parameter template
   } 
-  else if(waveformversion==2) {
-    setrandomtrueparameters1(run);  // LAL 12-parameter template
+  else if(run->injectionWaveform==2) {
+    setRandomInjectionParameters1(run);  // LAL 12-parameter template
   }
-  else if(waveformversion==3) {
-    setrandomtrueparameters2(run);  // LAL 15-parameter template
+  else if(run->injectionWaveform==3) {
+    setRandomInjectionParameters2(run);  // LAL 15-parameter template
   }
 
 }
 
 
-double uncorrelated_mcmc_single_update_angle_prior(double sigma, int p)
-// Call the prior routine, the global variable waveformversion determines which one
+double uncorrelated_mcmc_single_update_angle_prior(double sigma, int p, int waveformVersion)
+// Call the prior routine, the variable waveformVersion determines which one
 {
-  if(waveformversion==1) { // Apostolatos 12-parameter template
+  if(waveformVersion==1) { // Apostolatos 12-parameter template
     if(p==6 || p==8 || p==10 || p==11) return min(tpi,sigma);  //Bring the sigma between 0 and 2pi;
 	else return sigma; 
   } 
-  else if(waveformversion==2) { // LAL 12-parameter template
+  else if(waveformVersion==2) { // LAL 12-parameter template
     if(p==6 || p==8 || p==10 || p==11) return min(tpi,sigma);  //Bring the sigma between 0 and 2pi;
     else return sigma; 
   }
-  else if(waveformversion==3) { // LAL 15-parameter template
+  else if(waveformVersion==3) { // LAL 15-parameter template
     if(p==4 || p==7 || p==8 || p==11 || p==14) return min(tpi,sigma); //Bring the sigma between 0 and 2pi;
 	else return sigma; 
   }
@@ -153,7 +153,8 @@ int prior1(double *par, int p) //Apostolatos 12-parameter priors
 //****************************************************************************************************************************************************  
 
 
-void setrandomtrueparameters1(struct runpar *run)  //Get random values for the 'true' parameters for the 12-parameter spinning template. Contain priors for the injection, not the MCMC. 
+//****************************************************************************************************************************************************  
+void setRandomInjectionParameters1(struct runpar *run)  //Get random values for the 'true' parameters for the 12-parameter spinning template. Contain priors for the injection, not the MCMC. 
 // *** This changes the injected signal!!! ***
 {
   int i=0;
@@ -161,7 +162,7 @@ void setrandomtrueparameters1(struct runpar *run)  //Get random values for the '
   double rannr = 0.0;
   ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
   if(1==2) {  //Select a random seed, *** ONLY FOR TESTING ***
-    printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setrandomtrueparameters() \n\n");
+    printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setRandomInjectionParameters1() \n\n");
     run->ranparseed = 0;
     setseed(&run->ranparseed);
     //printf("  Seed: %d\n", run->ranparseed);
@@ -211,6 +212,7 @@ void setrandomtrueparameters1(struct runpar *run)  //Get random values for the '
   free(ub);
   gsl_rng_free(ran);
 }
+//****************************************************************************************************************************************************  
 
 
 
@@ -323,7 +325,8 @@ int prior2(double *par, int p) //LAL 15-parameter priors
 //****************************************************************************************************************************************************  
 
 
-void setrandomtrueparameters2(struct runpar *run)  //Get random values for the 'true' parameters for the 15-parameter spinning template. Contain priors for the injection, not the MCMC. 
+//****************************************************************************************************************************************************  
+void setRandomInjectionParameters2(struct runpar *run)  //Get random values for the 'true' parameters for the 15-parameter spinning template. Contain priors for the injection, not the MCMC. 
 // *** This changes the injected signal!!! ***
 {
   int i=0;
@@ -331,7 +334,7 @@ void setrandomtrueparameters2(struct runpar *run)  //Get random values for the '
   double rannr = 0.0;
   ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
   if(1==2) {  //Select a random seed, *** ONLY FOR TESTING ***
-    printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setrandomtrueparameters() \n\n");
+    printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setRandomInjectionParameters2() \n\n");
     run->ranparseed = 0;
     setseed(&run->ranparseed);
     //printf("  Seed: %d\n", run->ranparseed);
@@ -403,5 +406,6 @@ void setrandomtrueparameters2(struct runpar *run)  //Get random values for the '
   free(ub);
   gsl_rng_free(ran);
 }
+//****************************************************************************************************************************************************  
 
 

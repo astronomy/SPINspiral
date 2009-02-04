@@ -30,27 +30,30 @@ void readinputfile(struct runpar *run)
   for(i=1;i<=3;i++) { //Read first 3 lines
     fgets(bla,500,fin);
   }
-
+  
   //Basic settings
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%d",&waveformversion);
+  
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->mcmcWaveform);
+  run->injectionWaveform = run->mcmcWaveform;  //For now
+  waveformversion = run->mcmcWaveform;         //Idem - allow runs halfway implementation
  
  
- if(waveformversion==1) {
-    printf("   Using Apostolatos, 1.5PN, 12-parameter waveform.\n");
+ if(run->mcmcWaveform==1) {
+    printf("   Using Apostolatos, 1.5PN, 12-parameter waveform as the MCMC template.\n");
 	npar=12;
-  } else if(waveformversion==2) {
-    printf("   Using LAL, 3.5PN, 12-parameter waveform.\n");
+  } else if(run->mcmcWaveform==2) {
+    printf("   Using LAL, 3.5PN, 12-parameter waveform as the MCMC template.\n");
 	npar=12;
-  } else if(waveformversion==3) {
-    printf("   Using LAL, 3.5PN, 15-parameter waveform.\n");
+  } else if(run->mcmcWaveform==3) {
+    printf("   Using LAL, 3.5PN, 15-parameter waveform as the MCMC template.\n");
 	npar=15;
   } else {
-    printf("   Unknown waveform: %d.   Available waveforms (for now):\n",waveformversion);
+    printf("   Unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->mcmcWaveform);
     printf("     1: Apostolatos, simple precession, 12 parameters\n");
     printf("     2: LAL, single spin, 12 parameters\n");
 	printf("     3: LAL, double spin, 15 parameters\n");
-    printf("\n");
+    printf("   Please set mcmcWaveform in mcmc.input to one of these values.\n\n");
     exit(1);
   }
  
@@ -184,7 +187,7 @@ void writeinputfile(struct runpar *run)
   
   
   fprintf(fout, "\n  #Basic settings:\n");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      waveformversion, "waveformversion", "Waveform version: 1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL, 3 for 3.5PN 15-parameter LAL");
+  fprintf(fout, "  %-39d  %-18s  %-s\n",      run->mcmcWaveform, "mcmcWaveform", "Waveform version used as MCMC template:  1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL, 3 for 3.5PN 15-parameter LAL");
   fprintf(fout, "  %-39.3g  %-18s  %-s\n",    (double)iter,  "iter",           "Total number of iterations to be computed (e.g. 1e7).");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      skip,          "skip",           "Number of iterations to be skipped between stored steps (100 for 1d).");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      screenoutput,  "screenoutput",   "Number of iterations between screen outputs im the MCMC (1000 for 1d).");

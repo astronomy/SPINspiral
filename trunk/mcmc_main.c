@@ -29,11 +29,11 @@ int main(int argc, char * argv[])
   sprintf(run.infilename,"mcmc.input"); //Default input filename
   if(argc > 1) sprintf(run.infilename,argv[1]);
   
-  readlocalfile();                //Read system-dependent data, e.g. path to data files
-  readinputfile(&run);            //Read main input data file for this run from input.mcmc
-  setseed(&run.mcmcseed);         //Set mcmcseed if 0, otherwise keep the current value
-  setrandomtrueparameters(&run);  //Randomise the injection parameters where wanted
-  writeinputfile(&run);           //Write run data to nicely formatted input.mcmc.<mcmcseed>
+  readlocalfile();                     //Read system-dependent data, e.g. path to data files
+  readinputfile(&run);                 //Read main input data file for this run from input.mcmc
+  setseed(&run.mcmcseed);              //Set mcmcseed if 0, otherwise keep the current value
+  setRandomInjectionParameters(&run);  //Randomise the injection parameters where wanted
+  writeinputfile(&run);                //Write run data to nicely formatted input.mcmc.<mcmcseed>
   
   
   
@@ -60,7 +60,7 @@ int main(int argc, char * argv[])
     for(ifonr=0;ifonr<run.networksize;ifonr++) printf(" %s,",database[run.selectifos[ifonr]-1].name);
     printf(" reading noise and data files...\n");
   }
-  ifoinit(network, networksize); //Do the actual initialisation
+  ifoinit(network, networksize, run); //Do the actual initialisation
   if(inject) {
     if(run.targetsnr < 0.001) printf("   A signal with the 'true' parameter values was injected.\n");
   } else {
@@ -123,7 +123,7 @@ int main(int argc, char * argv[])
     } else {
       printf("   Reinitialising %d IFOs, reading datafiles...\n",networksize);
     }
-    ifoinit(network, networksize);
+    ifoinit(network, networksize, run);
     printf("   A signal with the 'true' parameter values was injected.\n");
   }
   

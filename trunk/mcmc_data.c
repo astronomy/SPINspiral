@@ -533,7 +533,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
 
 
 
-void ifoinit(struct interferometer **ifo, int networksize)
+void ifoinit(struct interferometer **ifo, int networksize, struct runpar run)
 // Determines interferometer arm (unit-) vectors (and others)                  
 // given position (lat/long) and arm angles.                                   
 // Vectors refer to the (right-handed) earth                                    
@@ -623,7 +623,7 @@ void ifoinit(struct interferometer **ifo, int networksize)
   
     // Read 'detector' data for injection
     if(printmuch>=1) printf("   Reading data for the detector in %s...\n",ifo[ifonr]->name);
-    dataFT(ifo,ifonr,networksize);
+    dataFT(ifo,ifonr,networksize,run);
     
     
     
@@ -782,7 +782,7 @@ double tukey(int j, int N, double r)
 
 
 
-void dataFT(struct interferometer *ifo[], int ifonr, int networksize)
+void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct runpar run)
 // Read the data and do a software injection
 // Computes the Fourier Transform for the specified range of the specified Frame (".gwf") file,
 // after adding up the two (signal & noise) channels, or injecting a waveform template into the noise.
@@ -885,7 +885,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize)
     }
     
     
-    // Generate template:
+    // Generate injection waveform template:
     injection = malloc(sizeof(double) * N);
     double *tempinj = ifo[ifonr]->FTin;
     double tempfrom = ifo[ifonr]->FTstart;
@@ -1059,11 +1059,11 @@ void noisePSDestimate(struct interferometer *ifo)
   double          *sPSD=NULL;  // vector containing smoothed PSD
   double           *win=NULL;  // window
   
-  double      Mseconds=  8.0;  // M expressed in seconds
-  double      Nseconds=256.0;  // total seconds
-  //double      Mseconds=  4.0;  // M expressed in seconds
-  //double      Nseconds= 32.0;  // total seconds
-  //printf("\n\n *** Warning: non-default PSD estimation *** \n\n");
+  //double      Mseconds=  8.0;  // M expressed in seconds
+  //double      Nseconds=256.0;  // total seconds
+  double      Mseconds=  4.0;  // M expressed in seconds
+  double      Nseconds= 32.0;  // total seconds
+  printf("\n\n *** Warning: non-default PSD estimation *** \n\n");
   
   int  K=(int)(Nseconds/Mseconds);  // number of 8-second-segments         
   double wss=0.0,log2=log(2.0);  // squared & summed window coefficients  etc.

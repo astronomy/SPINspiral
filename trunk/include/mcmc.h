@@ -116,6 +116,8 @@ double *chaintemp;                  // vector of temperatures for individual cha
 // That also means that this struct must be passed throughout much of the code.
 struct runpar{
   //int npar;                     // Number of parameters in the MCMC/template
+  int injectionWaveform;          // Waveform used to do software injections
+  int mcmcWaveform;               // Waveform used as the MCMC template
   int ntemps;		          // Size of temperature ladder
   int mcmcseed;                   // Seed for MCMC
   int selectdata;                 // Select which data set to run on
@@ -156,6 +158,7 @@ struct mcmcvariables{
   int ntemps;            // Number of chains in the temperature ladder
   int tempi;             // The current temperature index
   int networksize;       // Number of IFOs in the detector network
+  int mcmcWaveform;      // Waveform used as the MCMC template
   
   
   double temp;           // The current temperature
@@ -316,9 +319,9 @@ void readdatainputfile(struct runpar run, struct interferometer ifo[]);
 void setconstants();
 void set_ifo_data(struct runpar run, struct interferometer ifo[]);
 
-void setrandomtrueparameters(struct runpar *run);
-void setrandomtrueparameters1(struct runpar *run);
-void setrandomtrueparameters2(struct runpar *run);
+void setRandomInjectionParameters(struct runpar *run);
+void setRandomInjectionParameters1(struct runpar *run);
+void setRandomInjectionParameters2(struct runpar *run);
 
 void gettrueparameters(struct parset *par);
 void getstartparameters(struct parset *par, struct runpar run);
@@ -337,11 +340,10 @@ void par2arr(struct parset par, double *param);
 void arr2par(double *param, struct parset *par);
 void par2arrt(struct parset par, double **param); //For the case of parallel tempering
 void arr2part(double **param, struct parset *par);
-int prior(double *par, int p);
+int prior(double *par, int p, int waveformVersion);
 int prior1(double *par, int p);
 int prior2(double *par, int p);
-
-double uncorrelated_mcmc_single_update_angle_prior(double sigma, int p);
+double uncorrelated_mcmc_single_update_angle_prior(double sigma, int p, int waveformVersion);
 
 void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
 void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
@@ -381,12 +383,12 @@ void vec2coord(double x[3], double *sinlati, double *longi);
 
 void choleskyinv(double randlibout[], double inverse[]);
 
-void ifoinit(struct interferometer **ifo, int networksize);
+void ifoinit(struct interferometer **ifo, int networksize, struct runpar run);
 void ifodispose(struct interferometer *ifo);
 void localpar(struct parset *par, struct interferometer *ifo[], int networksize);
 double *filter(int *order, int samplerate, double upperlimit);
 double *downsample(double data[], int *datalength, double coef[], int ncoef);
-void dataFT(struct interferometer *ifo[], int i, int networksize);
+void dataFT(struct interferometer *ifo[], int i, int networksize, struct runpar run);
 double hann(int j, int N);
 double tukey(int j, int N, double r);
 void noisePSDestimate(struct interferometer *ifo);

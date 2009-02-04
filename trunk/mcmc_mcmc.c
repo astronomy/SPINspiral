@@ -18,6 +18,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
   
   //Copy from run struct to mcmc struct:
   int networksize = run->networksize;         // In case it loses its global status
+  mcmc.mcmcWaveform = run->mcmcWaveform;      // Waveform used as MCMC template
   mcmc.networksize = run->networksize;        // Network size
   mcmc.seed = run->mcmcseed;                  // MCMC seed
   mcmc.ntemps = run->ntemps;                  // Size of temperature ladder
@@ -196,7 +197,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
 	 // if((i==5 || i==7 || i==9) && (mcmc.param[tempi][i] < -2.0 || mcmc.param[tempi][i] > 2.0)) mcmc.param[tempi][i] = gsl_rng_uniform(mcmc.ran)*2.0 - 1.0;
 	 // if(i==5 || i==7 || i==9) mcmc.param[tempi][i] = fmod(mcmc.param[tempi][i]+1001.0,2.0) - 1.0;
 	//  if((i==6 || i==8 || i==10 || i==11) && (mcmc.param[tempi][i] < -2.0*pi || mcmc.param[tempi][i] > 4.0*pi)) mcmc.param[tempi][i] = gsl_rng_uniform(mcmc.ran)*tpi;
-	  mcmc.acceptprior[tempi] *= prior(&mcmc.param[tempi][i],i);
+	  mcmc.acceptprior[tempi] *= prior(&mcmc.param[tempi][i],i,run->mcmcWaveform);
 	}
       }
       if(mcmc.acceptprior[tempi]==1) {                     //Check the value of the likelihood for this draw
@@ -237,7 +238,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
     //mcmc.sig[tempi][i]   = 3.0  * pdfsigs[i]; //3-sigma = delta-100%
     //mcmc.scale[tempi][i] = 0.0 * pdfsigs[i]; //No adaptation
    // if(i==6 || i==8 || i==10 || i==11) mcmc.sig[tempi][i] = fmod(mcmc.sig[tempi][i]+mtpi,tpi);  //Bring the sigma between 0 and 2pi
-   uncorrelated_mcmc_single_update_angle_prior(mcmc.sig[tempi][i], i);
+   uncorrelated_mcmc_single_update_angle_prior(mcmc.sig[tempi][i], i, run->mcmcWaveform);
   }
   
   
@@ -651,7 +652,7 @@ void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, 
       }
       mcmc->nparam[tempi][p1] = mcmc->param[tempi][p1] + dparam;       //Jump from the previous parameter value
       mcmc->sigout[tempi][p1] = fabs(dparam);                          //This isn't really sigma, but the proposed jump size
-      mcmc->acceptprior[tempi] *= prior(&mcmc->nparam[tempi][p1],p1);
+      mcmc->acceptprior[tempi] *= prior(&mcmc->nparam[tempi][p1],p1,mcmc->mcmcWaveform);
    }
   }
   
@@ -749,7 +750,7 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
       if(p==10 && gsl_rng_uniform(mcmc->ran) < 0.3) mcmc->nparam[tempi][10] = fmod(mcmc->nparam[tempi][10]+pi,tpi); //Move phi_Jo over 12h
       */
       
-      mcmc->acceptprior[tempi] = prior(&mcmc->nparam[tempi][p],p);
+      mcmc->acceptprior[tempi] = prior(&mcmc->nparam[tempi][p],p,mcmc->mcmcWaveform);
       
       if(mcmc->acceptprior[tempi]==1) {
 	arr2part(mcmc->nparam, state);                                            //Get the parameters from their array
@@ -763,7 +764,7 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
 	  if(adapt==1){
 	    gamma = mcmc->scale[tempi][p]*pow(1.0/((double)(mcmc->iteri+1)),1.0/6.0);
 	    mcmc->sig[tempi][p] = max(0.0,mcmc->sig[tempi][p] + gamma*(1.0 - alphastar)); //Accept
-	    uncorrelated_mcmc_single_update_angle_prior(mcmc->sig[tempi][p], p);  //Bring the sigma between 0 and 2pi
+	    uncorrelated_mcmc_single_update_angle_prior(mcmc->sig[tempi][p], p, mcmc->mcmcWaveform);  //Bring the sigma between 0 and 2pi
 	  }
 	  mcmc->accepted[tempi][p] += 1;
 	}
@@ -772,7 +773,7 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
 	  if(adapt==1){
 	    gamma = mcmc->scale[tempi][p]*pow(1.0/((double)(mcmc->iteri+1)),1.0/6.0);
 	    mcmc->sig[tempi][p] = max(0.0,mcmc->sig[tempi][p] - gamma*alphastar); //Reject
-	    uncorrelated_mcmc_single_update_angle_prior(mcmc->sig[tempi][p], p);  //Bring the sigma between 0 and 2pi
+	    uncorrelated_mcmc_single_update_angle_prior(mcmc->sig[tempi][p], p, mcmc->mcmcWaveform);  //Bring the sigma between 0 and 2pi
 	    //mcmc->sig[tempi][p] = max(0.01*mcmc->sig[tempi][p], mcmc->sig[tempi][p] - gamma*alphastar);
 	  }
 	}
@@ -782,7 +783,7 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
 	if(adapt==1) {
 	  gamma = mcmc->scale[tempi][p]*pow(1.0/((double)(mcmc->iteri+1)),1.0/6.0);
 	  mcmc->sig[tempi][p] = max(0.0,mcmc->sig[tempi][p] - gamma*alphastar); //Reject
-	  uncorrelated_mcmc_single_update_angle_prior(mcmc->sig[tempi][p], p);  //Bring the sigma between 0 and 2pi
+	  uncorrelated_mcmc_single_update_angle_prior(mcmc->sig[tempi][p], p, mcmc->mcmcWaveform);  //Bring the sigma between 0 and 2pi
 	}
       } //if(mcmc->acceptprior[tempi]==1)
     } //if(fitpar[p]==1)
@@ -819,7 +820,7 @@ void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset 
       if(ran < 1.0e-3) largejump1 = 1.0e2;    //Every 1e3 iterations, take a 100x larger jump in this parameter
   
       mcmc->nparam[tempi][p] = mcmc->param[tempi][p] + gsl_ran_gaussian(mcmc->ran,mcmc->sig[tempi][p]) * largejump1 * largejumpall;
-      mcmc->acceptprior[tempi] *= prior(&mcmc->nparam[tempi][p],p);
+      mcmc->acceptprior[tempi] *= prior(&mcmc->nparam[tempi][p],p,mcmc->mcmcWaveform);
     }
   }
   
