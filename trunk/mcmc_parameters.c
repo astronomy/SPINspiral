@@ -36,8 +36,7 @@ void readinputfile(struct runpar *run)
   
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->mcmcWaveform);
   run->injectionWaveform = run->mcmcWaveform;  //For now
-  waveformversion = run->mcmcWaveform;         //Idem - allow runs halfway implementation
- 
+  
  
  if(run->mcmcWaveform==1) {
     printf("   Using Apostolatos, 1.5PN, 12-parameter waveform as the MCMC template.\n");
@@ -186,7 +185,7 @@ void writeinputfile(struct runpar *run)
   fprintf(fout, "  %-39s  %-18s  %-s\n","#Value:","Variable:","Description:");
   
   
-  fprintf(fout, "\n  #Basic settings:\n");
+  fprintf(fout, "  \n  #Basic settings:\n");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      run->mcmcWaveform, "mcmcWaveform", "Waveform version used as MCMC template:  1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL, 3 for 3.5PN 15-parameter LAL");
   fprintf(fout, "  %-39.3g  %-18s  %-s\n",    (double)iter,  "iter",           "Total number of iterations to be computed (e.g. 1e7).");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      skip,          "skip",           "Number of iterations to be skipped between stored steps (100 for 1d).");
@@ -206,7 +205,7 @@ void writeinputfile(struct runpar *run)
   fprintf(fout, "    %-18s  %-s\n",                          "fitpar[]",     "Parameters you want to fit for.");
   
   
-  fprintf(fout, "\n  #Start from offset values:\n");
+  fprintf(fout, "  \n  #Start from offset values:\n");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      offsetmcmc,    "offsetmcmc",     "Start the MCMC with offset initial parameters: 0-no: use injection parameters, 1-yes: randomly around the injected parameters, 2-yes: at the starting parameters, 3-yes: randomly around the starting parameters.  The individual parameters to be offset are determined in offsetpar below.");
   fprintf(fout, "  %-39.1f  %-18s  %-s\n",    offsetx,       "offsetx",        "Start the MCMC with an offset of x times the typical pdf sigma.");
   fprintf(fout, " ");
@@ -215,7 +214,7 @@ void writeinputfile(struct runpar *run)
   fprintf(fout, "    %-18s  %-s\n",                          "offsetpar[]",  "Parameters you want to start from random offset values. At the moment only works if parameter is also 'fit' (i.e. value is 1 in fitpar).");
   
   
-  fprintf(fout, "\n  #Correlated update proposals:\n");
+  fprintf(fout, "  \n  #Correlated update proposals:\n");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      corrupd,       "corrupd",        "Do correlated update proposals: 0-no, 1-yes but update the matrix only once, 2-yes and update the matrix every ncorr iterations.");
   fprintf(fout, "  %-39.1f  %-18s  %-s\n",    run->corrfrac, "corrfrac",       "Fraction of update proposals that is correlated (0.0-1.0, ~0.7 seems ok). corrupd must be 2. Should this replace corrupd?");
   fprintf(fout, "  %-39.3g  %-18s  %-s\n",    (double)ncorr, "ncorr",          "Number of iterations for which the covariance matrix is calculated.");
@@ -223,13 +222,13 @@ void writeinputfile(struct runpar *run)
   fprintf(fout, "  %-39d  %-18s  %-s\n",      prmatrixinfo,  "prmatrixinfo",   "Print information to screen on proposed matrix updates: 0-none, 1-some (default), 2-add the old and new matrices.");
   
   
-  fprintf(fout, "\n  #Annealing:\n");
+  fprintf(fout, "  \n  #Annealing:\n");
   fprintf(fout, "  %-39.2f  %-18s  %-s\n",    temp0,         "temp0",          "Starting temperature of the chain, e.g. 100.0. Set 1.0 for no temperature effect.");
   fprintf(fout, "  %-39.3g  %-18s  %-s\n",    (double)nburn, "nburn",          "Number of iterations for the burn-in phase (1e4) at this number, the temperature drops to 1.0.");
   fprintf(fout, "  %-39.3g  %-18s  %-s\n",    (double)nburn0,"nburn0",         "Number of iterations during which temp=temp0 (e.g. 0.1*nburn, should be lower than ~0.9*nburn).");
   
   
-  fprintf(fout, "\n  #Parallel tempering:\n");
+  fprintf(fout, "  \n  #Parallel tempering:\n");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      partemp,       "partemp",        "Use parallel tempering:  0-no,  1-auto, fixed T ladder,  2-auto, sinusoid T ladder,  3-manual, fixed T ladder,  4-manual, sinusoid T ladder.  For a manual ladder, see near the bottom of the file.");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      run->ntemps,   "ntemps",         "Number of steps in the temperature ladder for parallel tempering, typically 5-10.");
   fprintf(fout, "  %-39.1f  %-18s  %-s\n",    tempmax,       "tempmax",        "Maximum temperature in automatic parallel-tempering ladder (equidistant in log(T)), typically 20-100, e.g. 50.");
@@ -237,7 +236,7 @@ void writeinputfile(struct runpar *run)
   fprintf(fout, "  %-39d  %-18s  %-s\n",      prpartempinfo, "prpartempinfo",  "Print information to screen on the temperature chains: 0-none, 1-some ladder info (default), 2-add chain-swap matrix.");
   
   
-  fprintf(fout, "\n  #Output:\n");
+  fprintf(fout, "  \n  #Output:\n");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      dosnr,         "dosnr",          "Calculate the SNR: 0-no, 1-yes.");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      domcmc,        "domcmc",         "Do MCMC: 0-no, 1-yes.");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      domatch,       "domatch",        "Calculate matches: 0-no, 1-yes.");
@@ -246,7 +245,7 @@ void writeinputfile(struct runpar *run)
   fprintf(fout, "  %-39d  %-18s  %-s\n",      printmuch,     "printmuch",      "Print long stretches of output (1) or not (0).");
   
 
-  fprintf(fout, "\n  #Data handling:\n");
+  fprintf(fout, "  \n  #Data handling:\n");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      run->selectdata,        "selectdata",       "Select the data set to run on:  0 use input file  (set to -1 to print a list of data sets). Make sure you set the true tc and datadir accordingly.");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      downsamplefactor,       "downsamplefactor", "Downsample the sampling frequency of the detector (16-20kHz for the detectors, 4kHz for NINJA) by this factor.  Default (for detectors): 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8");
   fprintf(fout, "  %-39.1f  %-18s  %-s\n",    run->databeforetc,      "databeforetc",     "The stretch of data in seconds before presumed coalescence that is read in as part of the data segment");
@@ -255,11 +254,11 @@ void writeinputfile(struct runpar *run)
   fprintf(fout, "  %-39.1f  %-18s  %-s\n",    run->highfrequencycut,  "highfrequencycut", "Overlap integration ends at this frequency");
 
   
-  fprintf(fout, "\n  #Diverse:\n");
+  fprintf(fout, "  \n  #Diverse:\n");
   fprintf(fout, "  %-39d  %-18s  %-s\n",    run->networksize,"networksize",    "Set the number of detectors that make up the network");
   fprintf(fout, "  ");
   for(i=0;i<run->networksize;i++) fprintf(fout, "%-3d",run->selectifos[i]);
-  for(i=0;i<24-3*(run->networksize-1);i++) fprintf(fout, " ");
+  for(i=0;i<38-3*(run->networksize-1);i++) fprintf(fout, " ");
   fprintf(fout, "%-18s  %-s\n", "selectifos",    "Select the IFOs to use  1: H1, 2: L1, 3: V");
   fprintf(fout, "  %-39.1f  %-18s  %-s\n",   run->targetsnr, "targetsnr",      "If > 0: scale the distance such that the network SNR becomes targetsnr");
   
@@ -269,9 +268,15 @@ void writeinputfile(struct runpar *run)
   //fprintf(fout, "  %-39.1f  %-18s  %-s\n",   cutoff_a,"cutoff_a","Low value of a/M where signal should be cut off, e.g. 7.5.");
   
   
-  fprintf(fout, "\n");
-  fprintf(fout, "\n  #Injection (first line) and starting (second line) parameter values, *not* the exact MCMC parameters and units!\n");
-  fprintf(fout, "   M1(Mo)    M2(Mo)            t_c (GPS)   d_L(Mpc)    a_spin    th_SL(d)    R.A.(h)     dec(d)     phic(d)   th_Jo(d)  phi_Jo(d)   alpha(d)  \n");
+  fprintf(fout, "  \n");
+  fprintf(fout, "  \n  #Injection (first line) and starting (second line) parameter values, these are the exact MCMC parameters and units\n");
+  if(run->mcmcWaveform==1) {
+    fprintf(fout, "      Mc        eta             t_c(GPS)  log(d_L)     a_spin cos(th_SL)       R.A.   sin(dec)      phi_c   sinth_Jo      phi_Jo     alpha     \n");
+  } else if(run->mcmcWaveform==2 || run->mcmcWaveform==3) {
+    fprintf(fout, "      Mc        eta             t_0(GPS)   log(dL)       R.A.     sinDec     cos(i)      phi_c        psi    aspin_1 cos(theta1)     phi_1    aspin_2 cos(theta2)     phi_2  \n");
+  } else {
+    fprintf(fout, "  \n");
+  }
   for(i=0;i<npar;i++) {
     if(i==2) {
       fprintf(fout, "  %-18.6lf",truepar[i]);
@@ -279,7 +284,7 @@ void writeinputfile(struct runpar *run)
       fprintf(fout, "  %-9.4lf",truepar[i]);
     }
   }
-  fprintf(fout, "\n");
+  fprintf(fout, "  \n");
   for(i=0;i<npar;i++) {
     if(i==2) {
       fprintf(fout, "  %-18.6lf",run->startpar[i]);
@@ -289,23 +294,23 @@ void writeinputfile(struct runpar *run)
   }
   fprintf(fout, "\n");
   
-  fprintf(fout, "\n  #Typical PDF widths (used for first correlation matrix and offset run):\n");
+  fprintf(fout, "  \n  #Typical PDF widths (used for first correlation matrix and offset run):\n");
   for(i=0;i<npar;i++) fprintf(fout, "  %-7.4f",pdfsigs[i]);
   
   fprintf(fout, "\n");
-  fprintf(fout, "\n  #Manual temperature ladder for parallel tempering:\n");
+  fprintf(fout, "  \n  #Manual temperature ladder for parallel tempering:\n");
   for(i=0;i<run->ntemps;i++) fprintf(fout, "  %-7.2f",run->temps[i]);
   
   
   fprintf(fout, "\n");
   
   fprintf(fout, "\n");
-  fprintf(fout, "\n  #Secondary input files:\n");
+  fprintf(fout, "  \n  #Secondary input files:\n");
   fprintf(fout, "  %-39s  %-18s  %-s\n",      run->datainfilename,       "datainfilename",        "File name of the data/noise input file, e.g. mcmc.data");
   
   /*
   Formats used:
-  fprintf(fout, "\n  #:\n");
+  fprintf(fout, "  \n  #:\n");
   fprintf(fout, "  %-39d  %-18s  %-s\n",    ,"","");
   fprintf(fout, "  %-39.1f  %-18s  %-s\n",   ,"","");
   fprintf(fout, "  %-39.1e  %-18s  %-s\n",  ,"","");

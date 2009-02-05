@@ -134,7 +134,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
   // *** Write true/best-guess values to screen and file ***
   par2arrt(state, mcmc.param);  //Put the variables in their array
   localpar(&state, ifo, networksize);
-  mcmc.logL[tempi] = net_loglikelihood(&state, networksize, ifo);  //Calculate the likelihood
+  mcmc.logL[tempi] = net_loglikelihood(&state, networksize, ifo, mcmc.mcmcWaveform);  //Calculate the likelihood
 
   mcmc.iteri = -1;
   mcmc.tempi = tempi;
@@ -203,29 +203,23 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
       if(mcmc.acceptprior[tempi]==1) {                     //Check the value of the likelihood for this draw
 	arr2part(mcmc.param, &state);	                      //Get the parameters from their array
 	localpar(&state, ifo, networksize);
-	mcmc.logL[tempi] = net_loglikelihood(&state, networksize, ifo);  //Calculate the likelihood
+	mcmc.logL[tempi] = net_loglikelihood(&state, networksize, ifo, mcmc.mcmcWaveform);  //Calculate the likelihood
       }
       nstart = nstart + 1;
       // Print each trial starting value:
       //printf("%9d %10.3lf  %7.4f %7.4f %8.4f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f\n",
       //     nstart,mcmc.logL[tempi],mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2]-mcmc.basetime,mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],mcmc.param[tempi][6],mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
     }
-    if(useoldmcmcoutputformat==1) { //Use old, longer screen output format
-      printf("%10s  %15s  %8s  %8s  %16s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "nDraws","logL","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","sinthJ0","phiJ0","alpha");
-      printf("%10d  %15.6lf  %8.5f  %8.5f  %16.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f\n",
-	     nstart,mcmc.logL[tempi],mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2],mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],mcmc.param[tempi][6],mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
-    } else { //Use new, shorter screen output format
     //  printf("%9s %10s  %7s %7s %8s %6s %6s %6s %6s %6s %6s %6s %6s %6s\n", "nDraws","logL","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","snthJ0","phiJ0","alpha");
     //  printf("%9d %10.3lf  %7.4f %7.4f %8.4f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f\n",
-	//     nstart,mcmc.logL[tempi],mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2]-mcmc.basetime,mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],mcmc.param[tempi][6],mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
-    printf("%9s %10s     %7s\n", "nDraws","logL","parameters");
-	printf("%9d %10.3lf",nstart,mcmc.logL[tempi]);
-	       for(i=0;i<npar;i++)
-           {
-           printf("    %8.5f",mcmc.param[tempi][i]);
-           }
-           printf("\n");
-	}
+    //     nstart,mcmc.logL[tempi],mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2]-mcmc.basetime,mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],mcmc.param[tempi][6],mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
+    printf("%9s %10s   %7s\n", "nDraws","logL","parameters");
+    printf("%9d %10.3lf",nstart,mcmc.logL[tempi]);
+    for(i=0;i<npar;i++)
+      {
+	printf(" %9.4f",mcmc.param[tempi][i]);
+      }
+    printf("\n");
   }
   
   
@@ -248,7 +242,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
   
   arr2part(mcmc.param, &state);                         //Get the parameters from their array
   localpar(&state, ifo, networksize);
-  mcmc.logL[tempi] = net_loglikelihood(&state, networksize, ifo);  //Calculate the likelihood
+  mcmc.logL[tempi] = net_loglikelihood(&state, networksize, ifo, mcmc.mcmcWaveform);  //Calculate the likelihood
 
   // *** Write output line to screen and/or file
   printf("\n");
@@ -673,7 +667,7 @@ void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, 
   if(mcmc->acceptprior[tempi]==1) {                                    //Then calculate the likelihood
     arr2part(mcmc->nparam, state);	                               //Get the parameters from their array
     localpar(state, ifo, mcmc->networksize);
-    mcmc->nlogL[tempi] = net_loglikelihood(state, mcmc->networksize, ifo); //Calculate the likelihood
+    mcmc->nlogL[tempi] = net_loglikelihood(state, mcmc->networksize, ifo, mcmc->mcmcWaveform); //Calculate the likelihood
     par2arrt(*state, mcmc->nparam);	                               //Put the variables back in their array
     
     if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->temp) && mcmc->nlogL[tempi] > 0) {  //Accept proposal
@@ -755,7 +749,7 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
       if(mcmc->acceptprior[tempi]==1) {
 	arr2part(mcmc->nparam, state);                                            //Get the parameters from their array
 	localpar(state, ifo, mcmc->networksize);
-	mcmc->nlogL[tempi] = net_loglikelihood(state, mcmc->networksize, ifo);   //Calculate the likelihood
+	mcmc->nlogL[tempi] = net_loglikelihood(state, mcmc->networksize, ifo, mcmc->mcmcWaveform);   //Calculate the likelihood
 	par2arrt(*state, mcmc->nparam);                                            //Put the variables back in their array
 	
 	if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->temp) && mcmc->nlogL[tempi] > 0) {  //Accept proposal
@@ -827,7 +821,7 @@ void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset 
   if(mcmc->acceptprior[tempi]==1) {
     arr2part(mcmc->nparam, state);	                              //Get the parameters from their array
     localpar(state, ifo, mcmc->networksize);                               //Calculate local variables
-    mcmc->nlogL[tempi] = net_loglikelihood(state, mcmc->networksize, ifo);  //Calculate the likelihood
+    mcmc->nlogL[tempi] = net_loglikelihood(state, mcmc->networksize, ifo, mcmc->mcmcWaveform);  //Calculate the likelihood
     par2arrt(*state, mcmc->nparam);	                              //Put the variables back in their array
     
     if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->temp) && mcmc->nlogL[tempi] > 0){  //Accept proposal if L>Lo
@@ -917,26 +911,24 @@ void write_mcmc_output(struct mcmcvariables mcmc, struct interferometer *ifo[])
       if((iteri % screenoutput)==0 || iteri<0)  printf("%10d  %15.6lf  %8.5f  %8.5f  %16.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f\n",
 						       iteri,mcmc.logL[tempi],mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2],mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],mcmc.param[tempi][6],mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
     } else { //Use new, shorter screen output format
-/*ILYA*/
-     // if((iteri % (50*screenoutput))==0 || iteri<0) printf("Previous iteration has match of %10g with true signal\n\n", 
-	//	matchBetweenParameterArrayAndTrueParameters(mcmc.param[tempi], ifo, mcmc.networksize));
-
+      /*ILYA*/
+      // if((iteri % (50*screenoutput))==0 || iteri<0) printf("Previous iteration has match of %10g with true signal\n\n", 
+      //	matchBetweenParameterArrayAndTrueParameters(mcmc.param[tempi], ifo, mcmc.networksize), mcmc.injectionWaveform, mcmc.mcmcWaveform); //CHECK need support for two different waveforms
+      
       //if((iteri % (50*screenoutput))==0 || iteri<0)  printf("\n%9s %10s  %7s %7s %8s %6s %6s %6s %6s %6s %6s %6s %6s %6s\n",
-		//					    "cycle","logL","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","snthJ0","phiJ0","alpha");
-      if((iteri % (50*screenoutput))==0 || iteri<0)  printf("\n%9s %10s     %7s\n",
-							    "cycle","logL","parameters");
-
-   //   if((iteri % screenoutput)==0 || iteri<0)  printf("%9d %10.3lf  %7.4f %7.4f %8.4lf %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f\n",
-	//					       iteri,mcmc.logL[tempi],mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2]-mcmc.basetime,mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],mcmc.param[tempi][6],mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
-      if((iteri % screenoutput)==0 || iteri<0){  printf("%9d %10.3lf",
-						       iteri,mcmc.logL[tempi]);
-           for(i=0;i<npar;i++)
-           {
-           printf("    %8.5f",mcmc.param[tempi][i]);
-           }
-           printf("\n");}
-
-
+      //					    "cycle","logL","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","snthJ0","phiJ0","alpha");
+      if((iteri % (50*screenoutput))==0 || iteri<0)  printf("\n%9s %10s   %7s\n","cycle","logL","parameters");
+      
+      //   if((iteri % screenoutput)==0 || iteri<0)  printf("%9d %10.3lf  %7.4f %7.4f %8.4lf %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f\n",
+      //					       iteri,mcmc.logL[tempi],mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2]-mcmc.basetime,mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],mcmc.param[tempi][6],mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
+      if((iteri % screenoutput)==0 || iteri<0){  printf("%8d  %10.3lf",iteri,mcmc.logL[tempi]);
+	for(i=0;i<npar;i++)
+	  {
+	    printf(" %9.4f",mcmc.param[tempi][i]);
+	  }
+	printf("\n");}
+      
+      
     }
   }
   

@@ -84,7 +84,7 @@ int main(int argc, char * argv[])
   run.netsnr = 0.0;
   if(dosnr==1) {
     for(ifonr=0; ifonr<networksize; ++ifonr) {
-      snr = signaltonoiseratio(&dummypar, network, ifonr);
+      snr = signaltonoiseratio(&dummypar, network, ifonr, run.injectionWaveform);
       network[ifonr]->snr = snr;
       run.netsnr += snr*snr;
     }
@@ -109,7 +109,7 @@ int main(int argc, char * argv[])
     run.netsnr = 0.0;
     if(dosnr==1) {
       for(ifonr=0; ifonr<networksize; ++ifonr) {
-	snr = signaltonoiseratio(&dummypar, network, ifonr);
+	snr = signaltonoiseratio(&dummypar, network, ifonr, run.injectionWaveform);
 	network[ifonr]->snr = snr;
 	run.netsnr += snr*snr;
       }
@@ -147,7 +147,7 @@ int main(int argc, char * argv[])
   {
      writeDataToFiles(network, networksize, run.mcmcseed);
      writeNoiseToFiles(network, networksize, run.mcmcseed);
-     writeSignalsToFiles(network, networksize, run.mcmcseed);
+     writeSignalsToFiles(network, networksize, run);
   }  
   
   //Write some injection parameters to screen:
@@ -165,7 +165,7 @@ int main(int argc, char * argv[])
   //printf("    %8.5f  %8.5f  %17.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f\n\n", dummypar.mc,dummypar.eta,dummypar.tc,dummypar.logdl,dummypar.spin,dummypar.kappa,dummypar.longi,dummypar.sinlati,dummypar.phase,dummypar.sinthJ0,dummypar.phiJ0,dummypar.alpha);
   //printf("    %8s  %8s  %17s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "M1","M2","tc","d_L","spin","th_SL","RA","Dec","phase","th_J0","phi_J0","alpha");
   //printf("    %8.5f  %8.5f  %17.6lf  %8.2f  %8.5f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f\n\n", dummypar.m1,dummypar.m2,dummypar.tc,exp(dummypar.logdl),dummypar.spin,acos(dummypar.kappa)*r2d,rightAscension(dummypar.longi,GMST(dummypar.tc))*r2h,asin(dummypar.sinlati)*r2d,dummypar.phase*r2d,asin(dummypar.sinthJ0)*r2d,dummypar.phiJ0*r2d,dummypar.alpha*r2d);
-   printf("Injection parameters\n");
+   printf("   Injection parameters\n");
   int i=0;
   for(i=0;i<npar;i++)
   {
@@ -231,8 +231,8 @@ int main(int argc, char * argv[])
 	
 	getparameterset(&par2, 3.0,eta,700009012.346140,3.0, 0.5,0.9,3.0,0.5, 1.0,0.1,2.0,3.0);
 	
-	double matchres = parmatch(&par1,&par2,network, networksize);
-	double overlap = paroverlap(&par1,&par2,network,0);
+	double matchres = parmatch(&par1,&par2,network, networksize, run.injectionWaveform);
+	double overlap = paroverlap(&par1,&par2,network,0, run.injectionWaveform);
 	
 	printf("   Eta: %6.4f,  match: %10.5lf,  overlap: %g \n",eta,matchres,overlap);
       }

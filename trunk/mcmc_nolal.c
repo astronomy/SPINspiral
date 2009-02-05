@@ -19,7 +19,7 @@ void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr)
   printf("\n\n");
   printf("\n    *** ERROR ***");
   printf("\n    You have compiled the MCMC code without LAL support, but are trying to run it with the LAL waveform.");
-  printf("\n    Please change waveformversion to use a non-LAL waveform  *OR*  compile with LAL support.");
+  printf("\n    Please change mcmcWaveform or injectionWaveform to use a non-LAL waveform  *OR*  compile with LAL support.");
   printf("\n\n\n");
   exit(1);
 }
@@ -39,7 +39,7 @@ void templateLAL15(struct parset *par, struct interferometer *ifo[], int ifonr)
   printf("\n\n");
   printf("\n    *** ERROR ***");
   printf("\n    You have compiled the MCMC code without LAL support, but are trying to run it with the LAL waveform.");
-  printf("\n    Please change waveformversion to use a non-LAL waveform  *OR*  compile with LAL support.");
+  printf("\n    Please change mcmcWaveform or injectionWaveform to use a non-LAL waveform  *OR*  compile with LAL support.");
   printf("\n\n\n");
   exit(1);
 }

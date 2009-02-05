@@ -1,14 +1,14 @@
 #include <mcmc.h>
 
 
-void template(struct parset *par, struct interferometer *ifo[], int ifonr)
-// Call a waveform template, the global variable waveformversion determines which one
+void template(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion)
+// Call a waveform template, the local variable waveformVersion determines which one
 {
-  if(waveformversion==1) {
+  if(waveformVersion==1) {
     templateApo(par, ifo, ifonr);  // Apostolatos 12-parameter template
-  } else if(waveformversion==2) {
+  } else if(waveformVersion==2) {
     templateLAL12(par, ifo, ifonr);  // LAL 12-parameter template
-  } else if(waveformversion==3) {
+  } else if(waveformVersion==3) {
     templateLAL15(par, ifo, ifonr);  // LAL 15-parameter template
   }
 }

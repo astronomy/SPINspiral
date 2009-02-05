@@ -1,7 +1,13 @@
 
   ChangeLog for the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
-   	 
+     	 
+   110: sluys, 04/02/2009
+     - replaced waveformversion with mcmcWaveform and injectionWaveform in the run and 
+       mcmc structs.  For now only the first is read and the second is set equal to the first.
+     - made mcmc.input compatible with up to 20 parameters
+     - shrunk the screen output a bit to fit 15 parameters in one line
+   
    104: sluys, 30/01/2009
      - copied the n-parameter branch into the trunk
      
