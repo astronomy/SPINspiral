@@ -18,7 +18,7 @@ void readinputfile(struct runpar *run)
   FILE *fin;
   
   if((fin = fopen(run->infilename,"r")) == NULL) {
-    printf("   Error reading file: %s, aborting.\n\n\n",run->infilename);
+    printf("   Error reading input file: %s, aborting.\n\n\n",run->infilename);
     exit(1);
   } else {
     printf("   Using input file: %s.\n",run->infilename);
@@ -333,7 +333,7 @@ void readlocalfile()
   
   sprintf(localfilename,"mcmc.local");
   if((fin = fopen(localfilename,"r")) == NULL) {
-    printf("   Error reading file: %s, aborting.\n\n\n",localfilename);
+    printf("   Error reading local file: %s, aborting.\n\n\n",localfilename);
     exit(1);
   }
   
@@ -360,15 +360,15 @@ void readlocalfile()
 
 
 // Read the data input file.
-void readdatainputfile(struct runpar run, struct interferometer ifo[])
+void readdatainputfile(struct runpar *run, struct interferometer ifo[])
 {
   int i=0,j=0,IFOdbaseSize=0;
   double lati,longi,leftarm,rightarm;
   char bla[500], subdir[500];
   FILE *fin;
   
-  if((fin = fopen(run.datainfilename,"r")) == NULL) {
-    printf("   Error reading file: %s, aborting.\n\n\n",run.datainfilename);
+  if((fin = fopen(run->datainfilename,"r")) == NULL) {
+    printf("   Error reading data file: %s, aborting.\n\n\n",run->datainfilename);
     exit(1);
   }
   
@@ -379,14 +379,19 @@ void readdatainputfile(struct runpar run, struct interferometer ifo[])
   
   fgets(bla,500,fin);  sscanf(bla,"%d",&IFOdbaseSize);
   
-  if(IFOdbaseSize<run.networksize) {
-    printf("\n   Error:  the number of detectors in the database (%d detectors in %s) is smaller than the number of detectors in the network (%d).\n\n",IFOdbaseSize,run.datainfilename,run.networksize);
+  if(IFOdbaseSize<run->networksize) {
+    printf("\n   Error:  the number of detectors in the database (%d detectors in %s) is smaller than the number of detectors in the network (%d).\n\n",IFOdbaseSize,run->datainfilename,run->networksize);
     exit(1);
   }
-  if(IFOdbaseSize>run.maxIFOdbaseSize) {
-    printf("\n   Error:  the number of detectors in the database (%d) is larger than the maximum (%d).\n\n",IFOdbaseSize,run.maxIFOdbaseSize);
+  if(IFOdbaseSize>run->maxIFOdbaseSize) {
+    printf("\n   Error:  the number of detectors in the database (%d) is larger than the maximum (%d).\n\n",IFOdbaseSize,run->maxIFOdbaseSize);
     exit(1);
   }
+  
+  //Read input for PSD estimation
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->PSDsegmentNumber);
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->PSDsegmentLength);
+  
   
   for(i=0;i<IFOdbaseSize;i++){
     fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines

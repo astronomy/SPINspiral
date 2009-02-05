@@ -3,6 +3,8 @@
 #Value:                                                                         Variable:                Description:
 
 3										detectordatabasesize	 Size of the detector data base (= number of blocks below, >= networksize!)
+32										PSDsegmentNumber	 Number of data segments used for the PSD estimation.  Default: 32
+8.0										PSDsegmentLength	 Length of each data segment used for PSD estimation.  Default: 8.0 -> 32x8.0s = 256s
 
 
 ###  IFO 1:  ###########################################################################################################################################################################################

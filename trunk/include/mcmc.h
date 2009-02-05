@@ -143,6 +143,9 @@ struct runpar{
   double lowfrequencycut;         // Lower frequency cutoff to compute the overlap for
   double highfrequencycut;        // Upper frequency cutoff to compute the overlap for
   
+  int PSDsegmentNumber;           // Number of data segments used for PSD estimation
+  double PSDsegmentLength;        // Length of each segment of data used for PSD estimation
+  
   char infilename[99];            // Run input file name
   char outfilename[99];           // Copy of input file name
   char datainfilename[99];        // Run data input file name
@@ -314,9 +317,9 @@ fftw_complex *FTout;                  // FT output (type here identical to `(dou
 void readlocalfile();
 void readinputfile(struct runpar *run);
 void writeinputfile(struct runpar *run);
-void readdatainputfile(struct runpar run, struct interferometer ifo[]);
+void readdatainputfile(struct runpar *run, struct interferometer ifo[]);
 void setconstants();
-void set_ifo_data(struct runpar run, struct interferometer ifo[]);
+void setIFOdata(struct runpar *run, struct interferometer ifo[]);
 
 void setRandomInjectionParameters(struct runpar *run);
 void setRandomInjectionParameters1(struct runpar *run);
@@ -390,7 +393,7 @@ double *downsample(double data[], int *datalength, double coef[], int ncoef);
 void dataFT(struct interferometer *ifo[], int i, int networksize, struct runpar run);
 double hann(int j, int N);
 double tukey(int j, int N, double r);
-void noisePSDestimate(struct interferometer *ifo);
+void noisePSDestimate(struct interferometer *ifo, struct runpar run);
 double log_noisePSD(double f, struct interferometer *ifo);
 double interpol_log_noisePSD(double f, struct interferometer *ifo);
 void writeDataToFiles(struct interferometer *ifo[], int networksize, int mcmcseed);

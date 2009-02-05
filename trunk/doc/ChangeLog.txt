@@ -2,6 +2,10 @@
   ChangeLog for the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
      	 
+   111: sluys, 05/02/2009
+     - input file mcmc.data changed, see doc/mcmc.data_NINJA_noise
+     - added parameters PSDsegmentNumber and PSDsegmentLength to runpar struct and mcmc.data
+     
    110: sluys, 04/02/2009
      - replaced waveformversion with mcmcWaveform and injectionWaveform in the run and 
        mcmc structs.  For now only the first is read and the second is set equal to the first.

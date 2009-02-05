@@ -10,13 +10,13 @@
 
 // *** Routines that handle IFOs ***
 
-void set_ifo_data(struct runpar run, struct interferometer ifo[])
+void setIFOdata(struct runpar *run, struct interferometer ifo[])
 // Set all the data for all IFOs that may be used
 {
   int i=0,numberofdatasets = 6;
   // Description of the data sets below
   char datadescriptions[10][99];
-  sprintf(datadescriptions[0],"File:  %s",run.datainfilename);
+  sprintf(datadescriptions[0],"File:  %s",run->datainfilename);
   sprintf(datadescriptions[1],"Gaussian, stationary noise (GPS ~894377000)");
   sprintf(datadescriptions[2],"clean S5 data (GPS ~846226044)");
   sprintf(datadescriptions[3],"playground trigger data (GPS ~845348295)");
@@ -24,9 +24,9 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   sprintf(datadescriptions[5],"NINJA");
   sprintf(datadescriptions[6],"Original Gaussian noise (GPS ~700006000)");
   
-  //run.selectdata = max(min(run.selectdata,numberofdatasets),1);
-  if(run.selectdata < 0 || run.selectdata > numberofdatasets) {
-    printf("\n\n   Unknown dataset %d selected.  Please set the parameter  selectdata  in  %s  to a value between 0 and %d: \n",run.selectdata, run.infilename,numberofdatasets);
+  //run->selectdata = max(min(run->selectdata,numberofdatasets),1);
+  if(run->selectdata < 0 || run->selectdata > numberofdatasets) {
+    printf("\n\n   Unknown dataset %d selected.  Please set the parameter  selectdata  in  %s  to a value between 0 and %d: \n",run->selectdata, run->infilename,numberofdatasets);
     for(i=0;i<=numberofdatasets;i++) {
       printf("     %3d:  %s\n",i,datadescriptions[i]);
     }
@@ -36,16 +36,16 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   
   
   // Print selected type of data/noise:
-  printf("   Using data set %d: %s.\n",run.selectdata,datadescriptions[run.selectdata]);
+  printf("   Using data set %d: %s.\n",run->selectdata,datadescriptions[run->selectdata]);
   
   
   //*** Read detector position, orientation, file and channel names for detector strains from file (e.g. mcmc.data):
-  if(run.selectdata == 0) readdatainputfile(run,ifo);        //Read data on the noise files to use
+  if(run->selectdata == 0) readdatainputfile(run,ifo);        //Read data on the noise files to use
   
   
   
   //*** Set detector location and orientation when not reading them from file:
-  if(run.selectdata > 0) {
+  if(run->selectdata > 0) {
     // HANFORD, H1:
     sprintf(ifo[0].name, "Hanford");
     ifo[0].lati     = (  46.45/180.0)*pi;
@@ -70,18 +70,18 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   
   
   // WGS-84 data:
-  for(i=0;i<run.maxIFOdbaseSize;i++) {
+  for(i=0;i<run->maxIFOdbaseSize;i++) {
     ifo[i].radius_eqt  = 6378137.0;
     ifo[i].radius_pole = 6356752.314;
   }
   
   
   //*** Data time and frequency cutoffs per detector (same for all detectors for now):
-  for(i=0;i<run.maxIFOdbaseSize;i++) {
-    ifo[i].lowCut    = run.lowfrequencycut;   // Define lower and upper limits of overlap integral
-    ifo[i].highCut   = run.highfrequencycut;
-    ifo[i].before_tc = run.databeforetc;      // Define data segment: [t_c-before_tc, t_c+after_tc]
-    ifo[i].after_tc  = run.dataaftertc;
+  for(i=0;i<run->maxIFOdbaseSize;i++) {
+    ifo[i].lowCut    = run->lowfrequencycut;   // Define lower and upper limits of overlap integral
+    ifo[i].highCut   = run->highfrequencycut;
+    ifo[i].before_tc = run->databeforetc;      // Define data segment: [t_c-before_tc, t_c+after_tc]
+    ifo[i].after_tc  = run->dataaftertc;
   }
   
   
@@ -90,7 +90,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   
   // ***  Set hardcoded data sets ***
   
-  if(run.selectdata == 1) {
+  if(run->selectdata == 1) {
     // HANFORD, H1:
     // Gaussian, stationary noise
     sprintf(ifo[0].ch1name,       "H1:STRAIN"); 
@@ -160,7 +160,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   
   
   
-  if(run.selectdata == 2) {
+  if(run->selectdata == 2) {
     // HANFORD, H1:
     // Clean S5 data 2
     sprintf(ifo[0].ch1name,       "H1:LSC-STRAIN");
@@ -203,9 +203,9 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[1].noisefileoffset = 262;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[1].noisedoubleprecision = 0;
     
-    for(i=0;i<run.networksize;i++) {
-      if(run.selectifos[i]>2) {
-	printf("\n\n   Error:  You're trying to use detector %d (%s) with data set %d (%s), which is not available for this detector.\n\n\n",run.selectifos[i],ifo[run.selectifos[i]-1].name,run.selectdata,datadescriptions[run.selectdata]);
+    for(i=0;i<run->networksize;i++) {
+      if(run->selectifos[i]>2) {
+	printf("\n\n   Error:  You're trying to use detector %d (%s) with data set %d (%s), which is not available for this detector.\n\n\n",run->selectifos[i],ifo[run->selectifos[i]-1].name,run->selectdata,datadescriptions[run->selectdata]);
 	exit(1);
       }
     }
@@ -216,7 +216,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   
   
   
-  if(run.selectdata == 3) {
+  if(run->selectdata == 3) {
     // HANFORD, H1:
     // Playground trigger 845348295
     sprintf(ifo[0].ch1name,       "H1:LSC-STRAIN");
@@ -258,9 +258,9 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[1].noisefileoffset = 92;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[1].noisedoubleprecision = 0;
 
-    for(i=0;i<run.networksize;i++) {
-      if(run.selectifos[i]>2) {
-	printf("\n\n   Error:  You're trying to use detector %d (%s) with data set %d (%s), which is not available for this detector.\n\n\n",run.selectifos[i],ifo[run.selectifos[i]-1].name,run.selectdata,datadescriptions[run.selectdata]);
+    for(i=0;i<run->networksize;i++) {
+      if(run->selectifos[i]>2) {
+	printf("\n\n   Error:  You're trying to use detector %d (%s) with data set %d (%s), which is not available for this detector.\n\n\n",run->selectifos[i],ifo[run->selectifos[i]-1].name,run->selectdata,datadescriptions[run->selectdata]);
 	exit(1);
       }
     }
@@ -271,7 +271,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   
   
   
-  if(run.selectdata == 4) {
+  if(run->selectdata == 4) {
     // HANFORD, H1:
     // glitchy data 
     sprintf(ifo[0].ch1name,       "H1:LSC-STRAIN");
@@ -314,9 +314,9 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
     ifo[1].noisefileoffset = 125;  //If the Frame filename ends in: -839366009-128.gwf, fileoffset = mod(839366009,128)
     ifo[1].noisedoubleprecision = 0;
 
-    for(i=0;i<run.networksize;i++) {
-      if(run.selectifos[i]>2) {
-	printf("\n\n   Error:  You're trying to use detector %d (%s) with data set %d (%s), which is not available for this detector.\n\n\n",run.selectifos[i],ifo[run.selectifos[i]-1].name,run.selectdata,datadescriptions[run.selectdata]);
+    for(i=0;i<run->networksize;i++) {
+      if(run->selectifos[i]>2) {
+	printf("\n\n   Error:  You're trying to use detector %d (%s) with data set %d (%s), which is not available for this detector.\n\n\n",run->selectifos[i],ifo[run->selectifos[i]-1].name,run->selectdata,datadescriptions[run->selectdata]);
 	exit(1);
       }
     }
@@ -328,7 +328,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   
   
   
-  if(run.selectdata == 5) {
+  if(run->selectdata == 5) {
     // HANFORD, H1:
     // NINJA data set
     sprintf(ifo[0].ch1name,       "H1:STRAIN"); 
@@ -403,7 +403,7 @@ void set_ifo_data(struct runpar run, struct interferometer ifo[])
   
   
   
-  if(run.selectdata == 6) {
+  if(run->selectdata == 6) {
     // HANFORD, H1:
     // Original Gaussian, stationary noise, which we used 2007-2008
     sprintf(ifo[0].ch1name,       "H1:STRAIN"); 
@@ -618,7 +618,7 @@ void ifoinit(struct interferometer **ifo, int networksize, struct runpar run)
     
     // Read 'detector' noise and estimate PSD
     if(printmuch>=1) printf("   Reading noise for the detector in %s...\n",ifo[ifonr]->name);
-    noisePSDestimate(ifo[ifonr]);
+    noisePSDestimate(ifo[ifonr],run);
   
   
     // Read 'detector' data for injection
@@ -1042,7 +1042,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
 
 
 
-void noisePSDestimate(struct interferometer *ifo)
+void noisePSDestimate(struct interferometer *ifo, struct runpar run)
 // Returns a (smoothed) estimate of the log- Power Spectral Density. 
 // Data is split into K segments of M seconds,
 // and K-1 overlapping segments of length 2M are eventually
@@ -1059,13 +1059,14 @@ void noisePSDestimate(struct interferometer *ifo)
   double          *sPSD=NULL;  // vector containing smoothed PSD
   double           *win=NULL;  // window
   
-  double      Mseconds=  8.0;  // M expressed in seconds
-  double      Nseconds=256.0;  // total seconds
-  //double      Mseconds=  4.0;  // M expressed in seconds
-  //double      Nseconds= 32.0;  // total seconds
-  //printf("\n\n *** Warning: non-default PSD estimation *** \n\n");
+  //Use K segments of Mseconds, hence a total of Nseconds of data for the PSD estimation:
+  int K = run.PSDsegmentNumber;            // Number of data segments
+  double Mseconds = run.PSDsegmentLength;  // Number of seconds in each data segment
+  double Nseconds = Mseconds * (double)K;  // Total number of seconds to estimate the PSD for.  Default is 256 seconds
+  if(Nseconds < 127.0) printf(" ***  Warning: you're using only %5.1f seconds of data for the PSD estimation;  ~256s is recommended  *** \n",Nseconds);
+  if(Nseconds > 1025.0) printf(" ***  Warning: you're using %6.1f seconds of data for the PSD estimation;  ~256s is recommended  *** \n",Nseconds);
   
-  int  K=(int)(Nseconds/Mseconds);  // number of 8-second-segments         
+  
   double wss=0.0,log2=log(2.0);  // squared & summed window coefficients  etc.
   int     i, j, M, N, dummyN;
   int             samplerate;

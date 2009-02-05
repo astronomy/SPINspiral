@@ -42,7 +42,7 @@ void mcmc(struct runpar *run, struct interferometer *ifo[])
   }
   
   if(nburn0>=nburn) {
-    printf("\n   *** Warning: nburn0 > nburn, setting nburn0 = nburn*0.9 ***\n\n");
+    //printf("\n   *** Warning: nburn0 > nburn, setting nburn0 = nburn*0.9 ***\n\n");
     nburn0 = (int)(0.9*(double)nburn);
   }
   

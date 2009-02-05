@@ -40,7 +40,7 @@ int main(int argc, char * argv[])
   //Set up the data for the IFOs in an IFO database you may want to use (H1,L1 + VIRGO by default)
   run.maxIFOdbaseSize = 4;  //The maximum number of IFOs to read the properties in for from the data input file (mcmc.data or equivalent)
   struct interferometer database[run.maxIFOdbaseSize];
-  set_ifo_data(run, database);
+  setIFOdata(&run, database);
   
   
   
@@ -165,11 +165,11 @@ int main(int argc, char * argv[])
   //printf("    %8.5f  %8.5f  %17.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f\n\n", dummypar.mc,dummypar.eta,dummypar.tc,dummypar.logdl,dummypar.spin,dummypar.kappa,dummypar.longi,dummypar.sinlati,dummypar.phase,dummypar.sinthJ0,dummypar.phiJ0,dummypar.alpha);
   //printf("    %8s  %8s  %17s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "M1","M2","tc","d_L","spin","th_SL","RA","Dec","phase","th_J0","phi_J0","alpha");
   //printf("    %8.5f  %8.5f  %17.6lf  %8.2f  %8.5f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f\n\n", dummypar.m1,dummypar.m2,dummypar.tc,exp(dummypar.logdl),dummypar.spin,acos(dummypar.kappa)*r2d,rightAscension(dummypar.longi,GMST(dummypar.tc))*r2h,asin(dummypar.sinlati)*r2d,dummypar.phase*r2d,asin(dummypar.sinthJ0)*r2d,dummypar.phiJ0*r2d,dummypar.alpha*r2d);
-   printf("   Injection parameters\n");
+   printf("   Injection parameters:\n");
   int i=0;
   for(i=0;i<npar;i++)
   {
-  printf("    %8.5f",dummypar.par[i]);
+  printf(" %9.5f",dummypar.par[i]);
   }
   printf("\n\n");
   
