@@ -1,7 +1,12 @@
 
   ChangeLog for the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
-     	 
+
+   114: sluys, 06/02/2009
+     - input files changed, see in doc/: mcmc.input, mcmc.mcmc, mcmc.data
+     - created new input file mcmc.mcmc with all data on how to do mcmc
+     - moved most data from mcmc.input to mcmc.mcmc and mcmc.data
+     
    111: sluys, 05/02/2009
      - input file mcmc.data changed, see doc/mcmc.data_NINJA_noise
      - added parameters PSDsegmentNumber and PSDsegmentLength to runpar struct and mcmc.data

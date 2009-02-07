@@ -40,7 +40,7 @@ void setIFOdata(struct runpar *run, struct interferometer ifo[])
   
   
   //*** Read detector position, orientation, file and channel names for detector strains from file (e.g. mcmc.data):
-  if(run->selectdata == 0) readdatainputfile(run,ifo);        //Read data on the noise files to use
+  if(run->selectdata == 0) readDataInputfile(run,ifo);        //Read data on the noise files to use
   
   
   
@@ -617,12 +617,12 @@ void ifoinit(struct interferometer **ifo, int networksize, struct runpar run)
     
     
     // Read 'detector' noise and estimate PSD
-    if(printmuch>=1) printf("   Reading noise for the detector in %s...\n",ifo[ifonr]->name);
+    if(printMuch>=1) printf("   Reading noise for the detector in %s...\n",ifo[ifonr]->name);
     noisePSDestimate(ifo[ifonr],run);
   
   
     // Read 'detector' data for injection
-    if(printmuch>=1) printf("   Reading data for the detector in %s...\n",ifo[ifonr]->name);
+    if(printMuch>=1) printf("   Reading data for the detector in %s...\n",ifo[ifonr]->name);
     dataFT(ifo,ifonr,networksize,run);
     
     
@@ -788,7 +788,6 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
 // after adding up the two (signal & noise) channels, or injecting a waveform template into the noise.
 // Also takes care of preparing FT stuff  (ifo[ifonr]->FTplan, ->FTin, ->FTout, ...).
 {
-  if(MvdSdebug) printf("  DataFT\n");
   struct FrFile *iFile=NULL;                // Frame file(s)
   struct FrVect *svect=NULL, *nvect=NULL;   // data vectors (signal & noise)
   int           N;                          // size of input
@@ -853,7 +852,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
   if(intscrout==1) printf(" | original sampling rate: %d Hz\n", ifo[ifonr]->samplerate);
   
   // Inject the signal into the noise
-  if(inject) {
+  if(inject>=1) {
     if(intscrout==1) printf(" :  injecting signal:\n");
     
     // Define injection parameters:
@@ -901,7 +900,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
     freeparset(&injectpar);
     
     
-  } // if(inject)
+  } // if(inject>=1)
   else if(ifo[ifonr]->add2channels) { // Read 2nd channel (signal only)  (if not doing a software injection)
     
     filestart = (((((long)(from))-ifo[ifonr]->ch2fileoffset) / ifo[ifonr]->ch2filesize) * ifo[ifonr]->ch2filesize) + ifo[ifonr]->ch2fileoffset;
@@ -943,7 +942,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
   for(j=0; j<N; ++j) raw[j] = nvect->dataF[j];
   
   // Add channels (noise plus signal):
-  if(inject){
+  if(inject>=1){
     for(j=0; j<N; ++j) raw[j] += injection[j];
   } else if(ifo[ifonr]->add2channels) {
     for(j=0; j<N; ++j) raw[j] += svect->dataF[j];
@@ -953,7 +952,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
   // Release the FrVect objects:
   FrVectFree(svect);
   FrVectFree(nvect);
-  if(inject) free(injection);
+  if(inject>=1) free(injection);
   
   
   int screwcount = 0;
@@ -1315,16 +1314,16 @@ double interpol_log_noisePSD(double f, struct interferometer *ifo)
 
 
 
-void writeDataToFiles(struct interferometer *ifo[], int networksize, int mcmcseed){
+void writeDataToFiles(struct interferometer *ifo[], int networksize, int MCMCseed){
   int i, j;
   for(i=0; i<networksize; i++){ 
     // Write windowed, time-domain data (signal + noise) to disc
     char filename[1000]="";
-    sprintf(filename, "%s-data.dat.%6.6d", ifo[i]->name, mcmcseed);  // Write in current dir
+    sprintf(filename, "%s-data.dat.%6.6d", ifo[i]->name, MCMCseed);  // Write in current dir
     FILE *dump = fopen(filename,"w");
     
     // Get true signal parameters and write them to the header
-    if(writesignal==2){
+    if(writeSignal==2){
 	printParameterHeaderToFile(dump);
     	fprintf(dump, "       GPS time (s)         H(t)\n");
     }
@@ -1337,11 +1336,11 @@ void writeDataToFiles(struct interferometer *ifo[], int networksize, int mcmcsee
   
     // Write data FFT to disc (i.e., FFT or amplitude spectrum of signal+noise)
     double f;
-    sprintf(filename, "%s-dataFFT.dat.%6.6d", ifo[i]->name, mcmcseed);  // Write in current dir
+    sprintf(filename, "%s-dataFFT.dat.%6.6d", ifo[i]->name, MCMCseed);  // Write in current dir
     FILE *dump1 = fopen(filename,"w");
     
     // Get true signal parameters and write them to the header
-    if(writesignal==2){
+    if(writeSignal==2){
     	printParameterHeaderToFile(dump1);
     	fprintf(dump1, "       f (Hz)    real(H(f))    imag(H(f))\n");
     }
@@ -1363,15 +1362,15 @@ void writeDataToFiles(struct interferometer *ifo[], int networksize, int mcmcsee
 
 
 
-void writeNoiseToFiles(struct interferometer *ifo[], int networksize, int mcmcseed){
+void writeNoiseToFiles(struct interferometer *ifo[], int networksize, int MCMCseed){
   int i, j;
   for(i=0; i<networksize; i++){ 
     //Write noise ASD  (Square root of the estimated noise PSD (i.e., no injected$
     char filename[1000]="";
-    sprintf(filename, "%s-noiseASD.dat.%6.6d", ifo[i]->name, mcmcseed);  // Write in current dir
+    sprintf(filename, "%s-noiseASD.dat.%6.6d", ifo[i]->name, MCMCseed);  // Write in current dir
     FILE *dump = fopen(filename,"w");
 
-    if(writesignal==2){
+    if(writeSignal==2){
 	printParameterHeaderToFile(dump);
     	fprintf(dump, "       f (Hz)          H(f)\n");
     }
@@ -1405,7 +1404,6 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networksize, struct r
 
 
   for(i=0; i<networksize; i++){
-    //if(MvdSdebug) printf("Writesignaltodisc %d\n",i);
     double f;
     double complex FFTout;
 
@@ -1416,9 +1414,9 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networksize, struct r
     
     // Write signal in time domain:
     char filename[1000]="";
-    sprintf(filename, "%s-signal.dat.%6.6d", ifo[i]->name, run.mcmcseed);  // Write in current dir
+    sprintf(filename, "%s-signal.dat.%6.6d", ifo[i]->name, run.MCMCseed);  // Write in current dir
     FILE *dump = fopen(filename,"w");
-    if(writesignal==2){
+    if(writeSignal==2){
     	printParameterHeaderToFile(dump);
     	fprintf(dump, "       GPS time (s)         H(t)\n");
     }
@@ -1430,9 +1428,9 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networksize, struct r
     if(intscrout) printf(" : (signal written to file)\n");
     
     // Write signal FFT to disc (i.e., amplitude spectrum of signal w/o noise):
-    sprintf(filename, "%s-signalFFT.dat.%6.6d", ifo[i]->name, run.mcmcseed);  // Write in current dir
+    sprintf(filename, "%s-signalFFT.dat.%6.6d", ifo[i]->name, run.MCMCseed);  // Write in current dir
     FILE *dump2 = fopen(filename,"w");
-    if(writesignal==2){
+    if(writeSignal==2){
     	printParameterHeaderToFile(dump2);
     	fprintf(dump2, "       f (Hz)    real(H(f))    imag(H(f))\n");
     }

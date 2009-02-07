@@ -2,9 +2,23 @@
 
 #Value:                                                                         Variable:                Description:
 
-3										detectordatabasesize	 Size of the detector data base (= number of blocks below, >= networksize!)
+#Detector network:
+1                                                                               networksize              Set the number of detectors that make up the network; read in networksize block of IFO data below
+1 2 3                                                                           selectifos               Select the IFOs to use  1: H1, 2: L1, 3: V
+
+#Data handling:
+0                                                                               selectdata               Select the data set to run on:  0 use input file  (set to -1 to print a list of data sets). Make sure you set the true tc and datadir accordingly.
+4                                                                               downsamplefactor         Downsample the sampling frequency of the detector (16-20kHz for the detectors, 4kHz for NINJA) by this factor.  Default (for detectors): 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8
+6.0                                                                             databeforetc             The stretch of data in seconds before presumed coalescence that is read in as part of the data segment
+1.0                                                                             dataaftertc              The stretch of data in seconds after presumed coalescence that is read in as part of the data segment
+40.0                                                                            lowfrequencycut          Templates and overlap integration start at this frequency
+350.0                                                                           highfrequencycut         Overlap integration ends at this frequency
+
+#Noise PSD estimation:
 32										PSDsegmentNumber	 Number of data segments used for the PSD estimation.  Default: 32
 8.0										PSDsegmentLength	 Length of each data segment used for PSD estimation.  Default: 8.0 -> 32x8.0s = 256s
+
+
 
 
 ###  IFO 1:  ###########################################################################################################################################################################################

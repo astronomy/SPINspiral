@@ -17,13 +17,6 @@
 #include <sys/time.h>
 #include <stdlib.h>
 
-/*
-#include <lal/LALStdlib.h>
-#include <lal/LALInspiral.h>
-#include <lal/GeneratePPNInspiral.h>
-#include <lal/GenerateInspiral.h>
-*/
-
 #define TRUE (1==1)
 #define FALSE (!TRUE)
 #define MvdSdebug !TRUE
@@ -55,7 +48,7 @@
 //  *** PLEASE DON'T ADD ANY NEW ONES, BUT USE THE STRUCTS BELOW INSTEAD (e.g. runpar or mcmcvariables) ***
 //      (and if you're bored, go ahead and place the variables below in these structs as well)
 
-//The following global arrays have the size of the number of parameters, i.e. 12 or 15, or ~20 to make sure we're always ok:
+//The following global arrays have the size of >~ the max. number of parameters we use, i.e. ~20:
 
 int fitpar[20],offsetpar[20];
 double truepar[20],pdfsigs[20];
@@ -65,7 +58,7 @@ double truepar[20],pdfsigs[20];
 
 char datadir[99];
 
-int npar,iter,skip,screenoutput,adapt;
+int npar,iter,thinOutput,thinScreenOutput,adapt;
 
 int offsetmcmc;
 double offsetx;
@@ -78,8 +71,8 @@ int nburn,nburn0;
 int partemp,savehotchains,prpartempinfo;
 double tempmax;
 
-int dosnr,domcmc,domatch,intscrout,writesignal;
-int printmuch;
+int doSNR,doMCMC,doMatch,intscrout,writeSignal;
+int printMuch;
 
 double truespin,truetheta,prior_tc_mean;
 int downsamplefactor;
@@ -118,7 +111,7 @@ struct runpar{
   int injectionWaveform;          // Waveform used to do software injections
   int mcmcWaveform;               // Waveform used as the MCMC template
   int ntemps;		          // Size of temperature ladder
-  int mcmcseed;                   // Seed for MCMC
+  int MCMCseed;                   // Seed for MCMC
   int selectdata;                 // Select which data set to run on
   int networksize;                // Number of IFOs in the detector network
   int maxIFOdbaseSize;            // Maximum number of IFOs for which the properties are read in (e.g. from mcmc.data)
@@ -126,15 +119,15 @@ struct runpar{
   
   //int adapt;                    // Use adaptation or not
   //double *fitpar;
-  int *setranpar;                 // Set random true (i.e., injection) parameters 
+  int *ranInjPar;                 // Randomise injection parameters 
   int ranparseed;                 // Seed to randomise true parameters (i.e., injection)
+  double injectionSNR;            // Network SNR of the software injection, scale the distance to obtain this value
   
   double blockfrac;               // Fraction of non-correlated updates that is a block update
   double corrfrac;                // Fraction of MCMC updates that used the correlation matrix
   double mataccfr;                // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
   
   double netsnr;                  // Total SNR of the network
-  double targetsnr;               // Target total SNR of the network, scale the distance
   double temps[99];               // Temperature ladder for manual parallel tempering
   double startpar[20];            // Starting parameters for the MCMC chains (may be different from true parameters)
   
@@ -148,6 +141,7 @@ struct runpar{
   
   char infilename[99];            // Run input file name
   char outfilename[99];           // Copy of input file name
+  char MCMCinfilename[99];        // Run MCMC input file name
   char datainfilename[99];        // Run data input file name
 };
 
@@ -314,10 +308,11 @@ fftw_complex *FTout;                  // FT output (type here identical to `(dou
 
 
 // Declare functions (prototypes):
-void readlocalfile();
-void readinputfile(struct runpar *run);
-void writeinputfile(struct runpar *run);
-void readdatainputfile(struct runpar *run, struct interferometer ifo[]);
+void readLocalInputfile();
+void readMainInputfile(struct runpar *run);
+void writeMainInputfile(struct runpar *run);
+void readMCMCinputfile(struct runpar *run);
+void readDataInputfile(struct runpar *run, struct interferometer ifo[]);
 void setconstants();
 void setIFOdata(struct runpar *run, struct interferometer ifo[]);
 

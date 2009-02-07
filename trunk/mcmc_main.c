@@ -11,7 +11,7 @@ int main(int argc, char * argv[])
   // Interferometers are managed via the `database'; the `network' is a vector of pointers to the database (see below).
   // The interferometers that are actually used need to be initialised via the `ifoinit()'-function in order to determine noise PSD, signal FT &c.
   
-  if(domcmc>=1) printf("\n");
+  if(doMCMC>=1) printf("\n");
   printf("\n   Starting MCMC code...\n");
   
   clock_t time0 = clock();
@@ -25,15 +25,15 @@ int main(int argc, char * argv[])
   //Initialise stuff for the run
   struct runpar run;
   setconstants();    //Set the global constants (which are variable in C). This routine should eventually disappear.
- //run.setranpar  = (int*)calloc(npar,sizeof(int));
   sprintf(run.infilename,"mcmc.input"); //Default input filename
   if(argc > 1) sprintf(run.infilename,argv[1]);
   
-  readlocalfile();                     //Read system-dependent data, e.g. path to data files
-  readinputfile(&run);                 //Read main input data file for this run from input.mcmc
-  setseed(&run.mcmcseed);              //Set mcmcseed if 0, otherwise keep the current value
+  readLocalInputfile();                //Read system-dependent data, e.g. path to data files
+  readMainInputfile(&run);             //Read main input data file for this run from input.mcmc
+  readMCMCinputfile(&run);             //Read the input data on how to do MCMC 
+  setseed(&run.MCMCseed);              //Set MCMCseed if 0, otherwise keep the current value
   setRandomInjectionParameters(&run);  //Randomise the injection parameters where wanted
-  writeinputfile(&run);                //Write run data to nicely formatted input.mcmc.<mcmcseed>
+  //writeInputfile(&run);                //Write run data to nicely formatted input.mcmc.<MCMCseed>
   
   
   
@@ -62,7 +62,7 @@ int main(int argc, char * argv[])
   }
   ifoinit(network, networksize, run); //Do the actual initialisation
   if(inject) {
-    if(run.targetsnr < 0.001) printf("   A signal with the 'true' parameter values was injected.\n");
+    if(run.injectionSNR < 0.001) printf("   A signal with the 'true' parameter values was injected.\n");
   } else {
     printf("   No signal was injected.\n");
   }
@@ -82,7 +82,7 @@ int main(int argc, char * argv[])
   
   //Calculate SNR
   run.netsnr = 0.0;
-  if(dosnr==1) {
+  if(doSNR==1) {
     for(ifonr=0; ifonr<networksize; ++ifonr) {
       snr = signaltonoiseratio(&dummypar, network, ifonr, run.injectionWaveform);
       network[ifonr]->snr = snr;
@@ -94,10 +94,10 @@ int main(int argc, char * argv[])
   
   
   //Get the desired SNR by scaling the distance
-  if(run.targetsnr > 0.001 && inject==1) {
-    truepar[3] *= (run.netsnr/run.targetsnr);  //Use total network SNR
-    //truepar[3] *= (run.netsnr/(run.targetsnr*sqrt((double)networksize)));  //Use geometric average SNR
-    printf("   Setting distance to %lf Mpc to get a network SNR of %lf.\n",truepar[3],run.targetsnr);
+  if(run.injectionSNR > 0.001 && inject==1) {
+    truepar[3] *= (run.netsnr/run.injectionSNR);  //Use total network SNR
+    //truepar[3] *= (run.netsnr/(run.injectionSNR*sqrt((double)networksize)));  //Use geometric average SNR
+    printf("   Setting distance to %lf Mpc to get a network SNR of %lf.\n",truepar[3],run.injectionSNR);
     gettrueparameters(&dummypar);
     dummypar.loctc    = (double*)calloc(networksize,sizeof(double));
     dummypar.localti  = (double*)calloc(networksize,sizeof(double));
@@ -107,7 +107,7 @@ int main(int argc, char * argv[])
     
     //Recalculate SNR
     run.netsnr = 0.0;
-    if(dosnr==1) {
+    if(doSNR==1) {
       for(ifonr=0; ifonr<networksize; ++ifonr) {
 	snr = signaltonoiseratio(&dummypar, network, ifonr, run.injectionWaveform);
 	network[ifonr]->snr = snr;
@@ -143,10 +143,10 @@ int main(int argc, char * argv[])
   
   
   //Write the data and its FFT, the signal and its FFT, and the noise ASD to disc
-  if(writesignal)
+  if(writeSignal)
   {
-     writeDataToFiles(network, networksize, run.mcmcseed);
-     writeNoiseToFiles(network, networksize, run.mcmcseed);
+     writeDataToFiles(network, networksize, run.MCMCseed);
+     writeNoiseToFiles(network, networksize, run.MCMCseed);
      writeSignalsToFiles(network, networksize, run);
   }  
   
@@ -158,7 +158,7 @@ int main(int argc, char * argv[])
   printf("\n  %10s  %10s  %6s  %6s  ","niter","nburn","seed","ndet");
   for(ifonr=0;ifonr<networksize;ifonr++) printf("%16s%4s  ",network[ifonr]->name,"SNR");
   printf("%20s  ","Network SNR");
-  printf("\n  %10d  %10d  %6d  %6d  ",iter,nburn,run.mcmcseed,networksize);
+  printf("\n  %10d  %10d  %6d  %6d  ",iter,nburn,run.MCMCseed,networksize);
   for(ifonr=0;ifonr<networksize;ifonr++) printf("%20.10lf  ",network[ifonr]->snr);
   printf("%20.10lf\n\n",run.netsnr);
   //printf("    %8s  %8s  %17s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "Mc","eta","tc","logdL","spin","kappa","longi","sinlati","phase","sinthJ0","phiJ0","alpha");
@@ -176,10 +176,10 @@ int main(int argc, char * argv[])
   
   //Do MCMC
   clock_t time1 = clock();
-  if(domcmc==1) {
-    //printmuch=1;
+  if(doMCMC==1) {
+    //printMuch=1;
     mcmc(&run, network);
-    //printmuch=0;
+    //printMuch=0;
   }
   clock_t time2 = clock();
   
@@ -188,7 +188,7 @@ int main(int argc, char * argv[])
   
   
   //Calculate matches between two signals
-  if(domatch==1) {
+  if(doMatch==1) {
     /*
     if(1==2) {
       printf("\n\n");
@@ -272,7 +272,7 @@ int main(int argc, char * argv[])
       }
       free(matrix);
     }
-  } //if(domatch=1)
+  } //if(doMatch=1)
 
   
   
@@ -280,12 +280,12 @@ int main(int argc, char * argv[])
   
   //Get rid of allocated memory and quit
   for(ifonr=0; ifonr<networksize; ++ifonr) ifodispose(network[ifonr]);
-  free(run.setranpar);
+  free(run.ranInjPar);
   freeparset(&dummypar);
   
   clock_t time3 = clock();
   printf("   Timimg:\n");
-  if(domcmc>=1) {
+  if(doMCMC>=1) {
     printf("     initialisation:%10.2lfs\n", ((double)time1 - (double)time0)*1.e-6 );
     printf("     MCMC:          %10.2lfs\n", ((double)time2 - (double)time1)*1.e-6 );
   }
@@ -293,7 +293,7 @@ int main(int argc, char * argv[])
   
   
   printf("\n   MCMC code done.\n\n");
-  if(domcmc>=1) printf("\n");
+  if(doMCMC>=1) printf("\n");
   return 0;
 }
 

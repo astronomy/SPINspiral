@@ -10,131 +10,69 @@
 // Read the main input file.
 // Please keep this routine in sync with writeinputfile() below.
 // All parameters that are read in here should become members of the runvar struct and lose their global status
-void readinputfile(struct runpar *run)
+void readMainInputfile(struct runpar *run)
 {
   int i;
-  double tmpdbl;
   char bla[500];
   FILE *fin;
   
   if((fin = fopen(run->infilename,"r")) == NULL) {
-    printf("   Error reading input file: %s, aborting.\n\n\n",run->infilename);
+    printf("   Error reading main input file: %s, aborting.\n\n\n",run->infilename);
     exit(1);
   } else {
-    printf("   Using input file: %s.\n",run->infilename);
+    printf("   Using main input file: %s.\n",run->infilename);
   }
   
   
   //Use and l for floats: %lf, %lg, etc, rather than %f, %g
   
-  for(i=1;i<=3;i++) { //Read first 3 lines
-    fgets(bla,500,fin);
-  }
+  for(i=1;i<=3;i++) fgets(bla,500,fin);  //Read first 3 lines
   
-  //Basic settings
+  //Operation and output:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
+  fgets(bla,500,fin);  sscanf(bla,"%d",&doSNR);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&doMCMC);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&doMatch);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&intscrout);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&writeSignal);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&printMuch);
   
+  
+  
+  
+  //Software injection:
+  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
+  fgets(bla,500,fin);  sscanf(bla,"%d",&inject);
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->mcmcWaveform);
   run->injectionWaveform = run->mcmcWaveform;  //For now
   
- 
- if(run->mcmcWaveform==1) {
-    printf("   Using Apostolatos, 1.5PN, 12-parameter waveform as the MCMC template.\n");
-	npar=12;
-  } else if(run->mcmcWaveform==2) {
-    printf("   Using LAL, 3.5PN, 12-parameter waveform as the MCMC template.\n");
-	npar=12;
-  } else if(run->mcmcWaveform==3) {
-    printf("   Using LAL, 3.5PN, 15-parameter waveform as the MCMC template.\n");
-	npar=15;
-  } else {
-    printf("   Unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->mcmcWaveform);
-    printf("     1: Apostolatos, simple precession, 12 parameters\n");
-    printf("     2: LAL, single spin, 12 parameters\n");
-	printf("     3: LAL, double spin, 15 parameters\n");
-    printf("   Please set mcmcWaveform in mcmc.input to one of these values.\n\n");
-    exit(1);
+  if(inject>=1) {
+    if(run->injectionWaveform==1) {
+      printf("   Using Apostolatos, 1.5PN, 12-parameter waveform for the software injection.\n");
+      npar=12;
+    } else if(run->injectionWaveform==2) {
+      printf("   Using LAL, 3.5PN, 12-parameter waveform for the software injection.\n");
+      npar=12;
+    } else if(run->injectionWaveform==3) {
+      printf("   Using LAL, 3.5PN, 15-parameter waveform for the software injection.\n");
+      npar=15;
+    } else {
+      printf("   Unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->injectionWaveform);
+      printf("     1: Apostolatos, simple precession, 12 parameters\n");
+      printf("     2: LAL, single spin, 12 parameters\n");
+      printf("     3: LAL, double spin, 15 parameters\n");
+      printf("   Please set injectionWaveform in mcmc.input to one of these values.\n\n");
+      exit(1);
+    }
   }
- 
- 
- 
-  run->setranpar  = (int*)calloc(npar,sizeof(int)); //Now that npar is known, initialise the array.... 
+  run->ranInjPar  = (int*)calloc(npar,sizeof(int)); //Now that npar is known, initialise the array.... 
   
-  fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);    
-  iter = (int)tmpdbl;
-  fgets(bla,500,fin);  sscanf(bla,"%d",&skip);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&screenoutput);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&run->mcmcseed);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&inject);
-  for(i=0;i<npar;i++)  fscanf(fin,"%d",&run->setranpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->injectionSNR);
+  for(i=0;i<npar;i++)  fscanf(fin,"%d",&run->ranInjPar[i]);  //Read the array directly, because sscanf cannot be in a loop...
   fgets(bla,500,fin);  //Read the rest of this line
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->ranparseed);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&adapt);
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->blockfrac);
-  for(i=0;i<npar;i++)  fscanf(fin,"%d",&fitpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
-  fgets(bla,500,fin);  //Read the rest of this line
-  
   
 
-  //Start from offset values:
-  fgets(bla,500,fin);  fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%d",&offsetmcmc);
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&offsetx);
-  for(i=0;i<npar;i++)  fscanf(fin,"%d",&offsetpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
-  fgets(bla,500,fin);  //Read the rest of this line
-  
-  
-  //Correlated update proposals:
-  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%d",&corrupd);
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->corrfrac);
-  fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);
-  ncorr = (int)tmpdbl;
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->mataccfr);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&prmatrixinfo);
-  
-  
-  //Annealing:
-  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&temp0);
-  fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);
-  nburn = (int)tmpdbl;
-  fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);
-  nburn0 = (int)tmpdbl;
-  
-  //Parallel tempering:
-  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%d",&partemp);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&run->ntemps);
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&tempmax);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&savehotchains);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&prpartempinfo);
-  
-  //Output:
-  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%d",&dosnr);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&domcmc);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&domatch);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&intscrout);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&writesignal);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&printmuch);
-  
-  //Data handling:
-  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin); sscanf(bla,"%d",&run->selectdata);
-  fgets(bla,500,fin); sscanf(bla,"%d",&downsamplefactor);
-  fgets(bla,500,fin); sscanf(bla,"%lf",&run->databeforetc);
-  fgets(bla,500,fin); sscanf(bla,"%lf",&run->dataaftertc);
-  fgets(bla,500,fin); sscanf(bla,"%lf",&run->lowfrequencycut);
-  fgets(bla,500,fin); sscanf(bla,"%lf",&run->highfrequencycut);
-
-  //Diverse:
-  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%d",&run->networksize);
-  //for(i=0;i<9;i++) run->selectifos[i]=i; 
-  for(i=0;i<run->networksize;i++) fscanf(fin,"%d",&run->selectifos[i]);  //Read the array directly, because sscanf cannot be in a loop...
-  fgets(bla,500,fin);  //Read the rest of the line
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->targetsnr);
 
   
   //True parameter values:
@@ -143,20 +81,11 @@ void readinputfile(struct runpar *run)
   prior_tc_mean = truepar[2];   //prior_tc_mean is used everywhere
   //Starting parameter values:
   for(i=0;i<npar;i++) fscanf(fin,"%lf",&run->startpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
-  if(offsetmcmc==0 || offsetmcmc==1) for(i=0;i<npar;i++) run->startpar[i] = truepar[i];  //Set the starting parameters equal to the true, injection parameters
-  
-  //Typical PDF widths:
-  fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
-  for(i=0;i<npar;i++) fscanf(fin,"%lf",&pdfsigs[i]);  //Read the array directly, because sscanf cannot be in a loop...
-  
-  
-  //Manual temperatures for parallel tempering:
-  fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
-  for(i=0;i<npar;i++) fscanf(fin,"%lf",&run->temps[i]);  //Read the array directly, because sscanf cannot be in a loop...
-  
+  //if(offsetmcmc==0 || offsetmcmc==1) for(i=0;i<npar;i++) run->startpar[i] = truepar[i];  //Set the starting parameters equal to the true, injection parameters
   
   //Secondary input files:
-  fgets(bla,500,fin); //Read the empty and comment line
+  fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
+  fgets(bla,500,fin); sscanf(bla,"%s",run->MCMCinfilename);
   fgets(bla,500,fin); sscanf(bla,"%s",run->datainfilename);
   
   fclose(fin);
@@ -171,11 +100,11 @@ void readinputfile(struct runpar *run)
 // Write a copy of the input file.
 // This provides a nicely formatted copy, which may later be used to start a follow-up run.
 // Try to keep this in sync with readinputfile() above.
-void writeinputfile(struct runpar *run)
+void writeMainInputfile(struct runpar *run)
 {
   int i;
   FILE *fout;
-  sprintf(run->outfilename,"%s.%6.6d",run->infilename,run->mcmcseed);
+  sprintf(run->outfilename,"%s.%6.6d",run->infilename,run->MCMCseed);
   if((fout = fopen(run->outfilename,"w")) == NULL) {
     printf("   Could not create file: %s, aborting.\n\n\n",run->outfilename);
     exit(1);
@@ -188,14 +117,14 @@ void writeinputfile(struct runpar *run)
   fprintf(fout, "  \n  #Basic settings:\n");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      run->mcmcWaveform, "mcmcWaveform", "Waveform version used as MCMC template:  1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL, 3 for 3.5PN 15-parameter LAL");
   fprintf(fout, "  %-39.3g  %-18s  %-s\n",    (double)iter,  "iter",           "Total number of iterations to be computed (e.g. 1e7).");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      skip,          "skip",           "Number of iterations to be skipped between stored steps (100 for 1d).");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      screenoutput,  "screenoutput",   "Number of iterations between screen outputs im the MCMC (1000 for 1d).");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      run->mcmcseed, "mcmcseed",       "Random number seed to start the MCMC: 0-let system clock determine seed.");
+  fprintf(fout, "  %-39d  %-18s  %-s\n",      thinOutput,    "thinOutput",           "Number of iterations to be skipped between stored steps (100 for 1d).");
+  fprintf(fout, "  %-39d  %-18s  %-s\n",      thinScreenOutput,  "thinScreenOutput",   "Number of iterations between screen outputs im the MCMC (1000 for 1d).");
+  fprintf(fout, "  %-39d  %-18s  %-s\n",      run->MCMCseed, "MCMCseed",       "Random number seed to start the MCMC: 0-let system clock determine seed.");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      inject,        "inject",         "Inject a signal (1) or not (0).");
   fprintf(fout, " ");
-  for(i=0;i<npar;i++) fprintf(fout, "%2d",    run->setranpar[i]);
+  for(i=0;i<npar;i++) fprintf(fout, "%2d",    run->ranInjPar[i]);
   for(i=0;i<max(19-npar,0);i++) fprintf(fout, "  ");  //Line up the next colum nicely, for up to 20 parameters
-  fprintf(fout, "    %-18s  %-s\n",                          "setranpar[]",  "Parameters you want to randomise before injecting the signal; 0: use the value in truepar below, 1: randomise.  These are the same parameters as trueval (ie M1, M2, etc!)");
+  fprintf(fout, "    %-18s  %-s\n",                          "ranInjPar[]",  "Parameters you want to randomise before injecting the signal; 0: use the value in truepar below, 1: randomise.  These are the same parameters as trueval (ie M1, M2, etc!)");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      run->ranparseed,"ranparseed",    "Random number seed for random injection parameters. Don't change between serial chains of the same run!");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      adapt,         "adapt",          "Use adaptation: 0-no, 1-yes.");
   fprintf(fout, "  %-39.2f  %-18s  %-s\n",    run->blockfrac,"blockfrac",      "Fraction of uncorrelated updates that is updated as a block of all parameters (<=0.0: none, >=1.0: all).");
@@ -237,12 +166,12 @@ void writeinputfile(struct runpar *run)
   
   
   fprintf(fout, "  \n  #Output:\n");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      dosnr,         "dosnr",          "Calculate the SNR: 0-no, 1-yes.");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      domcmc,        "domcmc",         "Do MCMC: 0-no, 1-yes.");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      domatch,       "domatch",        "Calculate matches: 0-no, 1-yes.");
+  fprintf(fout, "  %-39d  %-18s  %-s\n",      doSNR,         "doSNR",          "Calculate the SNR: 0-no, 1-yes.");
+  fprintf(fout, "  %-39d  %-18s  %-s\n",      doMCMC,        "doMCMC",         "Do MCMC: 0-no, 1-yes.");
+  fprintf(fout, "  %-39d  %-18s  %-s\n",      doMatch,       "doMatch",        "Calculate matches: 0-no, 1-yes.");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      intscrout,     "intscrout",      "Print initialisation output to screen: 0-no, 1-yes.");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      writesignal,   "writesignal",    "Write signal, noise, PSDs to file: 0-no, 1-yes.");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      printmuch,     "printmuch",      "Print long stretches of output (1) or not (0).");
+  fprintf(fout, "  %-39d  %-18s  %-s\n",      writeSignal,   "writeSignal",    "Write signal, noise, PSDs to file: 0-no, 1-yes.");
+  fprintf(fout, "  %-39d  %-18s  %-s\n",      printMuch,     "printMuch",      "Print long stretches of output (1) or not (0).");
   
 
   fprintf(fout, "  \n  #Data handling:\n");
@@ -260,7 +189,7 @@ void writeinputfile(struct runpar *run)
   for(i=0;i<run->networksize;i++) fprintf(fout, "%-3d",run->selectifos[i]);
   for(i=0;i<38-3*(run->networksize-1);i++) fprintf(fout, " ");
   fprintf(fout, "%-18s  %-s\n", "selectifos",    "Select the IFOs to use  1: H1, 2: L1, 3: V");
-  fprintf(fout, "  %-39.1f  %-18s  %-s\n",   run->targetsnr, "targetsnr",      "If > 0: scale the distance such that the network SNR becomes targetsnr");
+  fprintf(fout, "  %-39.1f  %-18s  %-s\n",   run->injectionSNR, "injectionSNR",      "If > 0: scale the distance such that the network SNR becomes injectionSNR");
   
 
 
@@ -325,7 +254,7 @@ void writeinputfile(struct runpar *run)
 
 
 //Read the input file for local (system-dependent) variables: mcmc.local
-void readlocalfile()
+void readLocalInputfile()
 {
   int i;
   char localfilename[99], bla[500];
@@ -354,15 +283,132 @@ void readlocalfile()
 
 
 
+// Read the MCMC input file.
+// All parameters that are read in here should become members of the runvar struct and lose their global status
+void readMCMCinputfile(struct runpar *run)
+{
+  int i;
+  double tmpdbl;
+  char bla[500];
+  FILE *fin;
+  
+  if((fin = fopen(run->MCMCinfilename,"r")) == NULL) {
+    printf("   Error reading MCMC input file: %s, aborting.\n\n\n",run->MCMCinfilename);
+    exit(1);
+  } else {
+    printf("   Using MCMC input file: %s.\n",run->MCMCinfilename);
+  }
+  
+  
+  //Use and l for floats: %lf, %lg, etc, rather than %f, %g
+  
+  for(i=1;i<=3;i++) { //Read first 3 lines
+    fgets(bla,500,fin);
+  }
+  
+  //Basic settings
+  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
+  
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->mcmcWaveform);
+  run->injectionWaveform = run->mcmcWaveform;  //For now
+  
+  
+  if(run->mcmcWaveform==1) {
+    printf("   Using Apostolatos, 1.5PN, 12-parameter waveform as the MCMC template.\n");
+    npar=12;
+  } else if(run->mcmcWaveform==2) {
+    printf("   Using LAL, 3.5PN, 12-parameter waveform as the MCMC template.\n");
+    npar=12;
+  } else if(run->mcmcWaveform==3) {
+    printf("   Using LAL, 3.5PN, 15-parameter waveform as the MCMC template.\n");
+    npar=15;
+  } else {
+    printf("   Unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->mcmcWaveform);
+    printf("     1: Apostolatos, simple precession, 12 parameters\n");
+    printf("     2: LAL, single spin, 12 parameters\n");
+    printf("     3: LAL, double spin, 15 parameters\n");
+    printf("   Please set mcmcWaveform in mcmc.input to one of these values.\n\n");
+    exit(1);
+  }
+  
+  
+  
+  run->ranInjPar  = (int*)calloc(npar,sizeof(int)); //Now that npar is known, initialise the array.... 
+  
+  fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);    
+  iter = (int)tmpdbl;
+  fgets(bla,500,fin);  sscanf(bla,"%d",&thinOutput);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&thinScreenOutput);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->MCMCseed);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&adapt);
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->blockfrac);
+  for(i=0;i<npar;i++)  fscanf(fin,"%d",&fitpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  fgets(bla,500,fin);  //Read the rest of this line
+  
+  
+
+  //Start from offset values:
+  fgets(bla,500,fin);  fgets(bla,500,fin);  //Read the empty and comment line
+  fgets(bla,500,fin);  sscanf(bla,"%d",&offsetmcmc);
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&offsetx);
+  for(i=0;i<npar;i++)  fscanf(fin,"%d",&offsetpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  fgets(bla,500,fin);  //Read the rest of this line
+  
+  
+  //Correlated update proposals:
+  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
+  fgets(bla,500,fin);  sscanf(bla,"%d",&corrupd);
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->corrfrac);
+  fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);
+  ncorr = (int)tmpdbl;
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->mataccfr);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&prmatrixinfo);
+  
+  
+  //Annealing:
+  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&temp0);
+  fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);
+  nburn = (int)tmpdbl;
+  fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);
+  nburn0 = (int)tmpdbl;
+  
+  //Parallel tempering:
+  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
+  fgets(bla,500,fin);  sscanf(bla,"%d",&partemp);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->ntemps);
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&tempmax);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&savehotchains);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&prpartempinfo);
+  
+  //Typical PDF widths:
+  fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
+  for(i=0;i<npar;i++) fscanf(fin,"%lf",&pdfsigs[i]);  //Read the array directly, because sscanf cannot be in a loop...
+
+  
+  //Manual temperature ladder for parallel tempering:
+  fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
+  for(i=0;i<run->ntemps;i++) fscanf(fin,"%lf",&run->temps[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  
+  fclose(fin);
+}
+//End of void readMCMCinputfile(struct runpar *run)
+
+
+
+
+
+
+
 
 
 
 
 
 // Read the data input file.
-void readdatainputfile(struct runpar *run, struct interferometer ifo[])
+void readDataInputfile(struct runpar *run, struct interferometer ifo[])
 {
-  int i=0,j=0,IFOdbaseSize=0;
+  int i=0,j=0;
   double lati,longi,leftarm,rightarm;
   char bla[500], subdir[500];
   FILE *fin;
@@ -375,25 +421,33 @@ void readdatainputfile(struct runpar *run, struct interferometer ifo[])
   
   //Use and l for floats: %lf, %lg, etc, rather than %f, %g
   
-  for(j=1;j<=4;j++) fgets(bla,500,fin);  //Read first 4 lines
+  for(j=1;j<=3;j++) fgets(bla,500,fin);  //Read first 3 lines
   
-  fgets(bla,500,fin);  sscanf(bla,"%d",&IFOdbaseSize);
+  //Detector network:
+  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->networksize);
+  for(i=0;i<run->networksize;i++) fscanf(fin,"%d",&run->selectifos[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  fgets(bla,500,fin);  //Read the rest of the line
   
-  if(IFOdbaseSize<run->networksize) {
-    printf("\n   Error:  the number of detectors in the database (%d detectors in %s) is smaller than the number of detectors in the network (%d).\n\n",IFOdbaseSize,run->datainfilename,run->networksize);
-    exit(1);
-  }
-  if(IFOdbaseSize>run->maxIFOdbaseSize) {
-    printf("\n   Error:  the number of detectors in the database (%d) is larger than the maximum (%d).\n\n",IFOdbaseSize,run->maxIFOdbaseSize);
-    exit(1);
-  }
   
-  //Read input for PSD estimation
+  //Data handling:
+  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
+  fgets(bla,500,fin); sscanf(bla,"%d",&run->selectdata);
+  fgets(bla,500,fin); sscanf(bla,"%d",&downsamplefactor);
+  fgets(bla,500,fin); sscanf(bla,"%lf",&run->databeforetc);
+  fgets(bla,500,fin); sscanf(bla,"%lf",&run->dataaftertc);
+  fgets(bla,500,fin); sscanf(bla,"%lf",&run->lowfrequencycut);
+  fgets(bla,500,fin); sscanf(bla,"%lf",&run->highfrequencycut);
+  
+  
+  //Read input for PSD estimation:
+  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->PSDsegmentNumber);
   fgets(bla,500,fin);  sscanf(bla,"%lf",&run->PSDsegmentLength);
   
   
-  for(i=0;i<IFOdbaseSize;i++){
+  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
+  for(i=0;i<run->networksize;i++){
     fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
     
     fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].name);

@@ -9,7 +9,6 @@
 double net_loglikelihood(struct parset *par, int networksize, struct interferometer *ifo[], int waveformVersion)
 //Calculate the loglikelihood for a network of IFOs
 {
-  //if(MvdSdebug) printf("  Net_loglikelihood\n");
   double result = 0.0;
   int i;
   for (i=0; i<networksize; ++i){
@@ -285,7 +284,6 @@ double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct int
 double match(struct parset *par, struct interferometer *ifo[], int i, int networksize)
 //Calculate the match between two waveforms
 {
-  if(MvdSdebug) printf("    Match %d\n",i);
   double match = 0.0;
   int j=0;
   fftw_complex *FTout1,*FTout2;                  // FT output (type here identical to `(double) complex')
