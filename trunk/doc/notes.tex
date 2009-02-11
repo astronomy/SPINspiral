@@ -1,18 +1,106 @@
 
-\documentclass[12pt]{iopart}
+\documentclass[12pt]{article}
+\usepackage[top=2.0cm, bottom=2.0cm,  left=2.0cm, right=2.0cm, includefoot]{geometry}
 
 \begin{document}
 
 \section{Parameters}
 
+\subsection{Spinning inspiral parameters}
+
+\subsubsection{Old}
 \begin{equation}
-\vec{\lambda} = \{M_c, \eta, t_\mathrm{0}, \log{d_\mathrm{L}}, \mathrm{R.A.}, \sin\mathrm{Dec}, \cos{i}, \phi_\mathrm{c}, \psi, a_\mathrm{spin_1}, \cos{\theta_1}, \phi_1, a_\mathrm{spin_2}, \cos{\theta_2}, \phi_2\},
+\vec{\lambda} = \{M_c, \eta, t_\mathrm{0}, \log{d_\mathrm{L}}, \mathrm{R.A.}, \sin\mathrm{Dec}, \cos{i}, \varphi_\mathrm{c}, \psi, a_\mathrm{spin_1}, \cos{\theta_1}, \varphi_1, a_\mathrm{spin_2}, \cos{\theta_2}, \varphi_2\},
 \end{equation}
 
 \begin{equation}
-\vec{\lambda} = \{M_c, \eta, t_\mathrm{c}, \log{d_\mathrm{L}}, a_\mathrm{spin}, \kappa, \mathrm{R.A.},\sin\mathrm{Dec}, \phi_\mathrm{c}, \sin\theta_{J_0}, \phi_{J_0}, \alpha_\mathrm{c}\},
+\vec{\lambda} = \{M_c, \eta, t_\mathrm{c}, \log{d_\mathrm{L}}, a_\mathrm{spin}, \kappa, \mathrm{R.A.},\sin\mathrm{Dec}, \varphi_\mathrm{c}, \sin\theta_{J_0}, \varphi_{J_0}, \alpha_\mathrm{c}\},
 \end{equation}
 
+
+\subsubsection{Proposed}
+\begin{equation}
+\vec{\lambda} = \{M_c, \eta, t_\mathrm{0}, \log{d_\mathrm{L}}, \mathrm{R.A.}, \sin\mathrm{Dec}, \cos{i},          \psi,          \varphi_\mathrm{c}, a_\mathrm{spin,1}, \cos{\theta_\mathrm{spin,1}}, \varphi_\mathrm{spin,1}, a_\mathrm{spin,2}, \cos{\theta_\mathrm{spin,2}}, \varphi_\mathrm{spin,2}\},
+\end{equation}
+
+\begin{equation}
+\vec{\lambda} = \{M_c, \eta, t_\mathrm{c}, \log{d_\mathrm{L}}, \mathrm{R.A.}, \sin\mathrm{Dec}, \sin\theta_{J_0}, \varphi_{J_0}, \varphi_\mathrm{c},  a_\mathrm{spin,1}, \cos{\theta_\mathrm{spin,1}}, \varphi_\mathrm{spin,1}\},
+\end{equation}
+
+
+
+
+
+
+\subsection{Parameter catalog}
+Goal: assign a unique identifier to each possible variable that has been used in our MCMC programs so far.
+
+\subsubsection{Time}
+\begin{tabular}{lllll}
+  \textbf{Number} & \textbf{Variable} & \textbf{Description} & \textbf{Unit} & \textbf{Range} \\
+  \textbf{11} & $t_\mathrm{c}$        & GPS time of coalescence & s & $[0,\infty[$ \\
+  \textbf{12} & $t_\mathrm{40\,Hz}$   & GPS time at 40\,Hz & s & $[0,\infty[$ \\
+\end{tabular}
+
+\subsubsection{Distance}
+\begin{tabular}{lllll}
+  \textbf{Number} & \textbf{Variable} & \textbf{Description} & \textbf{Unit} & \textbf{Range} \\
+  \textbf{21} & $^\mathrm{e}\log(d_\mathrm{L})$ & Luminosity distance & Mpc & $]-\infty,\infty[$ \\
+\end{tabular}
+
+\subsubsection{Sky position}
+\begin{tabular}{lllll}
+  \textbf{Number} & \textbf{Variable} & \textbf{Description} & \textbf{Unit} & \textbf{Range} \\
+  \textbf{31} & R.A. ($\alpha$)  & Right ascension & rad & $[0,2\pi[$ \\
+  \textbf{32} & $\sin(\mathrm{Dec})$ ($\sin(\delta)$)  & Declination & --- & $[-1,1]$ \\
+\end{tabular}
+
+
+\subsubsection{Phase}
+\begin{tabular}{lllll}
+  \textbf{Number} & \textbf{Variable} & \textbf{Description} & \textbf{Unit} & \textbf{Range} \\
+  \textbf{41} & $\varphi_\mathrm{orb,1}$  & Orbital phase & rad & $[0,2\pi[$ \\
+\end{tabular}
+
+\subsubsection{Orientation}
+\begin{tabular}{lllll}
+  \textbf{Number} & \textbf{Variable} & \textbf{Description} & \textbf{Unit} & \textbf{Range} \\
+  \textbf{51} & $\cos(\iota)$  & Inclination & --- & $[-1,1]$ \\
+  \textbf{52} & $\psi$  & Polarisation angle & rad & $[0,\pi[$ \\
+  \textbf{53} & $\sin(\theta_{J_0})$ & 'Declination' of $J_0$ & --- & $[-1,1]$ \\
+  \textbf{54} & $\varphi_{J_0}$  & 'R.A.' of $J_0$ & rad & $[0,2\pi[$ \\
+\end{tabular}
+
+\subsubsection{Mass}
+\begin{tabular}{lllll}
+  \textbf{Number} & \textbf{Variable} & \textbf{Description} & \textbf{Unit} & \textbf{Range} \\
+  \textbf{61} & $\cal{M}$  & Chirp mass & $M_\odot$ & $[0,\infty[$ \\
+  \textbf{62} & $\eta$  & Symmetric mass ratio & --- & $[0,0.25]$ \\
+  \textbf{63} & $M_1$  & Mass 1 & $M_\odot$ & $[0,\infty[$ \\
+  \textbf{64} & $M_2$  & Mass 2 & $M_\odot$ &  $[0,\infty[$ \\
+\end{tabular}
+
+\subsubsection{Spin}
+\begin{tabular}{lllll}
+  \textbf{Number} & \textbf{Variable} & \textbf{Description} & \textbf{Unit} & \textbf{Range} \\
+  \textbf{71} & $a_\mathrm{spin,1}$  & Spin magnitude 1 & --- & $[0,1]$ \\
+  \textbf{72} & $\cos(\theta_\mathrm{spin,1})$  & Spin tilt 1 & --- & $[-1,1]$ \\
+  \textbf{73} & $\varphi_\mathrm{spin,1}$  ($\alpha_\mathrm{c}$)  & Spin phase 1 & rad & $[0,2\pi[$ \\
+  \textbf{74} & $a_\mathrm{spin,2}$  & Spin magnitude 2 & --- & $[0,1]$ \\
+  \textbf{75} & $\cos(\theta_\mathrm{spin,2})$  & Spin tilt 2 & --- & $[-1,1]$ \\
+  \textbf{76} & $\varphi_\mathrm{spin,2}$  & Spin phase 2 & rad & $[0,2\pi[$ \\
+\end{tabular}
+
+\subsubsection{Merger, ringdown}
+\begin{tabular}{lllll}
+  \textbf{Number} & \textbf{Variable} & \textbf{Description} & \textbf{Unit} & \textbf{Range} \\
+  \textbf{81} &   & & & $[,]$ \\
+\end{tabular}
+
+%\subsubsection{}
+%\begin{tabular}{lllll}
+%\textbf{} & 
+%\end{tabular}
 
 \end{document}
 
