@@ -113,12 +113,6 @@ void LALHpHc12(CoherentGW *waveform, int *l, struct parset *par, struct interfer
   pi=M_PI;
   
   
-  //Print input:
-  //printf("  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf\n",
-  //	 par->mc,par->eta,par->tc,par->logdl,par->spin,par->kappa,par->longi,par->sinlati,par->phase,par->sinthJ0,par->phiJ0,par->alpha);
-
-  
-  
   ////////////////////////////////////////////////////////////initialisation of memory/////////////////////////////////
   
   memset( &mystatus, 0, sizeof(LALStatus) );
@@ -434,12 +428,6 @@ void LALHpHc15(CoherentGW *waveform, int *l, struct parset *par, struct interfer
   int			lengthLAL;
   //REAL8       a1, a2, phi, shift;
   pi=M_PI;
-  
-  
-  //Print input:
-  //printf("  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf\n",
-  //	 par->mc,par->eta,par->tc,par->logdl,par->spin,par->kappa,par->longi,par->sinlati,par->phase,par->sinthJ0,par->phiJ0,par->alpha);
-
   
   
   ////////////////////////////////////////////////////////////initialisation of memory/////////////////////////////////

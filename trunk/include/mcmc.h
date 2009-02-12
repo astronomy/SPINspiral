@@ -208,9 +208,9 @@ struct mcmcvariables{
 
 // Structure for spin parameter set with 12 parameters
 struct parset{
-
+  
   double par[20];
-
+  
   double m1;         // mass 1                    
   double m2;         // mass 2                    
   double m;          // total mass                
@@ -229,7 +229,7 @@ struct parset{
   double alpha;      // Alpha_c                   
   
   double NdJ;        // N^.J_o^; inclination of J_o
-
+  
   // derived quantities (see also `localpar()'):
   double *loctc;     // vector of `local coalescence times' (w.r.t. FT'd data!)         
   double *localti;   // vector of local altitudes                                       

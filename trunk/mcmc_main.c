@@ -96,7 +96,6 @@ int main(int argc, char * argv[])
   //Get the desired SNR by scaling the distance
   if(run.injectionSNR > 0.001 && inject==1) {
     truepar[3] *= (run.netsnr/run.injectionSNR);  //Use total network SNR
-    //truepar[3] *= (run.netsnr/(run.injectionSNR*sqrt((double)networksize)));  //Use geometric average SNR
     printf("   Setting distance to %lf Mpc to get a network SNR of %lf.\n",truepar[3],run.injectionSNR);
     gettrueparameters(&dummypar);
     dummypar.loctc    = (double*)calloc(networksize,sizeof(double));
@@ -163,8 +162,6 @@ int main(int argc, char * argv[])
   printf("%20.10lf\n\n",run.netsnr);
   //printf("    %8s  %8s  %17s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "Mc","eta","tc","logdL","spin","kappa","longi","sinlati","phase","sinthJ0","phiJ0","alpha");
   //printf("    %8.5f  %8.5f  %17.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f\n\n", dummypar.mc,dummypar.eta,dummypar.tc,dummypar.logdl,dummypar.spin,dummypar.kappa,dummypar.longi,dummypar.sinlati,dummypar.phase,dummypar.sinthJ0,dummypar.phiJ0,dummypar.alpha);
-  //printf("    %8s  %8s  %17s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "M1","M2","tc","d_L","spin","th_SL","RA","Dec","phase","th_J0","phi_J0","alpha");
-  //printf("    %8.5f  %8.5f  %17.6lf  %8.2f  %8.5f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f\n\n", dummypar.m1,dummypar.m2,dummypar.tc,exp(dummypar.logdl),dummypar.spin,acos(dummypar.kappa)*r2d,rightAscension(dummypar.longi,GMST(dummypar.tc))*r2h,asin(dummypar.sinlati)*r2d,dummypar.phase*r2d,asin(dummypar.sinthJ0)*r2d,dummypar.phiJ0*r2d,dummypar.alpha*r2d);
    printf("   Injection parameters:\n");
   int i=0;
   for(i=0;i<npar;i++)
@@ -283,14 +280,16 @@ int main(int argc, char * argv[])
   free(run.ranInjPar);
   freeparset(&dummypar);
   
+  
   clock_t time3 = clock();
   printf("   Timimg:\n");
-  if(doMCMC>=1) {
-    printf("     initialisation:%10.2lfs\n", ((double)time1 - (double)time0)*1.e-6 );
-    printf("     MCMC:          %10.2lfs\n", ((double)time2 - (double)time1)*1.e-6 );
+  if(1==1) { 
+    if(doMCMC>=1) {
+      printf("     initialisation:%10.2lfs\n", ((double)time1 - (double)time0)*1.e-6 );
+      printf("     MCMC:          %10.2lfs\n", ((double)time2 - (double)time1)*1.e-6 );
+    }
+    printf("     total time:    %10.2lfs\n", (double)time3*1.e-6);
   }
-  printf("     total time:    %10.2lfs\n", (double)time3*1.e-6);
-  
   
   printf("\n   MCMC code done.\n\n");
   if(doMCMC>=1) printf("\n");

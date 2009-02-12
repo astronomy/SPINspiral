@@ -1,6 +1,6 @@
 
-\documentclass[12pt]{article}
-\usepackage[top=2.0cm, bottom=2.0cm,  left=2.0cm, right=2.0cm, includefoot]{geometry}
+\documentclass[11pt]{article}
+\usepackage[letterpaper, top=2.0cm, bottom=2.0cm,  left=2.0cm, right=2.0cm, includefoot]{geometry}
 
 \begin{document}
 
@@ -10,21 +10,21 @@
 
 \subsubsection{Old}
 \begin{equation}
-\vec{\lambda} = \{M_c, \eta, t_\mathrm{0}, \log{d_\mathrm{L}}, \mathrm{R.A.}, \sin\mathrm{Dec}, \cos{i}, \varphi_\mathrm{c}, \psi, a_\mathrm{spin_1}, \cos{\theta_1}, \varphi_1, a_\mathrm{spin_2}, \cos{\theta_2}, \varphi_2\},
+  \vec{\lambda} = \{M_c, \eta, t_\mathrm{0}, \log{d_\mathrm{L}}, \mathrm{R.A.}, \sin\mathrm{Dec}, \cos{i}, \varphi_\mathrm{c}, \psi, a_\mathrm{spin_1}, \cos{\theta_1}, \varphi_1, a_\mathrm{spin_2}, \cos{\theta_2}, \varphi_2\},
 \end{equation}
 
 \begin{equation}
-\vec{\lambda} = \{M_c, \eta, t_\mathrm{c}, \log{d_\mathrm{L}}, a_\mathrm{spin}, \kappa, \mathrm{R.A.},\sin\mathrm{Dec}, \varphi_\mathrm{c}, \sin\theta_{J_0}, \varphi_{J_0}, \alpha_\mathrm{c}\},
+  \vec{\lambda} = \{M_c, \eta, t_\mathrm{c}, \log{d_\mathrm{L}}, a_\mathrm{spin}, \kappa, \mathrm{R.A.},\sin\mathrm{Dec}, \varphi_\mathrm{c}, \sin\theta_{J_0}, \varphi_{J_0}, \alpha_\mathrm{c}\},
 \end{equation}
 
 
 \subsubsection{Proposed}
 \begin{equation}
-\vec{\lambda} = \{M_c, \eta, t_\mathrm{0}, \log{d_\mathrm{L}}, \mathrm{R.A.}, \sin\mathrm{Dec}, \cos{i},          \psi,          \varphi_\mathrm{c}, a_\mathrm{spin,1}, \cos{\theta_\mathrm{spin,1}}, \varphi_\mathrm{spin,1}, a_\mathrm{spin,2}, \cos{\theta_\mathrm{spin,2}}, \varphi_\mathrm{spin,2}\},
+  \vec{\lambda} = \{M_c, \eta, t_\mathrm{0}, \log{d_\mathrm{L}}, \mathrm{R.A.}, \sin\mathrm{Dec}, \cos{i},          \psi,          \varphi_\mathrm{c}, a_\mathrm{spin,1}, \cos{\theta_\mathrm{spin,1}}, \varphi_\mathrm{spin,1}, a_\mathrm{spin,2}, \cos{\theta_\mathrm{spin,2}}, \varphi_\mathrm{spin,2}\},
 \end{equation}
 
 \begin{equation}
-\vec{\lambda} = \{M_c, \eta, t_\mathrm{c}, \log{d_\mathrm{L}}, \mathrm{R.A.}, \sin\mathrm{Dec}, \sin\theta_{J_0}, \varphi_{J_0}, \varphi_\mathrm{c},  a_\mathrm{spin,1}, \cos{\theta_\mathrm{spin,1}}, \varphi_\mathrm{spin,1}\},
+  \vec{\lambda} = \{M_c, \eta, t_\mathrm{c}, \log{d_\mathrm{L}}, \mathrm{R.A.}, \sin\mathrm{Dec}, \sin\theta_{J_0}, \varphi_{J_0}, \varphi_\mathrm{c},  a_\mathrm{spin,1}, \cos{\theta_\mathrm{spin,1}}, \varphi_\mathrm{spin,1}\},
 \end{equation}
 
 
@@ -45,7 +45,8 @@ Goal: assign a unique identifier to each possible variable that has been used in
 \subsubsection{Distance}
 \begin{tabular}{lllll}
   \textbf{Number} & \textbf{Variable} & \textbf{Description} & \textbf{Unit} & \textbf{Range} \\
-  \textbf{21} & $^\mathrm{e}\log(d_\mathrm{L})$ & Luminosity distance & Mpc & $]-\infty,\infty[$ \\
+  \textbf{21} & $d_\mathrm{L}^3$ & Luminosity distance & Mpc$^3$ & $]0,\infty[$ \\
+  \textbf{22} & $^\mathrm{e}\log(d_\mathrm{L}/\mathrm{Mpc})$ & Luminosity distance & --- & $]-\infty,\infty[$ \\
 \end{tabular}
 
 \subsubsection{Sky position}
@@ -67,8 +68,8 @@ Goal: assign a unique identifier to each possible variable that has been used in
   \textbf{Number} & \textbf{Variable} & \textbf{Description} & \textbf{Unit} & \textbf{Range} \\
   \textbf{51} & $\cos(\iota)$  & Inclination & --- & $[-1,1]$ \\
   \textbf{52} & $\psi$  & Polarisation angle & rad & $[0,\pi[$ \\
-  \textbf{53} & $\sin(\theta_{J_0})$ & 'Declination' of $J_0$ & --- & $[-1,1]$ \\
-  \textbf{54} & $\varphi_{J_0}$  & 'R.A.' of $J_0$ & rad & $[0,2\pi[$ \\
+  \textbf{53} & $\sin(\theta_{J_0})$ & `Declination of $J_0$' & --- & $[-1,1]$ \\
+  \textbf{54} & $\varphi_{J_0}$  & `R.A. of $J_0$' & rad & $[0,2\pi[$ \\
 \end{tabular}
 
 \subsubsection{Mass}

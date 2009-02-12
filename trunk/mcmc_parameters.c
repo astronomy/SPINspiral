@@ -555,7 +555,6 @@ void gettrueparameters(struct parset *par)  //Set the parameters for the 12-para
   
   par->spin     = truepar[4];                    // magnitude of total spin   (0.1)
   par->kappa    = cos(truepar[5]*d2r);           // L^.S^, cos of angle between L^ & S^  (0.819152)
-  //par->longi    = truepar[6]*d2r;                // longitude (~'Greenwich hour angle', saved as RA)     (120)
   par->longi    = fmod(longitude(truepar[6]*h2r,GMST(par->tc))+mtpi,tpi);  //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
   par->sinlati  = sin(truepar[7]*d2r);           // sin latitude (sin(delta))  (40)     
   
@@ -591,7 +590,6 @@ void getstartparameters(struct parset *par, struct runpar run)  //Set the parame
   
   par->spin     = run.startpar[4];                    // magnitude of total spin   (0.1)
   par->kappa    = cos(run.startpar[5]*d2r);           // L^.S^, cos of angle between L^ & S^  (0.819152)
-  //par->longi    = run.startpar[6]*d2r;                // longitude (~'Greenwich hour angle', saved as RA)     (120)
   par->longi    = fmod(longitude(run.startpar[6]*h2r,GMST(par->tc))+mtpi,tpi);  //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
   par->sinlati  = sin(run.startpar[7]*d2r);           // sin latitude (sin(delta))  (40)     
   

@@ -64,8 +64,6 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
   inversesamplerate = 1.0/samplerate;
   length     = ifo[ifonr]->samplesize;
   
-  //printf("\n\n  %20.5lf  %f    %f  %f  %f    %f  %f  %f\n\n\n",par->tc,GMST(par->tc),par->longi*r2h,rightAscension(par->longi,GMST(par->tc))*r2h,asin(par->sinlati)*r2d, par->locazi[ifonr]*r2d,fmod(pi-(par->locazi[ifonr]+ifo[ifonr]->rightarm)+mtpi,tpi)*r2d,(pi/2.0-par->localti[ifonr])*r2d);
-  
   
   double n_z[3] = {0.0,0.0,1.0};                                                                                        //North in global coordinates
   double normalvec[3];                                                                                                  
@@ -96,8 +94,6 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
   
   //if(printMuch) {printf("Ms: eta: %g  Mc: %g  m1: %g  m2: %g  M: %g  mu: %g  Mo: %g\n",par->eta,Mc/M0,m1/M0,m2/M0,M/M0,mu/M0,M0);}
   //printf("  %d  %lf  %lf  %lf  %lf  %d\n",ifonr,localtc,altitude,azimuth,samplerate,length);
-  //printf("  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf\n",
-  // par->mc,par->eta,par->tc,par->logdl,par->spin,par->kappa,par->longi,par->sinlati,par->phase,par->sinthJ0,par->phiJ0,par->alpha);
   
   double beta = 1.0/12.0*(113.0*(m1*m1)/(M*M) + 75.0*peta)*pkappa*spin/(m1*m1);                                 // Eq.20, for S2=0 or m1=m2,S1=S2:  kappa*spin/(m1*m1) = L^.S/m1^2, see Blanchet et al., PRL 74, 3515, 1995
   
