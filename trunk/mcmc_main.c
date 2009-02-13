@@ -224,9 +224,9 @@ int main(int argc, char * argv[])
       //for(eta=0.01;eta<0.25001;eta+=0.001) {
       //for(eta=0.1;eta<0.12001;eta+=0.001) {
       for(eta=0.111;eta<0.1111;eta+=0.001) {
-	getparameterset(&par1, 3.0,0.11,700009012.346140,3.0, 0.5,0.9,3.0,0.5, 1.0,0.1,2.0,3.0);
+	//getparameterset(&par1, 3.0,0.11,700009012.346140,3.0, 0.5,0.9,3.0,0.5, 1.0,0.1,2.0,3.0);
 	
-	getparameterset(&par2, 3.0,eta,700009012.346140,3.0, 0.5,0.9,3.0,0.5, 1.0,0.1,2.0,3.0);
+	//getparameterset(&par2, 3.0,eta,700009012.346140,3.0, 0.5,0.9,3.0,0.5, 1.0,0.1,2.0,3.0);
 	
 	double matchres = parmatch(&par1,&par2,network, networksize, run.injectionWaveform);
 	double overlap = paroverlap(&par1,&par2,network,0, run.injectionWaveform);
@@ -248,7 +248,7 @@ int main(int argc, char * argv[])
       double **matrix  = (double**)calloc(npar,sizeof(double*));
       for(i=0;i<npar;i++) matrix[i]  = (double*)calloc(npar,sizeof(double));
       allocparset(&par, networksize);
-      getparameterset(&par, 3.0,0.11,700009012.346140,3.0, 0.5,0.9,3.0,0.5, 1.0,0.1,2.0,3.0);
+      //getparameterset(&par, 3.0,0.11,700009012.346140,3.0, 0.5,0.9,3.0,0.5, 1.0,0.1,2.0,3.0);
       
       //computeFishermatrixIFO(par,npar,network,networksize,0,matrix);
       //computeFishermatrix(&par,npar,network,networksize,matrix);

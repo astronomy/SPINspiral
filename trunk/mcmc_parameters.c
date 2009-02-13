@@ -514,18 +514,16 @@ void setconstants()
   
   
   // Define some physical constants:
-  Ms   = 1.9889194662e30;   // solar mass (kg)
-  Mpc  = 3.08568025e22;     // metres in a Mpc  (LAL: 3.0856775807e22)
-  G    = 6.67259e-11;       // 6.674215e-11; */ /* gravity constant (SI)
-  c    = 299792458.0;       // speed of light (m/s)
-  Mpcs = 1.029272137e14;    // seconds in a Mpc  (Mpc/c)
+  Ms   = 1.9889194662e30;     // solar mass (kg)
+  Mpc  = 3.08568025e22;       // metres in a Mpc  (LAL: 3.0856775807e22)
+  G    = 6.67259e-11;         // 6.674215e-11; */ /* gravity constant (SI)
+  c    = 299792458.0;         // speed of light (m/s)
+  Mpcs = 1.029272137e14;      // seconds in a Mpc  (Mpc/c)
   pi   = 3.141592653589793;   // pi
   tpi  = 6.283185307179586;   // 2 pi
   mtpi = 6.283185307179586e6; // Large multiple of 2 pi (2 megapi)
   
   tukeywin       = 0.15; // parameter for Tukey-window used in dataFT (non-flat fraction).   Use 0.15 for Virgo data  
-  
-  annealfact = 2.0;      /* temperature increase factor for subsequent chains                */
 }
 
 
@@ -604,27 +602,6 @@ void getstartparameters(struct parset *par, struct runpar run)  //Set the parame
   par->locazi   = NULL;
   par->locpolar = NULL;
 }
-
-
-void getparameterset(struct parset *par, double mc, double eta, double tc, double logdl, double spin, double kappa, double longi, double sinlati, double phase, double sinthJ0, double phiJ0, double alpha)  
-// Set the parameters for the 12-parameter spinning template to the indicated values
-{
-  par->mc       = mc;                         // chirp mass. in Mo   
-  par->eta      = eta;                        // mass ratio                
-  par->tc       = tc;                         // coalescence time
-  par->logdl    = logdl;                      // log(distance/Mpc) (17.5)             
-  
-  par->spin     = spin;                       // magnitude of total spin   (0.1)
-  par->kappa    = kappa;                      // L^.S^, cos of angle between L^ & S^  (0.819152)
-  par->longi    = longi;                      // The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
-  par->sinlati  = sinlati;                    // sin dec (sin(delta))  (40)     
-  
-  par->phase    = phase;                      // orbital phase   (phi_c)   (0.2)
-  par->sinthJ0  = sinthJ0;                    // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
-  par->phiJ0    = phiJ0;                      // Phi_J0 ~ azimuthal            (125)
-  par->alpha    = alpha;                      // Alpha_c                       (0.9 rad = 51.566202deg)
-}
-
 
 
 //Allocate memory for the vectors in the struct parset

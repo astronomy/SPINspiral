@@ -88,7 +88,6 @@ int useoldmcmcoutputformat;
 double tukeywin;
 
 int inject;
-double annealfact;
 
 double *chaintemp;                  // vector of temperatures for individual chains (initialised later) 
 
@@ -322,8 +321,6 @@ void setRandomInjectionParameters2(struct runpar *run);
 
 void gettrueparameters(struct parset *par);
 void getstartparameters(struct parset *par, struct runpar run);
-void getparameterset(struct parset *par, double mc, double eta, double tc, double logdl, double spin, double kappa, 
-		     double longi, double sinlati, double phase, double sinthJ0, double phiJ0, double alpha);
 void allocparset(struct parset *par, int networksize);
 void freeparset(struct parset *par);
 void printparset(struct parset par);

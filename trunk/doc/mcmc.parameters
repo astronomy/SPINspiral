@@ -1,0 +1,52 @@
+  #MCMC-parameter input file for spinning MCMC code.  The LINE NUMBER for each parameter should not change!!!  For injection parameters, see mcmc.input
+  
+  #Priors:
+  #Value:                                                                     Variable:                Description:
+  1                                                                           priorset                 Set of priors to use
+  
+  
+  #Parameter:                                                                 Prior:                                                 Description:
+  #Number:     identifier:     best value:         start:     sigma:          type:     bound1:             bound2:                  
+
+  1            11              894377000.00000     4          0.1             11        894376999.05000     894377000.05000          t_c            GPS time of coalescence (s)
+  2            22              2.8904              4          0.1             11        -6.9                4.6                      log(d_L)       log of luminosity distance (Mpc)
+  3            31              0.8000	           5          0.1             21        0.0                 6.28                     alpha          right ascension (rad)
+  4            32              0.3000              5          0.1             11        -1.000              1.000                    sin(delta)     sin declination (-)
+  5            41              1.5000              5          0.1             21        0.0                 6.28                     phi_c          binary phase at coalescence (rad)
+  6            53              0.5000              5          0.1             11        -1.000              1.000                    sin(theta_J0)  orientation of J0 (-)
+  7            54              2.0000              5          0.1             21        0.0                 6.28                     phi_J0         orientation of J0 (rad)
+  8            61              6.0836              4          0.1             11        3.000               12.000                   Mc             chirp mass (Mo)
+  9            62              0.2222              4          0.1             11        0.03                0.25                     eta            symmetric mass ratio (-)
+ 10            71              1.0000		   4          0.1             11        0.000               1.000                    a_spin1        spin magnitude of object 1 (-)
+ 11            72              0.1000		   5          0.1             11        -1.000              1.000                    cos theta1     spin tilt of object 1 (-)
+ 12            73              1.5000              5          0.1             21        0.0                 6.28                     phi1           spin phase of object 1 (rad)
+  
+
+
+
+ ###################################################################################################################################################################################
+ Explanation:
+ 
+ Parameter:
+   number: just to guide the eye in this file?
+   identifier: a unique number for a parameter
+   best value: best value for the parameter, e.g. from trigger;  use to start from or close to
+   start:  where to start the markov chains
+     1: start at injection value
+     2: start near injection value (Gaussian distribution with width sigma)
+     3: start at best value
+     4: start near best value (Gaussian distribution with width sigma)
+     5: start randomly from range determined by bound1-bound2 (see prior type)
+   sigma: width of the Gaussian distribution to start from for start=2,4; also used for first correlation matrix
+ 
+ Prior:
+   type: 
+     11: general range, bound1-bound2
+     12: general range, best value-bound1 - best value+bound2
+     13: general range, best value/bound1 - best value*bound2
+     14: general range, injection value-bound1 - injection value+bound2
+     15: general range, injection value/bound1 - injection value*bound2
+     21: periodic boundaries 0-2pi
+     22: periodic boundaries 0-pi
+   bound1,2: used to determine upper or lower bound, depending on prior type.  Ignored for periodic boundaries
+   
