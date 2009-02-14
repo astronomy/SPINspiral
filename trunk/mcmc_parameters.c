@@ -87,6 +87,7 @@ void readMainInputfile(struct runpar *run)
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
   fgets(bla,500,fin); sscanf(bla,"%s",run->MCMCinfilename);
   fgets(bla,500,fin); sscanf(bla,"%s",run->datainfilename);
+  fgets(bla,500,fin); sscanf(bla,"%s",run->parameterinfilename);
   
   fclose(fin);
 }
@@ -422,6 +423,7 @@ void readDataInputfile(struct runpar *run, struct interferometer ifo[])
   //Use and l for floats: %lf, %lg, etc, rather than %f, %g
   
   for(j=1;j<=3;j++) fgets(bla,500,fin);  //Read first 3 lines
+  fgets(run->datasetName,80,fin);  fgets(bla,500,fin);  //Read name of the data set used, and then the rest of the line
   
   //Detector network:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
@@ -432,12 +434,12 @@ void readDataInputfile(struct runpar *run, struct interferometer ifo[])
   
   //Data handling:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin); sscanf(bla,"%d",&run->selectdata);
   fgets(bla,500,fin); sscanf(bla,"%d",&downsamplefactor);
   fgets(bla,500,fin); sscanf(bla,"%lf",&run->databeforetc);
   fgets(bla,500,fin); sscanf(bla,"%lf",&run->dataaftertc);
   fgets(bla,500,fin); sscanf(bla,"%lf",&run->lowfrequencycut);
   fgets(bla,500,fin); sscanf(bla,"%lf",&run->highfrequencycut);
+  fgets(bla,500,fin); sscanf(bla,"%lf",&run->tukeywin);
   
   
   //Read input for PSD estimation:
@@ -496,6 +498,42 @@ void readDataInputfile(struct runpar *run, struct interferometer ifo[])
 
 
 
+// All parameters that are read in here should be members of the runvar struct
+void readParameterInputfile(struct runpar *run)
+{
+  int i;
+  char bla[500];
+  FILE *fin;
+  
+  if((fin = fopen(run->parameterinfilename,"r")) == NULL) {
+    printf("   Error reading parameter input file: %s, aborting.\n\n\n",run->parameterinfilename);
+    exit(1);
+  } else {
+    printf("   Using parameter input file: %s.\n",run->parameterinfilename);
+  }
+  
+  
+  //Use and l for floats: %lf, %lg, etc, rather than %f, %g
+  
+  for(i=1;i<=2;i++) fgets(bla,500,fin);  //Read first 2 lines
+  
+  //Priors:
+  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->priorSet);
+  
+  
+  
+  //Parameters:
+  for(i=1;i<=5;i++) fgets(bla,500,fin);  //Read empty and comment lines
+  
+  for(i=0;i<npar;i++) {
+    fscanf(fin,"%d %d %lf %d %lf %d %lf %lf",&run->parNumber[i],&run->parID[i],&run->parBestVal[i],&run->parStartMCMC[i],&run->parSigma[i],&run->priorType[i],&run->priorBoundLow[i],&run->priorBoundup[i]);
+  }
+  
+  fclose(fin);
+}
+
+
 
 
 
@@ -504,26 +542,23 @@ void readDataInputfile(struct runpar *run, struct interferometer ifo[])
 
 // Set the global variables.
 // Many of these are now in the input file or unused.
-// This routine should eventually disappear.
+// This routine should eventually contain mathematical and (astro)physical constants only
 void setconstants()
 {
-  
-  //npar           =  12;            // Number of parameters, not *really* a variable... (yet anyway)
-  
   tempi = 0; //A global variable that determines the current chain (temperature) in the temperature ladder
   
-  
-  // Define some physical constants:
-  Ms   = 1.9889194662e30;     // solar mass (kg)
-  Mpc  = 3.08568025e22;       // metres in a Mpc  (LAL: 3.0856775807e22)
-  G    = 6.67259e-11;         // 6.674215e-11; */ /* gravity constant (SI)
-  c    = 299792458.0;         // speed of light (m/s)
-  Mpcs = 1.029272137e14;      // seconds in a Mpc  (Mpc/c)
+  // Mathematical constants:
   pi   = 3.141592653589793;   // pi
   tpi  = 6.283185307179586;   // 2 pi
   mtpi = 6.283185307179586e6; // Large multiple of 2 pi (2 megapi)
   
-  tukeywin       = 0.15; // parameter for Tukey-window used in dataFT (non-flat fraction).   Use 0.15 for Virgo data  
+  // Define some physical constants:
+  G    = 6.67259e-11;         // 6.674215e-11; */ /* gravity constant (SI)
+  c    = 299792458.0;         // speed of light (m/s)
+  
+  Ms   = 1.9889194662e30;     // solar mass (kg)
+  Mpc  = 3.08568025e22;       // metres in a Mpc  (LAL: 3.0856775807e22)
+  Mpcs = 1.029272137e14;      // seconds in a Mpc  (Mpc/c)
 }
 
 

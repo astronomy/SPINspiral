@@ -2,6 +2,12 @@
   ChangeLog for the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
 
+   118: sluys, 13/02/2009
+     - new input file mcmc.parameters (see doc/):
+       - contains data on how to treat MCMC parameters
+       - file read, but data not yet used
+     - tukeywin now read from mcmc.data
+   
    114: sluys, 06/02/2009
      - input files changed, see in doc/: mcmc.input, mcmc.mcmc, mcmc.data
      - created new input file mcmc.mcmc with all data on how to do mcmc

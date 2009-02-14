@@ -852,6 +852,8 @@ void write_mcmc_output(struct mcmcvariables mcmc, struct interferometer *ifo[])
       /*ILYA*/
       // if((iteri % (50*thinScreenOutput))==0 || iteri<0) printf("Previous iteration has match of %10g with true signal\n\n", 
       //	matchBetweenParameterArrayAndTrueParameters(mcmc.param[tempi], ifo, mcmc.networksize), mcmc.injectionWaveform, mcmc.mcmcWaveform); //CHECK need support for two different waveforms
+      // While the above is commented out, get rid of 'not used' warnings for the ifo struct:
+      ifo[0]->index = ifo[0]->index;
       
       //if((iteri % (50*thinScreenOutput))==0 || iteri<0)  printf("\n%9s %10s  %7s %7s %8s %6s %6s %6s %6s %6s %6s %6s %6s %6s\n",
       //					    "cycle","logL","Mc","eta","tc","logdL","spin","kappa","RA","sindec","phase","snthJ0","phiJ0","alpha");

@@ -24,6 +24,8 @@ void setIFOdata(struct runpar *run, struct interferometer ifo[])
   sprintf(datadescriptions[5],"NINJA");
   sprintf(datadescriptions[6],"Original Gaussian noise (GPS ~700006000)");
   
+  run->selectdata = 0;  //Now, you *have* to read from a file
+  
   //run->selectdata = max(min(run->selectdata,numberofdatasets),1);
   if(run->selectdata < 0 || run->selectdata > numberofdatasets) {
     printf("\n\n   Unknown dataset %d selected.  Please set the parameter  selectdata  in  %s  to a value between 0 and %d: \n",run->selectdata, run->infilename,numberofdatasets);
@@ -36,15 +38,17 @@ void setIFOdata(struct runpar *run, struct interferometer ifo[])
   
   
   // Print selected type of data/noise:
-  printf("   Using data set %d: %s.\n",run->selectdata,datadescriptions[run->selectdata]);
+  //printf("   Using data set %d: %s.\n",run->selectdata,datadescriptions[run->selectdata]);
   
   
-  //*** Read detector position, orientation, file and channel names for detector strains from file (e.g. mcmc.data):
+  // *** Read detector position, orientation, file and channel names for detector strains from file (e.g. mcmc.data):
   if(run->selectdata == 0) readDataInputfile(run,ifo);        //Read data on the noise files to use
   
+  // Print selected type of data/noise:
+  printf("   Data set used: %s\n",run->datasetName);
   
-  
-  //*** Set detector location and orientation when not reading them from file:
+  /*
+  // *** Set detector location and orientation when not reading them from file:
   if(run->selectdata > 0) {
     // HANFORD, H1:
     sprintf(ifo[0].name, "Hanford");
@@ -67,7 +71,7 @@ void setIFOdata(struct runpar *run, struct interferometer ifo[])
     ifo[2].rightarm = ( 341.50/180.0)*pi;
     ifo[2].leftarm  = (  71.50/180.0)*pi;
   }
-  
+  */  
   
   // WGS-84 data:
   for(i=0;i<run->maxIFOdbaseSize;i++) {
@@ -76,7 +80,7 @@ void setIFOdata(struct runpar *run, struct interferometer ifo[])
   }
   
   
-  //*** Data time and frequency cutoffs per detector (same for all detectors for now):
+  // *** Data time and frequency cutoffs per detector (same for all detectors for now):
   for(i=0;i<run->maxIFOdbaseSize;i++) {
     ifo[i].lowCut    = run->lowfrequencycut;   // Define lower and upper limits of overlap integral
     ifo[i].highCut   = run->highfrequencycut;
@@ -87,9 +91,9 @@ void setIFOdata(struct runpar *run, struct interferometer ifo[])
   
   
   
+  /*
   
   // ***  Set hardcoded data sets ***
-  
   if(run->selectdata == 1) {
     // HANFORD, H1:
     // Gaussian, stationary noise
@@ -525,6 +529,7 @@ void setIFOdata(struct runpar *run, struct interferometer ifo[])
       ifo[2].noisedoubleprecision = 0;
     }
   }
+  */
   
 }
 // End of set_ifo_data()
@@ -803,8 +808,8 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
   
   // `from' and `to' are determined so that the range specified by `before_tc' and `after_tc'
   // falls into the flat part of the (Tukey-) window:                                        
-  from  = floor(prior_tc_mean - ifo[ifonr]->before_tc - (ifo[ifonr]->before_tc+ifo[ifonr]->after_tc) * 0.5 * (tukeywin/(1.0-tukeywin)));
-  to    =  ceil(prior_tc_mean + ifo[ifonr]->after_tc  + (ifo[ifonr]->before_tc+ifo[ifonr]->after_tc) * 0.5 * (tukeywin/(1.0-tukeywin)));
+  from  = floor(prior_tc_mean - ifo[ifonr]->before_tc - (ifo[ifonr]->before_tc+ifo[ifonr]->after_tc) * 0.5 * (run.tukeywin/(1.0-run.tukeywin)));
+  to    =  ceil(prior_tc_mean + ifo[ifonr]->after_tc  + (ifo[ifonr]->before_tc+ifo[ifonr]->after_tc) * 0.5 * (run.tukeywin/(1.0-run.tukeywin)));
   delta = (to) - (from);
   if(intscrout==1) printf(" | investigated time range : from %.1f to %.1f (%.1f seconds)\n", from, to, delta);
   
@@ -999,7 +1004,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
   ifo[ifonr]->FTwindow = malloc(sizeof(double) * N);
   ifo[ifonr]->rawDownsampledWindowedData = (double*) fftw_malloc(sizeof(double)*N);
   for(j=0; j<N; ++j){
-    ifo[ifonr]->FTwindow[j] =  tukey(j, N, tukeywin);
+    ifo[ifonr]->FTwindow[j] =  tukey(j, N, run.tukeywin);
     ifo[ifonr]->FTin[j] *= ifo[ifonr]->FTwindow[j];
     ifo[ifonr]->rawDownsampledWindowedData[j]=ifo[ifonr]->FTin[j];    
   }

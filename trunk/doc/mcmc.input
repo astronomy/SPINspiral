@@ -1,21 +1,21 @@
   #Input file for spinning MCMC code.  The LINE NUMBER for each parameter should not change!!!
 
-  #Value:                                  Variable:           Description:
+  #Value:                                  Variable:                Description:
   
   #Operation and output:
-  1                                        doSNR               Calculate the SNR: 0-no, 1-yes.
-  1                                        doMCMC              Do MCMC: 0-no, 1-yes.
-  0                                        doMatch             Calculate matches: 0-no, 1-yes.
-  0                                        intscrout           Print initialisation output to screen: 0-no, 1-yes.
-  0                                        writeSignal         Write signal, noise, PSDs to file: 0-no, 1-yes.
-  0                                        printMuch           Print long stretches of output (1) or not (0).
+  1                                        doSNR                    Calculate the SNR: 0-no, 1-yes.
+  1                                        doMCMC                   Do MCMC: 0-no, 1-yes.
+  0                                        doMatch                  Calculate matches: 0-no, 1-yes.
+  0                                        intscrout                Print initialisation output to screen: 0-no, 1-yes.
+  0                                        writeSignal              Write signal, noise, PSDs to file: 0-no, 1-yes.
+  0                                        printMuch                Print long stretches of output (1) or not (0).
   
   #Software injection:
-  1                                        inject              Inject a signal (1) or not (0).
-  1                                        injectionWaveform   Waveform version used for the software injection:  1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL, 3 for 3.5PN 15-parameter LAL
-  0.0                                      injectionSNR        If > 0: scale the distance such that the injection network SNR becomes injectionSNR
-  0 0 0 0 0 0 0 0 0 0 0 0                  setranpar[]         Parameters you want to randomise before injecting the signal; 0: use the value in truepar below, 1: randomise.  These are the same parameters as trueval (ie M1, M2, etc!)
-  12345                                    ranparseed          Random number seed for random injection parameters. Don't change between serial chains of the same run!
+  1                                        inject                   Inject a signal (1) or not (0).
+  1                                        injectionWaveform        Waveform version used for the software injection:  1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL, 3 for 3.5PN 15-parameter LAL
+  0.0                                      injectionSNR             If > 0: scale the distance such that the injection network SNR becomes injectionSNR
+  0 0 0 0 0 0 0 0 0 0 0 0                  setranpar[]              Parameters you want to randomise before injecting the signal; 0: use the value in truepar below, 1: randomise.  These are the same parameters as trueval (ie M1, M2, etc!)
+  12345                                    ranparseed               Random number seed for random injection parameters. Don't change between serial chains of the same run!
   
   
   #Injection (first line) and starting (second line) parameter values, these are the exact MCMC parameters and units
@@ -25,8 +25,9 @@
   
   
   #Secondary input files:
-  mcmc.mcmc                                MCMCinfilename      File name of the MCMC input file, e.g. mcmc.mcmc
-  mcmc.data                                datainfilename      File name of the data/noise input file, e.g. mcmc.data
+  mcmc.mcmc                                MCMCinfilename           File name of the MCMC input file, e.g. mcmc.mcmc
+  mcmc.data                                datainfilename           File name of the data/noise input file, e.g. mcmc.data
+  mcmc.parameters                          parameterinfilename      File name of the data/noise input file, e.g. mcmc.parameters
 
 
 

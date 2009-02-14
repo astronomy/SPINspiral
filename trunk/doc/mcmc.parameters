@@ -6,7 +6,7 @@
   
   
   #Parameter:                                                                 Prior:                                                 Description:
-  #Number:     identifier:     best value:         start:     sigma:          type:     bound1:             bound2:                  
+  #Number:     identifier:     best value:         start:     sigma:          type:     BoundLow:           BoundUp:                 
 
   1            11              894377000.00000     4          0.1             11        894376999.05000     894377000.05000          t_c            GPS time of coalescence (s)
   2            22              2.8904              4          0.1             11        -6.9                4.6                      log(d_L)       log of luminosity distance (Mpc)
@@ -36,17 +36,17 @@
      2: start near injection value (Gaussian distribution with width sigma)
      3: start at best value
      4: start near best value (Gaussian distribution with width sigma)
-     5: start randomly from range determined by bound1-bound2 (see prior type)
+     5: start randomly from range determined by BoundLow-BoundUp (see prior type)
    sigma: width of the Gaussian distribution to start from for start=2,4; also used for first correlation matrix
  
  Prior:
    type: 
-     11: general range, bound1-bound2
-     12: general range, best value-bound1 - best value+bound2
-     13: general range, best value/bound1 - best value*bound2
-     14: general range, injection value-bound1 - injection value+bound2
-     15: general range, injection value/bound1 - injection value*bound2
+     11: general range, BoundLow-BoundUp
+     12: general range, best value-BoundLow - best value+BoundUp
+     13: general range, best value/BoundLow - best value*BoundUp
+     14: general range, injection value-BoundLow - injection value+BoundUp
+     15: general range, injection value/BoundLow - injection value*BoundUp
      21: periodic boundaries 0-2pi
      22: periodic boundaries 0-pi
-   bound1,2: used to determine upper or lower bound, depending on prior type.  Ignored for periodic boundaries
+   BoundLow,Up: used to determine upper or lower bound, depending on prior type.  Ignored for periodic boundaries
    

@@ -85,8 +85,6 @@ double Ms,Mpc,G,c,Mpcs,pi,tpi,mtpi;
 int useoldmcmcoutputformat;
 
 
-double tukeywin;
-
 int inject;
 
 double *chaintemp;                  // vector of temperatures for individual chains (initialised later) 
@@ -130,18 +128,35 @@ struct runpar{
   double temps[99];               // Temperature ladder for manual parallel tempering
   double startpar[20];            // Starting parameters for the MCMC chains (may be different from true parameters)
   
+  //Data:
+  char datasetName[80];           // Name of the data set used (for printing purposes)
   double databeforetc;            // Data stretch in the time domain before t_c to use in the analysis
   double dataaftertc;             // Data stretch in the time domain after t_c to use in the analysis
   double lowfrequencycut;         // Lower frequency cutoff to compute the overlap for
   double highfrequencycut;        // Upper frequency cutoff to compute the overlap for
+  double tukeywin;                // Parameter for Tukey-window used in dataFT
   
   int PSDsegmentNumber;           // Number of data segments used for PSD estimation
   double PSDsegmentLength;        // Length of each segment of data used for PSD estimation
+  
+  
+  //MCMC parameters:
+  int priorSet;                // Set of priors to use for the MCMC parameters
+  int parNumber[20];              // Number of the current parameter
+  int parID[20];                  // Unique parameter identifier
+  double parBestVal[20];          // Best know value for each parameter
+  int parStartMCMC[20];           // Method of choosing starting value for Markov chains
+  double parSigma[20];            // Width of Gaussian distribution for offset start and first correlation matrix
+  int priorType[20];              // Type of prior to use
+  double priorBoundLow[20];       // Info to determine lower boundary for prior
+  double priorBoundup[20];        // Info to determine upper boundary for prior
+  
   
   char infilename[99];            // Run input file name
   char outfilename[99];           // Copy of input file name
   char MCMCinfilename[99];        // Run MCMC input file name
   char datainfilename[99];        // Run data input file name
+  char parameterinfilename[99];   // Run parameter input file name
 };
 
 
@@ -307,11 +322,13 @@ fftw_complex *FTout;                  // FT output (type here identical to `(dou
 
 
 // Declare functions (prototypes):
-void readLocalInputfile();
 void readMainInputfile(struct runpar *run);
+void readLocalInputfile();
 void writeMainInputfile(struct runpar *run);
 void readMCMCinputfile(struct runpar *run);
 void readDataInputfile(struct runpar *run, struct interferometer ifo[]);
+void readParameterInputfile(struct runpar *run);
+
 void setconstants();
 void setIFOdata(struct runpar *run, struct interferometer ifo[]);
 
