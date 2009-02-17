@@ -185,7 +185,7 @@ void LALHpHc12(CoherentGW *waveform, int *l, struct parset *par, struct interfer
   
   par->NdJ = dotproduct(n_N,n_J0);																						//Inclination of J_0; only for printing purposes, should be removed from this routine
   
-  //Get masses from Mch and eta
+  //Get individual masses from Mch and eta  CHECK: use mceta2masses()
   double root = sqrt(0.25-peta);
   double fraction = (0.5-root) / (0.5+root);
   double inversefraction = 1.0/fraction;
@@ -447,7 +447,7 @@ void LALHpHc15(CoherentGW *waveform, int *l, struct parset *par, struct interfer
   
 
 
-  //Get masses from Mch and eta
+  //Get masses from Mch and eta  CHECK: use mceta2masses()
   double root = sqrt(0.25-par->par[1]);
   double fraction = (0.5-root) / (0.5+root);
   double inversefraction = 1.0/fraction;                                                                                             //Chirp mass in seconds

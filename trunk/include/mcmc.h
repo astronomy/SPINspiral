@@ -373,9 +373,11 @@ void write_chain_info(struct mcmcvariables mcmc);
 
 
 
-double massratio(double m1, double m2);
-void mc2masses(double mc, double eta, double *m1, double *m2);
 double chirpmass(double m1, double m2);
+double massratio(double m1, double m2);
+void mceta2masses(double mc, double eta, double *m1, double *m2);
+void masses2mceta(double m1, double m2, double *Mc, double *eta);
+
 double GMST(double GPSsec);
 double rightAscension(double longi, double GMST);
 double longitude(double rightAscension, double GMST);

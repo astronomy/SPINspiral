@@ -864,7 +864,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
     struct parset injectpar;
     gettrueparameters(&injectpar);
     double m1=0.0,m2=0.0;
-    mc2masses(injectpar.mc, injectpar.eta, &m1, &m2);
+    mceta2masses(injectpar.mc, injectpar.eta, &m1, &m2);
     injectpar.loctc    = (double*)calloc(networksize,sizeof(double));
     injectpar.localti  = (double*)calloc(networksize,sizeof(double));
     injectpar.locazi   = (double*)calloc(networksize,sizeof(double));
@@ -1406,12 +1406,12 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networksize, struct r
   par.locazi   = (double*)calloc(networksize,sizeof(double));
   par.locpolar = (double*)calloc(networksize,sizeof(double));
   localpar(&par, ifo, networksize);
-
-
+  
+  
   for(i=0; i<networksize; i++){
     double f;
     double complex FFTout;
-
+    
     // Fill `ifo[i]->FTin' with time-domain template:
     template(&par, ifo, i, run.injectionWaveform);
     // And FFT it
@@ -1422,13 +1422,13 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networksize, struct r
     sprintf(filename, "%s-signal.dat.%6.6d", ifo[i]->name, run.MCMCseed);  // Write in current dir
     FILE *dump = fopen(filename,"w");
     if(writeSignal==2){
-    	printParameterHeaderToFile(dump);
-    	fprintf(dump, "       GPS time (s)         H(t)\n");
+      printParameterHeaderToFile(dump);
+      fprintf(dump, "       GPS time (s)         H(t)\n");
     }
     for(j=0; j<ifo[i]->samplesize; ++j)
-        fprintf(dump, "%9.9f %13.6e\n", 
-		ifo[i]->FTstart+((double)j)/((double)ifo[i]->samplerate),
-                ifo[i]->FTin[j]);
+      fprintf(dump, "%9.9f %13.6e\n", 
+	      ifo[i]->FTstart+((double)j)/((double)ifo[i]->samplerate),
+	      ifo[i]->FTin[j]);
     fclose(dump);             
     if(intscrout) printf(" : (signal written to file)\n");
     
@@ -1436,16 +1436,15 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networksize, struct r
     sprintf(filename, "%s-signalFFT.dat.%6.6d", ifo[i]->name, run.MCMCseed);  // Write in current dir
     FILE *dump2 = fopen(filename,"w");
     if(writeSignal==2){
-    	printParameterHeaderToFile(dump2);
-    	fprintf(dump2, "       f (Hz)    real(H(f))    imag(H(f))\n");
+      printParameterHeaderToFile(dump2);
+      fprintf(dump2, "       f (Hz)    real(H(f))    imag(H(f))\n");
     }
     // Loop over the Fourier frequencies within operational range
-        //(some 40-1500 Hz or similar):
+    //(some 40-1500 Hz or similar):
     for(j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j){
       f=((double) j)/((double) ifo[i]->deltaFT);
       FFTout=ifo[i]->FTout[j]/((double)ifo[i]->samplerate);
-      fprintf(dump2, "%13.6e %13.6e %13.6e\n",f, creal(FFTout), 
-        cimag(FFTout) ); //Save the real and imaginary parts of the signal FFT
+      fprintf(dump2, "%13.6e %13.6e %13.6e\n",f, creal(FFTout), cimag(FFTout) ); //Save the real and imaginary parts of the signal FFT
     }
     fclose(dump2);
     if(intscrout) printf(" : (signal FFT written to file)\n");
@@ -1457,11 +1456,12 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networksize, struct r
 
 void printParameterHeaderToFile(FILE * dump)
 {
-    struct parset par;
-    gettrueparameters(&par);
-    fprintf(dump,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
-    fprintf(dump,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
-	    par.m1,par.m2,par.mc,par.eta,par.tc,exp(par.logdl),asin(par.sinlati)*r2d,par.longi*r2d,par.phase,par.spin,par.kappa,par.sinthJ0,par.phiJ0,par.alpha);
-    freeparset(&par);
+  struct parset par;
+  gettrueparameters(&par);
+  fprintf(dump,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
+  fprintf(dump,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
+	  //par.m1,par.m2,par.mc,par.eta,par.tc,exp(par.logdl),asin(par.sinlati)*r2d,par.longi*r2d,par.phase,par.spin,par.kappa,par.sinthJ0,par.phiJ0,par.alpha);
+	  0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0);  //CHECK: replace with par.par[]
+  freeparset(&par);
 }
 
