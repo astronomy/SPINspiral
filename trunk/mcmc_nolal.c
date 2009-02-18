@@ -7,14 +7,12 @@
 //Use the LAL 3.5/2.5 PN spinning waveform, with 1 spinning object (12 parameters)
 void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr)
 {
+  //Get rid of warnings at compile time (x set but never used)
   double x = 0.0;
-  x = par->m1;
+  x = par->par[0];
   x = ifo[0]->lati; 
   x = (double)ifonr;
-  
-  //Get rid of warnings at compile time (x set but never used)
-  double y = x;
-  x = y;
+  x = x;
   
   printf("\n\n");
   printf("\n    *** ERROR ***");
@@ -27,14 +25,12 @@ void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr)
 //Use the LAL 3.5/2.5 PN spinning waveform, with 2 spinning objects (15 parameters)
 void templateLAL15(struct parset *par, struct interferometer *ifo[], int ifonr)
 {
+  //Get rid of warnings at compile time (x set but never used)
   double x = 0.0;
-  x = par->m1;
+  x = par->par[0];
   x = ifo[0]->lati; 
   x = (double)ifonr;
-  
-  //Get rid of warnings at compile time (x set but never used)
-  double y = x;
-  x = y;
+  x = x;
   
   printf("\n\n");
   printf("\n    *** ERROR ***");

@@ -141,9 +141,10 @@ struct runpar{
   
   
   //MCMC parameters:
-  int priorSet;                // Set of priors to use for the MCMC parameters
+  int priorSet;                   // Set of priors to use for the MCMC parameters
   int parNumber[20];              // Number of the current parameter
   int parID[20];                  // Unique parameter identifier
+  int parRevID[200];              // Reverse parameter identifier
   double parBestVal[20];          // Best know value for each parameter
   int parStartMCMC[20];           // Method of choosing starting value for Markov chains
   double parSigma[20];            // Width of Gaussian distribution for offset start and first correlation matrix
@@ -225,10 +226,10 @@ struct parset{
   
   double par[20];
   
-  double m1;         // mass 1                    
-  double m2;         // mass 2                    
-  double m;          // total mass                
-  double mu;         // mass ratio                
+  //double m1;         // mass 1                    
+  //double m2;         // mass 2                    
+  //double m;          // total mass                
+  //double mu;         // mass ratio                
   double mc;         // chirp mass                
   double eta;        // sym mass ratio            
   double tc;         // coalescence time          

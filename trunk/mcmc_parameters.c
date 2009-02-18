@@ -528,6 +528,9 @@ void readParameterInputfile(struct runpar *run)
   
   for(i=0;i<npar;i++) {
     fscanf(fin,"%d %d %lf %d %lf %d %lf %lf",&run->parNumber[i],&run->parID[i],&run->parBestVal[i],&run->parStartMCMC[i],&run->parSigma[i],&run->priorType[i],&run->priorBoundLow[i],&run->priorBoundup[i]);
+    fgets(bla,500,fin);  //Read rest of the line
+    
+    run->parRevID[run->parID[i]] = i;  //Reverse parameter ID
   }
   
   fclose(fin);
@@ -575,26 +578,30 @@ void gettrueparameters(struct parset *par)  //Set the parameters for the 12-para
     par->par[i]      = truepar[i];
   }
   
-  
-  par->m1       = truepar[0];                    // M1 (10.0)
-  par->m2       = truepar[1];                    // M2  (1.4)
-  par->m        = par->m1+par->m2;
-  par->mu       = par->m1*par->m2/par->m;
-  
-  par->eta      = par->mu/par->m;                // mass ratio                
-  par->mc       = par->m*pow(par->eta,0.6);      // chirp mass. in Mo         
   par->tc       = truepar[2];                    // coalescence time
-  par->logdl    = log(truepar[3]);               // log-distance (Mpc) (17.5)             
+  //par->longi    = fmod(longitude(truepar[6],GMST(par->tc))+mtpi,tpi);  //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
+  par->longi    = truepar[6];                    //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
+  par->sinlati  = truepar[7];           // sin latitude (sin(delta))  (40)     
+  par->sinthJ0  = truepar[9];           // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
+  //par->phiJ0    = fmod(longitude(truepar[10],GMST(par->tc))+mtpi,tpi);  //The parameter in the input and output is a 'RA'; the MCMC parameter is a 'longi' ~ Greenwich hour angle
+  par->phiJ0    = truepar[10];               // Phi_J0 ~ azimuthal            (125)
   
-  par->spin     = truepar[4];                    // magnitude of total spin   (0.1)
-  par->kappa    = cos(truepar[5]*d2r);           // L^.S^, cos of angle between L^ & S^  (0.819152)
-  par->longi    = fmod(longitude(truepar[6]*h2r,GMST(par->tc))+mtpi,tpi);  //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
-  par->sinlati  = sin(truepar[7]*d2r);           // sin latitude (sin(delta))  (40)     
+  /*
+  parSTOPGREPFROMFINDINGTHIS->m1       = truepar[0];                    // M1 (10.0)
+  parSTOPGREPFROMFINDINGTHIS->m2       = truepar[1];                    // M2  (1.4)
+  parSTOPGREPFROMFINDINGTHIS->m        = parSTOPGREPFROMFINDINGTHIS->m1+parSTOPGREPFROMFINDINGTHIS->m2;
+  parSTOPGREPFROMFINDINGTHIS->mu       = parSTOPGREPFROMFINDINGTHIS->m1*parSTOPGREPFROMFINDINGTHIS->m2/parSTOPGREPFROMFINDINGTHIS->m;
   
-  par->phase    = truepar[8]*d2r;                // orbital phase   (phi_c)   (0.2)
-  par->sinthJ0  = sin(truepar[9]*d2r);           // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
-  par->phiJ0    = truepar[10]*d2r;               // Phi_J0 ~ azimuthal            (125)
-  par->alpha    = truepar[11]*d2r;               // Alpha_c                       (0.9 rad = 51.566202deg)
+  parSTOPGREPFROMFINDINGTHIS->eta      = parSTOPGREPFROMFINDINGTHIS->mu/parSTOPGREPFROMFINDINGTHIS->m;                // mass ratio                
+  parSTOPGREPFROMFINDINGTHIS->mc       = parSTOPGREPFROMFINDINGTHIS->m*pow(parSTOPGREPFROMFINDINGTHIS->eta,0.6);      // chirp mass. in Mo         
+  parSTOPGREPFROMFINDINGTHIS->logdl    = log(truepar[3]);               // log-distance (Mpc) (17.5)             
+  
+  parSTOPGREPFROMFINDINGTHIS->spin     = truepar[4];                    // magnitude of total spin   (0.1)
+  parSTOPGREPFROMFINDINGTHIS->kappa    = cos(truepar[5]*d2r);           // L^.S^, cos of angle between L^ & S^  (0.819152)
+  
+  parSTOPGREPFROMFINDINGTHIS->phase    = truepar[8]*d2r;                // orbital phase   (phi_c)   (0.2)
+  parSTOPGREPFROMFINDINGTHIS->alpha    = truepar[11]*d2r;               // Alpha_c                       (0.9 rad = 51.566202deg)
+  */
   
   par->loctc    = NULL;
   par->localti  = NULL;
@@ -611,26 +618,26 @@ void getstartparameters(struct parset *par, struct runpar run)  //Set the parame
     par->par[i]      = run.startpar[i];
   }
   
+  /*
+  parSTOPGREPFROMFINDINGTHIS->m1       = run.startpar[0];                    // M1 (10.0)
+  parSTOPGREPFROMFINDINGTHIS->m2       = run.startpar[1];                    // M2  (1.4)
+  parSTOPGREPFROMFINDINGTHIS->m        = parSTOPGREPFROMFINDINGTHIS->m1+parSTOPGREPFROMFINDINGTHIS->m2;
+  parSTOPGREPFROMFINDINGTHIS->mu       = parSTOPGREPFROMFINDINGTHIS->m1*parSTOPGREPFROMFINDINGTHIS->m2/parSTOPGREPFROMFINDINGTHIS->m;
+  parSTOPGREPFROMFINDINGTHIS->eta      = parSTOPGREPFROMFINDINGTHIS->mu/parSTOPGREPFROMFINDINGTHIS->m;                // mass ratio                
+  parSTOPGREPFROMFINDINGTHIS->mc       = parSTOPGREPFROMFINDINGTHIS->m*pow(parSTOPGREPFROMFINDINGTHIS->eta,0.6);      // chirp mass. in Mo         
+  parSTOPGREPFROMFINDINGTHIS->tc       = run.startpar[2];                    // coalescence time
+  parSTOPGREPFROMFINDINGTHIS->logdl    = log(run.startpar[3]);               // log-distance (Mpc) (17.5)             
   
-  par->m1       = run.startpar[0];                    // M1 (10.0)
-  par->m2       = run.startpar[1];                    // M2  (1.4)
-  par->m        = par->m1+par->m2;
-  par->mu       = par->m1*par->m2/par->m;
-  par->eta      = par->mu/par->m;                // mass ratio                
-  par->mc       = par->m*pow(par->eta,0.6);      // chirp mass. in Mo         
-  par->tc       = run.startpar[2];                    // coalescence time
-  par->logdl    = log(run.startpar[3]);               // log-distance (Mpc) (17.5)             
+  parSTOPGREPFROMFINDINGTHIS->spin     = run.startpar[4];                    // magnitude of total spin   (0.1)
+  parSTOPGREPFROMFINDINGTHIS->kappa    = cos(run.startpar[5]*d2r);           // L^.S^, cos of angle between L^ & S^  (0.819152)
+  parSTOPGREPFROMFINDINGTHIS->longi    = fmod(longitude(run.startpar[6]*h2r,GMST(parSTOPGREPFROMFINDINGTHIS->tc))+mtpi,tpi);  //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
+  parSTOPGREPFROMFINDINGTHIS->sinlati  = sin(run.startpar[7]*d2r);           // sin latitude (sin(delta))  (40)     
   
-  par->spin     = run.startpar[4];                    // magnitude of total spin   (0.1)
-  par->kappa    = cos(run.startpar[5]*d2r);           // L^.S^, cos of angle between L^ & S^  (0.819152)
-  par->longi    = fmod(longitude(run.startpar[6]*h2r,GMST(par->tc))+mtpi,tpi);  //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
-  par->sinlati  = sin(run.startpar[7]*d2r);           // sin latitude (sin(delta))  (40)     
-  
-  par->phase    = run.startpar[8]*d2r;                // orbital phase   (phi_c)   (0.2)
-  par->sinthJ0  = sin(run.startpar[9]*d2r);           // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
-  par->phiJ0    = run.startpar[10]*d2r;               // Phi_J0 ~ azimuthal            (125)
-  par->alpha    = run.startpar[11]*d2r;               // Alpha_c                       (0.9 rad = 51.566202deg)
-  
+  parSTOPGREPFROMFINDINGTHIS->phase    = run.startpar[8]*d2r;                // orbital phase   (phi_c)   (0.2)
+  parSTOPGREPFROMFINDINGTHIS->sinthJ0  = sin(run.startpar[9]*d2r);           // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
+  parSTOPGREPFROMFINDINGTHIS->phiJ0    = run.startpar[10]*d2r;               // Phi_J0 ~ azimuthal            (125)
+  parSTOPGREPFROMFINDINGTHIS->alpha    = run.startpar[11]*d2r;               // Alpha_c                       (0.9 rad = 51.566202deg)
+  */
   
   par->loctc    = NULL;
   par->localti  = NULL;
