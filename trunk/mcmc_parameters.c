@@ -10,7 +10,7 @@
 // Read the main input file.
 // Please keep this routine in sync with writeinputfile() below.
 // All parameters that are read in here should become members of the runvar struct and lose their global status
-void readMainInputfile(struct runpar *run)
+void readMainInputfile(struct runPar *run)
 {
   int i;
   char bla[500];
@@ -49,13 +49,13 @@ void readMainInputfile(struct runpar *run)
   if(inject>=1) {
     if(run->injectionWaveform==1) {
       printf("   Using Apostolatos, 1.5PN, 12-parameter waveform for the software injection.\n");
-      run->nMCMCpar=12;
+      run->nInjectPar=12;
     } else if(run->injectionWaveform==2) {
       printf("   Using LAL, 3.5PN, 12-parameter waveform for the software injection.\n");
-      run->nMCMCpar=12;
+      run->nInjectPar=12;
     } else if(run->injectionWaveform==3) {
       printf("   Using LAL, 3.5PN, 15-parameter waveform for the software injection.\n");
-      run->nMCMCpar=15;
+      run->nInjectPar=15;
     } else {
       printf("   Unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->injectionWaveform);
       printf("     1: Apostolatos, simple precession, 12 parameters\n");
@@ -65,21 +65,20 @@ void readMainInputfile(struct runpar *run)
       exit(1);
     }
   }
-  npar = run->nMCMCpar;
-  run->nInjectPar = run->nMCMCpar;
-  run->ranInjPar  = (int*)calloc(run->nMCMCpar,sizeof(int)); //Now that run->nMCMCpar is known, initialise the array.... 
+  run->nMCMCpar = run->nInjectPar;
+  run->ranInjPar  = (int*)calloc(run->nInjectPar,sizeof(int)); //Now that run->nInjectPar is known, initialise the array.... 
   
   fgets(bla,500,fin);  sscanf(bla,"%lf",&run->injectionSNR);
-  for(i=0;i<run->nMCMCpar;i++)  fscanf(fin,"%d",&run->ranInjPar[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  for(i=0;i<run->nInjectPar;i++)  fscanf(fin,"%d",&run->ranInjPar[i]);  //Read the array directly, because sscanf cannot be in a loop...
   fgets(bla,500,fin);  //Read the rest of this line
-  fgets(bla,500,fin);  sscanf(bla,"%d",&run->ranparseed);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->ranParSeed);
   
 
 
   
   //True parameter values:
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
-  for(i=0;i<run->nMCMCpar;i++) fscanf(fin,"%lf",&truepar[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  for(i=0;i<run->nInjectPar;i++) fscanf(fin,"%lf",&truepar[i]);  //Read the array directly, because sscanf cannot be in a loop...
   prior_tc_mean = truepar[2];   //prior_tc_mean is used everywhere
   //Starting parameter values:
   for(i=0;i<run->nMCMCpar;i++) fscanf(fin,"%lf",&run->startpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
@@ -103,7 +102,7 @@ void readMainInputfile(struct runpar *run)
 // Write a copy of the input file.
 // This provides a nicely formatted copy, which may later be used to start a follow-up run.
 // Try to keep this in sync with readinputfile() above.
-void writeMainInputfile(struct runpar *run)
+void writeMainInputfile(struct runPar *run)
 {
   int i;
   FILE *fout;
@@ -128,7 +127,7 @@ void writeMainInputfile(struct runpar *run)
   for(i=0;i<run->nMCMCpar;i++) fprintf(fout, "%2d",    run->ranInjPar[i]);
   for(i=0;i<max(19-run->nMCMCpar,0);i++) fprintf(fout, "  ");  //Line up the next colum nicely, for up to 20 parameters
   fprintf(fout, "    %-18s  %-s\n",                          "ranInjPar[]",  "Parameters you want to randomise before injecting the signal; 0: use the value in truepar below, 1: randomise.  These are the same parameters as trueval (ie M1, M2, etc!)");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      run->ranparseed,"ranparseed",    "Random number seed for random injection parameters. Don't change between serial chains of the same run!");
+  fprintf(fout, "  %-39d  %-18s  %-s\n",      run->ranParSeed,"ranParSeed",    "Random number seed for random injection parameters. Don't change between serial chains of the same run!");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      adapt,         "adapt",          "Use adaptation: 0-no, 1-yes.");
   fprintf(fout, "  %-39.2f  %-18s  %-s\n",    run->blockfrac,"blockfrac",      "Fraction of uncorrelated updates that is updated as a block of all parameters (<=0.0: none, >=1.0: all).");
   fprintf(fout, " ");
@@ -285,7 +284,7 @@ void readLocalInputfile()
 
 // Read the MCMC input file.
 // All parameters that are read in here should become members of the runvar struct and lose their global status
-void readMCMCinputfile(struct runpar *run)
+void readMCMCinputfile(struct runPar *run)
 {
   int i;
   double tmpdbl;
@@ -330,7 +329,6 @@ void readMCMCinputfile(struct runpar *run)
     printf("   Please set mcmcWaveform in mcmc.input to one of these values.\n\n");
     exit(1);
   }
-  npar = run->nMCMCpar;
   run->nInjectPar = run->nMCMCpar;
   
   
@@ -391,7 +389,7 @@ void readMCMCinputfile(struct runpar *run)
   
   fclose(fin);
 }
-//End of void readMCMCinputfile(struct runpar *run)
+//End of void readMCMCinputfile(struct runPar *run)
 
 
 
@@ -405,7 +403,7 @@ void readMCMCinputfile(struct runpar *run)
 
 
 // Read the data input file.
-void readDataInputfile(struct runpar *run, struct interferometer ifo[])
+void readDataInputfile(struct runPar *run, struct interferometer ifo[])
 {
   int i=0,j=0;
   double lati,longi,leftarm,rightarm;
@@ -497,7 +495,7 @@ void readDataInputfile(struct runpar *run, struct interferometer ifo[])
 
 
 // All parameters that are read in here should be members of the runvar struct
-void readParameterInputfile(struct runpar *run)
+void readParameterInputfile(struct runPar *run)
 {
   int i;
   char bla[500];
@@ -637,7 +635,7 @@ void readParameterInputfile(struct runpar *run)
 
 
 
-void setParameterNames(struct runpar * run)
+void setParameterNames(struct runPar * run)
 {
   //Set 01: time
   strcpy(run->parAbrev[11], "t_c");
@@ -777,7 +775,7 @@ void gettrueparameters(struct parset *par, int nTruePar)  //Set the parameters f
 }
 
 
-void getstartparameters(struct parset *par, struct runpar run)  //Set the parameters for the 12-parameter spinning template to the starting values for the MCMC chain
+void getstartparameters(struct parset *par, struct runPar run)  //Set the parameters for the 12-parameter spinning template to the starting values for the MCMC chain
 {
   
   int i=0;

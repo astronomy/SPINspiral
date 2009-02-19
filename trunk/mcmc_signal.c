@@ -339,17 +339,17 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
 
 
 /*
-void computeFishermatrixIFO(struct parset *par, int npar, struct interferometer *ifo[], int networksize, int ifonr, double **matrix)
+void computeFishermatrixIFO(struct parset *par, int nParameters, struct interferometer *ifo[], int networksize, int ifonr, double **matrix)
 // Compute  Fisher matrix for parameter set par for a given IFO
 {
   int ip=0,jp=0,j=0,j1=0,j2=0,nFT=0;
   struct parset par1;
   allocparset(&par1, networksize);
-  double pars[npar];
+  double pars[nParameters];
   
   nFT = ifo[ifonr]->FTsize;
-  double dx[npar], noise[nFT];
-  double _Complex FFT0[nFT], FFT1[nFT], dFFTs[npar][nFT];
+  double dx[nParameters], noise[nFT];
+  double _Complex FFT0[nFT], FFT1[nFT], dFFTs[nParameters][nFT];
   
   j1 = ifo[ifonr]->lowIndex;
   j2 = ifo[ifonr]->highIndex;
@@ -357,7 +357,7 @@ void computeFishermatrixIFO(struct parset *par, int npar, struct interferometer 
   // Compute the FFTed signal for the default parameter set FFT0
   signalFFT(FFT0, par, ifo, ifonr, waveformVersion);
   
-  for(ip=0;ip<npar;ip++) {
+  for(ip=0;ip<nParameters;ip++) {
     // Change parameter ip with dx
     dx[ip] = 1.e-5;       // Should this be the same for each parameter?
     par2arr(par,pars);    // Stick the default parameter set par into the array pars
@@ -375,7 +375,7 @@ void computeFishermatrixIFO(struct parset *par, int npar, struct interferometer 
   
   
   // Compute the actual Fisher matrix (diagonal + lower triangle)
-  for(ip=0;ip<npar;ip++) {
+  for(ip=0;ip<nParameters;ip++) {
     for(jp=0;jp<=ip;jp++) {
       matrix[ip][jp] = vecoverlap(dFFTs[ip], dFFTs[jp], 
 	ifo[ifonr]->noisePSD, j1, j2, ifo[ifonr]->deltaFT);
@@ -383,8 +383,8 @@ void computeFishermatrixIFO(struct parset *par, int npar, struct interferometer 
   }
   
   // Copy the lower to the upper triangle to get a complete matrix
-  for(ip=0;ip<npar;ip++) {
-    for(jp=ip;jp<npar;jp++) {
+  for(ip=0;ip<nParameters;ip++) {
+    for(jp=ip;jp<nParameters;jp++) {
       matrix[ip][jp] = matrix[jp][ip];
     }
   }
@@ -393,18 +393,18 @@ void computeFishermatrixIFO(struct parset *par, int npar, struct interferometer 
 }
 
 
-void computeFishermatrix(struct parset *par, int npar, struct interferometer *ifo[], int networksize, double **matrix)
+void computeFishermatrix(struct parset *par, int nParameters, struct interferometer *ifo[], int networksize, double **matrix)
 // Compute the Fisher matrix for a network of IFOs, using computeFishermatrixIFO to compute the elements per IFO
 {
   int ip=0,jp=0,ifonr=0;
-  double **dmatrix  = (double**)calloc(npar,sizeof(double*));
-  for(ip=0;ip<npar;ip++) dmatrix[ip]  = (double*)calloc(npar,sizeof(double));
+  double **dmatrix  = (double**)calloc(nParameters,sizeof(double*));
+  for(ip=0;ip<nParameters;ip++) dmatrix[ip]  = (double*)calloc(nParameters,sizeof(double));
   
   for(ifonr=0;ifonr<networksize;ifonr++) {
-    computeFishermatrixIFO(par,npar,ifo,networksize,ifonr,dmatrix);
+    computeFishermatrixIFO(par,nParameters,ifo,networksize,ifonr,dmatrix);
     
-    for(ip=0;ip<npar;ip++) {
-      for(jp=0;jp<npar;jp++) {
+    for(ip=0;ip<nParameters;ip++) {
+      for(jp=0;jp<nParameters;jp++) {
 	matrix[ip][jp] += dmatrix[ip][jp];
       }
     }

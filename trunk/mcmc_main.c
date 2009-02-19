@@ -21,7 +21,7 @@ int main(int argc, char * argv[])
   
   
   //Initialise stuff for the run
-  struct runpar run;
+  struct runPar run;
   setconstants();                       //Set the global constants (which are variable in C)
   setParameterNames(&run);              //Set the names of the parameters in the hardcoded parameter database
   sprintf(run.infilename,"mcmc.input"); //Default input filename

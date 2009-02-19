@@ -45,7 +45,7 @@
 
 // Global constants etc., assigned in setconstants()
 
-//  *** PLEASE DON'T ADD ANY NEW ONES, BUT USE THE STRUCTS BELOW INSTEAD (e.g. runpar or mcmcvariables) ***
+//  *** PLEASE DON'T ADD ANY NEW ONES, BUT USE THE STRUCTS BELOW INSTEAD (e.g. runPar or mcmcvariables) ***
 //      (and if you're bored, go ahead and place the variables below in these structs as well)
 
 //The following global arrays have the size of >~ the max. number of parameters we use, i.e. ~20:
@@ -100,7 +100,7 @@ double *chaintemp;                  // vector of temperatures for individual cha
 // Structure with run parameters.  
 // This should eventually include all variables in the input files and replace many of the global variables.
 // That also means that this struct must be passed throughout much of the code.
-struct runpar{
+struct runPar{
   int nMCMCpar;                   // Number of parameters in the MCMC template
   int nInjectPar;                 // Number of parameters in the injection template
   int injectionWaveform;          // Waveform used to do software injections
@@ -114,7 +114,7 @@ struct runpar{
   
   //int adapt;                    // Use adaptation or not
   int *ranInjPar;                 // Randomise injection parameters 
-  int ranparseed;                 // Seed to randomise true parameters (i.e., injection)
+  int ranParSeed;                 // Seed to randomise true parameters (i.e., injection)
   double injectionSNR;            // Network SNR of the software injection, scale the distance to obtain this value
   
   double blockfrac;               // Fraction of non-correlated updates that is a block update
@@ -169,7 +169,7 @@ struct mcmcvariables{
   int nMCMCpar;                   // Number of parameters in the MCMC template
   int nInjectPar;                 // Number of parameters in the injection template
   int iteri;             // State/iteration number
-  int nparfit;           // Number of parameters in the MCMC that is fitted for
+  int nParFit;           // Number of parameters in the MCMC that is fitted for
   int ntemps;            // Number of chains in the temperature ladder
   int tempi;             // The current temperature index
   int networksize;       // Number of IFOs in the detector network
@@ -209,7 +209,7 @@ struct mcmcvariables{
   int **accepted;        // Count accepted proposals
   int **swapTss;         // Count swaps between chains
   double **param;        // The current parameters for all chains
-  double **nparam;       // The new parameters for all chains
+  double **nParam;       // The new parameters for all chains
   double **maxparam;     // The best parameters for all chains (max logL)
   double **sig;          // The standard deviation of the gaussian to draw the jump size from
   double **sigout;       // The sigma that gets written to output
@@ -328,45 +328,45 @@ fftw_complex *FTout;                  // FT output (type here identical to `(dou
 
 
 // Declare functions (prototypes):
-void readMainInputfile(struct runpar *run);
+void readMainInputfile(struct runPar *run);
 void readLocalInputfile();
-void writeMainInputfile(struct runpar *run);
-void readMCMCinputfile(struct runpar *run);
-void readDataInputfile(struct runpar *run, struct interferometer ifo[]);
-void readParameterInputfile(struct runpar *run);
-void setParameterNames(struct runpar * run);
+void writeMainInputfile(struct runPar *run);
+void readMCMCinputfile(struct runPar *run);
+void readDataInputfile(struct runPar *run, struct interferometer ifo[]);
+void readParameterInputfile(struct runPar *run);
+void setParameterNames(struct runPar * run);
 
 void setconstants();
-void setIFOdata(struct runpar *run, struct interferometer ifo[]);
+void setIFOdata(struct runPar *run, struct interferometer ifo[]);
 
-void setRandomInjectionParameters(struct runpar *run);
-void setRandomInjectionParameters1(struct runpar *run);
-void setRandomInjectionParameters2(struct runpar *run);
+void setRandomInjectionParameters(struct runPar *run);
+void setRandomInjectionParameters1(struct runPar *run);
+void setRandomInjectionParameters2(struct runPar *run);
 
 void gettrueparameters(struct parset *par, int nTruePar);
-void getstartparameters(struct parset *par, struct runpar run);
+void getstartparameters(struct parset *par, struct runPar run);
 void allocparset(struct parset *par, int networksize);
 void freeparset(struct parset *par);
 void printparset(struct parset par);
 
-void copyRun2MCMC(struct runpar run, struct mcmcvariables *mcmc);
-void setmcmcseed(struct runpar *run);
+void copyRun2MCMC(struct runPar run, struct mcmcvariables *mcmc);
+void setmcmcseed(struct runPar *run);
 void setseed(int *seed);
 
-void mcmc(struct runpar run, struct interferometer *ifo[]);
+void mcmc(struct runPar run, struct interferometer *ifo[]);
 void chol(double **A, struct mcmcvariables *mcmc);
 void par2arrt(struct parset par, double **param, struct mcmcvariables mcmc);
 void arr2part(double **param, struct parset *par, struct mcmcvariables mcmc);
-int prior(double *par, int p, int waveformVersion);
-int prior1(double *par, int p);
-int prior2(double *par, int p);
+int prior(double *par, int p, int waveformVersion, struct mcmcvariables mcmc);
+int prior1(double *par, int p, struct mcmcvariables mcmc);
+int prior2(double *par, int p, struct mcmcvariables mcmc);
 double uncorrelated_mcmc_single_update_angle_prior(double sigma, int p, int waveformVersion);
 
 void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
 void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
 void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
 
-void write_mcmc_header(struct interferometer *ifo[], struct mcmcvariables mcmc, struct runpar run);
+void write_mcmc_header(struct interferometer *ifo[], struct mcmcvariables mcmc, struct runPar run);
 void write_mcmc_output(struct mcmcvariables mcmc, struct interferometer *ifo[]);
 void allocate_mcmcvariables(struct mcmcvariables *mcmc);
 void free_mcmcvariables(struct mcmcvariables *mcmc);
@@ -402,20 +402,20 @@ void vec2coord(double x[3], double *sinlati, double *longi);
 
 void choleskyinv(double randlibout[], double inverse[]);
 
-void ifoinit(struct interferometer **ifo, int networksize, struct runpar run);
+void ifoinit(struct interferometer **ifo, int networksize, struct runPar run);
 void ifodispose(struct interferometer *ifo);
 void localpar(struct parset *par, struct interferometer *ifo[], int networksize);
 double *filter(int *order, int samplerate, double upperlimit);
 double *downsample(double data[], int *datalength, double coef[], int ncoef);
-void dataFT(struct interferometer *ifo[], int i, int networksize, struct runpar run);
+void dataFT(struct interferometer *ifo[], int i, int networksize, struct runPar run);
 double hann(int j, int N);
 double tukey(int j, int N, double r);
-void noisePSDestimate(struct interferometer *ifo, struct runpar run);
+void noisePSDestimate(struct interferometer *ifo, struct runPar run);
 double log_noisePSD(double f, struct interferometer *ifo);
 double interpol_log_noisePSD(double f, struct interferometer *ifo);
 void writeDataToFiles(struct interferometer *ifo[], int networksize, int mcmcseed);
 void writeNoiseToFiles(struct interferometer *ifo[], int networksize, int mcmcseed);
-void writeSignalsToFiles(struct interferometer *ifo[], int networksize, struct runpar run);
+void writeSignalsToFiles(struct interferometer *ifo[], int networksize, struct runPar run);
 void printParameterHeaderToFile(FILE * dump);
 
 void antennaepattern(double altitude, double azimuth, double polarisation,

@@ -4,17 +4,17 @@
 
 // *** Routines to handle Priors ***
 
-int prior(double *par, int p, int waveformVersion)
+int prior(double *par, int p, int waveformVersion, struct mcmcvariables mcmc)
 // Call the prior routine, the variable waveformVersion determines which one
 {
   if(waveformVersion==1) {
-    return prior1(par, p);  // Apostolatos 12-parameter template
+    return prior1(par, p, mcmc);  // Apostolatos 12-parameter template
   } 
   else if(waveformVersion==2) {
-    return prior1(par, p);  // LAL 12-parameter template
+    return prior1(par, p, mcmc);  // LAL 12-parameter template
   }
   else if(waveformVersion==3) {
-    return prior2(par, p);  // LAL 15-parameter template
+    return prior2(par, p, mcmc);  // LAL 15-parameter template
   }
   else return 0;
   
@@ -23,7 +23,7 @@ int prior(double *par, int p, int waveformVersion)
 
 
 
-void setRandomInjectionParameters(struct runpar *run)
+void setRandomInjectionParameters(struct runPar *run)
 // Set random injection parameters, the variable run->injectionWaveform determines which one
 {
   if(run->injectionWaveform==1) {
@@ -61,7 +61,7 @@ else return 0.0;
 
 
 //****************************************************************************************************************************************************  
-int prior1(double *par, int p) //Apostolatos 12-parameter priors
+int prior1(double *par, int p, struct mcmcvariables mcmc) //Apostolatos 12-parameter priors
 //****************************************************************************************************************************************************  
 //Contains boundary conditions and prior information for the adaptive MCMC.  Trying to avoid returning 0, to increase jump sizes
 //  'Stick to the wall method' should not be used, since it is asymmetric
@@ -70,8 +70,8 @@ int prior1(double *par, int p) //Apostolatos 12-parameter priors
   int prior = 1;
   double dt = 0.0;
   double *lb,*ub;
-  lb = (double*)calloc(npar,sizeof(double));
-  ub = (double*)calloc(npar,sizeof(double));
+  lb = (double*)calloc(mcmc.nMCMCpar,sizeof(double));
+  ub = (double*)calloc(mcmc.nMCMCpar,sizeof(double));
   
   //Lower and upper boundaries:
   //Mc:
@@ -128,7 +128,7 @@ int prior1(double *par, int p) //Apostolatos 12-parameter priors
 
 
 //****************************************************************************************************************************************************  
-void setRandomInjectionParameters1(struct runpar *run)  //Get random values for the 'true' parameters for the 12-parameter spinning template. Contain priors for the injection, not the MCMC. 
+void setRandomInjectionParameters1(struct runPar *run)  //Get random values for the 'true' parameters for the 12-parameter spinning template. Contain priors for the injection, not the MCMC. 
 // *** This changes the injected signal!!! ***
 {
   int i=0;
@@ -137,16 +137,16 @@ void setRandomInjectionParameters1(struct runpar *run)  //Get random values for 
   ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
   if(1==2) {  //Select a random seed, *** ONLY FOR TESTING ***
     printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setRandomInjectionParameters1() \n\n");
-    run->ranparseed = 0;
-    setseed(&run->ranparseed);
-    //printf("  Seed: %d\n", run->ranparseed);
+    run->ranParSeed = 0;
+    setseed(&run->ranParSeed);
+    //printf("  Seed: %d\n", run->ranParSeed);
   }
-  gsl_rng_set(ran, run->ranparseed);     // Set seed
+  gsl_rng_set(ran, run->ranParSeed);     // Set seed
   
   //Lower and upper boundaries:
   double *lb,*ub,db,dt;
-  lb = (double*)calloc(npar,sizeof(double));
-  ub = (double*)calloc(npar,sizeof(double));
+  lb = (double*)calloc(run->nInjectPar,sizeof(double));
+  ub = (double*)calloc(run->nInjectPar,sizeof(double));
   lb[0] = 2.0;       //M1 (Mo)
   ub[0] = 4.0;
   lb[1] = 0.05;       //M2 (Mo)
@@ -173,7 +173,7 @@ void setRandomInjectionParameters1(struct runpar *run)  //Get random values for 
   lb[11] = 0.0;      //alpha_c (deg)
   ub[11] = tpi;
   
-  for(i=0;i<npar;i++) {
+  for(i=0;i<run->nInjectPar;i++) {
     db = ub[i]-lb[i];
     rannr = gsl_rng_uniform(ran);                                                        //This assures you always draw the same number of random variables
     if(run->ranInjPar[i]==1) truepar[i] = rannr*db + lb[i];
@@ -192,7 +192,7 @@ void setRandomInjectionParameters1(struct runpar *run)  //Get random values for 
 
 
 //****************************************************************************************************************************************************  
-int prior2(double *par, int p) //LAL 15-parameter priors
+int prior2(double *par, int p, struct mcmcvariables mcmc) //LAL 15-parameter priors
 //****************************************************************************************************************************************************  
 //Contains boundary conditions and prior information for the adaptive MCMC.  Trying to avoid returning 0, to increase jump sizes
 //  'Stick to the wall method' should not be used, since it is asymmetric
@@ -201,8 +201,8 @@ int prior2(double *par, int p) //LAL 15-parameter priors
   int prior = 1;
   double dt = 0.0;
   double *lb,*ub;
-  lb = (double*)calloc(npar,sizeof(double));
-  ub = (double*)calloc(npar,sizeof(double));
+  lb = (double*)calloc(mcmc.nMCMCpar,sizeof(double));
+  ub = (double*)calloc(mcmc.nMCMCpar,sizeof(double));
   
   //Lower and upper boundaries:
   //Mc:
@@ -300,7 +300,7 @@ int prior2(double *par, int p) //LAL 15-parameter priors
 
 
 //****************************************************************************************************************************************************  
-void setRandomInjectionParameters2(struct runpar *run)  //Get random values for the 'true' parameters for the 15-parameter spinning template. Contain priors for the injection, not the MCMC. 
+void setRandomInjectionParameters2(struct runPar *run)  //Get random values for the 'true' parameters for the 15-parameter spinning template. Contain priors for the injection, not the MCMC. 
 // *** This changes the injected signal!!! ***
 {
   int i=0;
@@ -309,16 +309,16 @@ void setRandomInjectionParameters2(struct runpar *run)  //Get random values for 
   ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
   if(1==2) {  //Select a random seed, *** ONLY FOR TESTING ***
     printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setRandomInjectionParameters2() \n\n");
-    run->ranparseed = 0;
-    setseed(&run->ranparseed);
-    //printf("  Seed: %d\n", run->ranparseed);
+    run->ranParSeed = 0;
+    setseed(&run->ranParSeed);
+    //printf("  Seed: %d\n", run->ranParSeed);
   }
-  gsl_rng_set(ran, run->ranparseed);     // Set seed
+  gsl_rng_set(ran, run->ranParSeed);     // Set seed
   
   //Lower and upper boundaries:
   double *lb,*ub,db,dt;
-  lb = (double*)calloc(npar,sizeof(double));
-  ub = (double*)calloc(npar,sizeof(double));
+  lb = (double*)calloc(run->nInjectPar,sizeof(double));
+  ub = (double*)calloc(run->nInjectPar,sizeof(double));
 
   //Mc:
   lb[0] = 2.0;
@@ -369,7 +369,7 @@ void setRandomInjectionParameters2(struct runpar *run)  //Get random values for 
   ub[14] = tpi;
    
   
-  for(i=0;i<npar;i++) {
+  for(i=0;i<run->nInjectPar;i++) {
     db = ub[i]-lb[i];
     rannr = gsl_rng_uniform(ran);                                                        //This assures you always draw the same number of random variables
     if(run->ranInjPar[i]==1) truepar[i] = rannr*db + lb[i];

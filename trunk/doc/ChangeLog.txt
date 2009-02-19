@@ -2,6 +2,10 @@
   ChangeLog for the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
 
+   126: sluys, 18/02/2009
+     - global variable npar was replaced by nMCMCpar and nInjectPar,
+       in the structs runpar and mcmcvariables
+     
    123: sluys, 18/02/2009
      - new version of input file mcmc.mcmc needed (see doc/)
      

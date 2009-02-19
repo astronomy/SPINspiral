@@ -10,7 +10,7 @@
 
 // *** Routines that handle IFOs ***
 
-void setIFOdata(struct runpar *run, struct interferometer ifo[])
+void setIFOdata(struct runPar *run, struct interferometer ifo[])
 // Set all the data for all IFOs that may be used
 {
   int i=0,numberofdatasets = 6;
@@ -538,7 +538,7 @@ void setIFOdata(struct runpar *run, struct interferometer ifo[])
 
 
 
-void ifoinit(struct interferometer **ifo, int networksize, struct runpar run)
+void ifoinit(struct interferometer **ifo, int networksize, struct runPar run)
 // Determines interferometer arm (unit-) vectors (and others)                  
 // given position (lat/long) and arm angles.                                   
 // Vectors refer to the (right-handed) earth                                    
@@ -787,7 +787,7 @@ double tukey(int j, int N, double r)
 
 
 
-void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct runpar run)
+void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct runPar run)
 // Read the data and do a software injection
 // Computes the Fourier Transform for the specified range of the specified Frame (".gwf") file,
 // after adding up the two (signal & noise) channels, or injecting a waveform template into the noise.
@@ -1046,7 +1046,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
 
 
 
-void noisePSDestimate(struct interferometer *ifo, struct runpar run)
+void noisePSDestimate(struct interferometer *ifo, struct runPar run)
 // Returns a (smoothed) estimate of the log- Power Spectral Density. 
 // Data is split into K segments of M seconds,
 // and K-1 overlapping segments of length 2M are eventually
@@ -1396,7 +1396,7 @@ void writeNoiseToFiles(struct interferometer *ifo[], int networksize, int MCMCse
 
 
 
-void writeSignalsToFiles(struct interferometer *ifo[], int networksize, struct runpar run){
+void writeSignalsToFiles(struct interferometer *ifo[], int networksize, struct runPar run){
   int i, j;
   //Set local values in parameter struct (needed for template computation)
   struct parset par;
