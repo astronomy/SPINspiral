@@ -49,7 +49,6 @@
 
 //The following global arrays have the size of >~ the max. number of parameters we use, i.e. ~20:
 
-int offsetpar[20];
 double pdfsigs[20];
 
 
@@ -100,6 +99,7 @@ double *chaintemp;                  // vector of temperatures for individual cha
 // This should eventually include all variables in the input files and replace many of the global variables.
 // That also means that this struct must be passed throughout much of the code.
 struct runPar{
+  int maxnPar;                    // Maximum allowed number of MCMC/injection parameters
   int nMCMCpar;                   // Number of parameters in the MCMC template
   int nInjectPar;                 // Number of parameters in the injection template
   int injectionWaveform;          // Waveform used to do software injections
@@ -166,6 +166,7 @@ struct runPar{
 
 //Structure for MCMC variables
 struct mcmcvariables{
+  int maxnPar;                    // Maximum allowed number of MCMC/injection parameters
   int nMCMCpar;                   // Number of parameters in the MCMC template
   int nInjectPar;                 // Number of parameters in the injection template
   int iteri;                      // State/iteration number
@@ -176,6 +177,7 @@ struct mcmcvariables{
   int mcmcWaveform;               // Waveform used as the MCMC template
   
   int parFix[20];                 // Fix an MCMC parameter or not
+  int parStartMCMC[20];           // Method of choosing starting value for Markov chains
   double parInjectVal[20];        // Injection value for each parameter
   
   double temp;                    // The current temperature

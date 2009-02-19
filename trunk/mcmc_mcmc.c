@@ -178,14 +178,9 @@ void mcmc(struct runPar run, struct interferometer *ifo[])
     while(mcmc.logL[tempi] < 1.0) { //Accept only good starting values
       mcmc.acceptprior[tempi] = 1;
       for(i=0;i<mcmc.nMCMCpar;i++) {
-	if(mcmc.parFix[i]==0 && offsetpar[i]==1) {
+	//printf("  %d  %d  %d\n",i,mcmc.parFix[i],mcmc.parStartMCMC[i]);
+	if(mcmc.parFix[i]==0 && (mcmc.parStartMCMC[i]==2 || mcmc.parStartMCMC[i]==4 || mcmc.parStartMCMC[i]==5)) {
 	  mcmc.param[tempi][i] = mcmc.nParam[tempi][i] + offsetx * (gsl_rng_uniform(mcmc.ran) - 0.5) * pdfsigs[i];
-	  //0:Mc, 1:eta, 2:tc, 3:logd, 4:a, 5:kappa, 6:RA, 7:sindec, 8:phi, 9:sintheta_Jo, 10: phi_Jo, 11:alpha
-	 // if(i==1 && (mcmc.param[tempi][i]<=0.01 || mcmc.param[tempi][i] > 0.25)) mcmc.param[tempi][i] = max(min(gsl_rng_uniform(mcmc.ran)*0.25,1.0),0.01);  //Eta: 0.01<eta<0.25  \__ If it's that far outside, you may as well take a random value
-	 // if(i==4 && (mcmc.param[tempi][i]<=1.e-5 || mcmc.param[tempi][i] > 1.0)) mcmc.param[tempi][i] = max(min(gsl_rng_uniform(mcmc.ran),1.0),1.e-5);      //Spin: 0<a<1         /   over the range of this parameter
-	 // if((i==5 || i==7 || i==9) && (mcmc.param[tempi][i] < -2.0 || mcmc.param[tempi][i] > 2.0)) mcmc.param[tempi][i] = gsl_rng_uniform(mcmc.ran)*2.0 - 1.0;
-	 // if(i==5 || i==7 || i==9) mcmc.param[tempi][i] = fmod(mcmc.param[tempi][i]+1001.0,2.0) - 1.0;
-	//  if((i==6 || i==8 || i==10 || i==11) && (mcmc.param[tempi][i] < -2.0*pi || mcmc.param[tempi][i] > 4.0*pi)) mcmc.param[tempi][i] = gsl_rng_uniform(mcmc.ran)*tpi;
 	  mcmc.acceptprior[tempi] *= prior(&mcmc.param[tempi][i],i,mcmc.mcmcWaveform, mcmc);
 	}
       }
@@ -960,33 +955,6 @@ void allocate_mcmcvariables(struct mcmcvariables *mcmc)
 
 
 
-//Copy some of the elements of the struct runPar to the struct mcmcvariables
-//****************************************************************************************************************************************************  
-void copyRun2MCMC(struct runPar run, struct mcmcvariables *mcmc)
-{
-  int i=0;
-  
-  //Copy some global variables:
-  mcmc->nMCMCpar = run.nMCMCpar;              // Number of mcmc/template parameters
-  mcmc->nInjectPar = run.nInjectPar;          // Number of mcmc/template parameters
-  mcmc->temp = max(temp0,1.0);                // Current temperature
-  
-  mcmc->mcmcWaveform = run.mcmcWaveform;      // Waveform used as MCMC template
-  mcmc->networksize = run.networksize;        // Network size
-  mcmc->seed = run.MCMCseed;                  // MCMC seed
-  mcmc->ntemps = run.ntemps;                  // Size of temperature ladder
-  mcmc->mataccfr = run.mataccfr;              // Fraction of elements on the diagonal that must 'improve' in order to accept a new covariance matrix.
-  mcmc->basetime = (double)((floor)(prior_tc_mean/100.0)*100);  //'Base' time, gets rid of the first 6-7 digits of GPS time
-  
-  for(i=0;i<mcmc->nMCMCpar;i++) {
-    mcmc->parInjectVal[i] = run.parInjectVal[i];
-  }
-}
-//****************************************************************************************************************************************************  
-// End copyRun2MCMC()
-
-
-
 //Deallocate memory for the mcmcvariables struct
 //****************************************************************************************************************************************************  
 void free_mcmcvariables(struct mcmcvariables *mcmc)
@@ -1439,3 +1407,35 @@ void write_chain_info(struct mcmcvariables mcmc)
  //End adaptive_prarallel_tempering
 //****************************************************************************************************************************************************  
     
+
+
+//Copy some of the elements of the struct runPar to the struct mcmcvariables
+//****************************************************************************************************************************************************  
+void copyRun2MCMC(struct runPar run, struct mcmcvariables *mcmc)
+{
+  int i=0;
+  
+  //Copy some global variables:
+  mcmc->maxnPar = run.maxnPar;                // Absolute maximum number of mcmc/template parameters allowed
+  mcmc->nMCMCpar = run.nMCMCpar;              // Number of mcmc/template parameters
+  mcmc->nInjectPar = run.nInjectPar;          // Number of mcmc/template parameters
+  mcmc->temp = max(temp0,1.0);                // Current temperature
+  
+  mcmc->mcmcWaveform = run.mcmcWaveform;      // Waveform used as MCMC template
+  mcmc->networksize = run.networksize;        // Network size
+  mcmc->seed = run.MCMCseed;                  // MCMC seed
+  mcmc->ntemps = run.ntemps;                  // Size of temperature ladder
+  mcmc->mataccfr = run.mataccfr;              // Fraction of elements on the diagonal that must 'improve' in order to accept a new covariance matrix.
+  mcmc->basetime = (double)((floor)(prior_tc_mean/100.0)*100);  //'Base' time, gets rid of the first 6-7 digits of GPS time
+  
+  for(i=0;i<mcmc->maxnPar;i++) {
+    mcmc->parInjectVal[i] = run.parInjectVal[i];
+    mcmc->parStartMCMC[i] = run.parStartMCMC[i];
+  }
+  
+}
+//****************************************************************************************************************************************************  
+// End copyRun2MCMC()
+
+
+

@@ -22,17 +22,18 @@ int main(int argc, char * argv[])
   
   //Initialise stuff for the run
   struct runPar run;
-  setconstants();                       //Set the global constants (which are variable in C)
-  setParameterNames(&run);              //Set the names of the parameters in the hardcoded parameter database
-  sprintf(run.infilename,"mcmc.input"); //Default input filename
+  run.maxnPar = 20;                      //The maximum number of allowed MCMC/injection parameters (this number is hardcoded in many places in mcmc.h)
+  setconstants();                        //Set the global constants (which are variable in C)
+  setParameterNames(&run);               //Set the names of the parameters in the hardcoded parameter database
+  sprintf(run.infilename,"mcmc.input");  //Default input filename
   if(argc > 1) sprintf(run.infilename,argv[1]);
   
-  readLocalInputfile();                //Read system-dependent data, e.g. path to data files
-  readMainInputfile(&run);             //Read main input data file for this run from input.mcmc
-  readMCMCinputfile(&run);             //Read the input data on how to do MCMC 
-  readParameterInputfile(&run);        //Read the input data on how to handle MCMC parameters
-  setseed(&run.MCMCseed);              //Set MCMCseed if 0, otherwise keep the current value
-  setRandomInjectionParameters(&run);  //Randomise the injection parameters where wanted
+  readLocalInputfile();                  //Read system-dependent data, e.g. path to data files
+  readMainInputfile(&run);               //Read main input data file for this run from input.mcmc
+  readMCMCinputfile(&run);               //Read the input data on how to do MCMC 
+  readParameterInputfile(&run);          //Read the input data on how to handle MCMC parameters
+  setseed(&run.MCMCseed);                //Set MCMCseed if 0, otherwise keep the current value
+  setRandomInjectionParameters(&run);    //Randomise the injection parameters where wanted
   //writeInputfile(&run);                //Write run data to nicely formatted input.mcmc.<MCMCseed>
   
   

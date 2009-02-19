@@ -134,12 +134,12 @@ void writeMainInputfile(struct runPar *run)
   
   
   fprintf(fout, "  \n  #Start from offset values:\n");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      offsetmcmc,    "offsetmcmc",     "Start the MCMC with offset initial parameters: 0-no: use injection parameters, 1-yes: randomly around the injected parameters, 2-yes: at the starting parameters, 3-yes: randomly around the starting parameters.  The individual parameters to be offset are determined in offsetpar below.");
+  fprintf(fout, "  %-39d  %-18s  %-s\n",      offsetmcmc,    "offsetmcmc",     "Start the MCMC with offset initial parameters: 0-no: use injection parameters, 1-yes: randomly around the injected parameters, 2-yes: at the starting parameters, 3-yes: randomly around the starting parameters.  The individual parameters to be offset are determined in parStartMCMC below.");
   fprintf(fout, "  %-39.1f  %-18s  %-s\n",    offsetx,       "offsetx",        "Start the MCMC with an offset of x times the typical pdf sigma.");
   fprintf(fout, " ");
-  for(i=0;i<run->nMCMCpar;i++) fprintf(fout, "%2d",    offsetpar[i]);
+  for(i=0;i<run->nMCMCpar;i++) fprintf(fout, "%2d",    run->parStartMCMC[i]);
   for(i=0;i<max(19-run->nMCMCpar,0);i++) fprintf(fout, "  ");  //Line up the next colum nicely, for up to 20 parameters
-  fprintf(fout, "    %-18s  %-s\n",                          "offsetpar[]",  "Parameters you want to start from random offset values. At the moment only works if parameter is also 'fit' (i.e. value is 0 in parFix).");
+  fprintf(fout, "    %-18s  %-s\n",                          "parStartMCMC[]",  "Parameters you want to start from random offset values. At the moment only works if parameter is also 'fit' (i.e. value is 0 in parFix).");
   
   
   fprintf(fout, "  \n  #Correlated update proposals:\n");
@@ -348,7 +348,7 @@ void readMCMCinputfile(struct runPar *run)
   fgets(bla,500,fin);  fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin);  sscanf(bla,"%d",&offsetmcmc);
   fgets(bla,500,fin);  sscanf(bla,"%lf",&offsetx);
-  for(i=0;i<run->nMCMCpar;i++)  fscanf(fin,"%d",&offsetpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  for(i=0;i<run->nMCMCpar;i++)  fscanf(fin,"%d",&run->parStartMCMC[i]);  //Read the array directly, because sscanf cannot be in a loop...
   fgets(bla,500,fin);  //Read the rest of this line
   
   
