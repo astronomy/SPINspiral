@@ -255,7 +255,7 @@ void printparset(struct parset par) // Print the parameter set par to screen
 
 double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct interferometer *ifo[], struct mcmcvariables mcmc) //CHECK Need support for 2 different waveforms
 {
-  struct parset par, truepar;
+  struct parset par, injectPar;
   //arr2par(pararray, &par);  //No longer exists
   int i=0;
   for(i=0;i<mcmc.nMCMCpar;i++) {
@@ -269,15 +269,15 @@ double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct int
   localpar(&par, ifo, mcmc.networksize);
 
   //Get the true parameters
-  gettrueparameters(&truepar, mcmc.nInjectPar);
-  truepar.loctc    = (double*)calloc(mcmc.networksize,sizeof(double));
-  truepar.localti  = (double*)calloc(mcmc.networksize,sizeof(double));
-  truepar.locazi   = (double*)calloc(mcmc.networksize,sizeof(double));
-  truepar.locpolar = (double*)calloc(mcmc.networksize,sizeof(double));
-  //allocparset(&truepar,mcmc.networksize);
-  localpar(&truepar, ifo, mcmc.networksize);
+  getInjectionParameters(&injectPar, mcmc.nInjectPar, mcmc.parInjectVal);
+  injectPar.loctc    = (double*)calloc(mcmc.networksize,sizeof(double));
+  injectPar.localti  = (double*)calloc(mcmc.networksize,sizeof(double));
+  injectPar.locazi   = (double*)calloc(mcmc.networksize,sizeof(double));
+  injectPar.locpolar = (double*)calloc(mcmc.networksize,sizeof(double));
+  //allocparset(&injectPar,mcmc.networksize);
+  localpar(&injectPar, ifo, mcmc.networksize);
   
-  return parmatch(&truepar, &par, ifo, mcmc.networksize, mcmc.mcmcWaveform);
+  return parmatch(&injectPar, &par, ifo, mcmc.networksize, mcmc.mcmcWaveform);
   
   //Shouldn't these guys be freed?
 }
@@ -293,7 +293,7 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
   fftw_complex *FTout1,*FTout2;                  // FT output (type here identical to `(double) complex')
   FTout1 = fftw_malloc(sizeof(fftw_complex) * (ifo[i]->FTsize));
   FTout2 = fftw_malloc(sizeof(fftw_complex) * (ifo[i]->FTsize));
-  struct parset truepar;
+  struct parset injectPar;
   double m1m2=0.0,m1m1=0.0,m2m2=0.0;
   
   // Fill `ifo[i]->FTin' with time-domain template:
@@ -307,13 +307,13 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
   for(j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j) FTout1[j] = ifo[i]->FTout[j];
   
   //Get the true parameters and the corresponding waveform template:
-  gettrueparameters(&truepar, mcmc.nInjectPar);
-  truepar.loctc    = (double*)calloc(networksize,sizeof(double));
-  truepar.localti  = (double*)calloc(networksize,sizeof(double));
-  truepar.locazi   = (double*)calloc(networksize,sizeof(double));
-  truepar.locpolar = (double*)calloc(networksize,sizeof(double));
-  localpar(&truepar, ifo, networksize);
-  template(&truepar, ifo, i);
+  getInjectionParameters(&injectPar, mcmc.nInjectPar, mcmc.parInjectVal);
+  injectPar.loctc    = (double*)calloc(networksize,sizeof(double));
+  injectPar.localti  = (double*)calloc(networksize,sizeof(double));
+  injectPar.locazi   = (double*)calloc(networksize,sizeof(double));
+  injectPar.locpolar = (double*)calloc(networksize,sizeof(double));
+  localpar(&injectPar, ifo, networksize);
+  template(&injectPar, ifo, i);
   
   
   // Window template, FTwindow is a Tukey window:

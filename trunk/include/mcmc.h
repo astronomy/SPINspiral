@@ -19,7 +19,6 @@
 
 #define TRUE (1==1)
 #define FALSE (!TRUE)
-#define MvdSdebug !TRUE
 
 #define h2r 0.2617993877991494263  //hr -> rad
 #define r2h 3.819718634205488207   //rad -> hr
@@ -51,7 +50,7 @@
 //The following global arrays have the size of >~ the max. number of parameters we use, i.e. ~20:
 
 int offsetpar[20];
-double truepar[20],pdfsigs[20];
+double pdfsigs[20];
 
 
 //Global variables:
@@ -114,7 +113,7 @@ struct runPar{
   
   //int adapt;                    // Use adaptation or not
   int *ranInjPar;                 // Randomise injection parameters 
-  int ranParSeed;                 // Seed to randomise true parameters (i.e., injection)
+  int ranParSeed;                 // Seed to randomise injection parameters
   double injectionSNR;            // Network SNR of the software injection, scale the distance to obtain this value
   
   double blockfrac;               // Fraction of non-correlated updates that is a block update
@@ -123,7 +122,7 @@ struct runPar{
   
   double netsnr;                  // Total SNR of the network
   double temps[99];               // Temperature ladder for manual parallel tempering
-  double startpar[20];            // Starting parameters for the MCMC chains (may be different from true parameters)
+  double startpar[20];            // Starting parameters for the MCMC chains (may be different from injection parameters)
   
   //Data:
   char datasetName[80];           // Name of the data set used (for printing purposes)
@@ -142,7 +141,8 @@ struct runPar{
   int parNumber[20];              // Number of the current parameter
   int parID[20];                  // Unique parameter identifier
   int parRevID[200];              // Reverse parameter identifier
-  double parBestVal[20];          // Best know value for each parameter
+  double parBestVal[20];          // Best known value for each parameter
+  double parInjectVal[20];        // Injection value for each parameter
   int parFix[20];                 // Fix an MCMC parameter or not
   int parStartMCMC[20];           // Method of choosing starting value for Markov chains
   double parSigma[20];            // Width of Gaussian distribution for offset start and first correlation matrix
@@ -168,61 +168,62 @@ struct runPar{
 struct mcmcvariables{
   int nMCMCpar;                   // Number of parameters in the MCMC template
   int nInjectPar;                 // Number of parameters in the injection template
-  int iteri;             // State/iteration number
-  int nParFit;           // Number of parameters in the MCMC that is fitted for
-  int ntemps;            // Number of chains in the temperature ladder
-  int tempi;             // The current temperature index
-  int networksize;       // Number of IFOs in the detector network
-  int mcmcWaveform;      // Waveform used as the MCMC template
+  int iteri;                      // State/iteration number
+  int nParFit;                    // Number of parameters in the MCMC that is fitted for
+  int ntemps;                     // Number of chains in the temperature ladder
+  int tempi;                      // The current temperature index
+  int networksize;                // Number of IFOs in the detector network
+  int mcmcWaveform;               // Waveform used as the MCMC template
   
-  int parFix[20];        // Fix an MCMC parameter or not
+  int parFix[20];                 // Fix an MCMC parameter or not
+  double parInjectVal[20];        // Injection value for each parameter
   
-  double temp;           // The current temperature
-  double mataccfr;       // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
-  double basetime;       // Base of time measurement, get rid of long GPS time format
+  double temp;                    // The current temperature
+  double mataccfr;                // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
+  double basetime;                // Base of time measurement, get rid of long GPS time format
   
   
-  double *histmean;      // Mean of hist block of iterations, used to get the covariance matrix
-  double *histdev;       // Standard deviation of hist block of iterations, used to get the covariance matrix
+  double *histmean;               // Mean of hist block of iterations, used to get the covariance matrix
+  double *histdev;                // Standard deviation of hist block of iterations, used to get the covariance matrix
   
-  int *corrupdate;       // Switch (per chain) to do correlated (1) or uncorrelated (0) updates
-  int *acceptelems;      // Count 'improved' elements of diagonal of new corr matrix, to determine whether to accept it
+  int *corrupdate;                // Switch (per chain) to do correlated (1) or uncorrelated (0) updates
+  int *acceptelems;               // Count 'improved' elements of diagonal of new corr matrix, to determine whether to accept it
 
-  double *temps;         // Array of temperatures in the temperature ladder
-  double *newtemps;      // New temperature ladder, was used in adaptive parallel tempering
-  double *tempampl;      // Temperature amplitudes for sinusoid T in parallel tempering
-  double *logL;          // Current log(L)
-  double *nlogL;         // New log(L)
-  double *dlogL;         // log(L)-log(Lo)
-  double *maxdlogL;      // Remember the maximum dlog(L)
-  double *sumdlogL;      // Sum of the dlogLs, summed over 1 block of ncorr (?), was used in adaptive parallel tempering, still printed?
-  double *avgdlogL;      // Average of the dlogLs, over 1 block of ncorr (?), was used in adaptive parallel tempering
-  double *expdlogL;      // Expected dlogL for a flat distribution of chains, was used in adaptive parallel tempering                    
+  double *temps;                  // Array of temperatures in the temperature ladder
+  double *newtemps;               // New temperature ladder, was used in adaptive parallel tempering
+  double *tempampl;               // Temperature amplitudes for sinusoid T in parallel tempering
+  double *logL;                   // Current log(L)
+  double *nlogL;                  // New log(L)
+  double *dlogL;                  // log(L)-log(Lo)
+  double *maxdlogL;               // Remember the maximum dlog(L)
+  double *sumdlogL;               // Sum of the dlogLs, summed over 1 block of ncorr (?), was used in adaptive parallel tempering, still printed?
+  double *avgdlogL;               // Average of the dlogLs, over 1 block of ncorr (?), was used in adaptive parallel tempering
+  double *expdlogL;               // Expected dlogL for a flat distribution of chains, was used in adaptive parallel tempering                    
   
 
-  double *corrsig;       // Sigma for correlated update proposals
-  int *swapTs1;          // Totals for the columns in the chain-swap matrix
-  int *swapTs2;          // Totals for the rows in the chain-swap matrix                                               
-  int *acceptprior;      // Check boundary conditions and choose to accept (1) or not(0)
-  int *ihist;            // Count the iteration number in the current history block to calculate the covar matrix from
+  double *corrsig;                // Sigma for correlated update proposals
+  int *swapTs1;                   // Totals for the columns in the chain-swap matrix
+  int *swapTs2;                   // Totals for the rows in the chain-swap matrix                                               
+  int *acceptprior;               // Check boundary conditions and choose to accept (1) or not(0)
+  int *ihist;                     // Count the iteration number in the current history block to calculate the covar matrix from
 
-  int **accepted;        // Count accepted proposals
-  int **swapTss;         // Count swaps between chains
-  double **param;        // The current parameters for all chains
-  double **nParam;       // The new parameters for all chains
-  double **maxparam;     // The best parameters for all chains (max logL)
-  double **sig;          // The standard deviation of the gaussian to draw the jump size from
-  double **sigout;       // The sigma that gets written to output
-  double **scale;        // The rate of adaptation
+  int **accepted;                 // Count accepted proposals
+  int **swapTss;                  // Count swaps between chains
+  double **param;                 // The current parameters for all chains
+  double **nParam;                // The new parameters for all chains
+  double **maxparam;              // The best parameters for all chains (max logL)
+  double **sig;                   // The standard deviation of the gaussian to draw the jump size from
+  double **sigout;                // The sigma that gets written to output
+  double **scale;                 // The rate of adaptation
   
-  double ***hist;        // Store a block of iterations, to calculate the covariance matrix
-  double ***covar;       // The Cholesky-decomposed covariance matrix
+  double ***hist;                 // Store a block of iterations, to calculate the covariance matrix
+  double ***covar;                // The Cholesky-decomposed covariance matrix
   
-  int seed;              // MCMC seed
-  gsl_rng *ran;          // GSL random-number seed
+  int seed;                       // MCMC seed
+  gsl_rng *ran;                   // GSL random-number seed
   
-  FILE *fout;            // Output-file pointer
-  FILE **fouts;          // Output-file pointer array
+  FILE *fout;                     // Output-file pointer
+  FILE **fouts;                   // Output-file pointer array
 };
 
 
@@ -343,7 +344,7 @@ void setRandomInjectionParameters(struct runPar *run);
 void setRandomInjectionParameters1(struct runPar *run);
 void setRandomInjectionParameters2(struct runPar *run);
 
-void gettrueparameters(struct parset *par, int nTruePar);
+void getInjectionParameters(struct parset *par, int nInjectionPar, double *parInjectVal);
 void getstartparameters(struct parset *par, struct runPar run);
 void allocparset(struct parset *par, int networksize);
 void freeparset(struct parset *par);

@@ -113,7 +113,7 @@ void mcmc(struct runPar run, struct interferometer *ifo[])
   // *** INITIALISE MARKOV CHAIN **************************************************************************************************************************************************
   
   // *** Get true (or best-guess) values for signal ***
-  gettrueparameters(&state, mcmc.nMCMCpar);
+  getInjectionParameters(&state, mcmc.nMCMCpar, mcmc.parInjectVal);
   state.loctc    = (double*)calloc(mcmc.networksize,sizeof(double));
   state.localti  = (double*)calloc(mcmc.networksize,sizeof(double));
   state.locazi   = (double*)calloc(mcmc.networksize,sizeof(double));
@@ -964,12 +964,12 @@ void allocate_mcmcvariables(struct mcmcvariables *mcmc)
 //****************************************************************************************************************************************************  
 void copyRun2MCMC(struct runPar run, struct mcmcvariables *mcmc)
 {
+  int i=0;
   
   //Copy some global variables:
   mcmc->nMCMCpar = run.nMCMCpar;              // Number of mcmc/template parameters
   mcmc->nInjectPar = run.nInjectPar;          // Number of mcmc/template parameters
   mcmc->temp = max(temp0,1.0);                // Current temperature
-  
   
   mcmc->mcmcWaveform = run.mcmcWaveform;      // Waveform used as MCMC template
   mcmc->networksize = run.networksize;        // Network size
@@ -977,6 +977,10 @@ void copyRun2MCMC(struct runPar run, struct mcmcvariables *mcmc)
   mcmc->ntemps = run.ntemps;                  // Size of temperature ladder
   mcmc->mataccfr = run.mataccfr;              // Fraction of elements on the diagonal that must 'improve' in order to accept a new covariance matrix.
   mcmc->basetime = (double)((floor)(prior_tc_mean/100.0)*100);  //'Base' time, gets rid of the first 6-7 digits of GPS time
+  
+  for(i=0;i<mcmc->nMCMCpar;i++) {
+    mcmc->parInjectVal[i] = run.parInjectVal[i];
+  }
 }
 //****************************************************************************************************************************************************  
 // End copyRun2MCMC()

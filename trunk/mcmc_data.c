@@ -862,7 +862,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
     
     // Define injection parameters:
     struct parset injectpar;
-    gettrueparameters(&injectpar, run.nInjectPar);
+    getInjectionParameters(&injectpar, run.nInjectPar, run.parInjectVal);
     double m1=0.0,m2=0.0;
     mceta2masses(injectpar.mc, injectpar.eta, &m1, &m2);
     injectpar.loctc    = (double*)calloc(networksize,sizeof(double));
@@ -1400,7 +1400,7 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networksize, struct r
   int i, j;
   //Set local values in parameter struct (needed for template computation)
   struct parset par;
-  gettrueparameters(&par, run.nInjectPar);
+  getInjectionParameters(&par, run.nInjectPar, run.parInjectVal);
   par.loctc    = (double*)calloc(networksize,sizeof(double));
   par.localti  = (double*)calloc(networksize,sizeof(double));
   par.locazi   = (double*)calloc(networksize,sizeof(double));
@@ -1457,7 +1457,7 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networksize, struct r
 void printParameterHeaderToFile(FILE * dump)
 {
   struct parset par;
-  gettrueparameters(&par, 12);  //CHECK - get nMCMCpar/nInjectPar here somehow
+  //getInjectionParameters(&par, 12, run.parInjectVal);  //CHECK - get nMCMCpar/nInjectPar and run here somehow
   fprintf(dump,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
   fprintf(dump,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
 	  //par.m1,par.m2,par.mc,par.eta,par.tc,exp(par.logdl),asin(par.sinlati)*r2d,par.longi*r2d,par.phase,par.spin,par.kappa,par.sinthJ0,par.phiJ0,par.alpha);

@@ -71,7 +71,7 @@ int main(int argc, char * argv[])
   
   //Get a parameter set to calculate SNR or write the wavefrom to disc
   struct parset dummypar;
-  gettrueparameters(&dummypar, run.nMCMCpar);
+  getInjectionParameters(&dummypar, run.nMCMCpar, run.parInjectVal);
   dummypar.loctc    = (double*)calloc(networksize,sizeof(double));
   dummypar.localti  = (double*)calloc(networksize,sizeof(double));
   dummypar.locazi   = (double*)calloc(networksize,sizeof(double));
@@ -95,9 +95,9 @@ int main(int argc, char * argv[])
   
   //Get the desired SNR by scaling the distance
   if(run.injectionSNR > 0.001 && inject==1) {
-    truepar[3] *= (run.netsnr/run.injectionSNR);  //Use total network SNR
-    printf("   Setting distance to %lf Mpc to get a network SNR of %lf.\n",truepar[3],run.injectionSNR);
-    gettrueparameters(&dummypar, run.nMCMCpar);
+    run.parInjectVal[3] *= (run.netsnr/run.injectionSNR);  //Use total network SNR
+    printf("   Setting distance to %lf Mpc to get a network SNR of %lf.\n",run.parInjectVal[3],run.injectionSNR);
+    getInjectionParameters(&dummypar, run.nMCMCpar, run.parInjectVal);
     dummypar.loctc    = (double*)calloc(networksize,sizeof(double));
     dummypar.localti  = (double*)calloc(networksize,sizeof(double));
     dummypar.locazi   = (double*)calloc(networksize,sizeof(double));
@@ -189,7 +189,7 @@ int main(int argc, char * argv[])
     /*
     if(1==2) {
       printf("\n\n");
-      gettrueparameters(&dummypar, run.nMCMCpar);
+      getInjectionParameters(&dummypar, run.nMCMCpar, run.parInjectVal);
       dummypar.loctc    = (double*)calloc(networksize,sizeof(double));
       dummypar.localti  = (double*)calloc(networksize,sizeof(double));
       dummypar.locazi   = (double*)calloc(networksize,sizeof(double));

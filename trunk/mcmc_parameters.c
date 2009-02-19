@@ -78,11 +78,11 @@ void readMainInputfile(struct runPar *run)
   
   //True parameter values:
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
-  for(i=0;i<run->nInjectPar;i++) fscanf(fin,"%lf",&truepar[i]);  //Read the array directly, because sscanf cannot be in a loop...
-  prior_tc_mean = truepar[2];   //prior_tc_mean is used everywhere
+  for(i=0;i<run->nInjectPar;i++) fscanf(fin,"%lf",&run->parInjectVal[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  prior_tc_mean = run->parInjectVal[2];   //prior_tc_mean is used everywhere
   //Starting parameter values:
   for(i=0;i<run->nMCMCpar;i++) fscanf(fin,"%lf",&run->startpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
-  //if(offsetmcmc==0 || offsetmcmc==1) for(i=0;i<run->nMCMCpar;i++) run->startpar[i] = truepar[i];  //Set the starting parameters equal to the true, injection parameters
+  //if(offsetmcmc==0 || offsetmcmc==1) for(i=0;i<run->nMCMCpar;i++) run->startpar[i] = run->parInjectVal[i];  //Set the starting parameters equal to the true, injection parameters
   
   //Secondary input files:
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
@@ -207,9 +207,9 @@ void writeMainInputfile(struct runPar *run)
   }
   for(i=0;i<run->nMCMCpar;i++) {
     if(i==2) {
-      fprintf(fout, "  %-18.6lf",truepar[i]);
+      fprintf(fout, "  %-18.6lf",run->parInjectVal[i]);
     } else {
-      fprintf(fout, "  %-9.4lf",truepar[i]);
+      fprintf(fout, "  %-9.4lf",run->parInjectVal[i]);
     }
   }
   fprintf(fout, "  \n");
@@ -736,36 +736,37 @@ void setconstants()
 
 
 
-void gettrueparameters(struct parset *par, int nTruePar)  //Set the parameters for the 12-parameter spinning template to the 'true values'
+void getInjectionParameters(struct parset *par, int nInjectionPar, double *parInjectVal)  //Set the parameters to the 'injection values'
 {
   int i=0;
-  for(i=0;i<nTruePar;i++) {
-    par->par[i]      = truepar[i];
+  for(i=0;i<nInjectionPar;i++) {
+    par->par[i]      = parInjectVal[i];
   }
   
-  par->tc       = truepar[2];                    // coalescence time
-  //par->longi    = fmod(longitude(truepar[6],GMST(par->tc))+mtpi,tpi);  //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
-  par->longi    = truepar[6];                    //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
-  par->sinlati  = truepar[7];           // sin latitude (sin(delta))  (40)     
-  par->sinthJ0  = truepar[9];           // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
-  //par->phiJ0    = fmod(longitude(truepar[10],GMST(par->tc))+mtpi,tpi);  //The parameter in the input and output is a 'RA'; the MCMC parameter is a 'longi' ~ Greenwich hour angle
-  par->phiJ0    = truepar[10];               // Phi_J0 ~ azimuthal            (125)
+  //These should all disappear:
+  par->tc       = parInjectVal[2];                    // coalescence time
+  //par->longi    = fmod(longitude(parInjectVal[6],GMST(par->tc))+mtpi,tpi);  //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
+  par->longi    = parInjectVal[6];                    //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
+  par->sinlati  = parInjectVal[7];           // sin latitude (sin(delta))  (40)     
+  par->sinthJ0  = parInjectVal[9];           // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
+  //par->phiJ0    = fmod(longitude(parInjectVal[10],GMST(par->tc))+mtpi,tpi);  //The parameter in the input and output is a 'RA'; the MCMC parameter is a 'longi' ~ Greenwich hour angle
+  par->phiJ0    = parInjectVal[10];               // Phi_J0 ~ azimuthal            (125)
   
   /*
-  parSTOPGREPFROMFINDINGTHIS->m1       = truepar[0];                    // M1 (10.0)
-  parSTOPGREPFROMFINDINGTHIS->m2       = truepar[1];                    // M2  (1.4)
+  parSTOPGREPFROMFINDINGTHIS->m1       = parInjectVal[0];                    // M1 (10.0)
+  parSTOPGREPFROMFINDINGTHIS->m2       = parInjectVal[1];                    // M2  (1.4)
   parSTOPGREPFROMFINDINGTHIS->m        = parSTOPGREPFROMFINDINGTHIS->m1+parSTOPGREPFROMFINDINGTHIS->m2;
   parSTOPGREPFROMFINDINGTHIS->mu       = parSTOPGREPFROMFINDINGTHIS->m1*parSTOPGREPFROMFINDINGTHIS->m2/parSTOPGREPFROMFINDINGTHIS->m;
   
   parSTOPGREPFROMFINDINGTHIS->eta      = parSTOPGREPFROMFINDINGTHIS->mu/parSTOPGREPFROMFINDINGTHIS->m;                // mass ratio                
   parSTOPGREPFROMFINDINGTHIS->mc       = parSTOPGREPFROMFINDINGTHIS->m*pow(parSTOPGREPFROMFINDINGTHIS->eta,0.6);      // chirp mass. in Mo         
-  parSTOPGREPFROMFINDINGTHIS->logdl    = log(truepar[3]);               // log-distance (Mpc) (17.5)             
+  parSTOPGREPFROMFINDINGTHIS->logdl    = log(parInjectVal[3]);               // log-distance (Mpc) (17.5)             
   
-  parSTOPGREPFROMFINDINGTHIS->spin     = truepar[4];                    // magnitude of total spin   (0.1)
-  parSTOPGREPFROMFINDINGTHIS->kappa    = cos(truepar[5]*d2r);           // L^.S^, cos of angle between L^ & S^  (0.819152)
+  parSTOPGREPFROMFINDINGTHIS->spin     = parInjectVal[4];                    // magnitude of total spin   (0.1)
+  parSTOPGREPFROMFINDINGTHIS->kappa    = cos(parInjectVal[5]*d2r);           // L^.S^, cos of angle between L^ & S^  (0.819152)
   
-  parSTOPGREPFROMFINDINGTHIS->phase    = truepar[8]*d2r;                // orbital phase   (phi_c)   (0.2)
-  parSTOPGREPFROMFINDINGTHIS->alpha    = truepar[11]*d2r;               // Alpha_c                       (0.9 rad = 51.566202deg)
+  parSTOPGREPFROMFINDINGTHIS->phase    = parInjectVal[8]*d2r;                // orbital phase   (phi_c)   (0.2)
+  parSTOPGREPFROMFINDINGTHIS->alpha    = parInjectVal[11]*d2r;               // Alpha_c                       (0.9 rad = 51.566202deg)
   */
   
   par->loctc    = NULL;
