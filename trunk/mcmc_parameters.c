@@ -130,9 +130,6 @@ void writeMainInputfile(struct runpar *run)
   fprintf(fout, "  %-39d  %-18s  %-s\n",      adapt,         "adapt",          "Use adaptation: 0-no, 1-yes.");
   fprintf(fout, "  %-39.2f  %-18s  %-s\n",    run->blockfrac,"blockfrac",      "Fraction of uncorrelated updates that is updated as a block of all parameters (<=0.0: none, >=1.0: all).");
   fprintf(fout, " ");
-  for(i=0;i<npar;i++) fprintf(fout, "%2d",    fitpar[i]);
-  for(i=0;i<max(19-npar,0);i++) fprintf(fout, "  ");  //Line up the next colum nicely, for up to 20 parameters
-  fprintf(fout, "    %-18s  %-s\n",                          "fitpar[]",     "Parameters you want to fit for.");
   
   
   fprintf(fout, "  \n  #Start from offset values:\n");
@@ -141,7 +138,7 @@ void writeMainInputfile(struct runpar *run)
   fprintf(fout, " ");
   for(i=0;i<npar;i++) fprintf(fout, "%2d",    offsetpar[i]);
   for(i=0;i<max(19-npar,0);i++) fprintf(fout, "  ");  //Line up the next colum nicely, for up to 20 parameters
-  fprintf(fout, "    %-18s  %-s\n",                          "offsetpar[]",  "Parameters you want to start from random offset values. At the moment only works if parameter is also 'fit' (i.e. value is 1 in fitpar).");
+  fprintf(fout, "    %-18s  %-s\n",                          "offsetpar[]",  "Parameters you want to start from random offset values. At the moment only works if parameter is also 'fit' (i.e. value is 0 in parFix).");
   
   
   fprintf(fout, "  \n  #Correlated update proposals:\n");
@@ -343,8 +340,6 @@ void readMCMCinputfile(struct runpar *run)
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->MCMCseed);
   fgets(bla,500,fin);  sscanf(bla,"%d",&adapt);
   fgets(bla,500,fin);  sscanf(bla,"%lf",&run->blockfrac);
-  for(i=0;i<npar;i++)  fscanf(fin,"%d",&fitpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
-  fgets(bla,500,fin);  //Read the rest of this line
   
   
 

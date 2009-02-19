@@ -11,10 +11,6 @@ void mcmc(struct runpar run, struct interferometer *ifo[])
   // *** MCMC struct ***
   struct mcmcvariables mcmc;                  // MCMC variables struct
   
-  //Copy from global variables:
-  mcmc.npar = npar;                           // Number of mcmc/template parameters
-  mcmc.temp = max(temp0,1.0);                 // Current temperature
-  
   //Copy elements from run struct to mcmc struct:
   copyRun2MCMC(run, &mcmc);
   
@@ -52,17 +48,17 @@ void mcmc(struct runpar run, struct interferometer *ifo[])
   
   
   double **tempcovar;
-  tempcovar = (double**)calloc(npar,sizeof(double*)); // A temp Cholesky-decomposed matrix
-  for(i=0;i<npar;i++) {
-    tempcovar[i] = (double*)calloc(npar,sizeof(double));
+  tempcovar = (double**)calloc(mcmc.nMCMCpar,sizeof(double*)); // A temp Cholesky-decomposed matrix
+  for(i=0;i<mcmc.nMCMCpar;i++) {
+    tempcovar[i] = (double*)calloc(mcmc.nMCMCpar,sizeof(double));
   }
   
   double ***covar1;
   covar1  = (double***)calloc(mcmc.ntemps,sizeof(double**)); // The actual covariance matrix
   for(i=0;i<mcmc.ntemps;i++) {
-    covar1[i]  = (double**)calloc(npar,sizeof(double*));
-    for(j=0;j<npar;j++) {
-      covar1[i][j]  = (double*)calloc(npar,sizeof(double));
+    covar1[i]  = (double**)calloc(mcmc.nMCMCpar,sizeof(double*));
+    for(j=0;j<mcmc.nMCMCpar;j++) {
+      covar1[i][j]  = (double*)calloc(mcmc.nMCMCpar,sizeof(double));
     }
   }
   
@@ -133,7 +129,7 @@ void mcmc(struct runpar run, struct interferometer *ifo[])
   mcmc.tempi = tempi;
   for(tempi=0;tempi<mcmc.ntemps;tempi++) {
     mcmc.tempi = tempi;
-    for(j1=0;j1<npar;j1++) {
+    for(j1=0;j1<mcmc.nMCMCpar;j1++) {
       mcmc.param[tempi][j1] = mcmc.param[0][j1];
     }
     mcmc.logL[tempi] = mcmc.logL[0];
@@ -143,15 +139,15 @@ void mcmc(struct runpar run, struct interferometer *ifo[])
   
   
   //Determine the number of parameters that is actually fitted/varied (i.e. not kept fixed at the true values)
-  for(i=0;i<npar;i++) {
-    if(fitpar[i]==1) mcmc.nparfit += 1;
+  for(i=0;i<mcmc.nMCMCpar;i++) {
+    if(mcmc.parFix[i]==0) mcmc.nparfit += 1;
   }
   
   
   // *** Initialise covariance matrix (initially diagonal), to do updates in the first block ***
   mcmc.corrupdate[0] = 0;
   if(corrupd>0) {
-    for(j1=0;j1<npar;j1++) {
+    for(j1=0;j1<mcmc.nMCMCpar;j1++) {
       mcmc.covar[tempi][j1][j1] = pdfsigs[j1];
     }
     mcmc.corrupdate[0] = 1; //Use the matrix above and don't change it
@@ -175,14 +171,14 @@ void mcmc(struct runpar run, struct interferometer *ifo[])
   par2arrt(state, mcmc.param);  //Put the variables in their array
   if(offsetmcmc==1 || offsetmcmc==3) {
     printf("\n");
-    for(i=0;i<npar;i++) {
+    for(i=0;i<mcmc.nMCMCpar;i++) {
       mcmc.nparam[tempi][i] = mcmc.param[tempi][i];  //Temporarily store the true values
     }
     mcmc.logL[tempi] = -1.e30;
     while(mcmc.logL[tempi] < 1.0) { //Accept only good starting values
       mcmc.acceptprior[tempi] = 1;
-      for(i=0;i<npar;i++) {
-	if(fitpar[i]==1 && offsetpar[i]==1) {
+      for(i=0;i<mcmc.nMCMCpar;i++) {
+	if(mcmc.parFix[i]==0 && offsetpar[i]==1) {
 	  mcmc.param[tempi][i] = mcmc.nparam[tempi][i] + offsetx * (gsl_rng_uniform(mcmc.ran) - 0.5) * pdfsigs[i];
 	  //0:Mc, 1:eta, 2:tc, 3:logd, 4:a, 5:kappa, 6:RA, 7:sindec, 8:phi, 9:sintheta_Jo, 10: phi_Jo, 11:alpha
 	 // if(i==1 && (mcmc.param[tempi][i]<=0.01 || mcmc.param[tempi][i] > 0.25)) mcmc.param[tempi][i] = max(min(gsl_rng_uniform(mcmc.ran)*0.25,1.0),0.01);  //Eta: 0.01<eta<0.25  \__ If it's that far outside, you may as well take a random value
@@ -208,7 +204,7 @@ void mcmc(struct runpar run, struct interferometer *ifo[])
     //     nstart,mcmc.logL[tempi],mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2]-mcmc.basetime,mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],mcmc.param[tempi][6],mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
     printf("%9s %10s   %7s\n", "nDraws","logL","parameters");
     printf("%9d %10.3lf",nstart,mcmc.logL[tempi]);
-    for(i=0;i<npar;i++)
+    for(i=0;i<mcmc.nMCMCpar;i++)
       {
 	printf(" %9.4f",mcmc.param[tempi][i]);
       }
@@ -217,7 +213,7 @@ void mcmc(struct runpar run, struct interferometer *ifo[])
   
   
   // *** Set the NEW array, sigma and scale ***
-  for(i=0;i<npar;i++) {
+  for(i=0;i<mcmc.nMCMCpar;i++) {
     mcmc.nparam[tempi][i] = mcmc.param[tempi][i];
     mcmc.sig[tempi][i]   = 0.1  * pdfsigs[i];
     if(adapt==1) mcmc.sig[tempi][i] = pdfsigs[i]; //Don't use adaptation
@@ -242,7 +238,7 @@ void mcmc(struct runpar run, struct interferometer *ifo[])
   mcmc.iteri = 0;
   for(tempi=0;tempi<mcmc.ntemps;tempi++) {
     mcmc.tempi = tempi;
-    for(j1=0;j1<npar;j1++) {
+    for(j1=0;j1<mcmc.nMCMCpar;j1++) {
       mcmc.param[tempi][j1] = mcmc.param[0][j1];
     }
     mcmc.logL[tempi] = mcmc.logL[0];
@@ -258,7 +254,7 @@ void mcmc(struct runpar run, struct interferometer *ifo[])
   // *** Put the initial values of the parameters, sigmas etc in the different temperature chains ***
   if(mcmc.ntemps>1) {
     for(tempi=1;tempi<mcmc.ntemps;tempi++) {
-      for(j=0;j<npar;j++) {
+      for(j=0;j<mcmc.nMCMCpar;j++) {
 	mcmc.param[tempi][j] = mcmc.param[0][j];
 	mcmc.nparam[tempi][j] = mcmc.nparam[0][j];
 	mcmc.sig[tempi][j] = mcmc.sig[0][j];
@@ -266,7 +262,7 @@ void mcmc(struct runpar run, struct interferometer *ifo[])
 	mcmc.logL[tempi] = mcmc.logL[0];
 	mcmc.nlogL[tempi] = mcmc.nlogL[0];
 
-	for(j1=0;j1<npar;j1++) {
+	for(j1=0;j1<mcmc.nMCMCpar;j1++) {
 	  for(j2=0;j2<=j1;j2++) {
 	    mcmc.covar[tempi][j1][j2] = mcmc.covar[0][j1][j2];
 	  }
@@ -339,7 +335,7 @@ void mcmc(struct runpar run, struct interferometer *ifo[])
       mcmc.dlogL[tempi] = mcmc.logL[tempi];
       if(mcmc.dlogL[tempi]>mcmc.maxdlogL[tempi]) {
 	mcmc.maxdlogL[tempi] = mcmc.dlogL[tempi];
-	for(i=0;i<npar;i++) {
+	for(i=0;i<mcmc.nMCMCpar;i++) {
 	  mcmc.maxparam[tempi][i] = mcmc.param[tempi][i];
 	}
       }
@@ -362,7 +358,7 @@ void mcmc(struct runpar run, struct interferometer *ifo[])
 	  
 	  // *** Save state to calculate correlations ***
 	  if(mcmc.ihist[tempi]<ncorr) {
-	    for(j1=0;j1<npar;j1++){
+	    for(j1=0;j1<mcmc.nMCMCpar;j1++){
 	      mcmc.hist[tempi][j1][mcmc.ihist[tempi]] = mcmc.param[tempi][j1];
 	    }
 	    mcmc.ihist[tempi] += 1;
@@ -439,13 +435,13 @@ void mcmc(struct runpar run, struct interferometer *ifo[])
   free_mcmcvariables(&mcmc);
   
   
-  for(i=0;i<npar;i++) {
+  for(i=0;i<mcmc.nMCMCpar;i++) {
     free(tempcovar[i]);
   }
   free(tempcovar);
   
   for(i=0;i<mcmc.ntemps;i++) {
-    for(j=0;j<npar;j++) {
+    for(j=0;j<mcmc.nMCMCpar;j++) {
       free(covar1[i][j]);
     }
     free(covar1[i]);
@@ -536,7 +532,7 @@ void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, 
 //****************************************************************************************************************************************************  
 {
   int p1=0, p2=0, tempi=mcmc->tempi, tempj=0;
-  double temparr[mcmc->npar], dparam=0.0;
+  double temparr[mcmc->nMCMCpar], dparam=0.0;
   double ran=0.0, largejump1=0.0, largejumpall=0.0;
   
   //Prepare the proposal by creating a vector of univariate gaussian random numbers
@@ -547,7 +543,7 @@ void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, 
     if(ran < 1.0e-4) largejumpall = 1.0e2;    //Every 1e4 iterations, take a 100x larger jump in all parameters
   }
   
-  for(p1=0;p1<mcmc->npar;p1++) {
+  for(p1=0;p1<mcmc->nMCMCpar;p1++) {
     largejump1 = 1.0;
     ran = gsl_rng_uniform(mcmc->ran);
     if(ran < 1.0e-2) {
@@ -566,8 +562,8 @@ void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, 
   
   //Do the proposal
   mcmc->acceptprior[tempi] = 1;
-  for(p1=0;p1<mcmc->npar;p1++){
-    if(fitpar[p1]==1) {
+  for(p1=0;p1<mcmc->nMCMCpar;p1++){
+    if(mcmc->parFix[p1]==0) {
       dparam = 0.0;
       for(p2=0;p2<=p1;p2++){
 	dparam += mcmc->covar[tempi][p1][p2]*temparr[p2];   //Temparr is now a univariate gaussian random vector
@@ -599,8 +595,8 @@ void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, 
     par2arrt(*state, mcmc->nparam);	                               //Put the variables back in their array
     
     if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->temp) && mcmc->nlogL[tempi] > 0) {  //Accept proposal
-      for(p1=0;p1<mcmc->npar;p1++){
-	if(fitpar[p1]==1) {
+      for(p1=0;p1<mcmc->nMCMCpar;p1++){
+	if(mcmc->parFix[p1]==0) {
 	  mcmc->param[tempi][p1] = mcmc->nparam[tempi][p1];
 	  mcmc->accepted[tempi][p1] += 1;
 	}
@@ -651,12 +647,12 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
   ran = gsl_rng_uniform(mcmc->ran);
   if(ran < 1.0e-3) largejumpall = 1.0e1;    //Every 1e3 iterations, take a 10x larger jump in all parameters
   if(ran < 1.0e-4) largejumpall = 1.0e2;    //Every 1e4 iterations, take a 100x larger jump in all parameters
-    
-  for(p=0;p<npar;p++){
-    if(fitpar[p]==1) mcmc->nparam[tempi][p] = mcmc->param[tempi][p];
+  
+  for(p=0;p<mcmc->nMCMCpar;p++){
+    if(mcmc->parFix[p]==0) mcmc->nparam[tempi][p] = mcmc->param[tempi][p];
   }
-  for(p=0;p<npar;p++){
-    if(fitpar[p]==1) {
+  for(p=0;p<mcmc->nMCMCpar;p++){
+    if(mcmc->parFix[p]==0) {
       largejump1 = 1.0;
       ran = gsl_rng_uniform(mcmc->ran);
       if(ran < 1.0e-2) largejump1 = 1.0e1;    //Every 1e2 iterations, take a 10x larger jump in this parameter
@@ -708,7 +704,7 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
 	  uncorrelated_mcmc_single_update_angle_prior(mcmc->sig[tempi][p], p, mcmc->mcmcWaveform);  //Bring the sigma between 0 and 2pi
 	}
       } //if(mcmc->acceptprior[tempi]==1)
-    } //if(fitpar[p]==1)
+    } //if(mcmc->parFix[p]==0)
     mcmc->sigout[tempi][p] = mcmc->sig[tempi][p]; //Save sigma for output
   } //p
 }
@@ -734,8 +730,8 @@ void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset 
   if(ran < 1.0e-4) largejumpall = 1.0e2;    //Every 1e4 iterations, take a 100x larger jump in all parameters
   
   mcmc->acceptprior[tempi] = 1;
-  for(p=0;p<mcmc->npar;p++){
-    if(fitpar[p]==1) {
+  for(p=0;p<mcmc->nMCMCpar;p++){
+    if(mcmc->parFix[p]==0) {
       largejump1 = 1.0;
       ran = gsl_rng_uniform(mcmc->ran);
       if(ran < 1.0e-2) largejump1 = 1.0e1;    //Every 1e2 iterations, take a 10x larger jump in this parameter
@@ -753,8 +749,8 @@ void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset 
     par2arrt(*state, mcmc->nparam);	                              //Put the variables back in their array
     
     if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->temp) && mcmc->nlogL[tempi] > 0){  //Accept proposal if L>Lo
-      for(p=0;p<mcmc->npar;p++){
-	if(fitpar[p]==1) {
+      for(p=0;p<mcmc->nMCMCpar;p++){
+	if(mcmc->parFix[p]==0) {
 	  mcmc->param[tempi][p] = mcmc->nparam[tempi][p];
 	  mcmc->accepted[tempi][p] += 1;
 	}
@@ -839,7 +835,7 @@ void write_mcmc_output(struct mcmcvariables mcmc, struct interferometer *ifo[])
     //   if((iteri % thinScreenOutput)==0 || iteri<0)  printf("%9d %10.3lf  %7.4f %7.4f %8.4lf %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f\n",
     //					       iteri,mcmc.logL[tempi],mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2]-mcmc.basetime,mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],mcmc.param[tempi][6],mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
     if((iteri % thinScreenOutput)==0 || iteri<0){  printf("%8d  %10.3lf",iteri,mcmc.logL[tempi]);
-      for(i=0;i<npar;i++)
+      for(i=0;i<mcmc.nMCMCpar;i++)
 	{
 	  printf(" %9.4f",mcmc.param[tempi][i]);
 	}
@@ -850,12 +846,12 @@ void write_mcmc_output(struct mcmcvariables mcmc, struct interferometer *ifo[])
   
   
   double *accrat;
-  accrat = (double*)calloc(mcmc.npar,sizeof(double));
-  for(p=0;p<mcmc.npar;p++) {
+  accrat = (double*)calloc(mcmc.nMCMCpar,sizeof(double));
+  for(p=0;p<mcmc.nMCMCpar;p++) {
     accrat[p] = 0.0;
   }
   if(iteri > 0) {
-    for(p=0;p<mcmc.npar;p++) {
+    for(p=0;p<mcmc.nMCMCpar;p++) {
       accrat[p] = mcmc.accepted[tempi][p]/(double)iteri;
     }
   }
@@ -874,7 +870,7 @@ void write_mcmc_output(struct mcmcvariables mcmc, struct interferometer *ifo[])
 	    mcmc.param[tempi][9], 
 	    mcmc.param[tempi][10],  mcmc.param[tempi][11]);*/
 	fprintf(mcmc.fouts[tempi], "%10d %13.6lf", iteri,mcmc.logL[tempi]);
-	for(i=0;i<npar;i++)
+	for(i=0;i<mcmc.nMCMCpar;i++)
 	  {
 	    fprintf(mcmc.fouts[tempi],"    %8.5f",mcmc.param[tempi][i]);
 	  }
@@ -909,9 +905,9 @@ void allocate_mcmcvariables(struct mcmcvariables *mcmc)
   
   mcmc->nparfit=0;
   
-  mcmc->histmean  = (double*)calloc(mcmc->npar,sizeof(double));     // Mean of hist block of iterations, used to get the covariance matrix
-  mcmc->histdev = (double*)calloc(mcmc->npar,sizeof(double));       // Standard deviation of hist block of iterations, used to get the covariance matrix
-  for(i=0;i<mcmc->npar;i++) {
+  mcmc->histmean  = (double*)calloc(mcmc->nMCMCpar,sizeof(double));     // Mean of hist block of iterations, used to get the covariance matrix
+  mcmc->histdev = (double*)calloc(mcmc->nMCMCpar,sizeof(double));       // Standard deviation of hist block of iterations, used to get the covariance matrix
+  for(i=0;i<mcmc->nMCMCpar;i++) {
     mcmc->histmean[i] = 0;
     mcmc->histdev[i] = 0;
   }
@@ -968,24 +964,24 @@ void allocate_mcmcvariables(struct mcmcvariables *mcmc)
   mcmc->sigout = (double**)calloc(mcmc->ntemps,sizeof(double*));     // The sigma that gets written to output
   mcmc->scale = (double**)calloc(mcmc->ntemps,sizeof(double*));      // The rate of adaptation
   for(i=0;i<mcmc->ntemps;i++) {
-    mcmc->accepted[i] = (int*)calloc(npar,sizeof(int));
+    mcmc->accepted[i] = (int*)calloc(mcmc->nMCMCpar,sizeof(int));
     mcmc->swapTss[i] = (int*)calloc(mcmc->ntemps,sizeof(int));
-    mcmc->param[i] = (double*)calloc(npar,sizeof(double));
-    mcmc->nparam[i] = (double*)calloc(npar,sizeof(double));
-    mcmc->maxparam[i] = (double*)calloc(npar,sizeof(double));
-    mcmc->sig[i] = (double*)calloc(npar,sizeof(double));
-    mcmc->sigout[i] = (double*)calloc(npar,sizeof(double));
-    mcmc->scale[i] = (double*)calloc(npar,sizeof(double));
+    mcmc->param[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
+    mcmc->nparam[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
+    mcmc->maxparam[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
+    mcmc->sig[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
+    mcmc->sigout[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
+    mcmc->scale[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
   }
   
   mcmc->hist    = (double***)calloc(mcmc->ntemps,sizeof(double**));  // Store a block of iterations, to calculate the covariances
   mcmc->covar  = (double***)calloc(mcmc->ntemps,sizeof(double**));   // The Cholesky-decomposed covariance matrix
   for(i=0;i<mcmc->ntemps;i++) {
-    mcmc->hist[i]    = (double**)calloc(npar,sizeof(double*));
-    mcmc->covar[i]  = (double**)calloc(npar,sizeof(double*));
+    mcmc->hist[i]    = (double**)calloc(mcmc->nMCMCpar,sizeof(double*));
+    mcmc->covar[i]  = (double**)calloc(mcmc->nMCMCpar,sizeof(double*));
     for(j=0;j<npar;j++) {
       mcmc->hist[i][j]    = (double*)calloc(ncorr,sizeof(double));
-      mcmc->covar[i][j]  = (double*)calloc(npar,sizeof(double));
+      mcmc->covar[i][j]  = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
     }
   }  
 }
@@ -998,6 +994,13 @@ void allocate_mcmcvariables(struct mcmcvariables *mcmc)
 //****************************************************************************************************************************************************  
 void copyRun2MCMC(struct runpar run, struct mcmcvariables *mcmc)
 {
+  
+  //Copy some global variables:
+  //mcmc->npar = npar;                          // Number of mcmc/template parameters
+  mcmc->nMCMCpar = npar;                      // Number of mcmc/template parameters
+  mcmc->temp = max(temp0,1.0);                // Current temperature
+  
+  
   mcmc->mcmcWaveform = run.mcmcWaveform;      // Waveform used as MCMC template
   mcmc->networksize = run.networksize;        // Network size
   mcmc->seed = run.MCMCseed;                  // MCMC seed
@@ -1091,22 +1094,22 @@ void update_covariance_matrix(struct mcmcvariables *mcmc)
 {
   int i=0, j=0, i1=0, p1=0, p2=0;
   double **tempcovar;
-  tempcovar = (double**)calloc(npar,sizeof(double*));           // A temp Cholesky-decomposed matrix
-  for(i=0;i<npar;i++) {
-    tempcovar[i] = (double*)calloc(npar,sizeof(double));
+  tempcovar = (double**)calloc(mcmc->nMCMCpar,sizeof(double*));           // A temp Cholesky-decomposed matrix
+  for(i=0;i<mcmc->nMCMCpar;i++) {
+    tempcovar[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
   }
   double ***covar1;
   covar1  = (double***)calloc(mcmc->ntemps,sizeof(double**));   // The actual covariance matrix
   for(i=0;i<mcmc->ntemps;i++) {
-    covar1[i]  = (double**)calloc(npar,sizeof(double*));
-    for(j=0;j<npar;j++) {
-      covar1[i][j]  = (double*)calloc(npar,sizeof(double));
+    covar1[i]  = (double**)calloc(mcmc->nMCMCpar,sizeof(double*));
+    for(j=0;j<mcmc->nMCMCpar;j++) {
+      covar1[i][j]  = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
     }
   }
   
   
   //Calculate the mean
-  for(p1=0;p1<npar;p1++){
+  for(p1=0;p1<mcmc->nMCMCpar;p1++){
     mcmc->histmean[p1]=0.0;
     for(i1=0;i1<ncorr;i1++){
       mcmc->histmean[p1]+=mcmc->hist[tempi][p1][i1];
@@ -1115,7 +1118,7 @@ void update_covariance_matrix(struct mcmcvariables *mcmc)
   }
   
   //Calculate the standard deviation. Only for printing, not used in the code
-  for(p1=0;p1<npar;p1++){
+  for(p1=0;p1<mcmc->nMCMCpar;p1++){
     mcmc->histdev[p1]=0.0;
     for(i1=0;i1<ncorr;i1++){
       mcmc->histdev[p1] += (mcmc->hist[tempi][p1][i1]-mcmc->histmean[p1])*(mcmc->hist[tempi][p1][i1]-mcmc->histmean[p1]);
@@ -1124,7 +1127,7 @@ void update_covariance_matrix(struct mcmcvariables *mcmc)
   }
   
   //Calculate the covariances and save them in covar1
-  for(p1=0;p1<npar;p1++){
+  for(p1=0;p1<mcmc->nMCMCpar;p1++){
     for(p2=0;p2<=p1;p2++){
       covar1[tempi][p1][p2]=0.0;
       for(i1=0;i1<ncorr;i1++){
@@ -1135,7 +1138,7 @@ void update_covariance_matrix(struct mcmcvariables *mcmc)
   }
   
   //Store the covariance matrix in a temporary variable tempcovar, for Cholesky decomposition
-  for(p1=0;p1<npar;p1++){
+  for(p1=0;p1<mcmc->nMCMCpar;p1++){
     for(p2=0;p2<=p1;p2++){
       tempcovar[p1][p2] = covar1[tempi][p1][p2];
     }
@@ -1144,12 +1147,12 @@ void update_covariance_matrix(struct mcmcvariables *mcmc)
   if(tempi==0 && prmatrixinfo>0) printf("\n\n");
   
   //Do Cholesky decomposition
-  chol(npar,tempcovar);
+  chol(tempcovar,mcmc);
   
   //Get conditions to decide whether to accept the new matrix or not
   mcmc->acceptelems[tempi] = 0;
-  for(p1=0;p1<npar;p1++) {
-    if(fitpar[p1]==1) {
+  for(p1=0;p1<mcmc->nMCMCpar;p1++) {
+    if(mcmc->parFix[p1]==0) {
       if(tempcovar[p1][p1] < mcmc->covar[tempi][p1][p1]) mcmc->acceptelems[tempi] += 1; //Smaller diagonal element is better; count for how many this is the case
       if(tempcovar[p1][p1]<=0.0 || isnan(tempcovar[p1][p1])!=0 || isinf(tempcovar[p1][p1])!=0) mcmc->acceptelems[tempi] -= 9999;  //If diagonal element is <0, NaN or Inf
     }
@@ -1161,23 +1164,23 @@ void update_covariance_matrix(struct mcmcvariables *mcmc)
     printf("\n  Update for the covariance matrix proposed at iteration:  %10d\n",mcmc->iteri);
     printf("\n    Acceptelems: %d\n",mcmc->acceptelems[tempi]);
     printf("\n    Covariance matrix:\n");
-    for(p1=0;p1<npar;p1++){
+    for(p1=0;p1<mcmc->nMCMCpar;p1++){
       for(p2=0;p2<=p1;p2++){
 	printf("    %10.3g",covar1[tempi][p1][p2]);
       }
       printf("\n");
     }
     printf("\n    Old Cholesky-decomposed matrix:\n");
-    for(p1=0;p1<npar;p1++){
+    for(p1=0;p1<mcmc->nMCMCpar;p1++){
       for(p2=0;p2<=p1;p2++){
 	printf("    %10.3g",mcmc->covar[tempi][p1][p2]);
       }
       printf("\n");
     }
     printf("\n    New Cholesky-decomposed matrix:\n");
-    for(p1=0;p1<npar;p1++){
+    for(p1=0;p1<mcmc->nMCMCpar;p1++){
       for(p2=0;p2<=p1;p2++){
-	//for(p2=0;p2<npar;p2++){
+	//for(p2=0;p2<mcmc->nMCMCpar;p2++){
 	printf("    %10.3g",tempcovar[p1][p2]);
       }
       printf("\n");
@@ -1187,7 +1190,7 @@ void update_covariance_matrix(struct mcmcvariables *mcmc)
   // Copy the new covariance matrix from tempcovar into mcmc->covar
   if(mcmc->acceptelems[tempi]>=0) { //Accept new matrix only if no Infs, NaNs, 0s occur.
     if(mcmc->corrupdate[tempi]<=2 || (double)mcmc->acceptelems[tempi] >= (double)mcmc->nparfit*mcmc->mataccfr) { //Always accept the new matrix on the first update, otherwise only if the fraction mataccfr of diagonal elements are better (smaller) than before
-      for(p1=0;p1<npar;p1++){
+      for(p1=0;p1<mcmc->nMCMCpar;p1++){
 	for(p2=0;p2<=p1;p2++){
 	  mcmc->covar[tempi][p1][p2] = tempcovar[p1][p2]; 
 	}
@@ -1206,13 +1209,13 @@ void update_covariance_matrix(struct mcmcvariables *mcmc)
   
   
   //Deallocate memory
-  for(i=0;i<npar;i++) {
+  for(i=0;i<mcmc->nMCMCpar;i++) {
     free(tempcovar[i]);
   }
   free(tempcovar);
   
   for(i=0;i<mcmc->ntemps;i++) {
-    for(j=0;j<npar;j++) {
+    for(j=0;j<mcmc->nMCMCpar;j++) {
       free(covar1[i][j]);
     }
     free(covar1[i]);
@@ -1230,17 +1233,18 @@ void update_covariance_matrix(struct mcmcvariables *mcmc)
 
 
 //****************************************************************************************************************************************************  
-void chol(int n, double **A)
+void chol(double **A, struct mcmcvariables *mcmc)
 // Performs cholesky decompositon of A and returns result in the same matrix - adapted from PJG Fortran function
 // If matrix is not positive definite, return zeroes
 {
   int j1=0,j2=0,j3=0,notposdef=0;
+  int n=mcmc->nMCMCpar;
   double sum=0.0;
   for(j1=0;j1<n;j1++){
-    if(fitpar[j1]==1) {
+    if(mcmc->parFix[j1]==0) {
       sum = A[j1][j1];
       for(j2=0;j2<j1;j2++){
-	if(fitpar[j2]==1) {
+	if(mcmc->parFix[j2]==0) {
 	  sum -= A[j1][j2]*A[j1][j2];
 	}
       }
@@ -1250,10 +1254,10 @@ void chol(int n, double **A)
       else {
 	A[j1][j1]=sqrt(sum);
 	for(j2=j1+1;j2<n;j2++){
-	  if(fitpar[j2]==1){
+	  if(mcmc->parFix[j2]==0){
 	    sum = A[j2][j1];
 	    for(j3=0;j3<j1;j3++){
-	      if(fitpar[j3]==1){
+	      if(mcmc->parFix[j3]==0){
 		sum -= A[j2][j3]*A[j1][j3];
 	      }
 	    }
@@ -1326,30 +1330,12 @@ void swap_chains(struct mcmcvariables *mcmc)
   int i=0, tempi=0, tempj=0;
   double tmpdbl = 0.0;
   
-  /*
-  //Swap parameters and likelihood between two adjacent chains
-  for(tempi=1;tempi<mcmc->ntemps;tempi++) {
-  if(exp(max(-30.0,min(0.0,(1.0/mcmc->temps[tempi-1]-1.0/mcmc->temps[tempi])*(mcmc->logL[tempi]-mcmc->logL[tempi-1])))) > gsl_rng_uniform(mcmc->ran)) { //Then swap...
-  for(i=0;i<npar;i++) {
-  tmpdbl = mcmc->param[tempi][i]; //Temp var
-  mcmc->param[tempi][i] = mcmc->param[tempi-1][i];
-  mcmc->param[tempi-1][i] = tmpdbl;
-  }
-  tmpdbl = mcmc->logL[tempi];
-  mcmc->logL[tempi] = mcmc->logL[tempi-1];
-  mcmc->logL[tempi-1] = tmpdbl;
-  mcmc->swapTs1[tempi-1] += 1;
-  }
-  } //tempi
-  */
-  
-  
   //Swap parameters and likelihood between any two chains
   for(tempi=0;tempi<mcmc->ntemps-1;tempi++) {
     for(tempj=tempi+1;tempj<mcmc->ntemps;tempj++) {
       
       if(exp(max(-30.0,min(0.0,(1.0/mcmc->temps[tempi]-1.0/mcmc->temps[tempj])*(mcmc->logL[tempj]-mcmc->logL[tempi])))) > gsl_rng_uniform(mcmc->ran)) { //Then swap...
-	for(i=0;i<npar;i++) {
+	for(i=0;i<mcmc->nMCMCpar;i++) {
 	  tmpdbl = mcmc->param[tempj][i]; //Temp var
 	  mcmc->param[tempj][i] = mcmc->param[tempi][i];
 	  mcmc->param[tempi][i] = tmpdbl;
@@ -1385,7 +1371,7 @@ void write_chain_info(struct mcmcvariables mcmc)
   if(tempi==0) printf("\n\n      Chain  log(T)   dlog(L)  AccEls AccMat     Swap  AccRat  logStdev:    parameters\n");
   printf("        %3d   %5.3f %9.2f     %3d    %3d   %6.4f  %6.4f         ",
 	 tempi,log10(mcmc.temp),mcmc.sumdlogL[tempi]/(double)mcmc.ihist[tempi],mcmc.acceptelems[tempi],mcmc.corrupdate[tempi]-2,  (double)mcmc.swapTs1[tempi]/(double)mcmc.iteri,(double)mcmc.accepted[tempi][0]/(double)mcmc.iteri);
-  for(p=0;p<mcmc.npar;p++) {
+  for(p=0;p<mcmc.nMCMCpar;p++) {
     tmpdbl = log10(mcmc.histdev[p]+1.e-30);
     if(tmpdbl<-9.99) tmpdbl = 0.0;
     printf("  %6.3f",tmpdbl);

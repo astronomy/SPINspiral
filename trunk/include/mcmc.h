@@ -50,7 +50,7 @@
 
 //The following global arrays have the size of >~ the max. number of parameters we use, i.e. ~20:
 
-int fitpar[20],offsetpar[20];
+int offsetpar[20];
 double truepar[20],pdfsigs[20];
 
 
@@ -166,14 +166,18 @@ struct runpar{
 
 //Structure for MCMC variables
 struct mcmcvariables{
+  int nMCMCpar;                   // Number of parameters in the MCMC template
+  int nInjectPar;                 // Number of parameters in the injection template
+  
   int iteri;             // State/iteration number
-  int npar;              // Number of parameters in the MCMC/template
+  //int npar;              // Number of parameters in the MCMC/template
   int nparfit;           // Number of parameters in the MCMC that is fitted for
   int ntemps;            // Number of chains in the temperature ladder
   int tempi;             // The current temperature index
   int networksize;       // Number of IFOs in the detector network
   int mcmcWaveform;      // Waveform used as the MCMC template
   
+  int parFix[20];        // Fix an MCMC parameter or not
   
   double temp;           // The current temperature
   double mataccfr;       // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
@@ -352,7 +356,7 @@ void setmcmcseed(struct runpar *run);
 void setseed(int *seed);
 
 void mcmc(struct runpar run, struct interferometer *ifo[]);
-void chol(int n, double **A);
+void chol(double **A, struct mcmcvariables *mcmc);
 void par2arr(struct parset par, double *param);
 void arr2par(double *param, struct parset *par);
 void par2arrt(struct parset par, double **param); //For the case of parallel tempering

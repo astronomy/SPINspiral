@@ -2,6 +2,9 @@
   ChangeLog for the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
 
+   123: sluys, 18/02/2009
+     - new version of input file mcmc.mcmc needed (see doc/)
+     
    121: sluys, 18/02/2009
      - new version of input file mcmc.parameters needed (see doc/)
    
