@@ -253,31 +253,31 @@ void printparset(struct parset par) // Print the parameter set par to screen
   printf("\n");
 }
 
-double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct interferometer *ifo[], int networksize, int waveformVersion) //CHECK Need support for 2 different waveforms
+double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct interferometer *ifo[], struct mcmcvariables mcmc) //CHECK Need support for 2 different waveforms
 {
   struct parset par, truepar;
   //arr2par(pararray, &par);  //No longer exists
   int i=0;
-  for(i=0;i<npar;i++) {
+  for(i=0;i<mcmc.nMCMCpar;i++) {
     par.par[i] = pararray[i];
   }
-  par.loctc    = (double*)calloc(networksize,sizeof(double));
-  par.localti  = (double*)calloc(networksize,sizeof(double));
-  par.locazi   = (double*)calloc(networksize,sizeof(double));
-  par.locpolar = (double*)calloc(networksize,sizeof(double));
-  //allocparset(&par,networksize);
-  localpar(&par, ifo, networksize);
+  par.loctc    = (double*)calloc(mcmc.networksize,sizeof(double));
+  par.localti  = (double*)calloc(mcmc.networksize,sizeof(double));
+  par.locazi   = (double*)calloc(mcmc.networksize,sizeof(double));
+  par.locpolar = (double*)calloc(mcmc.networksize,sizeof(double));
+  //allocparset(&par,mcmc.networksize);
+  localpar(&par, ifo, mcmc.networksize);
 
   //Get the true parameters
-  gettrueparameters(&truepar);
-  truepar.loctc    = (double*)calloc(networksize,sizeof(double));
-  truepar.localti  = (double*)calloc(networksize,sizeof(double));
-  truepar.locazi   = (double*)calloc(networksize,sizeof(double));
-  truepar.locpolar = (double*)calloc(networksize,sizeof(double));
-  //allocparset(&truepar,networksize);
-  localpar(&truepar, ifo, networksize);
+  gettrueparameters(&truepar, mcmc.nInjectPar);
+  truepar.loctc    = (double*)calloc(mcmc.networksize,sizeof(double));
+  truepar.localti  = (double*)calloc(mcmc.networksize,sizeof(double));
+  truepar.locazi   = (double*)calloc(mcmc.networksize,sizeof(double));
+  truepar.locpolar = (double*)calloc(mcmc.networksize,sizeof(double));
+  //allocparset(&truepar,mcmc.networksize);
+  localpar(&truepar, ifo, mcmc.networksize);
   
-  return parmatch(&truepar, &par, ifo, networksize, waveformVersion);
+  return parmatch(&truepar, &par, ifo, mcmc.networksize, mcmc.mcmcWaveform);
   
   //Shouldn't these guys be freed?
 }
@@ -307,7 +307,7 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
   for(j=ifo[i]->lowIndex; j<=ifo[i]->highIndex; ++j) FTout1[j] = ifo[i]->FTout[j];
   
   //Get the true parameters and the corresponding waveform template:
-  gettrueparameters(&truepar);
+  gettrueparameters(&truepar, mcmc.nInjectPar);
   truepar.loctc    = (double*)calloc(networksize,sizeof(double));
   truepar.localti  = (double*)calloc(networksize,sizeof(double));
   truepar.locazi   = (double*)calloc(networksize,sizeof(double));

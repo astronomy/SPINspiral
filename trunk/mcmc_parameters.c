@@ -49,13 +49,13 @@ void readMainInputfile(struct runpar *run)
   if(inject>=1) {
     if(run->injectionWaveform==1) {
       printf("   Using Apostolatos, 1.5PN, 12-parameter waveform for the software injection.\n");
-      npar=12;
+      run->nMCMCpar=12;
     } else if(run->injectionWaveform==2) {
       printf("   Using LAL, 3.5PN, 12-parameter waveform for the software injection.\n");
-      npar=12;
+      run->nMCMCpar=12;
     } else if(run->injectionWaveform==3) {
       printf("   Using LAL, 3.5PN, 15-parameter waveform for the software injection.\n");
-      npar=15;
+      run->nMCMCpar=15;
     } else {
       printf("   Unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->injectionWaveform);
       printf("     1: Apostolatos, simple precession, 12 parameters\n");
@@ -65,10 +65,12 @@ void readMainInputfile(struct runpar *run)
       exit(1);
     }
   }
-  run->ranInjPar  = (int*)calloc(npar,sizeof(int)); //Now that npar is known, initialise the array.... 
+  npar = run->nMCMCpar;
+  run->nInjectPar = run->nMCMCpar;
+  run->ranInjPar  = (int*)calloc(run->nMCMCpar,sizeof(int)); //Now that run->nMCMCpar is known, initialise the array.... 
   
   fgets(bla,500,fin);  sscanf(bla,"%lf",&run->injectionSNR);
-  for(i=0;i<npar;i++)  fscanf(fin,"%d",&run->ranInjPar[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  for(i=0;i<run->nMCMCpar;i++)  fscanf(fin,"%d",&run->ranInjPar[i]);  //Read the array directly, because sscanf cannot be in a loop...
   fgets(bla,500,fin);  //Read the rest of this line
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->ranparseed);
   
@@ -77,11 +79,11 @@ void readMainInputfile(struct runpar *run)
   
   //True parameter values:
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
-  for(i=0;i<npar;i++) fscanf(fin,"%lf",&truepar[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  for(i=0;i<run->nMCMCpar;i++) fscanf(fin,"%lf",&truepar[i]);  //Read the array directly, because sscanf cannot be in a loop...
   prior_tc_mean = truepar[2];   //prior_tc_mean is used everywhere
   //Starting parameter values:
-  for(i=0;i<npar;i++) fscanf(fin,"%lf",&run->startpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
-  //if(offsetmcmc==0 || offsetmcmc==1) for(i=0;i<npar;i++) run->startpar[i] = truepar[i];  //Set the starting parameters equal to the true, injection parameters
+  for(i=0;i<run->nMCMCpar;i++) fscanf(fin,"%lf",&run->startpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  //if(offsetmcmc==0 || offsetmcmc==1) for(i=0;i<run->nMCMCpar;i++) run->startpar[i] = truepar[i];  //Set the starting parameters equal to the true, injection parameters
   
   //Secondary input files:
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
@@ -123,8 +125,8 @@ void writeMainInputfile(struct runpar *run)
   fprintf(fout, "  %-39d  %-18s  %-s\n",      run->MCMCseed, "MCMCseed",       "Random number seed to start the MCMC: 0-let system clock determine seed.");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      inject,        "inject",         "Inject a signal (1) or not (0).");
   fprintf(fout, " ");
-  for(i=0;i<npar;i++) fprintf(fout, "%2d",    run->ranInjPar[i]);
-  for(i=0;i<max(19-npar,0);i++) fprintf(fout, "  ");  //Line up the next colum nicely, for up to 20 parameters
+  for(i=0;i<run->nMCMCpar;i++) fprintf(fout, "%2d",    run->ranInjPar[i]);
+  for(i=0;i<max(19-run->nMCMCpar,0);i++) fprintf(fout, "  ");  //Line up the next colum nicely, for up to 20 parameters
   fprintf(fout, "    %-18s  %-s\n",                          "ranInjPar[]",  "Parameters you want to randomise before injecting the signal; 0: use the value in truepar below, 1: randomise.  These are the same parameters as trueval (ie M1, M2, etc!)");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      run->ranparseed,"ranparseed",    "Random number seed for random injection parameters. Don't change between serial chains of the same run!");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      adapt,         "adapt",          "Use adaptation: 0-no, 1-yes.");
@@ -136,8 +138,8 @@ void writeMainInputfile(struct runpar *run)
   fprintf(fout, "  %-39d  %-18s  %-s\n",      offsetmcmc,    "offsetmcmc",     "Start the MCMC with offset initial parameters: 0-no: use injection parameters, 1-yes: randomly around the injected parameters, 2-yes: at the starting parameters, 3-yes: randomly around the starting parameters.  The individual parameters to be offset are determined in offsetpar below.");
   fprintf(fout, "  %-39.1f  %-18s  %-s\n",    offsetx,       "offsetx",        "Start the MCMC with an offset of x times the typical pdf sigma.");
   fprintf(fout, " ");
-  for(i=0;i<npar;i++) fprintf(fout, "%2d",    offsetpar[i]);
-  for(i=0;i<max(19-npar,0);i++) fprintf(fout, "  ");  //Line up the next colum nicely, for up to 20 parameters
+  for(i=0;i<run->nMCMCpar;i++) fprintf(fout, "%2d",    offsetpar[i]);
+  for(i=0;i<max(19-run->nMCMCpar,0);i++) fprintf(fout, "  ");  //Line up the next colum nicely, for up to 20 parameters
   fprintf(fout, "    %-18s  %-s\n",                          "offsetpar[]",  "Parameters you want to start from random offset values. At the moment only works if parameter is also 'fit' (i.e. value is 0 in parFix).");
   
   
@@ -204,7 +206,7 @@ void writeMainInputfile(struct runpar *run)
   } else {
     fprintf(fout, "  \n");
   }
-  for(i=0;i<npar;i++) {
+  for(i=0;i<run->nMCMCpar;i++) {
     if(i==2) {
       fprintf(fout, "  %-18.6lf",truepar[i]);
     } else {
@@ -212,7 +214,7 @@ void writeMainInputfile(struct runpar *run)
     }
   }
   fprintf(fout, "  \n");
-  for(i=0;i<npar;i++) {
+  for(i=0;i<run->nMCMCpar;i++) {
     if(i==2) {
       fprintf(fout, "  %-18.6lf",run->startpar[i]);
     } else {
@@ -222,7 +224,7 @@ void writeMainInputfile(struct runpar *run)
   fprintf(fout, "\n");
   
   fprintf(fout, "  \n  #Typical PDF widths (used for first correlation matrix and offset run):\n");
-  for(i=0;i<npar;i++) fprintf(fout, "  %-7.4f",pdfsigs[i]);
+  for(i=0;i<run->nMCMCpar;i++) fprintf(fout, "  %-7.4f",pdfsigs[i]);
   
   fprintf(fout, "\n");
   fprintf(fout, "  \n  #Manual temperature ladder for parallel tempering:\n");
@@ -313,13 +315,13 @@ void readMCMCinputfile(struct runpar *run)
   
   if(run->mcmcWaveform==1) {
     printf("   Using Apostolatos, 1.5PN, 12-parameter waveform as the MCMC template.\n");
-    npar=12;
+    run->nMCMCpar=12;
   } else if(run->mcmcWaveform==2) {
     printf("   Using LAL, 3.5PN, 12-parameter waveform as the MCMC template.\n");
-    npar=12;
+    run->nMCMCpar=12;
   } else if(run->mcmcWaveform==3) {
     printf("   Using LAL, 3.5PN, 15-parameter waveform as the MCMC template.\n");
-    npar=15;
+    run->nMCMCpar=15;
   } else {
     printf("   Unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->mcmcWaveform);
     printf("     1: Apostolatos, simple precession, 12 parameters\n");
@@ -328,10 +330,11 @@ void readMCMCinputfile(struct runpar *run)
     printf("   Please set mcmcWaveform in mcmc.input to one of these values.\n\n");
     exit(1);
   }
+  npar = run->nMCMCpar;
+  run->nInjectPar = run->nMCMCpar;
   
   
-  
-  run->ranInjPar  = (int*)calloc(npar,sizeof(int)); //Now that npar is known, initialise the array.... 
+  run->ranInjPar  = (int*)calloc(run->nMCMCpar,sizeof(int)); //Now that run->nMCMCpar is known, initialise the array.... 
   
   fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);    
   iter = (int)tmpdbl;
@@ -347,7 +350,7 @@ void readMCMCinputfile(struct runpar *run)
   fgets(bla,500,fin);  fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin);  sscanf(bla,"%d",&offsetmcmc);
   fgets(bla,500,fin);  sscanf(bla,"%lf",&offsetx);
-  for(i=0;i<npar;i++)  fscanf(fin,"%d",&offsetpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  for(i=0;i<run->nMCMCpar;i++)  fscanf(fin,"%d",&offsetpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
   fgets(bla,500,fin);  //Read the rest of this line
   
   
@@ -379,7 +382,7 @@ void readMCMCinputfile(struct runpar *run)
   
   //Typical PDF widths:
   fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
-  for(i=0;i<npar;i++) fscanf(fin,"%lf",&pdfsigs[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  for(i=0;i<run->nMCMCpar;i++) fscanf(fin,"%lf",&pdfsigs[i]);  //Read the array directly, because sscanf cannot be in a loop...
 
   
   //Manual temperature ladder for parallel tempering:
@@ -521,7 +524,7 @@ void readParameterInputfile(struct runpar *run)
   //Parameters:
   for(i=1;i<=5;i++) fgets(bla,500,fin);  //Read empty and comment lines
   
-  for(i=0;i<npar;i++) {
+  for(i=0;i<run->nMCMCpar;i++) {
     fscanf(fin,"%d %d %lf %d %d %lf %d %lf %lf",&run->parNumber[i],&run->parID[i],&run->parBestVal[i],&run->parFix[i],&run->parStartMCMC[i],&run->parSigma[i],&run->priorType[i],&run->priorBoundLow[i],&run->priorBoundUp[i]);
     fgets(bla,500,fin);  //Read rest of the line
     
@@ -624,7 +627,7 @@ void readParameterInputfile(struct runpar *run)
   strcpy(StartStr[5],"Randomly from prior");
   
   printf("\n      Nr: Name:                Best value:     Prior:     min:            max:    Fix parameter?        Start chain:\n");
-  for(i=0;i<npar;i++) {
+  for(i=0;i<run->nMCMCpar;i++) {
     printf("      %2d  %-11s     %15.4lf     %15.4lf %15.4lf     %-20s  %-25s\n",run->parNumber[i],run->parAbrev[run->parID[i]],run->parBestVal[i],
 	   run->priorBoundLow[i],run->priorBoundUp[i],  FixStr[run->parFix[i]],StartStr[run->parStartMCMC[i]]);
   }
@@ -735,10 +738,10 @@ void setconstants()
 
 
 
-void gettrueparameters(struct parset *par)  //Set the parameters for the 12-parameter spinning template to the 'true values'
+void gettrueparameters(struct parset *par, int nTruePar)  //Set the parameters for the 12-parameter spinning template to the 'true values'
 {
   int i=0;
-  for(i=0;i<npar;i++) {
+  for(i=0;i<nTruePar;i++) {
     par->par[i]      = truepar[i];
   }
   
@@ -778,7 +781,7 @@ void getstartparameters(struct parset *par, struct runpar run)  //Set the parame
 {
   
   int i=0;
-  for(i=0;i<npar;i++) {
+  for(i=0;i<run.nMCMCpar;i++) {
     par->par[i]      = run.startpar[i];
   }
   

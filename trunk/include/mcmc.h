@@ -168,9 +168,7 @@ struct runpar{
 struct mcmcvariables{
   int nMCMCpar;                   // Number of parameters in the MCMC template
   int nInjectPar;                 // Number of parameters in the injection template
-  
   int iteri;             // State/iteration number
-  //int npar;              // Number of parameters in the MCMC/template
   int nparfit;           // Number of parameters in the MCMC that is fitted for
   int ntemps;            // Number of chains in the temperature ladder
   int tempi;             // The current temperature index
@@ -345,7 +343,7 @@ void setRandomInjectionParameters(struct runpar *run);
 void setRandomInjectionParameters1(struct runpar *run);
 void setRandomInjectionParameters2(struct runpar *run);
 
-void gettrueparameters(struct parset *par);
+void gettrueparameters(struct parset *par, int nTruePar);
 void getstartparameters(struct parset *par, struct runpar run);
 void allocparset(struct parset *par, int networksize);
 void freeparset(struct parset *par);
@@ -448,7 +446,7 @@ double parmatch(struct parset *par1,struct parset *par2, struct interferometer *
 double paroverlap(struct parset *par1, struct parset *par2, struct interferometer *ifo[], int ifonr, int waveformVersion);
 double vecoverlap(fftw_complex *vec1, fftw_complex *vec2, double * noise, int j1, int j2, double deltaFT);
 void signalFFT(fftw_complex * FFTout, struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion);
-double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct interferometer *ifo[], int networksize, int waveformVersion);
+double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct interferometer *ifo[], struct mcmcvariables mcmc);
 //void computeFishermatrixIFO(struct parset *par, int npar, struct interferometer *ifo[], int networksize, int ifonr, double **matrix);
 //void computeFishermatrix(struct parset *par, int npar, struct interferometer *ifo[], int networksize, double **matrix);
 //double match(struct parset *par, struct interferometer *ifo[], int i, int networksize);

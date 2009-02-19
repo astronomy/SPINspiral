@@ -113,7 +113,7 @@ void mcmc(struct runpar run, struct interferometer *ifo[])
   // *** INITIALISE MARKOV CHAIN **************************************************************************************************************************************************
   
   // *** Get true (or best-guess) values for signal ***
-  gettrueparameters(&state);
+  gettrueparameters(&state, mcmc.nMCMCpar);
   state.loctc    = (double*)calloc(mcmc.networksize,sizeof(double));
   state.localti  = (double*)calloc(mcmc.networksize,sizeof(double));
   state.locazi   = (double*)calloc(mcmc.networksize,sizeof(double));
@@ -794,7 +794,7 @@ void write_mcmc_output(struct mcmcvariables mcmc, struct interferometer *ifo[])
   if(tempi==0) { //Only for the T=1 chain
     /*ILYA*/
     // if((iteri % (50*thinScreenOutput))==0 || iteri<0) printf("Previous iteration has match of %10g with true signal\n\n", 
-    //	matchBetweenParameterArrayAndTrueParameters(mcmc.param[tempi], ifo, mcmc.networksize), mcmc.injectionWaveform, mcmc.mcmcWaveform); //CHECK need support for two different waveforms
+    //	matchBetweenParameterArrayAndTrueParameters(mcmc.param[tempi], ifo, mcmc); //CHECK need support for two different waveforms
     // While the above is commented out, get rid of 'not used' warnings for the ifo struct:
     ifo[0]->index = ifo[0]->index;
     
@@ -966,7 +966,8 @@ void copyRun2MCMC(struct runpar run, struct mcmcvariables *mcmc)
 {
   
   //Copy some global variables:
-  mcmc->nMCMCpar = npar;                      // Number of mcmc/template parameters
+  mcmc->nMCMCpar = run.nMCMCpar;              // Number of mcmc/template parameters
+  mcmc->nInjectPar = run.nInjectPar;          // Number of mcmc/template parameters
   mcmc->temp = max(temp0,1.0);                // Current temperature
   
   

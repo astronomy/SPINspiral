@@ -71,7 +71,7 @@ int main(int argc, char * argv[])
   
   //Get a parameter set to calculate SNR or write the wavefrom to disc
   struct parset dummypar;
-  gettrueparameters(&dummypar);
+  gettrueparameters(&dummypar, run.nMCMCpar);
   dummypar.loctc    = (double*)calloc(networksize,sizeof(double));
   dummypar.localti  = (double*)calloc(networksize,sizeof(double));
   dummypar.locazi   = (double*)calloc(networksize,sizeof(double));
@@ -97,7 +97,7 @@ int main(int argc, char * argv[])
   if(run.injectionSNR > 0.001 && inject==1) {
     truepar[3] *= (run.netsnr/run.injectionSNR);  //Use total network SNR
     printf("   Setting distance to %lf Mpc to get a network SNR of %lf.\n",truepar[3],run.injectionSNR);
-    gettrueparameters(&dummypar);
+    gettrueparameters(&dummypar, run.nMCMCpar);
     dummypar.loctc    = (double*)calloc(networksize,sizeof(double));
     dummypar.localti  = (double*)calloc(networksize,sizeof(double));
     dummypar.locazi   = (double*)calloc(networksize,sizeof(double));
@@ -164,7 +164,7 @@ int main(int argc, char * argv[])
   //printf("    %8.5f  %8.5f  %17.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f\n\n", dummypar.mc,dummypar.eta,dummypar.tc,dummypar.logdl,dummypar.spin,dummypar.kappa,dummypar.longi,dummypar.sinlati,dummypar.phase,dummypar.sinthJ0,dummypar.phiJ0,dummypar.alpha);
   printf("   Injection parameters:\n");
   int i=0;
-  for(i=0;i<npar;i++)
+  for(i=0;i<run.nMCMCpar;i++)
     {
       printf(" %9.5f",dummypar.par[i]);
     }
@@ -189,7 +189,7 @@ int main(int argc, char * argv[])
     /*
     if(1==2) {
       printf("\n\n");
-      gettrueparameters(&dummypar);
+      gettrueparameters(&dummypar, run.nMCMCpar);
       dummypar.loctc    = (double*)calloc(networksize,sizeof(double));
       dummypar.localti  = (double*)calloc(networksize,sizeof(double));
       dummypar.locazi   = (double*)calloc(networksize,sizeof(double));
@@ -245,16 +245,16 @@ int main(int argc, char * argv[])
       i = 0;
       int j=0;
       struct parset par;
-      double **matrix  = (double**)calloc(npar,sizeof(double*));
-      for(i=0;i<npar;i++) matrix[i]  = (double*)calloc(npar,sizeof(double));
+      double **matrix  = (double**)calloc(run.nMCMCpar,sizeof(double*));
+      for(i=0;i<run.nMCMCpar;i++) matrix[i]  = (double*)calloc(run.nMCMCpar,sizeof(double));
       allocparset(&par, networksize);
       //getparameterset(&par, 3.0,0.11,700009012.346140,3.0, 0.5,0.9,3.0,0.5, 1.0,0.1,2.0,3.0);
       
-      //computeFishermatrixIFO(par,npar,network,networksize,0,matrix);
-      //computeFishermatrix(&par,npar,network,networksize,matrix);
+      //computeFishermatrixIFO(par,run.nMCMCpar,network,networksize,0,matrix);
+      //computeFishermatrix(&par,run.nMCMCpar,network,networksize,matrix);
       
-      for(i=0;i<npar;i++) {
-	for(j=0;j<npar;j++) {
+      for(i=0;i<run.nMCMCpar;i++) {
+	for(j=0;j<run.nMCMCpar;j++) {
 	  printf("  %12.4g",matrix[i][j]/(double)networksize);
 	}
 	printf("\n\n");
@@ -264,7 +264,7 @@ int main(int argc, char * argv[])
       
       
       freeparset(&par);
-      for(i=0;i<npar;i++) {
+      for(i=0;i<run.nMCMCpar;i++) {
 	free(matrix[i]);
       }
       free(matrix);
