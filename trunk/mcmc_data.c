@@ -33,7 +33,7 @@ void setIFOdata(struct runpar *run, struct interferometer ifo[])
       printf("     %3d:  %s\n",i,datadescriptions[i]);
     }
     printf("\n\n");
-    exit(0);
+    exit(1);
   }
   
   

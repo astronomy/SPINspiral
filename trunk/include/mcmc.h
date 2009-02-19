@@ -146,11 +146,17 @@ struct runpar{
   int parID[20];                  // Unique parameter identifier
   int parRevID[200];              // Reverse parameter identifier
   double parBestVal[20];          // Best know value for each parameter
+  int parFix[20];                 // Fix an MCMC parameter or not
   int parStartMCMC[20];           // Method of choosing starting value for Markov chains
   double parSigma[20];            // Width of Gaussian distribution for offset start and first correlation matrix
   int priorType[20];              // Type of prior to use
   double priorBoundLow[20];       // Info to determine lower boundary for prior
-  double priorBoundup[20];        // Info to determine upper boundary for prior
+  double priorBoundUp[20];        // Info to determine upper boundary for prior
+  
+  //Hardcoded MCMC parameter database:
+  char parName[200][99];          // Names of the parameters in the database
+  char parAbrev[200][99];         // Abbreviations of the parameter names
+  int  parDef[200];               // Is a parameter defined or not?
   
   
   char infilename[99];            // Run input file name
@@ -329,6 +335,7 @@ void writeMainInputfile(struct runpar *run);
 void readMCMCinputfile(struct runpar *run);
 void readDataInputfile(struct runpar *run, struct interferometer ifo[]);
 void readParameterInputfile(struct runpar *run);
+void setParameterNames(struct runpar * run);
 
 void setconstants();
 void setIFOdata(struct runpar *run, struct interferometer ifo[]);

@@ -8,15 +8,17 @@ int prior(double *par, int p, int waveformVersion)
 // Call the prior routine, the variable waveformVersion determines which one
 {
   if(waveformVersion==1) {
-   return prior1(par, p);  // Apostolatos 12-parameter template
+    return prior1(par, p);  // Apostolatos 12-parameter template
   } 
   else if(waveformVersion==2) {
-   return prior1(par, p);  // LAL 12-parameter template
+    return prior1(par, p);  // LAL 12-parameter template
   }
   else if(waveformVersion==3) {
-   return prior2(par, p);  // LAL 15-parameter template
+    return prior2(par, p);  // LAL 15-parameter template
   }
-else return 0;
+  else return 0;
+  
+  
 }
 
 
@@ -75,20 +77,10 @@ int prior1(double *par, int p) //Apostolatos 12-parameter priors
   //Mc:
   lb[0] = 1.0;
   ub[0] = 6.0;
-  //lb[0] = 0.609; //Mc for 1.4+1.4Mo: /2 - *2:  1.4+1.4->Mc=1.22; use range Mc/2 - Mc*2: 0.609-2.44
-  //ub[0] = 2.44;
-  //lb[0] = 1.30; //Mc for 3+3Mo: /2 - *2
-  //ub[0] = 5.22;
-  //lb[0] = 1.50; //Mc for 10+1.4Mo: /2 - *2
-  //ub[0] = 5.99;
-  //lb[0] = 4.35; //Mc for 10+10Mo: /2 - *2
-  //ub[0] = 17.4;
-
+  
   
   //eta:
-  //lb[1] = 0.001; //Chains get stuck at low \eta and very high L!
   lb[1] = 0.03;
-  //ub[1] = 0.245;
   ub[1] = 0.25;
   
   //t_c:
@@ -112,26 +104,10 @@ int prior1(double *par, int p) //Apostolatos 12-parameter priors
   lb[9] = -0.999999; //sin(theta_J0)
   ub[9] = 0.999999;
   
-  //Set prior to 0 if outside range: Seems very inefficient for correlated update proposals
-  /*
-    if(p==0) if(*par < 1.0 || *par > 5.0) prior = 0;                // Chirp mass <1 or >5
-    if(p==1) if(*par < 0.03 || *par > 0.245) prior = 0;                // Mass ratio, refect if <0.03 or >0.245
-    if(p==2) if(*par <= prior_tc_mean -0.05 || *par > prior_tc_mean+0.05) prior = 0;    // If time outside range
-    if(p==3) if(*par <= -6.91 || *par > 4.6) prior = 0;                  // If distance <1kpc or >100Mpc
-    if(p==4) if(*par <= 0.0 || *par > 1.0) prior = 0;                     // If spin<0 or >1
-    if(p==5 || p==7 || p==9)  if(*par < -1.0 || *par > 1.0) prior = 0;    // If sin or cos <-1 or >1
-  */
-  
-  //printf("%2d  %20.6f  %20.6f  %20.6f  ",p,lb[p],ub[p],*par);
-  
   
   if(p==6 || p==8 || p==10 || p==11) {                                    // Periodic boundary condition to bring the variable between 0 and 2pi
     *par = fmod(*par+mtpi,tpi);
   } else {                                                                // Bounce back from the wall
-    //while(*par<lb[p] || *par>ub[p]) {                                     // Do as many bounces as necessary to get between the walls
-    //  if(*par<lb[p])  *par = lb[p] + fabs(*par - lb[p]);
-    //  if(*par>ub[p])  *par = ub[p] - fabs(*par - ub[p]);
-    //}
     if(*par<lb[p] || *par>ub[p]) {                                        // Do only one bounce
       if(*par<lb[p]) {
 	*par = lb[p] + fabs(*par - lb[p]);
@@ -141,8 +117,6 @@ int prior1(double *par, int p) //Apostolatos 12-parameter priors
       if(*par<lb[p] || *par>ub[p]) prior = 0;                             // If, after bouncing once, still outside the range, reject
     }
   }
-  
-  //printf("%20.6f  %d  \n",*par,prior);
   
   free(lb);
   free(ub);

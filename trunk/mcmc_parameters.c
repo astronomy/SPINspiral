@@ -527,16 +527,185 @@ void readParameterInputfile(struct runpar *run)
   for(i=1;i<=5;i++) fgets(bla,500,fin);  //Read empty and comment lines
   
   for(i=0;i<npar;i++) {
-    fscanf(fin,"%d %d %lf %d %lf %d %lf %lf",&run->parNumber[i],&run->parID[i],&run->parBestVal[i],&run->parStartMCMC[i],&run->parSigma[i],&run->priorType[i],&run->priorBoundLow[i],&run->priorBoundup[i]);
+    fscanf(fin,"%d %d %lf %d %d %lf %d %lf %lf",&run->parNumber[i],&run->parID[i],&run->parBestVal[i],&run->parFix[i],&run->parStartMCMC[i],&run->parSigma[i],&run->priorType[i],&run->priorBoundLow[i],&run->priorBoundUp[i]);
     fgets(bla,500,fin);  //Read rest of the line
     
+    //printf("%d:  %d %d %lf %d %lf %d %lf %lf\n",i,run->parNumber[i],run->parID[i],run->parBestVal[i],run->parStartMCMC[i],run->parSigma[i],
+    //   run->priorType[i],run->priorBoundLow[i],run->priorBoundUp[i]);
+    
+    
+    if(run->parNumber[i] != i+1) {
+      printf("   Error reading parameter input file %s:  parameter %d has number %d.\n   Aborting...\n\n",run->parameterinfilename,i+1,run->parNumber[i]);
+      exit(1);
+    }
+    
+    
     run->parRevID[run->parID[i]] = i;  //Reverse parameter ID
-  }
+    
+    
+    
+    // Get the desired boundary conditions:
+    switch (run->priorType[i]) {
+    case 11 :
+      break;
+    case 12 :
+      if(run->priorBoundLow[i] > 0.0 || run->priorBoundUp[i] < 0.0) {
+	printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     for priorType = 12, priorBoundLow and priorBoundUp must be <= 0 and >= 0 respectively.\n   Aborting...\n\n",
+	       run->parameterinfilename,run->parNumber[i],run->parAbrev[run->parID[i]]);
+	exit(1);
+      }
+      run->priorBoundLow[i] = run->parBestVal[i] + run->priorBoundLow[i];
+      run->priorBoundUp[i]  = run->parBestVal[i] + run->priorBoundUp[i];
+      break;
+    case 13 :
+      if(run->priorBoundLow[i] > 1.0 || run->priorBoundUp[i] < 1.0) {
+	printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     for priorType = 13, priorBoundLow and priorBoundUp must be <= 1 and >= 1 respectively.\n   Aborting...\n\n",
+	       run->parameterinfilename,run->parNumber[i],run->parAbrev[run->parID[i]]);
+	exit(1);
+      }
+      run->priorBoundLow[i] = run->parBestVal[i] * run->priorBoundLow[i];
+      run->priorBoundUp[i]  = run->parBestVal[i] * run->priorBoundUp[i];
+      break;
+    case 21 : 
+      run->priorBoundLow[i] = 0.0;
+      run->priorBoundUp[i]  = tpi;
+      break;
+    case 22 :
+      run->priorBoundLow[i] = 0.0;
+      run->priorBoundUp[i]  = pi;
+      break;
+    default :
+      printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     %d is not a valid option for priorType.\n   Aborting...\n\n",
+	     run->parameterinfilename,run->parNumber[i],run->parAbrev[run->parID[i]],run->priorType[i]);
+      exit(1);
+    } //End switch
+    
+    
+    // Check whether value for fix is valid
+    if(run->parFix[i] < 0 || run->parFix[i] > 2) {
+      printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     %d is not a valid option for parFix.\n   Aborting...\n\n",
+	     run->parameterinfilename,run->parNumber[i],run->parAbrev[run->parID[i]],run->parFix[i]);
+	exit(1);
+    }      
+    
+    // Check whether value for start is valid
+    if(run->parStartMCMC[i] < 1 || run->parStartMCMC[i] > 5) {
+      printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     %d is not a valid option for parStartMCMC.\n   Aborting...\n\n",
+	     run->parameterinfilename,run->parNumber[i],run->parAbrev[run->parID[i]],run->parStartMCMC[i]);
+	exit(1);
+    }      
+    
+    //Check whether the lower prior boundary < the upper
+    if(run->priorBoundLow[i] >= run->priorBoundUp[i]) {
+      printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     the lower boundary of the prior is larger than or equal to the upper boundary (%lf vs. %lf).\n   Aborting...\n\n",
+	     run->parameterinfilename,run->parNumber[i],run->parAbrev[run->parID[i]],run->priorBoundLow[i],run->priorBoundUp[i]);
+      exit(1);
+    }
+    
+    //Check whether  lower prior boundary <= best value <= upper boundary
+    if(run->parBestVal[i] < run->priorBoundLow[i] || run->parBestVal[i] > run->priorBoundUp[i]) {
+      printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     the best value lies outside the prior range.\n   Aborting...\n\n",
+	     run->parameterinfilename,run->parNumber[i],run->parAbrev[run->parID[i]]);
+      exit(1);
+    }
+    
+  } //End for
   
   fclose(fin);
+  
+  
+  
+  //Print MCMC parameters and prior ranges to screen:
+  char FixStr[3][99];
+  strcpy(FixStr[0],"No, let it free");
+  strcpy(FixStr[1],"Yes, to best value");
+  strcpy(FixStr[2],"Yes, to injection");
+  
+  char StartStr[6][99];
+  strcpy(StartStr[1],"From best value");
+  strcpy(StartStr[2],"Randomly near best value");
+  strcpy(StartStr[3],"From injection value");
+  strcpy(StartStr[4],"Randomly near injection");
+  strcpy(StartStr[5],"Randomly from prior");
+  
+  printf("\n      Nr: Name:                Best value:     Prior:     min:            max:    Fix parameter?        Start chain:\n");
+  for(i=0;i<npar;i++) {
+    printf("      %2d  %-11s     %15.4lf     %15.4lf %15.4lf     %-20s  %-25s\n",run->parNumber[i],run->parAbrev[run->parID[i]],run->parBestVal[i],
+	   run->priorBoundLow[i],run->priorBoundUp[i],  FixStr[run->parFix[i]],StartStr[run->parStartMCMC[i]]);
+  }
+  printf("\n");
+  
 }
 
 
+
+void setParameterNames(struct runpar * run)
+{
+  //Set 01: time
+  strcpy(run->parAbrev[11], "t_c");
+  run->parDef[11] = 1;
+  strcpy(run->parAbrev[12], "t_40");
+  run->parDef[12] = 1;
+  
+  //Set 02: distance
+  strcpy(run->parAbrev[21], "d^3");
+  run->parDef[21] = 1;
+  strcpy(run->parAbrev[22], "log(d)");
+  run->parDef[22] = 1;
+  
+  //Set 03: sky position
+  strcpy(run->parAbrev[31], "R.A.");
+  run->parDef[31] = 1;
+  strcpy(run->parAbrev[32], "sin(dec)");
+  run->parDef[32] = 1;
+  
+  //Set 04: phase
+  strcpy(run->parAbrev[41], "phi_orb");
+  run->parDef[41] = 1;
+  
+  //Set 05: orientation
+  strcpy(run->parAbrev[51], "cos(i)");
+  run->parDef[51] = 1;
+  strcpy(run->parAbrev[52], "psi");
+  run->parDef[52] = 1;
+  strcpy(run->parAbrev[53], "sin th_J0");
+  run->parDef[53] = 1;
+  strcpy(run->parAbrev[54], "phi_J0");
+  run->parDef[54] = 1;
+  
+  //Set 06: mass
+  strcpy(run->parAbrev[61], "Mc");
+  run->parDef[61] = 1;
+  strcpy(run->parAbrev[62], "eta");
+  run->parDef[62] = 1;
+  strcpy(run->parAbrev[63], "M1");
+  run->parDef[63] = 1;
+  strcpy(run->parAbrev[64], "M2");
+  run->parDef[64] = 1;
+  
+  //Set 07: spin
+  strcpy(run->parAbrev[71], "a_spin1");
+  run->parDef[71] = 1;
+  strcpy(run->parAbrev[72], "cs th_sp1");
+  run->parDef[72] = 1;
+  strcpy(run->parAbrev[73], "phi_spin1");
+  run->parDef[73] = 1;
+  strcpy(run->parAbrev[74], "a_spin2");
+  run->parDef[74] = 1;
+  strcpy(run->parAbrev[75], "cs th_sp2");
+  run->parDef[75] = 1;
+  strcpy(run->parAbrev[76], "phi_spin2");
+  run->parDef[76] = 1;
+  
+  //Set 08: merger, ringdown
+  //strcpy(run->parAbrev[], "");
+  //run->parDef[] = 1;
+  
+  //Set:
+  //strcpy(run->parAbrev[], "");
+  //run->parDef[] = 1;
+  
+}
 
 
 
