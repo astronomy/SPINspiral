@@ -256,7 +256,11 @@ void printparset(struct parset par) // Print the parameter set par to screen
 double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct interferometer *ifo[], int networksize, int waveformVersion) //CHECK Need support for 2 different waveforms
 {
   struct parset par, truepar;
-  arr2par(pararray, &par);
+  //arr2par(pararray, &par);  //No longer exists
+  int i=0;
+  for(i=0;i<npar;i++) {
+    par.par[i] = pararray[i];
+  }
   par.loctc    = (double*)calloc(networksize,sizeof(double));
   par.localti  = (double*)calloc(networksize,sizeof(double));
   par.locazi   = (double*)calloc(networksize,sizeof(double));

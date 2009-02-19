@@ -121,7 +121,7 @@ void mcmc(struct runpar run, struct interferometer *ifo[])
   
   
   // *** Write true/best-guess values to screen and file ***
-  par2arrt(state, mcmc.param);  //Put the variables in their array
+  par2arrt(state, mcmc.param, mcmc);  //Put the variables in their array
   localpar(&state, ifo, mcmc.networksize);
   mcmc.logL[tempi] = net_loglikelihood(&state, mcmc.networksize, ifo, mcmc.mcmcWaveform);  //Calculate the likelihood
   
@@ -168,7 +168,7 @@ void mcmc(struct runpar run, struct interferometer *ifo[])
   
   //Offset starting values (only for the parameters we're fitting)
   nstart = 0;
-  par2arrt(state, mcmc.param);  //Put the variables in their array
+  par2arrt(state, mcmc.param, mcmc);  //Put the variables in their array
   if(offsetmcmc==1 || offsetmcmc==3) {
     printf("\n");
     for(i=0;i<mcmc.nMCMCpar;i++) {
@@ -190,7 +190,7 @@ void mcmc(struct runpar run, struct interferometer *ifo[])
 	}
       }
       if(mcmc.acceptprior[tempi]==1) {                     //Check the value of the likelihood for this draw
-	arr2part(mcmc.param, &state);	                      //Get the parameters from their array
+	arr2part(mcmc.param, &state, mcmc);	                      //Get the parameters from their array
 	localpar(&state, ifo, mcmc.networksize);
 	mcmc.logL[tempi] = net_loglikelihood(&state, mcmc.networksize, ifo, mcmc.mcmcWaveform);  //Calculate the likelihood
       }
@@ -229,7 +229,7 @@ void mcmc(struct runpar run, struct interferometer *ifo[])
   
   // *** WRITE STARTING STATE TO SCREEN AND FILE **********************************************************************************************************************************
   
-  arr2part(mcmc.param, &state);                         //Get the parameters from their array
+  arr2part(mcmc.param, &state, mcmc);                         //Get the parameters from their array
   localpar(&state, ifo, mcmc.networksize);
   mcmc.logL[tempi] = net_loglikelihood(&state, mcmc.networksize, ifo, mcmc.mcmcWaveform);  //Calculate the likelihood
 
@@ -463,38 +463,10 @@ void mcmc(struct runpar run, struct interferometer *ifo[])
 
 
 //****************************************************************************************************************************************************  
-void par2arr(struct parset par, double *param)
-//Put the mcmc parameters from their struct into their array
-//0:mc, 1:eta, 2:tc, 3:logdl, 4:spin, 5:kappa, 6: longi (->RA), 7:sindec, 8:phase, 9:sinthJ0, 10:phiJ0, 11:alpha
+void par2arrt(struct parset par, double **param, struct mcmcvariables mcmc)
 {
   int i;
-  for(i=0;i<npar;i++){
-    param[i] = par.par[i];
-  }
-}
-//End par2arr
-//****************************************************************************************************************************************************  
-
-//****************************************************************************************************************************************************  
-void arr2par(double *param, struct parset *par)
-//Get the mcmc parameters from their array into their struct
-//0:mc, 1:eta, 2:tc, 3:logdl, 4:spin, 5:kappa, 6: longi (->RA), 7:sindec, 8:phase, 9:sinthJ0, 10:phiJ0, 11:alpha
-{
-  int i;
-  for(i=0;i<npar;i++){
-    par->par[i] = param[i];
-  }
-}
-//End arr2par
-//****************************************************************************************************************************************************  
-
-//****************************************************************************************************************************************************  
-void par2arrt(struct parset par, double **param)
-//Put the mcmc parameters from their struct into their array, for the case of parallel tempering
-//0:mc, 1:eta, 2:tc, 3:logdl, 4:spin, 5:kappa, 6: longi (->RA), 7:sindec, 8:phase, 9:sinthJ0, 10:phiJ0, 11:alpha
-{
-  int i;
-  for(i=0;i<npar;i++){
+  for(i=0;i<mcmc.nMCMCpar;i++){
     param[tempi][i] = par.par[i];
   }
 }
@@ -502,12 +474,10 @@ void par2arrt(struct parset par, double **param)
 //****************************************************************************************************************************************************  
 
 //****************************************************************************************************************************************************  
-void arr2part(double **param, struct parset *par)
-//Get the mcmc parameters from their array into their struct, for the case of parallel tempering
-//0:mc, 1:eta, 2:tc, 3:logdl, 4:spin, 5:kappa, 6: longi (->RA), 7:sindec, 8:phase, 9:sinthJ0, 10:phiJ0, 11:alpha
+void arr2part(double **param, struct parset *par, struct mcmcvariables mcmc)
 {
   int i;
-  for(i=0;i<npar;i++){
+  for(i=0;i<mcmc.nMCMCpar;i++){
     par->par[i] = param[tempi][i];
   }
 }
@@ -589,10 +559,10 @@ void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, 
   
   //Decide whether to accept
   if(mcmc->acceptprior[tempi]==1) {                                    //Then calculate the likelihood
-    arr2part(mcmc->nparam, state);	                               //Get the parameters from their array
+    arr2part(mcmc->nparam, state, *mcmc);	                               //Get the parameters from their array
     localpar(state, ifo, mcmc->networksize);
     mcmc->nlogL[tempi] = net_loglikelihood(state, mcmc->networksize, ifo, mcmc->mcmcWaveform); //Calculate the likelihood
-    par2arrt(*state, mcmc->nparam);	                               //Put the variables back in their array
+    par2arrt(*state, mcmc->nparam, *mcmc);	                               //Put the variables back in their array
     
     if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->temp) && mcmc->nlogL[tempi] > 0) {  //Accept proposal
       for(p1=0;p1<mcmc->nMCMCpar;p1++){
@@ -671,10 +641,10 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
       mcmc->acceptprior[tempi] = prior(&mcmc->nparam[tempi][p],p,mcmc->mcmcWaveform);
       
       if(mcmc->acceptprior[tempi]==1) {
-	arr2part(mcmc->nparam, state);                                            //Get the parameters from their array
+	arr2part(mcmc->nparam, state, *mcmc);                                            //Get the parameters from their array
 	localpar(state, ifo, mcmc->networksize);
 	mcmc->nlogL[tempi] = net_loglikelihood(state, mcmc->networksize, ifo, mcmc->mcmcWaveform);   //Calculate the likelihood
-	par2arrt(*state, mcmc->nparam);                                            //Put the variables back in their array
+	par2arrt(*state, mcmc->nparam, *mcmc);                                            //Put the variables back in their array
 	
 	if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->temp) && mcmc->nlogL[tempi] > 0) {  //Accept proposal
 	  mcmc->param[tempi][p] = mcmc->nparam[tempi][p];
@@ -743,10 +713,10 @@ void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset 
   }
   
   if(mcmc->acceptprior[tempi]==1) {
-    arr2part(mcmc->nparam, state);	                              //Get the parameters from their array
+    arr2part(mcmc->nparam, state, *mcmc);	                              //Get the parameters from their array
     localpar(state, ifo, mcmc->networksize);                               //Calculate local variables
     mcmc->nlogL[tempi] = net_loglikelihood(state, mcmc->networksize, ifo, mcmc->mcmcWaveform);  //Calculate the likelihood
-    par2arrt(*state, mcmc->nparam);	                              //Put the variables back in their array
+    par2arrt(*state, mcmc->nparam, *mcmc);	                              //Put the variables back in their array
     
     if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->temp) && mcmc->nlogL[tempi] > 0){  //Accept proposal if L>Lo
       for(p=0;p<mcmc->nMCMCpar;p++){
@@ -979,7 +949,7 @@ void allocate_mcmcvariables(struct mcmcvariables *mcmc)
   for(i=0;i<mcmc->ntemps;i++) {
     mcmc->hist[i]    = (double**)calloc(mcmc->nMCMCpar,sizeof(double*));
     mcmc->covar[i]  = (double**)calloc(mcmc->nMCMCpar,sizeof(double*));
-    for(j=0;j<npar;j++) {
+    for(j=0;j<mcmc->nMCMCpar;j++) {
       mcmc->hist[i][j]    = (double*)calloc(ncorr,sizeof(double));
       mcmc->covar[i][j]  = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
     }
@@ -996,7 +966,6 @@ void copyRun2MCMC(struct runpar run, struct mcmcvariables *mcmc)
 {
   
   //Copy some global variables:
-  //mcmc->npar = npar;                          // Number of mcmc/template parameters
   mcmc->nMCMCpar = npar;                      // Number of mcmc/template parameters
   mcmc->temp = max(temp0,1.0);                // Current temperature
   
@@ -1064,7 +1033,7 @@ void free_mcmcvariables(struct mcmcvariables *mcmc)
   free(mcmc->scale);
   
   for(i=0;i<mcmc->ntemps;i++) {
-    for(j=0;j<npar;j++) {
+    for(j=0;j<mcmc->nMCMCpar;j++) {
       free(mcmc->hist[i][j]);
       free(mcmc->covar[i][j]);
     }

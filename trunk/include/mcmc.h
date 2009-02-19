@@ -357,10 +357,8 @@ void setseed(int *seed);
 
 void mcmc(struct runpar run, struct interferometer *ifo[]);
 void chol(double **A, struct mcmcvariables *mcmc);
-void par2arr(struct parset par, double *param);
-void arr2par(double *param, struct parset *par);
-void par2arrt(struct parset par, double **param); //For the case of parallel tempering
-void arr2part(double **param, struct parset *par);
+void par2arrt(struct parset par, double **param, struct mcmcvariables mcmc);
+void arr2part(double **param, struct parset *par, struct mcmcvariables mcmc);
 int prior(double *par, int p, int waveformVersion);
 int prior1(double *par, int p);
 int prior2(double *par, int p);
