@@ -74,15 +74,12 @@ double tempmax;
 int doSNR,doMCMC,doMatch,intscrout,writeSignal;
 int printMuch;
 
-double truespin,truetheta,prior_tc_mean;
+double prior_tc_mean;
 int downsamplefactor;
 
 int tempi;
   
 double Ms,Mpc,G,c,Mpcs,pi,tpi,mtpi;
-
-
-int useoldmcmcoutputformat;
 
 
 int inject;
@@ -104,7 +101,8 @@ double *chaintemp;                  // vector of temperatures for individual cha
 // This should eventually include all variables in the input files and replace many of the global variables.
 // That also means that this struct must be passed throughout much of the code.
 struct runpar{
-  //int npar;                     // Number of parameters in the MCMC/template
+  int nMCMCpar;                   // Number of parameters in the MCMC template
+  int nInjectPar;                 // Number of parameters in the injection template
   int injectionWaveform;          // Waveform used to do software injections
   int mcmcWaveform;               // Waveform used as the MCMC template
   int ntemps;		          // Size of temperature ladder
@@ -115,7 +113,6 @@ struct runpar{
   int selectifos[9];              // Select IFOs to use for the analysis
   
   //int adapt;                    // Use adaptation or not
-  //double *fitpar;
   int *ranInjPar;                 // Randomise injection parameters 
   int ranparseed;                 // Seed to randomise true parameters (i.e., injection)
   double injectionSNR;            // Network SNR of the software injection, scale the distance to obtain this value
@@ -350,10 +347,11 @@ void allocparset(struct parset *par, int networksize);
 void freeparset(struct parset *par);
 void printparset(struct parset par);
 
+void copyRun2MCMC(struct runpar run, struct mcmcvariables *mcmc);
 void setmcmcseed(struct runpar *run);
 void setseed(int *seed);
 
-void mcmc(struct runpar *run, struct interferometer *ifo[]);
+void mcmc(struct runpar run, struct interferometer *ifo[]);
 void chol(int n, double **A);
 void par2arr(struct parset par, double *param);
 void arr2par(double *param, struct parset *par);
@@ -368,7 +366,7 @@ void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, 
 void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
 void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
 
-void write_mcmc_header(struct interferometer *ifo[], struct mcmcvariables mcmc, struct runpar *run);
+void write_mcmc_header(struct interferometer *ifo[], struct mcmcvariables mcmc, struct runpar run);
 void write_mcmc_output(struct mcmcvariables mcmc, struct interferometer *ifo[]);
 void allocate_mcmcvariables(struct mcmcvariables *mcmc);
 void free_mcmcvariables(struct mcmcvariables *mcmc);

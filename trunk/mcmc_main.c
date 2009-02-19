@@ -18,8 +18,6 @@ int main(int argc, char * argv[])
   int ifonr=0;
   double snr=0.0;
   
-  useoldmcmcoutputformat = 0; //Set to 1 if you want to ... exactly!
-  
   
   
   //Initialise stuff for the run
@@ -177,7 +175,7 @@ int main(int argc, char * argv[])
   clock_t time1 = clock();
   if(doMCMC==1) {
     //printMuch=1;
-    mcmc(&run, network);
+    mcmc(run, network);
     //printMuch=0;
   }
   clock_t time2 = clock();
