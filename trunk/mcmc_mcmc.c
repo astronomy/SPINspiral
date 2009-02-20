@@ -160,7 +160,7 @@ void mcmc(struct runPar run, struct interferometer *ifo[])
   // ***  GET OFFSET STARTING VALUES  ***********************************************************************************************************************************************
   
   // *** Get the starting values for the chain ***
-  getstartparameters(&state, run);
+  getStartParameters(&state, run);
   state.loctc    = (double*)calloc(mcmc.networksize,sizeof(double));
   state.localti  = (double*)calloc(mcmc.networksize,sizeof(double));
   state.locazi   = (double*)calloc(mcmc.networksize,sizeof(double));

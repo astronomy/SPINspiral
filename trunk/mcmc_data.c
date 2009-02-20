@@ -857,7 +857,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
   if(intscrout==1) printf(" | original sampling rate: %d Hz\n", ifo[ifonr]->samplerate);
   
   // Inject the signal into the noise
-  if(inject>=1) {
+  if(run.injectSignal >= 1) {
     if(intscrout==1) printf(" :  injecting signal:\n");
     
     // Define injection parameters:
@@ -905,7 +905,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
     freeparset(&injectpar);
     
     
-  } // if(inject>=1)
+  } // if(run.injectSignal >= 1)
   else if(ifo[ifonr]->add2channels) { // Read 2nd channel (signal only)  (if not doing a software injection)
     
     filestart = (((((long)(from))-ifo[ifonr]->ch2fileoffset) / ifo[ifonr]->ch2filesize) * ifo[ifonr]->ch2filesize) + ifo[ifonr]->ch2fileoffset;
@@ -947,7 +947,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
   for(j=0; j<N; ++j) raw[j] = nvect->dataF[j];
   
   // Add channels (noise plus signal):
-  if(inject>=1){
+  if(run.injectSignal >= 1){
     for(j=0; j<N; ++j) raw[j] += injection[j];
   } else if(ifo[ifonr]->add2channels) {
     for(j=0; j<N; ++j) raw[j] += svect->dataF[j];
@@ -957,7 +957,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
   // Release the FrVect objects:
   FrVectFree(svect);
   FrVectFree(nvect);
-  if(inject>=1) free(injection);
+  if(run.injectSignal >= 1) free(injection);
   
   
   int screwcount = 0;

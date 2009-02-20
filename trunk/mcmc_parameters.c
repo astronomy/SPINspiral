@@ -42,11 +42,11 @@ void readMainInputfile(struct runPar *run)
   
   //Software injection:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%d",&inject);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->injectSignal);
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->mcmcWaveform);
   run->injectionWaveform = run->mcmcWaveform;  //For now
   
-  if(inject>=1) {
+  if(run->injectSignal >= 1) {
     if(run->injectionWaveform==1) {
       printf("   Using Apostolatos, 1.5PN, 12-parameter waveform for the software injection.\n");
       run->nInjectPar=12;
@@ -80,9 +80,6 @@ void readMainInputfile(struct runPar *run)
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
   for(i=0;i<run->nInjectPar;i++) fscanf(fin,"%lf",&run->parInjectVal[i]);  //Read the array directly, because sscanf cannot be in a loop...
   prior_tc_mean = run->parInjectVal[2];   //prior_tc_mean is used everywhere
-  //Starting parameter values:
-  for(i=0;i<run->nMCMCpar;i++) fscanf(fin,"%lf",&run->startpar[i]);  //Read the array directly, because sscanf cannot be in a loop...
-  //if(offsetmcmc==0 || offsetmcmc==1) for(i=0;i<run->nMCMCpar;i++) run->startpar[i] = run->parInjectVal[i];  //Set the starting parameters equal to the true, injection parameters
   
   //Secondary input files:
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
@@ -91,7 +88,7 @@ void readMainInputfile(struct runPar *run)
   fgets(bla,500,fin); sscanf(bla,"%s",run->parameterinfilename);
   
   fclose(fin);
-}
+}  //End of readMainInputfile
 
 
 
@@ -122,7 +119,7 @@ void writeMainInputfile(struct runPar *run)
   fprintf(fout, "  %-39d  %-18s  %-s\n",      thinOutput,    "thinOutput",           "Number of iterations to be skipped between stored steps (100 for 1d).");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      thinScreenOutput,  "thinScreenOutput",   "Number of iterations between screen outputs im the MCMC (1000 for 1d).");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      run->MCMCseed, "MCMCseed",       "Random number seed to start the MCMC: 0-let system clock determine seed.");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      inject,        "inject",         "Inject a signal (1) or not (0).");
+  fprintf(fout, "  %-39d  %-18s  %-s\n",      run->injectSignal,        "inject",         "Inject a signal (1) or not (0).");
   fprintf(fout, " ");
   for(i=0;i<run->nMCMCpar;i++) fprintf(fout, "%2d",    run->ranInjPar[i]);
   for(i=0;i<max(19-run->nMCMCpar,0);i++) fprintf(fout, "  ");  //Line up the next colum nicely, for up to 20 parameters
@@ -215,9 +212,9 @@ void writeMainInputfile(struct runPar *run)
   fprintf(fout, "  \n");
   for(i=0;i<run->nMCMCpar;i++) {
     if(i==2) {
-      fprintf(fout, "  %-18.6lf",run->startpar[i]);
+      fprintf(fout, "  %-18.6lf",run->parBestVal[i]);
     } else {
-      fprintf(fout, "  %-9.4lf",run->startpar[i]);
+      fprintf(fout, "  %-9.4lf",run->parBestVal[i]);
     }
   }
   fprintf(fout, "\n");
@@ -776,34 +773,13 @@ void getInjectionParameters(struct parset *par, int nInjectionPar, double *parIn
 }
 
 
-void getstartparameters(struct parset *par, struct runPar run)  //Set the parameters for the 12-parameter spinning template to the starting values for the MCMC chain
+void getStartParameters(struct parset *par, struct runPar run)  //Set the parameters for the 12-parameter spinning template to the starting values for the MCMC chain
 {
   
   int i=0;
   for(i=0;i<run.nMCMCpar;i++) {
-    par->par[i]      = run.startpar[i];
+    par->par[i]      = run.parBestVal[i];
   }
-  
-  /*
-  parSTOPGREPFROMFINDINGTHIS->m1       = run.startpar[0];                    // M1 (10.0)
-  parSTOPGREPFROMFINDINGTHIS->m2       = run.startpar[1];                    // M2  (1.4)
-  parSTOPGREPFROMFINDINGTHIS->m        = parSTOPGREPFROMFINDINGTHIS->m1+parSTOPGREPFROMFINDINGTHIS->m2;
-  parSTOPGREPFROMFINDINGTHIS->mu       = parSTOPGREPFROMFINDINGTHIS->m1*parSTOPGREPFROMFINDINGTHIS->m2/parSTOPGREPFROMFINDINGTHIS->m;
-  parSTOPGREPFROMFINDINGTHIS->eta      = parSTOPGREPFROMFINDINGTHIS->mu/parSTOPGREPFROMFINDINGTHIS->m;                // mass ratio                
-  parSTOPGREPFROMFINDINGTHIS->mc       = parSTOPGREPFROMFINDINGTHIS->m*pow(parSTOPGREPFROMFINDINGTHIS->eta,0.6);      // chirp mass. in Mo         
-  parSTOPGREPFROMFINDINGTHIS->tc       = run.startpar[2];                    // coalescence time
-  parSTOPGREPFROMFINDINGTHIS->logdl    = log(run.startpar[3]);               // log-distance (Mpc) (17.5)             
-  
-  parSTOPGREPFROMFINDINGTHIS->spin     = run.startpar[4];                    // magnitude of total spin   (0.1)
-  parSTOPGREPFROMFINDINGTHIS->kappa    = cos(run.startpar[5]*d2r);           // L^.S^, cos of angle between L^ & S^  (0.819152)
-  parSTOPGREPFROMFINDINGTHIS->longi    = fmod(longitude(run.startpar[6]*h2r,GMST(parSTOPGREPFROMFINDINGTHIS->tc))+mtpi,tpi);  //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
-  parSTOPGREPFROMFINDINGTHIS->sinlati  = sin(run.startpar[7]*d2r);           // sin latitude (sin(delta))  (40)     
-  
-  parSTOPGREPFROMFINDINGTHIS->phase    = run.startpar[8]*d2r;                // orbital phase   (phi_c)   (0.2)
-  parSTOPGREPFROMFINDINGTHIS->sinthJ0  = sin(run.startpar[9]*d2r);           // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
-  parSTOPGREPFROMFINDINGTHIS->phiJ0    = run.startpar[10]*d2r;               // Phi_J0 ~ azimuthal            (125)
-  parSTOPGREPFROMFINDINGTHIS->alpha    = run.startpar[11]*d2r;               // Alpha_c                       (0.9 rad = 51.566202deg)
-  */
   
   par->loctc    = NULL;
   par->localti  = NULL;

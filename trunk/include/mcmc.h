@@ -56,7 +56,7 @@ double pdfsigs[20];
 
 char datadir[99];
 
-int npar,iter,thinOutput,thinScreenOutput,adapt;
+int iter,thinOutput,thinScreenOutput,adapt;
 
 int offsetmcmc;
 double offsetx;
@@ -80,7 +80,6 @@ int tempi;
 double Ms,Mpc,G,c,Mpcs,pi,tpi,mtpi;
 
 
-int inject;
 
 double *chaintemp;                  // vector of temperatures for individual chains (initialised later) 
 
@@ -113,6 +112,7 @@ struct runPar{
   
   //int adapt;                    // Use adaptation or not
   int *ranInjPar;                 // Randomise injection parameters 
+  int injectSignal;               // Inject a signal in the data or not
   int ranParSeed;                 // Seed to randomise injection parameters
   double injectionSNR;            // Network SNR of the software injection, scale the distance to obtain this value
   
@@ -122,7 +122,6 @@ struct runPar{
   
   double netsnr;                  // Total SNR of the network
   double temps[99];               // Temperature ladder for manual parallel tempering
-  double startpar[20];            // Starting parameters for the MCMC chains (may be different from injection parameters)
   
   //Data:
   char datasetName[80];           // Name of the data set used (for printing purposes)
@@ -347,7 +346,7 @@ void setRandomInjectionParameters1(struct runPar *run);
 void setRandomInjectionParameters2(struct runPar *run);
 
 void getInjectionParameters(struct parset *par, int nInjectionPar, double *parInjectVal);
-void getstartparameters(struct parset *par, struct runPar run);
+void getStartParameters(struct parset *par, struct runPar run);
 void allocparset(struct parset *par, int networksize);
 void freeparset(struct parset *par);
 void printparset(struct parset par);

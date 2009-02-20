@@ -62,8 +62,8 @@ int main(int argc, char * argv[])
     printf(" reading noise and data files...\n");
   }
   ifoinit(network, networksize, run); //Do the actual initialisation
-  if(inject) {
-    if(run.injectionSNR < 0.001) printf("   A signal with the 'true' parameter values was injected.\n");
+  if(run.injectSignal>=1) {
+    if(run.injectionSNR < 0.001) printf("   A signal with the injection parameter values was injected into the data.\n");
   } else {
     printf("   No signal was injected.\n");
   }
@@ -95,7 +95,7 @@ int main(int argc, char * argv[])
   
   
   //Get the desired SNR by scaling the distance
-  if(run.injectionSNR > 0.001 && inject==1) {
+  if(run.injectionSNR > 0.001 && run.injectSignal>=1) {
     run.parInjectVal[3] *= (run.netsnr/run.injectionSNR);  //Use total network SNR
     printf("   Setting distance to %lf Mpc to get a network SNR of %lf.\n",run.parInjectVal[3],run.injectionSNR);
     getInjectionParameters(&dummypar, run.nMCMCpar, run.parInjectVal);
