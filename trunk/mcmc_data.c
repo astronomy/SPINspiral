@@ -16,7 +16,7 @@ void setIFOdata(struct runPar *run, struct interferometer ifo[])
   int i=0,numberofdatasets = 6;
   // Description of the data sets below
   char datadescriptions[10][99];
-  sprintf(datadescriptions[0],"File:  %s",run->datainfilename);
+  sprintf(datadescriptions[0],"File:  %s",run->dataFilename);
   sprintf(datadescriptions[1],"Gaussian, stationary noise (GPS ~894377000)");
   sprintf(datadescriptions[2],"clean S5 data (GPS ~846226044)");
   sprintf(datadescriptions[3],"playground trigger data (GPS ~845348295)");
@@ -28,7 +28,7 @@ void setIFOdata(struct runPar *run, struct interferometer ifo[])
   
   //run->selectdata = max(min(run->selectdata,numberofdatasets),1);
   if(run->selectdata < 0 || run->selectdata > numberofdatasets) {
-    printf("\n\n   Unknown dataset %d selected.  Please set the parameter  selectdata  in  %s  to a value between 0 and %d: \n",run->selectdata, run->infilename,numberofdatasets);
+    printf("\n\n   Unknown dataset %d selected.  Please set the parameter  selectdata  in  %s  to a value between 0 and %d: \n",run->selectdata, run->mainFilename,numberofdatasets);
     for(i=0;i<=numberofdatasets;i++) {
       printf("     %3d:  %s\n",i,datadescriptions[i]);
     }

@@ -16,11 +16,11 @@ void readMainInputfile(struct runPar *run)
   char bla[500];
   FILE *fin;
   
-  if((fin = fopen(run->infilename,"r")) == NULL) {
-    printf("   Error reading main input file: %s, aborting.\n\n\n",run->infilename);
+  if((fin = fopen(run->mainFilename,"r")) == NULL) {
+    printf("   Error reading main input file: %s, aborting.\n\n\n",run->mainFilename);
     exit(1);
   } else {
-    printf("   Using main input file: %s.\n",run->infilename);
+    printf("   Using main input file: %s.\n",run->mainFilename);
   }
   
   
@@ -38,53 +38,12 @@ void readMainInputfile(struct runPar *run)
   fgets(bla,500,fin);  sscanf(bla,"%d",&printMuch);
   
   
-  
-  
-  //Software injection:
-  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%d",&run->injectSignal);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&run->mcmcWaveform);
-  run->injectionWaveform = run->mcmcWaveform;  //For now
-  
-  if(run->injectSignal >= 1) {
-    if(run->injectionWaveform==1) {
-      printf("   Using Apostolatos, 1.5PN, 12-parameter waveform for the software injection.\n");
-      run->nInjectPar=12;
-    } else if(run->injectionWaveform==2) {
-      printf("   Using LAL, 3.5PN, 12-parameter waveform for the software injection.\n");
-      run->nInjectPar=12;
-    } else if(run->injectionWaveform==3) {
-      printf("   Using LAL, 3.5PN, 15-parameter waveform for the software injection.\n");
-      run->nInjectPar=15;
-    } else {
-      printf("   Unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->injectionWaveform);
-      printf("     1: Apostolatos, simple precession, 12 parameters\n");
-      printf("     2: LAL, single spin, 12 parameters\n");
-      printf("     3: LAL, double spin, 15 parameters\n");
-      printf("   Please set injectionWaveform in mcmc.input to one of these values.\n\n");
-      exit(1);
-    }
-  }
-  run->nMCMCpar = run->nInjectPar;
-  
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->injectionSNR);
-  for(i=0;i<run->nInjectPar;i++)  fscanf(fin,"%d",&run->injRanPar[i]);  //Read the array directly, because sscanf cannot be in a loop...
-  fgets(bla,500,fin);  //Read the rest of this line
-  fgets(bla,500,fin);  sscanf(bla,"%d",&run->injRanSeed);
-  
-
-
-  
-  //True parameter values:
-  fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
-  for(i=0;i<run->nInjectPar;i++) fscanf(fin,"%lf",&run->injParVal[i]);  //Read the array directly, because sscanf cannot be in a loop...
-  prior_tc_mean = run->injParVal[2];   //prior_tc_mean is used everywhere
-  
   //Secondary input files:
-  fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
-  fgets(bla,500,fin); sscanf(bla,"%s",run->MCMCinfilename);
-  fgets(bla,500,fin); sscanf(bla,"%s",run->datainfilename);
-  fgets(bla,500,fin); sscanf(bla,"%s",run->parameterinfilename);
+  fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment lines
+  fgets(bla,500,fin); sscanf(bla,"%s",run->mcmcFilename);
+  fgets(bla,500,fin); sscanf(bla,"%s",run->dataFilename);
+  fgets(bla,500,fin); sscanf(bla,"%s",run->injectionFilename);
+  fgets(bla,500,fin); sscanf(bla,"%s",run->parameterFilename);
   
   fclose(fin);
 }  //End of readMainInputfile
@@ -102,7 +61,7 @@ void writeMainInputfile(struct runPar *run)
 {
   int i;
   FILE *fout;
-  sprintf(run->outfilename,"%s.%6.6d",run->infilename,run->MCMCseed);
+  sprintf(run->outfilename,"%s.%6.6d",run->mainFilename,run->MCMCseed);
   if((fout = fopen(run->outfilename,"w")) == NULL) {
     printf("   Could not create file: %s, aborting.\n\n\n",run->outfilename);
     exit(1);
@@ -230,7 +189,7 @@ void writeMainInputfile(struct runPar *run)
   
   fprintf(fout, "\n");
   fprintf(fout, "  \n  #Secondary input files:\n");
-  fprintf(fout, "  %-39s  %-18s  %-s\n",      run->datainfilename,       "datainfilename",        "File name of the data/noise input file, e.g. mcmc.data");
+  fprintf(fout, "  %-39s  %-18s  %-s\n",      run->dataFilename,       "dataFilename",        "File name of the data/noise input file, e.g. mcmc.data");
   
   /*
   Formats used:
@@ -242,7 +201,7 @@ void writeMainInputfile(struct runPar *run)
   
   fprintf(fout, "\n\n\n");
   fclose(fout);
-}
+} //End of writeMainInputfile
 
 
 
@@ -270,7 +229,7 @@ void readLocalInputfile()
   fscanf(fin, "%s",datadir);
   
   fclose(fin);
-}
+}  //End of readLocalInputfile
 
 
 
@@ -287,11 +246,11 @@ void readMCMCinputfile(struct runPar *run)
   char bla[500];
   FILE *fin;
   
-  if((fin = fopen(run->MCMCinfilename,"r")) == NULL) {
-    printf("   Error reading MCMC input file: %s, aborting.\n\n\n",run->MCMCinfilename);
+  if((fin = fopen(run->mcmcFilename,"r")) == NULL) {
+    printf("   Error reading MCMC input file: %s, aborting.\n\n\n",run->mcmcFilename);
     exit(1);
   } else {
-    printf("   Using MCMC input file: %s.\n",run->MCMCinfilename);
+    printf("   Using MCMC input file: %s.\n",run->mcmcFilename);
   }
   
   
@@ -342,8 +301,8 @@ void readMCMCinputfile(struct runPar *run)
   fgets(bla,500,fin);  fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin);  sscanf(bla,"%d",&offsetmcmc);
   fgets(bla,500,fin);  sscanf(bla,"%lf",&offsetx);
-  for(i=0;i<run->nMCMCpar;i++)  fscanf(fin,"%d",&run->parStartMCMC[i]);  //Read the array directly, because sscanf cannot be in a loop...
-  fgets(bla,500,fin);  //Read the rest of this line
+  //for(i=0;i<run->nMCMCpar;i++)  fscanf(fin,"%d",&run->parStartMCMC[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  //fgets(bla,500,fin);  //Read the rest of this line
   
   
   //Correlated update proposals:
@@ -404,8 +363,8 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
   char bla[500], subdir[500];
   FILE *fin;
   
-  if((fin = fopen(run->datainfilename,"r")) == NULL) {
-    printf("   Error reading data file: %s, aborting.\n\n\n",run->datainfilename);
+  if((fin = fopen(run->dataFilename,"r")) == NULL) {
+    printf("   Error reading data file: %s, aborting.\n\n\n",run->dataFilename);
     exit(1);
   }
   
@@ -482,7 +441,161 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
   }
   fclose(fin);
   
-}
+}  //End of readDataInputfile
+
+
+
+
+
+// All parameters that are read in here should be members of the runvar struct
+void readInjectionInputfile(struct runPar *run)
+{
+  int i;
+  char bla[500];
+  FILE *fin;
+  
+  if((fin = fopen(run->injectionFilename,"r")) == NULL) {
+    printf("   Error reading parameter input file: %s, aborting.\n\n\n",run->injectionFilename);
+    exit(1);
+  } else {
+    printf("   Using parameter input file: %s.\n",run->injectionFilename);
+  }
+  
+  
+  //Use and l for floats: %lf, %lg, etc, rather than %f, %g
+  
+  for(i=1;i<=2;i++) fgets(bla,500,fin);  //Read first 2 lines
+  
+  //General:
+  fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->injectSignal);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->injectionWaveform);
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->injectionSNR);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->injRanSeed);
+  
+  //Get the number of injection parameters from the injectionWaveform
+  if(run->injectSignal >= 1) {
+    if(run->injectionWaveform==1) {
+      printf("   Using Apostolatos, 1.5PN, 12-parameter waveform for the software injection.\n");
+      run->nInjectPar=12;
+    } else if(run->injectionWaveform==2) {
+      printf("   Using LAL, 3.5PN, 12-parameter waveform for the software injection.\n");
+      run->nInjectPar=12;
+    } else if(run->injectionWaveform==3) {
+      printf("   Using LAL, 3.5PN, 15-parameter waveform for the software injection.\n");
+      run->nInjectPar=15;
+    } else {
+      printf("   Unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->injectionWaveform);
+      printf("     1: Apostolatos, simple precession, 12 parameters\n");
+      printf("     2: LAL, single spin, 12 parameters\n");
+      printf("     3: LAL, double spin, 15 parameters\n");
+      printf("   Please set injectionWaveform in mcmc.input to one of these values.\n\n");
+      exit(1);
+    }
+  }
+  
+  //Parameters:
+  for(i=1;i<=5;i++) fgets(bla,500,fin);  //Read empty and comment lines
+  
+  for(i=0;i<run->nInjectPar;i++) {
+    fscanf(fin,"%d %d %lf %d %lf %d %lf %lf",&run->injNumber[i],&run->injID[i],&run->injParVal[i],&run->injRanPar[i],&run->injSigma[i],&run->injBoundType[i],&run->injBoundLow[i],&run->injBoundUp[i]);
+    fgets(bla,500,fin);  //Read rest of the line
+    
+    //printf("%d %d %lf %d %lf %d %lf %lf\n",run->injNumber[i],run->injID[i],run->injParVal[i],run->injRanPar[i],run->injSigma[i],run->injBoundType[i],run->injBoundLow[i],run->injBoundUp[i]);
+    
+    
+    if(run->injNumber[i] != i+1) {
+      printf("   Error reading parameter input file %s:  parameter %d has number %d.\n   Aborting...\n\n",run->injectionFilename,i+1,run->injNumber[i]);
+      exit(1);
+    }
+    
+    
+    run->injRevID[run->injID[i]] = i;  //Reverse parameter ID
+    
+    
+    // Get the desired injection boundaries:
+    switch (run->injBoundType[i]) {
+    case 1 :
+      break;
+    case 2 :
+      if(run->injBoundLow[i] > 0.0 || run->injBoundUp[i] < 0.0) {
+	printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     for injBoundType = 2, injBoundLow and injBoundUp must be <= 0 and >= 0 respectively.\n   Aborting...\n\n",
+	       run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]]);
+	exit(1);
+      }
+      run->injBoundLow[i] = run->injParVal[i] + run->injBoundLow[i];
+      run->injBoundUp[i]  = run->injParVal[i] + run->injBoundUp[i];
+      break;
+    case 3 :
+      if(run->injBoundLow[i] > 1.0 || run->injBoundUp[i] < 1.0) {
+	printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     for injBoundType = 3, injBoundLow and injBoundUp must be <= 1 and >= 1 respectively.\n   Aborting...\n\n",
+	       run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]]);
+	exit(1);
+      }
+      run->injBoundLow[i] = run->injParVal[i] * run->injBoundLow[i];
+      run->injBoundUp[i]  = run->injParVal[i] * run->injBoundUp[i];
+      break;
+    default :
+      printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     %d is not a valid option for injBoundType.\n   Aborting...\n\n",
+	     run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]],run->injBoundType[i]);
+      exit(1);
+    } //End switch
+    
+    
+    // Check whether value for start is valid
+    if(run->injRanPar[i] < 0 || run->injRanPar[i] > 2) {
+      printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     %d is not a valid option for injRanPar.\n   Aborting...\n\n",
+	     run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]],run->injRanPar[i]);
+	exit(1);
+    }      
+    
+    //Check whether the lower prior boundary < the upper
+    if(run->injBoundLow[i] >= run->injBoundUp[i]) {
+      printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     the lower boundary of the prior is larger than or equal to the upper boundary (%lf vs. %lf).\n   Aborting...\n\n",
+	     run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]],run->injBoundLow[i],run->injBoundUp[i]);
+      exit(1);
+    }
+    
+    //Check whether  lower prior boundary <= injection value <= upper boundary
+    if(run->injParVal[i] < run->injBoundLow[i] || run->injParVal[i] > run->injBoundUp[i]) {
+      printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     the injection value lies outside the prior range.\n   Aborting...\n\n",
+	     run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]]);
+      exit(1);
+    }
+    
+    
+  } //End for
+  
+  
+  prior_tc_mean = run->injParVal[2];   //prior_tc_mean is used everywhere
+  
+  
+  fclose(fin);
+  
+  
+  
+  //Print injection parameters and prior ranges to screen:
+  char StartStr[3][99];
+  strcpy(StartStr[0],"Injection value");
+  strcpy(StartStr[1],"Random value near injection value");
+  strcpy(StartStr[2],"Random value from prior");
+  
+  printf("\n      Nr: Name:           Injection value:     Prior:     min:            max:    Inject:\n");
+  for(i=0;i<run->nMCMCpar;i++) {
+    printf("      %2d  %-11s     %15.4lf     %15.4lf %15.4lf     %-25s\n",run->injNumber[i],run->parAbrev[run->injID[i]],run->injParVal[i],
+	   run->injBoundLow[i],run->injBoundUp[i],  StartStr[run->injRanPar[i]]);
+  }
+  printf("\n");
+  
+}  //End of readInjectionInputfile
+
+
+
+
+
+
+
+
 
 
 
@@ -495,11 +608,11 @@ void readParameterInputfile(struct runPar *run)
   char bla[500];
   FILE *fin;
   
-  if((fin = fopen(run->parameterinfilename,"r")) == NULL) {
-    printf("   Error reading parameter input file: %s, aborting.\n\n\n",run->parameterinfilename);
+  if((fin = fopen(run->parameterFilename,"r")) == NULL) {
+    printf("   Error reading parameter input file: %s, aborting.\n\n\n",run->parameterFilename);
     exit(1);
   } else {
-    printf("   Using parameter input file: %s.\n",run->parameterinfilename);
+    printf("   Using parameter input file: %s.\n",run->parameterFilename);
   }
   
   
@@ -525,7 +638,7 @@ void readParameterInputfile(struct runPar *run)
     
     
     if(run->parNumber[i] != i+1) {
-      printf("   Error reading parameter input file %s:  parameter %d has number %d.\n   Aborting...\n\n",run->parameterinfilename,i+1,run->parNumber[i]);
+      printf("   Error reading parameter input file %s:  parameter %d has number %d.\n   Aborting...\n\n",run->parameterFilename,i+1,run->parNumber[i]);
       exit(1);
     }
     
@@ -541,7 +654,7 @@ void readParameterInputfile(struct runPar *run)
     case 12 :
       if(run->priorBoundLow[i] > 0.0 || run->priorBoundUp[i] < 0.0) {
 	printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     for priorType = 12, priorBoundLow and priorBoundUp must be <= 0 and >= 0 respectively.\n   Aborting...\n\n",
-	       run->parameterinfilename,run->parNumber[i],run->parAbrev[run->parID[i]]);
+	       run->parameterFilename,run->parNumber[i],run->parAbrev[run->parID[i]]);
 	exit(1);
       }
       run->priorBoundLow[i] = run->parBestVal[i] + run->priorBoundLow[i];
@@ -550,7 +663,7 @@ void readParameterInputfile(struct runPar *run)
     case 13 :
       if(run->priorBoundLow[i] > 1.0 || run->priorBoundUp[i] < 1.0) {
 	printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     for priorType = 13, priorBoundLow and priorBoundUp must be <= 1 and >= 1 respectively.\n   Aborting...\n\n",
-	       run->parameterinfilename,run->parNumber[i],run->parAbrev[run->parID[i]]);
+	       run->parameterFilename,run->parNumber[i],run->parAbrev[run->parID[i]]);
 	exit(1);
       }
       run->priorBoundLow[i] = run->parBestVal[i] * run->priorBoundLow[i];
@@ -566,7 +679,7 @@ void readParameterInputfile(struct runPar *run)
       break;
     default :
       printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     %d is not a valid option for priorType.\n   Aborting...\n\n",
-	     run->parameterinfilename,run->parNumber[i],run->parAbrev[run->parID[i]],run->priorType[i]);
+	     run->parameterFilename,run->parNumber[i],run->parAbrev[run->parID[i]],run->priorType[i]);
       exit(1);
     } //End switch
     
@@ -574,28 +687,28 @@ void readParameterInputfile(struct runPar *run)
     // Check whether value for fix is valid
     if(run->parFix[i] < 0 || run->parFix[i] > 2) {
       printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     %d is not a valid option for parFix.\n   Aborting...\n\n",
-	     run->parameterinfilename,run->parNumber[i],run->parAbrev[run->parID[i]],run->parFix[i]);
+	     run->parameterFilename,run->parNumber[i],run->parAbrev[run->parID[i]],run->parFix[i]);
 	exit(1);
     }      
     
     // Check whether value for start is valid
     if(run->parStartMCMC[i] < 1 || run->parStartMCMC[i] > 5) {
       printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     %d is not a valid option for parStartMCMC.\n   Aborting...\n\n",
-	     run->parameterinfilename,run->parNumber[i],run->parAbrev[run->parID[i]],run->parStartMCMC[i]);
+	     run->parameterFilename,run->parNumber[i],run->parAbrev[run->parID[i]],run->parStartMCMC[i]);
 	exit(1);
     }      
     
     //Check whether the lower prior boundary < the upper
     if(run->priorBoundLow[i] >= run->priorBoundUp[i]) {
       printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     the lower boundary of the prior is larger than or equal to the upper boundary (%lf vs. %lf).\n   Aborting...\n\n",
-	     run->parameterinfilename,run->parNumber[i],run->parAbrev[run->parID[i]],run->priorBoundLow[i],run->priorBoundUp[i]);
+	     run->parameterFilename,run->parNumber[i],run->parAbrev[run->parID[i]],run->priorBoundLow[i],run->priorBoundUp[i]);
       exit(1);
     }
     
     //Check whether  lower prior boundary <= best value <= upper boundary
     if(run->parBestVal[i] < run->priorBoundLow[i] || run->parBestVal[i] > run->priorBoundUp[i]) {
       printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     the best value lies outside the prior range.\n   Aborting...\n\n",
-	     run->parameterinfilename,run->parNumber[i],run->parAbrev[run->parID[i]]);
+	     run->parameterFilename,run->parNumber[i],run->parAbrev[run->parID[i]]);
       exit(1);
     }
     
@@ -625,7 +738,7 @@ void readParameterInputfile(struct runPar *run)
   }
   printf("\n");
   
-}
+}  //End of readParameterInputfile
 
 
 

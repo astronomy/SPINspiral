@@ -14,8 +14,7 @@
   #Start from offset values:
   1                                        offsetmcmc          Start the MCMC with offset initial parameters: 0-no: use injection parameters, 1-yes: randomly around the injected parameters, 2-yes: at the starting parameters, 3-yes: randomly around the starting parameters.  The individual parameters to be offset are determined in offsetpar below.
   10.0                                     offsetx             Start the MCMC with an offset of x times the typical pdf sigma.
-  1 1 1 1 1 1 1 1 1 1 1 1                  offsetpar[]         Parameters you want to start from random offset values. At the moment only works if parameter is also 'fit' (i.e. value is 1 in fitpar).
-  
+    
   #Correlated update proposals:
   2                                        corrupd             Do correlated update proposals: 0-no, 1-yes but update the matrix only once, 2-yes and update the matrix every ncorr iterations.
   0.7                                      corrfrac            Fraction of update proposals that is correlated (0.0-1.0, ~0.7 seems ok). corrupd must be 2. Should this replace corrupd?

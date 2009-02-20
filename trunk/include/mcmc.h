@@ -101,7 +101,6 @@ struct runPar{
   int maxnPar;                    // Maximum allowed number of MCMC/injection parameters
   int nMCMCpar;                   // Number of parameters in the MCMC template
   int nInjectPar;                 // Number of parameters in the injection template
-  int injectionWaveform;          // Waveform used to do software injections
   int mcmcWaveform;               // Waveform used as the MCMC template
   int ntemps;		          // Size of temperature ladder
   int MCMCseed;                   // Seed for MCMC
@@ -131,14 +130,17 @@ struct runPar{
   
   //Software injection:
   int injectSignal;               // Inject a signal in the data or not
+  int injectionWaveform;          // Waveform used to do software injections
   int injRanSeed;                 // Seed to randomise injection parameters
   double injectionSNR;            // Network SNR of the software injection, scale the distance to obtain this value
   
   int injNumber[20];              // Number of the current parameter
   int injID[20];                  // Unique parameter identifier
   int injRevID[200];              // Reverse parameter identifier
-  double injParVal[20];        // Injection value for each parameter
+  double injParVal[20];           // Injection value for each parameter
   int injRanPar[20];              // Randomise injection parameters 
+  double injSigma[20];            // Width of Gaussian distribution to draw injection parameters from
+  int injBoundType[20];           // Type of boundary to use
   double injBoundLow[20];         // Info to determine lower boundary for prior
   double injBoundUp[20];          // Info to determine upper boundary for prior
   
@@ -162,11 +164,12 @@ struct runPar{
   int  parDef[200];               // Is a parameter defined or not?
   
   
-  char infilename[99];            // Run input file name
+  char mainFilename[99];            // Run input file name
   char outfilename[99];           // Copy of input file name
-  char MCMCinfilename[99];        // Run MCMC input file name
-  char datainfilename[99];        // Run data input file name
-  char parameterinfilename[99];   // Run parameter input file name
+  char mcmcFilename[99];          // Run MCMC input file name
+  char dataFilename[99];          // Run data input file name
+  char injectionFilename[99];     // Run injection input file name
+  char parameterFilename[99];     // Run parameter input file name
 };
 
 
@@ -342,6 +345,7 @@ void readLocalInputfile();
 void writeMainInputfile(struct runPar *run);
 void readMCMCinputfile(struct runPar *run);
 void readDataInputfile(struct runPar *run, struct interferometer ifo[]);
+void readInjectionInputfile(struct runPar *run);
 void readParameterInputfile(struct runPar *run);
 void setParameterNames(struct runPar * run);
 

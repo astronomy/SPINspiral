@@ -10,24 +10,12 @@
   0                                        writeSignal              Write signal, noise, PSDs to file: 0-no, 1-yes.
   0                                        printMuch                Print long stretches of output (1) or not (0).
   
-  #Software injection:
-  1                                        inject                   Inject a signal (1) or not (0).
-  1                                        injectionWaveform        Waveform version used for the software injection:  1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL, 3 for 3.5PN 15-parameter LAL
-  0.0                                      injectionSNR             If > 0: scale the distance such that the injection network SNR becomes injectionSNR
-  0 0 0 0 0 0 0 0 0 0 0 0                  setranpar[]              Parameters you want to randomise before injecting the signal; 0: use the value in truepar below, 1: randomise.  These are the same parameters as trueval (ie M1, M2, etc!)
-  12345                                    ranparseed               Random number seed for random injection parameters. Don't change between serial chains of the same run!
-  
-  
-  #Injection (first line) and starting (second line) parameter values, these are the exact MCMC parameters and units
-      Mc        eta             t_c(GPS)  log(d_L)     a_spin cos(th_SL)       R.A.   sin(dec)      phi_c   sinth_Jo      phi_Jo     alpha     
-  6.0836     0.2222     894377000.000000    2.8904     1.0000     0.1000     0.8000     1.0000     1.5000     0.5000     2.0000     1.5000     
-  6.0836     0.2222     894377000.000000    2.8904     1.0000     0.1000     0.8000     1.0000     1.5000     0.5000     2.0000     1.5000   
-  
-  
+    
   #Secondary input files:
-  mcmc.mcmc                                MCMCinfilename           File name of the MCMC input file, e.g. mcmc.mcmc
-  mcmc.data                                datainfilename           File name of the data/noise input file, e.g. mcmc.data
-  mcmc.parameters                          parameterinfilename      File name of the data/noise input file, e.g. mcmc.parameters
+  mcmc.mcmc                                mcmcFilename             File name of the MCMC input file, e.g. mcmc.mcmc
+  mcmc.data                                dataFilename             File name of the data/noise input file, e.g. mcmc.data
+  mcmc.injection                           injectionFilename        File name of the data/noise input file, e.g. mcmc.parameters
+  mcmc.parameters                          parameterFilename        File name of the data/noise input file, e.g. mcmc.parameters
 
 
 
