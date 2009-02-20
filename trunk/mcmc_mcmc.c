@@ -148,7 +148,7 @@ void mcmc(struct runPar run, struct interferometer *ifo[])
   mcmc.corrupdate[0] = 0;
   if(corrupd>0) {
     for(j1=0;j1<mcmc.nMCMCpar;j1++) {
-      mcmc.covar[tempi][j1][j1] = pdfsigs[j1];
+      mcmc.covar[tempi][j1][j1] = mcmc.parSigma[j1];
     }
     mcmc.corrupdate[0] = 1; //Use the matrix above and don't change it
     if(corrupd==2) mcmc.corrupdate[0] = 2; //Use the matrix above and update it every ncorr iterations
@@ -169,7 +169,7 @@ void mcmc(struct runPar run, struct interferometer *ifo[])
   //Offset starting values (only for the parameters we're fitting)
   nstart = 0;
   par2arrt(state, mcmc.param, mcmc);  //Put the variables in their array
-  if(offsetmcmc==1 || offsetmcmc==3) {
+  if(mcmc.offsetMCMC==1 || mcmc.offsetMCMC==3) {
     printf("\n");
     for(i=0;i<mcmc.nMCMCpar;i++) {
       mcmc.nParam[tempi][i] = mcmc.param[tempi][i];  //Temporarily store the true values
@@ -180,7 +180,7 @@ void mcmc(struct runPar run, struct interferometer *ifo[])
       for(i=0;i<mcmc.nMCMCpar;i++) {
 	//printf("  %d  %d  %d\n",i,mcmc.parFix[i],mcmc.parStartMCMC[i]);
 	if(mcmc.parFix[i]==0 && (mcmc.parStartMCMC[i]==2 || mcmc.parStartMCMC[i]==4 || mcmc.parStartMCMC[i]==5)) {
-	  mcmc.param[tempi][i] = mcmc.nParam[tempi][i] + offsetx * (gsl_rng_uniform(mcmc.ran) - 0.5) * pdfsigs[i];
+	  mcmc.param[tempi][i] = mcmc.nParam[tempi][i] + mcmc.offsetX * (gsl_rng_uniform(mcmc.ran) - 0.5) * mcmc.parSigma[i];
 	  mcmc.acceptprior[tempi] *= prior(&mcmc.param[tempi][i],i,mcmc.mcmcWaveform, mcmc);
 	}
       }
@@ -210,11 +210,11 @@ void mcmc(struct runPar run, struct interferometer *ifo[])
   // *** Set the NEW array, sigma and scale ***
   for(i=0;i<mcmc.nMCMCpar;i++) {
     mcmc.nParam[tempi][i] = mcmc.param[tempi][i];
-    mcmc.sig[tempi][i]   = 0.1  * pdfsigs[i];
-    if(adapt==1) mcmc.sig[tempi][i] = pdfsigs[i]; //Don't use adaptation
-    mcmc.scale[tempi][i] = 10.0 * pdfsigs[i];
-    //mcmc.sig[tempi][i]   = 3.0  * pdfsigs[i]; //3-sigma = delta-100%
-    //mcmc.scale[tempi][i] = 0.0 * pdfsigs[i]; //No adaptation
+    mcmc.sig[tempi][i]   = 0.1  * mcmc.parSigma[i];
+    if(adapt==1) mcmc.sig[tempi][i] = mcmc.parSigma[i]; //Don't use adaptation
+    mcmc.scale[tempi][i] = 10.0 * mcmc.parSigma[i];
+    //mcmc.sig[tempi][i]   = 3.0  * mcmc.parSigma[i]; //3-sigma = delta-100%
+    //mcmc.scale[tempi][i] = 0.0 * mcmc.parSigma[i]; //No adaptation
    // if(i==6 || i==8 || i==10 || i==11) mcmc.sig[tempi][i] = fmod(mcmc.sig[tempi][i]+mtpi,tpi);  //Bring the sigma between 0 and 2pi
     uncorrelated_mcmc_single_update_angle_prior(mcmc.sig[tempi][i], i, mcmc.mcmcWaveform);
   }
@@ -741,10 +741,10 @@ void write_mcmc_header(struct interferometer *ifo[], struct mcmcvariables mcmc, 
   int i=0, tempi=0;
   
   // *** Print run parameters to screen ***
-  if(offsetmcmc==0) printf("   Starting MCMC from the true initial parameters\n\n");
-  if(offsetmcmc==1) printf("   Starting MCMC from initial parameters randomly offset around the injection\n\n");
-  if(offsetmcmc==2) printf("   Starting MCMC from specified (offset) initial parameters\n\n");
-  if(offsetmcmc==3) printf("   Starting MCMC from initial parameters randomly offset around the specified values\n\n");
+  if(mcmc.offsetMCMC==0) printf("   Starting MCMC from the true initial parameters\n\n");
+  if(mcmc.offsetMCMC==1) printf("   Starting MCMC from initial parameters randomly offset around the injection\n\n");
+  if(mcmc.offsetMCMC==2) printf("   Starting MCMC from specified (offset) initial parameters\n\n");
+  if(mcmc.offsetMCMC==3) printf("   Starting MCMC from initial parameters randomly offset around the specified values\n\n");
   
   // *** Open the output file and write run parameters in the header ***
   for(tempi=0;tempi<mcmc.ntemps;tempi++) {
@@ -1426,11 +1426,16 @@ void copyRun2MCMC(struct runPar run, struct mcmcvariables *mcmc)
   mcmc->seed = run.MCMCseed;                  // MCMC seed
   mcmc->ntemps = run.ntemps;                  // Size of temperature ladder
   mcmc->mataccfr = run.mataccfr;              // Fraction of elements on the diagonal that must 'improve' in order to accept a new covariance matrix.
+  mcmc->offsetMCMC = run.offsetMCMC;          // Start MCMC offset (i.e., not from injection values) or not
+  mcmc->offsetX = run.offsetX;                // Start offset chains from a Gaussian distribution offsetX times wider than parSigma
+  
   mcmc->basetime = (double)((floor)(prior_tc_mean/100.0)*100);  //'Base' time, gets rid of the first 6-7 digits of GPS time
+  
   
   for(i=0;i<mcmc->maxnPar;i++) {
     mcmc->injParVal[i] = run.injParVal[i];
     mcmc->parStartMCMC[i] = run.parStartMCMC[i];
+    mcmc->parSigma[i] = run.parSigma[i];
   }
   
 }

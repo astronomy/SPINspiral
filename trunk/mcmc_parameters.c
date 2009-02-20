@@ -57,6 +57,7 @@ void readMainInputfile(struct runPar *run)
 // Write a copy of the input file.
 // This provides a nicely formatted copy, which may later be used to start a follow-up run.
 // Try to keep this in sync with readinputfile() above.
+/*
 void writeMainInputfile(struct runPar *run)
 {
   int i;
@@ -89,8 +90,8 @@ void writeMainInputfile(struct runPar *run)
   
   
   fprintf(fout, "  \n  #Start from offset values:\n");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      offsetmcmc,    "offsetmcmc",     "Start the MCMC with offset initial parameters: 0-no: use injection parameters, 1-yes: randomly around the injected parameters, 2-yes: at the starting parameters, 3-yes: randomly around the starting parameters.  The individual parameters to be offset are determined in parStartMCMC below.");
-  fprintf(fout, "  %-39.1f  %-18s  %-s\n",    offsetx,       "offsetx",        "Start the MCMC with an offset of x times the typical pdf sigma.");
+  fprintf(fout, "  %-39d  %-18s  %-s\n",      run->offsetMCMC,    "run->offsetMCMC",     "Start the MCMC with offset initial parameters: 0-no: use injection parameters, 1-yes: randomly around the injected parameters, 2-yes: at the starting parameters, 3-yes: randomly around the starting parameters.  The individual parameters to be offset are determined in parStartMCMC below.");
+  fprintf(fout, "  %-39.1f  %-18s  %-s\n",    offsetX,       "offsetX",        "Start the MCMC with an offset of x times the typical pdf sigma.");
   fprintf(fout, " ");
   for(i=0;i<run->nMCMCpar;i++) fprintf(fout, "%2d",    run->parStartMCMC[i]);
   for(i=0;i<max(19-run->nMCMCpar,0);i++) fprintf(fout, "  ");  //Line up the next colum nicely, for up to 20 parameters
@@ -177,10 +178,6 @@ void writeMainInputfile(struct runPar *run)
   }
   fprintf(fout, "\n");
   
-  fprintf(fout, "  \n  #Typical PDF widths (used for first correlation matrix and offset run):\n");
-  for(i=0;i<run->nMCMCpar;i++) fprintf(fout, "  %-7.4f",pdfsigs[i]);
-  
-  fprintf(fout, "\n");
   fprintf(fout, "  \n  #Manual temperature ladder for parallel tempering:\n");
   for(i=0;i<run->ntemps;i++) fprintf(fout, "  %-7.2f",run->temps[i]);
   
@@ -191,18 +188,17 @@ void writeMainInputfile(struct runPar *run)
   fprintf(fout, "  \n  #Secondary input files:\n");
   fprintf(fout, "  %-39s  %-18s  %-s\n",      run->dataFilename,       "dataFilename",        "File name of the data/noise input file, e.g. mcmc.data");
   
-  /*
-  Formats used:
-  fprintf(fout, "  \n  #:\n");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",    ,"","");
-  fprintf(fout, "  %-39.1f  %-18s  %-s\n",   ,"","");
-  fprintf(fout, "  %-39.1e  %-18s  %-s\n",  ,"","");
-  */
+  //Formats used:
+  //fprintf(fout, "  \n  #:\n");
+  //fprintf(fout, "  %-39d  %-18s  %-s\n",    ,"","");
+  //fprintf(fout, "  %-39.1f  %-18s  %-s\n",   ,"","");
+  //fprintf(fout, "  %-39.1e  %-18s  %-s\n",  ,"","");
   
   fprintf(fout, "\n\n\n");
   fclose(fout);
 } //End of writeMainInputfile
 
+  */
 
 
 
@@ -297,14 +293,6 @@ void readMCMCinputfile(struct runPar *run)
   
   
 
-  //Start from offset values:
-  fgets(bla,500,fin);  fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%d",&offsetmcmc);
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&offsetx);
-  //for(i=0;i<run->nMCMCpar;i++)  fscanf(fin,"%d",&run->parStartMCMC[i]);  //Read the array directly, because sscanf cannot be in a loop...
-  //fgets(bla,500,fin);  //Read the rest of this line
-  
-  
   //Correlated update proposals:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin);  sscanf(bla,"%d",&corrupd);
@@ -331,13 +319,8 @@ void readMCMCinputfile(struct runPar *run)
   fgets(bla,500,fin);  sscanf(bla,"%d",&savehotchains);
   fgets(bla,500,fin);  sscanf(bla,"%d",&prpartempinfo);
   
-  //Typical PDF widths:
-  fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
-  for(i=0;i<run->nMCMCpar;i++) fscanf(fin,"%lf",&pdfsigs[i]);  //Read the array directly, because sscanf cannot be in a loop...
-
-  
   //Manual temperature ladder for parallel tempering:
-  fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
+  fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
   for(i=0;i<run->ntemps;i++) fscanf(fin,"%lf",&run->temps[i]);  //Read the array directly, because sscanf cannot be in a loop...
   
   fclose(fin);
@@ -623,6 +606,8 @@ void readParameterInputfile(struct runPar *run)
   //Priors:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->priorSet);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->offsetMCMC);
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->offsetX);
   
   
   

@@ -47,19 +47,11 @@
 //  *** PLEASE DON'T ADD ANY NEW ONES, BUT USE THE STRUCTS BELOW INSTEAD (e.g. runPar or mcmcvariables) ***
 //      (and if you're bored, go ahead and place the variables below in these structs as well)
 
-//The following global arrays have the size of >~ the max. number of parameters we use, i.e. ~20:
-
-double pdfsigs[20];
-
-
 //Global variables:
 
 char datadir[99];
 
 int iter,thinOutput,thinScreenOutput,adapt;
-
-int offsetmcmc;
-double offsetx;
 
 int corrupd,ncorr,prmatrixinfo;
 
@@ -147,6 +139,9 @@ struct runPar{
   
   //MCMC parameters:
   int priorSet;                   // Set of priors to use for the MCMC parameters
+  int offsetMCMC;                 // Start MCMC offset (i.e., not from injection values) or not
+  double offsetX;                 // Start offset chains from a Gaussian distribution offsetX times wider than parSigma
+
   int parNumber[20];              // Number of the current parameter
   int parID[20];                  // Unique parameter identifier
   int parRevID[200];              // Reverse parameter identifier
@@ -188,6 +183,9 @@ struct mcmcvariables{
   int parFix[20];                 // Fix an MCMC parameter or not
   int parStartMCMC[20];           // Method of choosing starting value for Markov chains
   double injParVal[20];           // Injection value for each parameter
+  double parSigma[20];            // Width of Gaussian distribution for offset start and first correlation matrix
+  int offsetMCMC;                 // Start MCMC offset (i.e., not from injection values) or not
+  double offsetX;                 // Start offset chains from a Gaussian distribution offsetX times wider than parSigma
   
   double temp;                    // The current temperature
   double mataccfr;                // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
@@ -342,7 +340,7 @@ fftw_complex *FTout;                  // FT output (type here identical to `(dou
 // Declare functions (prototypes):
 void readMainInputfile(struct runPar *run);
 void readLocalInputfile();
-void writeMainInputfile(struct runPar *run);
+//void writeMainInputfile(struct runPar *run);
 void readMCMCinputfile(struct runPar *run);
 void readDataInputfile(struct runPar *run, struct interferometer ifo[]);
 void readInjectionInputfile(struct runPar *run);

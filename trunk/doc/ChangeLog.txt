@@ -2,6 +2,10 @@
   ChangeLog for the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
 
+   132: sluys, 20/02/2009
+     - moved offset chain info from mcmc.mcmc to mcmc.parameters; 
+       the format of both files was changed
+     
    131: sluys, 20/02/2009
      - new input file mcmc.injection (see doc/)
      - injection data removed from mcmc.input
