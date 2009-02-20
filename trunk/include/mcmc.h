@@ -110,12 +110,6 @@ struct runPar{
   int maxIFOdbaseSize;            // Maximum number of IFOs for which the properties are read in (e.g. from mcmc.data)
   int selectifos[9];              // Select IFOs to use for the analysis
   
-  //int adapt;                    // Use adaptation or not
-  int *ranInjPar;                 // Randomise injection parameters 
-  int injectSignal;               // Inject a signal in the data or not
-  int ranParSeed;                 // Seed to randomise injection parameters
-  double injectionSNR;            // Network SNR of the software injection, scale the distance to obtain this value
-  
   double blockfrac;               // Fraction of non-correlated updates that is a block update
   double corrfrac;                // Fraction of MCMC updates that used the correlation matrix
   double mataccfr;                // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
@@ -135,13 +129,26 @@ struct runPar{
   double PSDsegmentLength;        // Length of each segment of data used for PSD estimation
   
   
+  //Software injection:
+  int injectSignal;               // Inject a signal in the data or not
+  int injRanSeed;                 // Seed to randomise injection parameters
+  double injectionSNR;            // Network SNR of the software injection, scale the distance to obtain this value
+  
+  int injNumber[20];              // Number of the current parameter
+  int injID[20];                  // Unique parameter identifier
+  int injRevID[200];              // Reverse parameter identifier
+  double injParVal[20];        // Injection value for each parameter
+  int injRanPar[20];              // Randomise injection parameters 
+  double injBoundLow[20];         // Info to determine lower boundary for prior
+  double injBoundUp[20];          // Info to determine upper boundary for prior
+  
+  
   //MCMC parameters:
   int priorSet;                   // Set of priors to use for the MCMC parameters
   int parNumber[20];              // Number of the current parameter
   int parID[20];                  // Unique parameter identifier
   int parRevID[200];              // Reverse parameter identifier
   double parBestVal[20];          // Best known value for each parameter
-  double parInjectVal[20];        // Injection value for each parameter
   int parFix[20];                 // Fix an MCMC parameter or not
   int parStartMCMC[20];           // Method of choosing starting value for Markov chains
   double parSigma[20];            // Width of Gaussian distribution for offset start and first correlation matrix
@@ -177,7 +184,7 @@ struct mcmcvariables{
   
   int parFix[20];                 // Fix an MCMC parameter or not
   int parStartMCMC[20];           // Method of choosing starting value for Markov chains
-  double parInjectVal[20];        // Injection value for each parameter
+  double injParVal[20];           // Injection value for each parameter
   
   double temp;                    // The current temperature
   double mataccfr;                // The fraction of diagonal elements that must improve in order to accept a new covariance matrix

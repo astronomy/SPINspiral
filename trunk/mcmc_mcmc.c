@@ -113,7 +113,7 @@ void mcmc(struct runPar run, struct interferometer *ifo[])
   // *** INITIALISE MARKOV CHAIN **************************************************************************************************************************************************
   
   // *** Get true (or best-guess) values for signal ***
-  getInjectionParameters(&state, mcmc.nMCMCpar, mcmc.parInjectVal);
+  getInjectionParameters(&state, mcmc.nMCMCpar, mcmc.injParVal);
   state.loctc    = (double*)calloc(mcmc.networksize,sizeof(double));
   state.localti  = (double*)calloc(mcmc.networksize,sizeof(double));
   state.locazi   = (double*)calloc(mcmc.networksize,sizeof(double));
@@ -1429,7 +1429,7 @@ void copyRun2MCMC(struct runPar run, struct mcmcvariables *mcmc)
   mcmc->basetime = (double)((floor)(prior_tc_mean/100.0)*100);  //'Base' time, gets rid of the first 6-7 digits of GPS time
   
   for(i=0;i<mcmc->maxnPar;i++) {
-    mcmc->parInjectVal[i] = run.parInjectVal[i];
+    mcmc->injParVal[i] = run.injParVal[i];
     mcmc->parStartMCMC[i] = run.parStartMCMC[i];
   }
   

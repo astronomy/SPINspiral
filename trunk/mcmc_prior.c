@@ -137,11 +137,11 @@ void setRandomInjectionParameters1(struct runPar *run)  //Get random values for 
   ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
   if(1==2) {  //Select a random seed, *** ONLY FOR TESTING ***
     printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setRandomInjectionParameters1() \n\n");
-    run->ranParSeed = 0;
-    setseed(&run->ranParSeed);
-    //printf("  Seed: %d\n", run->ranParSeed);
+    run->injRanSeed = 0;
+    setseed(&run->injRanSeed);
+    //printf("  Seed: %d\n", run->injRanSeed);
   }
-  gsl_rng_set(ran, run->ranParSeed);     // Set seed
+  gsl_rng_set(ran, run->injRanSeed);     // Set seed
   
   //Lower and upper boundaries:
   double *lb,*ub,db,dt;
@@ -176,10 +176,10 @@ void setRandomInjectionParameters1(struct runPar *run)  //Get random values for 
   for(i=0;i<run->nInjectPar;i++) {
     db = ub[i]-lb[i];
     rannr = gsl_rng_uniform(ran);                                                        //This assures you always draw the same number of random variables
-    if(run->ranInjPar[i]==1) run->parInjectVal[i] = rannr*db + lb[i];
-   // if(i==5 && run->ranInjPar[i]==1) run->parInjectVal[i] = acos(rannr*2.0 - 1.0)*r2d;             //kappa -> th_SL
-   // if((i==7 || i==9)  && run->ranInjPar[i]==1) run->parInjectVal[i] = asin(rannr*2.0 - 1.0)*r2d;  //sin(dec)->dec, sin(th_J0)->th_J0
-    //printf("  %d  %lf  %lf  %lf  %lf\n",i,lb[i],ub[i],db,run->parInjectVal[i]);
+    if(run->injRanPar[i]==1) run->injParVal[i] = rannr*db + lb[i];
+   // if(i==5 && run->injRanPar[i]==1) run->injParVal[i] = acos(rannr*2.0 - 1.0)*r2d;             //kappa -> th_SL
+   // if((i==7 || i==9)  && run->injRanPar[i]==1) run->injParVal[i] = asin(rannr*2.0 - 1.0)*r2d;  //sin(dec)->dec, sin(th_J0)->th_J0
+    //printf("  %d  %lf  %lf  %lf  %lf\n",i,lb[i],ub[i],db,run->injParVal[i]);
   }
   
   free(lb);
@@ -309,11 +309,11 @@ void setRandomInjectionParameters2(struct runPar *run)  //Get random values for 
   ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
   if(1==2) {  //Select a random seed, *** ONLY FOR TESTING ***
     printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setRandomInjectionParameters2() \n\n");
-    run->ranParSeed = 0;
-    setseed(&run->ranParSeed);
-    //printf("  Seed: %d\n", run->ranParSeed);
+    run->injRanSeed = 0;
+    setseed(&run->injRanSeed);
+    //printf("  Seed: %d\n", run->injRanSeed);
   }
-  gsl_rng_set(ran, run->ranParSeed);     // Set seed
+  gsl_rng_set(ran, run->injRanSeed);     // Set seed
   
   //Lower and upper boundaries:
   double *lb,*ub,db,dt;
@@ -372,8 +372,8 @@ void setRandomInjectionParameters2(struct runPar *run)  //Get random values for 
   for(i=0;i<run->nInjectPar;i++) {
     db = ub[i]-lb[i];
     rannr = gsl_rng_uniform(ran);                                                        //This assures you always draw the same number of random variables
-    if(run->ranInjPar[i]==1) run->parInjectVal[i] = rannr*db + lb[i];
-    //printf("  %d  %lf  %lf  %lf  %lf\n",i,lb[i],ub[i],db,run->parInjectVal[i]);
+    if(run->injRanPar[i]==1) run->injParVal[i] = rannr*db + lb[i];
+    //printf("  %d  %lf  %lf  %lf  %lf\n",i,lb[i],ub[i],db,run->injParVal[i]);
   }
   
   free(lb);

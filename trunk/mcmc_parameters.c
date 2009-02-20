@@ -66,20 +66,19 @@ void readMainInputfile(struct runPar *run)
     }
   }
   run->nMCMCpar = run->nInjectPar;
-  run->ranInjPar  = (int*)calloc(run->nInjectPar,sizeof(int)); //Now that run->nInjectPar is known, initialise the array.... 
   
   fgets(bla,500,fin);  sscanf(bla,"%lf",&run->injectionSNR);
-  for(i=0;i<run->nInjectPar;i++)  fscanf(fin,"%d",&run->ranInjPar[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  for(i=0;i<run->nInjectPar;i++)  fscanf(fin,"%d",&run->injRanPar[i]);  //Read the array directly, because sscanf cannot be in a loop...
   fgets(bla,500,fin);  //Read the rest of this line
-  fgets(bla,500,fin);  sscanf(bla,"%d",&run->ranParSeed);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->injRanSeed);
   
 
 
   
   //True parameter values:
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
-  for(i=0;i<run->nInjectPar;i++) fscanf(fin,"%lf",&run->parInjectVal[i]);  //Read the array directly, because sscanf cannot be in a loop...
-  prior_tc_mean = run->parInjectVal[2];   //prior_tc_mean is used everywhere
+  for(i=0;i<run->nInjectPar;i++) fscanf(fin,"%lf",&run->injParVal[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  prior_tc_mean = run->injParVal[2];   //prior_tc_mean is used everywhere
   
   //Secondary input files:
   fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
@@ -121,10 +120,10 @@ void writeMainInputfile(struct runPar *run)
   fprintf(fout, "  %-39d  %-18s  %-s\n",      run->MCMCseed, "MCMCseed",       "Random number seed to start the MCMC: 0-let system clock determine seed.");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      run->injectSignal,        "inject",         "Inject a signal (1) or not (0).");
   fprintf(fout, " ");
-  for(i=0;i<run->nMCMCpar;i++) fprintf(fout, "%2d",    run->ranInjPar[i]);
+  for(i=0;i<run->nMCMCpar;i++) fprintf(fout, "%2d",    run->injRanPar[i]);
   for(i=0;i<max(19-run->nMCMCpar,0);i++) fprintf(fout, "  ");  //Line up the next colum nicely, for up to 20 parameters
-  fprintf(fout, "    %-18s  %-s\n",                          "ranInjPar[]",  "Parameters you want to randomise before injecting the signal; 0: use the value in truepar below, 1: randomise.  These are the same parameters as trueval (ie M1, M2, etc!)");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      run->ranParSeed,"ranParSeed",    "Random number seed for random injection parameters. Don't change between serial chains of the same run!");
+  fprintf(fout, "    %-18s  %-s\n",                          "injRanPar[]",  "Parameters you want to randomise before injecting the signal; 0: use the value in truepar below, 1: randomise.  These are the same parameters as trueval (ie M1, M2, etc!)");
+  fprintf(fout, "  %-39d  %-18s  %-s\n",      run->injRanSeed,"injRanSeed",    "Random number seed for random injection parameters. Don't change between serial chains of the same run!");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      adapt,         "adapt",          "Use adaptation: 0-no, 1-yes.");
   fprintf(fout, "  %-39.2f  %-18s  %-s\n",    run->blockfrac,"blockfrac",      "Fraction of uncorrelated updates that is updated as a block of all parameters (<=0.0: none, >=1.0: all).");
   fprintf(fout, " ");
@@ -204,9 +203,9 @@ void writeMainInputfile(struct runPar *run)
   }
   for(i=0;i<run->nMCMCpar;i++) {
     if(i==2) {
-      fprintf(fout, "  %-18.6lf",run->parInjectVal[i]);
+      fprintf(fout, "  %-18.6lf",run->injParVal[i]);
     } else {
-      fprintf(fout, "  %-9.4lf",run->parInjectVal[i]);
+      fprintf(fout, "  %-9.4lf",run->injParVal[i]);
     }
   }
   fprintf(fout, "  \n");
@@ -328,8 +327,6 @@ void readMCMCinputfile(struct runPar *run)
   }
   run->nInjectPar = run->nMCMCpar;
   
-  
-  run->ranInjPar  = (int*)calloc(run->nMCMCpar,sizeof(int)); //Now that run->nMCMCpar is known, initialise the array.... 
   
   fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);    
   iter = (int)tmpdbl;
@@ -733,37 +730,37 @@ void setconstants()
 
 
 
-void getInjectionParameters(struct parset *par, int nInjectionPar, double *parInjectVal)  //Set the parameters to the 'injection values'
+void getInjectionParameters(struct parset *par, int nInjectionPar, double *injParVal)  //Set the parameters to the 'injection values'
 {
   int i=0;
   for(i=0;i<nInjectionPar;i++) {
-    par->par[i]      = parInjectVal[i];
+    par->par[i]      = injParVal[i];
   }
   
   //These should all disappear:
-  par->tc       = parInjectVal[2];                    // coalescence time
-  //par->longi    = fmod(longitude(parInjectVal[6],GMST(par->tc))+mtpi,tpi);  //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
-  par->longi    = parInjectVal[6];                    //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
-  par->sinlati  = parInjectVal[7];           // sin latitude (sin(delta))  (40)     
-  par->sinthJ0  = parInjectVal[9];           // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
-  //par->phiJ0    = fmod(longitude(parInjectVal[10],GMST(par->tc))+mtpi,tpi);  //The parameter in the input and output is a 'RA'; the MCMC parameter is a 'longi' ~ Greenwich hour angle
-  par->phiJ0    = parInjectVal[10];               // Phi_J0 ~ azimuthal            (125)
+  par->tc       = injParVal[2];                    // coalescence time
+  //par->longi    = fmod(longitude(injParVal[6],GMST(par->tc))+mtpi,tpi);  //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
+  par->longi    = injParVal[6];                    //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
+  par->sinlati  = injParVal[7];           // sin latitude (sin(delta))  (40)     
+  par->sinthJ0  = injParVal[9];           // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
+  //par->phiJ0    = fmod(longitude(injParVal[10],GMST(par->tc))+mtpi,tpi);  //The parameter in the input and output is a 'RA'; the MCMC parameter is a 'longi' ~ Greenwich hour angle
+  par->phiJ0    = injParVal[10];               // Phi_J0 ~ azimuthal            (125)
   
   /*
-  parSTOPGREPFROMFINDINGTHIS->m1       = parInjectVal[0];                    // M1 (10.0)
-  parSTOPGREPFROMFINDINGTHIS->m2       = parInjectVal[1];                    // M2  (1.4)
+  parSTOPGREPFROMFINDINGTHIS->m1       = injParVal[0];                    // M1 (10.0)
+  parSTOPGREPFROMFINDINGTHIS->m2       = injParVal[1];                    // M2  (1.4)
   parSTOPGREPFROMFINDINGTHIS->m        = parSTOPGREPFROMFINDINGTHIS->m1+parSTOPGREPFROMFINDINGTHIS->m2;
   parSTOPGREPFROMFINDINGTHIS->mu       = parSTOPGREPFROMFINDINGTHIS->m1*parSTOPGREPFROMFINDINGTHIS->m2/parSTOPGREPFROMFINDINGTHIS->m;
   
   parSTOPGREPFROMFINDINGTHIS->eta      = parSTOPGREPFROMFINDINGTHIS->mu/parSTOPGREPFROMFINDINGTHIS->m;                // mass ratio                
   parSTOPGREPFROMFINDINGTHIS->mc       = parSTOPGREPFROMFINDINGTHIS->m*pow(parSTOPGREPFROMFINDINGTHIS->eta,0.6);      // chirp mass. in Mo         
-  parSTOPGREPFROMFINDINGTHIS->logdl    = log(parInjectVal[3]);               // log-distance (Mpc) (17.5)             
+  parSTOPGREPFROMFINDINGTHIS->logdl    = log(injParVal[3]);               // log-distance (Mpc) (17.5)             
   
-  parSTOPGREPFROMFINDINGTHIS->spin     = parInjectVal[4];                    // magnitude of total spin   (0.1)
-  parSTOPGREPFROMFINDINGTHIS->kappa    = cos(parInjectVal[5]*d2r);           // L^.S^, cos of angle between L^ & S^  (0.819152)
+  parSTOPGREPFROMFINDINGTHIS->spin     = injParVal[4];                    // magnitude of total spin   (0.1)
+  parSTOPGREPFROMFINDINGTHIS->kappa    = cos(injParVal[5]*d2r);           // L^.S^, cos of angle between L^ & S^  (0.819152)
   
-  parSTOPGREPFROMFINDINGTHIS->phase    = parInjectVal[8]*d2r;                // orbital phase   (phi_c)   (0.2)
-  parSTOPGREPFROMFINDINGTHIS->alpha    = parInjectVal[11]*d2r;               // Alpha_c                       (0.9 rad = 51.566202deg)
+  parSTOPGREPFROMFINDINGTHIS->phase    = injParVal[8]*d2r;                // orbital phase   (phi_c)   (0.2)
+  parSTOPGREPFROMFINDINGTHIS->alpha    = injParVal[11]*d2r;               // Alpha_c                       (0.9 rad = 51.566202deg)
   */
   
   par->loctc    = NULL;

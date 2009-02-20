@@ -72,7 +72,7 @@ int main(int argc, char * argv[])
   
   //Get a parameter set to calculate SNR or write the wavefrom to disc
   struct parset dummypar;
-  getInjectionParameters(&dummypar, run.nMCMCpar, run.parInjectVal);
+  getInjectionParameters(&dummypar, run.nMCMCpar, run.injParVal);
   dummypar.loctc    = (double*)calloc(networksize,sizeof(double));
   dummypar.localti  = (double*)calloc(networksize,sizeof(double));
   dummypar.locazi   = (double*)calloc(networksize,sizeof(double));
@@ -96,9 +96,9 @@ int main(int argc, char * argv[])
   
   //Get the desired SNR by scaling the distance
   if(run.injectionSNR > 0.001 && run.injectSignal>=1) {
-    run.parInjectVal[3] *= (run.netsnr/run.injectionSNR);  //Use total network SNR
-    printf("   Setting distance to %lf Mpc to get a network SNR of %lf.\n",run.parInjectVal[3],run.injectionSNR);
-    getInjectionParameters(&dummypar, run.nMCMCpar, run.parInjectVal);
+    run.injParVal[3] *= (run.netsnr/run.injectionSNR);  //Use total network SNR
+    printf("   Setting distance to %lf Mpc to get a network SNR of %lf.\n",run.injParVal[3],run.injectionSNR);
+    getInjectionParameters(&dummypar, run.nMCMCpar, run.injParVal);
     dummypar.loctc    = (double*)calloc(networksize,sizeof(double));
     dummypar.localti  = (double*)calloc(networksize,sizeof(double));
     dummypar.locazi   = (double*)calloc(networksize,sizeof(double));
@@ -190,7 +190,7 @@ int main(int argc, char * argv[])
     /*
     if(1==2) {
       printf("\n\n");
-      getInjectionParameters(&dummypar, run.nMCMCpar, run.parInjectVal);
+      getInjectionParameters(&dummypar, run.nMCMCpar, run.injParVal);
       dummypar.loctc    = (double*)calloc(networksize,sizeof(double));
       dummypar.localti  = (double*)calloc(networksize,sizeof(double));
       dummypar.locazi   = (double*)calloc(networksize,sizeof(double));
@@ -278,7 +278,6 @@ int main(int argc, char * argv[])
   
   //Get rid of allocated memory and quit
   for(ifonr=0; ifonr<networksize; ++ifonr) ifodispose(network[ifonr]);
-  free(run.ranInjPar);
   freeparset(&dummypar);
   
   
