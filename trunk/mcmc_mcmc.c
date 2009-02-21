@@ -515,31 +515,6 @@ double prior(double *par, int p, struct mcmcvariables mcmc) //Apostolatos 12-par
 
 
 // ****************************************************************************************************************************************************  
-double uncorrelated_mcmc_single_update_angle_priorOLD(double sigma, int p, int waveformVersion)
-// Call the prior routine, the variable waveformVersion determines which one
-{
-  if(waveformVersion==1) { // Apostolatos 12-parameter template
-    if(p==6 || p==8 || p==10 || p==11) return min(tpi,sigma);  //Bring the sigma between 0 and 2pi;
-    else return sigma; 
-  } 
-  else if(waveformVersion==2) { // LAL 12-parameter template
-    if(p==6 || p==8 || p==10 || p==11) return min(tpi,sigma);  //Bring the sigma between 0 and 2pi;
-    else return sigma; 
-  }
-  else if(waveformVersion==3) { // LAL 15-parameter template
-    if(p==4 || p==7 || p==8 || p==11 || p==14) return min(tpi,sigma); //Bring the sigma between 0 and 2pi;
-    else return sigma; 
-  }
-  else {
-    printf("   ERROR:  unknown waveform: %d.\n   Aborting...",waveformVersion);
-    exit(1);
-  }
-}
-// ****************************************************************************************************************************************************  
-
-
-
-// ****************************************************************************************************************************************************  
 double uncorrelated_mcmc_single_update_angle_prior(double sigma, int p, struct mcmcvariables mcmc)
 {
   if(mcmc.priorType[p] == 21) {
