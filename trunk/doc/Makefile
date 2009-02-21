@@ -22,15 +22,15 @@ CFLAGS = -O0 -traceback -Wcheck -Wall -wd981
 #Use LAL
 DEFCFLAGS = -I/usr/include -I./include -I ~/bin/include -I ~/local/programs/lscsoft/lal/include/
 MCMCLFLAGS = -L ~/bin/lib -llal -lFrame -lfftw3 -lgsl -lgslcblas -lm
-MCMCOBJ = mcmc_main.o mcmc_mcmc.o mcmc_templates.o mcmc_prior.o mcmc_routines.o mcmc_data.o mcmc_parameters.o mcmc_signal.o mcmc_3rdparty.o mcmc_lal.o 
+MCMCOBJ = mcmc_main.o mcmc_mcmc.o mcmc_templates.o mcmc_routines.o mcmc_data.o mcmc_parameters.o mcmc_signal.o mcmc_3rdparty.o mcmc_lal.o 
 
 #No LAL
-#DEFCFLAGS = -ipo -parallel -I/usr/include -I./include -I ~/bin/include
-#DEFCFLAGS = -I/usr/include -I./include -I ~/bin/include 
-#MCMCLFLAGS = -ipo -parallel -static -L ~/bin/lib -lFrame -lfftw3 -lgsl -lgslcblas -lm
-#MCMCLFLAGS = -L ~/bin/lib -lFrame -lfftw3 -lgsl -lgslcblas -lm
-#MCMCLFLAGS = -static -L ~/bin/lib -lFrame -lfftw3 -lgsl -lgslcblas -lm
-#MCMCOBJ = mcmc_main.o mcmc_mcmc.o mcmc_templates.o mcmc_prior.o mcmc_routines.o mcmc_data.o mcmc_parameters.o mcmc_signal.o mcmc_3rdparty.o mcmc_nolal.o 
+##DEFCFLAGS = -ipo -parallel -I/usr/include -I./include -I ~/bin/include
+DEFCFLAGS = -I/usr/include -I./include -I ~/bin/include 
+##MCMCLFLAGS = -ipo -parallel -static -L ~/bin/lib -lFrame -lfftw3 -lgsl -lgslcblas -lm
+MCMCLFLAGS = -L ~/bin/lib -lFrame -lfftw3 -lgsl -lgslcblas -lm
+##MCMCLFLAGS = -static -L ~/bin/lib -lFrame -lfftw3 -lgsl -lgslcblas -lm
+MCMCOBJ = mcmc_main.o mcmc_mcmc.o mcmc_templates.o mcmc_routines.o mcmc_data.o mcmc_parameters.o mcmc_signal.o mcmc_3rdparty.o mcmc_nolal.o 
 
 
 WAVELFLAGS = -ipo -static -L ~/bin/lib -llal -lfftw3 -lgsl

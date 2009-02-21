@@ -185,6 +185,9 @@ struct mcmcvariables{
   int parStartMCMC[20];           // Method of choosing starting value for Markov chains
   double injParVal[20];           // Injection value for each parameter
   double parSigma[20];            // Width of Gaussian distribution for offset start and first correlation matrix
+  int priorType[20];              // Type of prior to use
+  double priorBoundLow[20];       // Info to determine lower boundary for prior
+  double priorBoundUp[20];        // Info to determine upper boundary for prior
   int offsetMCMC;                 // Start MCMC offset (i.e., not from injection values) or not
   double offsetX;                 // Start offset chains from a Gaussian distribution offsetX times wider than parSigma
   
@@ -366,10 +369,8 @@ void mcmc(struct runPar run, struct interferometer *ifo[]);
 void chol(double **A, struct mcmcvariables *mcmc);
 void par2arrt(struct parset par, double **param, struct mcmcvariables mcmc);
 void arr2part(double **param, struct parset *par, struct mcmcvariables mcmc);
-int prior(double *par, int p, int waveformVersion, struct mcmcvariables mcmc);
-int prior1(double *par, int p, struct mcmcvariables mcmc);
-int prior2(double *par, int p, struct mcmcvariables mcmc);
-double uncorrelated_mcmc_single_update_angle_prior(double sigma, int p, int waveformVersion);
+double prior(double *par, int p, struct mcmcvariables mcmc);
+double uncorrelated_mcmc_single_update_angle_prior(double sigma, int p, struct mcmcvariables mcmc);
 
 void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
 void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);

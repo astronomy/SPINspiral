@@ -2,6 +2,13 @@
   ChangeLog for the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
 
+   134: sluys, 20/02/2009
+     - implemented part of the functionality of the mcmc.parameters input file
+       - prior routines are now waveform-independent, much smaller and moved back 
+         to mcmc_mcmc.c	
+       - I removed mcmc_prior.c, because it was empty
+       - prior information can be set in the mcmc.parameters input file
+     
    133: sluys, 20/02/2009
      - finished injection routines; software injections can be done 
        using mcmc.injection, either using the values specified, or

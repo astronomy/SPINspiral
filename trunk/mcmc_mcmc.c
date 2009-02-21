@@ -2,9 +2,9 @@
 
 
 // MCMC routine
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 void mcmc(struct runPar run, struct interferometer *ifo[])
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 {
   struct parset state;                        // MCMC/template parameter set struct
   
@@ -181,7 +181,7 @@ void mcmc(struct runPar run, struct interferometer *ifo[])
 	//printf("  %d  %d  %d\n",i,mcmc.parFix[i],mcmc.parStartMCMC[i]);
 	if(mcmc.parFix[i]==0 && (mcmc.parStartMCMC[i]==2 || mcmc.parStartMCMC[i]==4 || mcmc.parStartMCMC[i]==5)) {
 	  mcmc.param[tempi][i] = mcmc.nParam[tempi][i] + mcmc.offsetX * (gsl_rng_uniform(mcmc.ran) - 0.5) * mcmc.parSigma[i];
-	  mcmc.acceptprior[tempi] *= prior(&mcmc.param[tempi][i],i,mcmc.mcmcWaveform, mcmc);
+	  mcmc.acceptprior[tempi] *= (int)prior(&mcmc.param[tempi][i],i,mcmc);
 	}
       }
       if(mcmc.acceptprior[tempi]==1) {                     //Check the value of the likelihood for this draw
@@ -216,7 +216,7 @@ void mcmc(struct runPar run, struct interferometer *ifo[])
     //mcmc.sig[tempi][i]   = 3.0  * mcmc.parSigma[i]; //3-sigma = delta-100%
     //mcmc.scale[tempi][i] = 0.0 * mcmc.parSigma[i]; //No adaptation
    // if(i==6 || i==8 || i==10 || i==11) mcmc.sig[tempi][i] = fmod(mcmc.sig[tempi][i]+mtpi,tpi);  //Bring the sigma between 0 and 2pi
-    uncorrelated_mcmc_single_update_angle_prior(mcmc.sig[tempi][i], i, mcmc.mcmcWaveform);
+    uncorrelated_mcmc_single_update_angle_prior(mcmc.sig[tempi][i], i, mcmc);
   }
   
   
@@ -451,13 +451,13 @@ void mcmc(struct runPar run, struct interferometer *ifo[])
   
 }
 //End mcmc
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 
 
 
 
 
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 void par2arrt(struct parset par, double **param, struct mcmcvariables mcmc)
 {
   int i;
@@ -466,9 +466,9 @@ void par2arrt(struct parset par, double **param, struct mcmcvariables mcmc)
   }
 }
 //End par2arrt
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 void arr2part(double **param, struct parset *par, struct mcmcvariables mcmc)
 {
   int i;
@@ -477,12 +477,80 @@ void arr2part(double **param, struct parset *par, struct mcmcvariables mcmc)
   }
 }
 //End arr2part
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 
 
 
 
 
+
+
+
+
+//Contains boundary conditions and prior information for the adaptive MCMC.  Trying to avoid returning 0, to increase jump sizes
+// ****************************************************************************************************************************************************  
+double prior(double *par, int p, struct mcmcvariables mcmc) //Apostolatos 12-parameter priors
+{
+  double prior = 1.0;
+  
+  if(mcmc.priorType[p]==21) {                                               // Periodic boundary condition to bring the variable between 0 and 2pi
+    *par = fmod(*par+mtpi,tpi); 
+  } else if(mcmc.priorType[p]==22) {                                        // Periodic boundary condition to bring the variable between 0 and pi
+    *par = fmod(*par+mtpi,pi); 
+  } else {                                                                  // Bounce back from the wall
+    if(*par < mcmc.priorBoundLow[p] || *par > mcmc.priorBoundUp[p]) {                                        // Do only one bounce
+      if(*par < mcmc.priorBoundLow[p]) {
+	*par = mcmc.priorBoundLow[p] + fabs(*par - mcmc.priorBoundLow[p]);
+      } else {
+	*par = mcmc.priorBoundUp[p] - fabs(*par - mcmc.priorBoundUp[p]);
+      }
+      if(*par<mcmc.priorBoundLow[p] || *par>mcmc.priorBoundUp[p]) prior = 0.0;                             // If, after bouncing once, still outside the range, reject
+    }
+  }
+  
+  return prior;
+}
+//End prior
+// ****************************************************************************************************************************************************  
+
+
+// ****************************************************************************************************************************************************  
+double uncorrelated_mcmc_single_update_angle_priorOLD(double sigma, int p, int waveformVersion)
+// Call the prior routine, the variable waveformVersion determines which one
+{
+  if(waveformVersion==1) { // Apostolatos 12-parameter template
+    if(p==6 || p==8 || p==10 || p==11) return min(tpi,sigma);  //Bring the sigma between 0 and 2pi;
+    else return sigma; 
+  } 
+  else if(waveformVersion==2) { // LAL 12-parameter template
+    if(p==6 || p==8 || p==10 || p==11) return min(tpi,sigma);  //Bring the sigma between 0 and 2pi;
+    else return sigma; 
+  }
+  else if(waveformVersion==3) { // LAL 15-parameter template
+    if(p==4 || p==7 || p==8 || p==11 || p==14) return min(tpi,sigma); //Bring the sigma between 0 and 2pi;
+    else return sigma; 
+  }
+  else {
+    printf("   ERROR:  unknown waveform: %d.\n   Aborting...",waveformVersion);
+    exit(1);
+  }
+}
+// ****************************************************************************************************************************************************  
+
+
+
+// ****************************************************************************************************************************************************  
+double uncorrelated_mcmc_single_update_angle_prior(double sigma, int p, struct mcmcvariables mcmc)
+{
+  if(mcmc.priorType[p] == 21) {
+    return min(tpi,sigma);                                     //Bring sigma between 0 and 2pi;
+  } else if(mcmc.priorType[p] == 22) {
+    return min(pi,sigma);                                      //Bring sigma between 0 and pi;
+  } else {
+    return sigma;                                              //Don't do anything
+  }
+}
+// ****************************************************************************************************************************************************  
 
 
 
@@ -492,9 +560,9 @@ void arr2part(double **param, struct parset *par, struct mcmcvariables mcmc)
 
 
 //Do a correlated block update
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc)
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 {
   int p1=0, p2=0, tempi=mcmc->tempi, tempj=0;
   double temparr[mcmc->nMCMCpar], dparam=0.0;
@@ -535,7 +603,7 @@ void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, 
       }
       mcmc->nParam[tempi][p1] = mcmc->param[tempi][p1] + dparam;       //Jump from the previous parameter value
       mcmc->sigout[tempi][p1] = fabs(dparam);                          //This isn't really sigma, but the proposed jump size
-      mcmc->acceptprior[tempi] *= prior(&mcmc->nParam[tempi][p1],p1,mcmc->mcmcWaveform, *mcmc);
+      mcmc->acceptprior[tempi] *= (int)prior(&mcmc->nParam[tempi][p1],p1,*mcmc);
    }
   }
   
@@ -586,7 +654,7 @@ void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, 
   }
 }
 //End correlated_mcmc_update
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 
 
 
@@ -600,9 +668,9 @@ void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, 
 
 
 //Do an uncorrelated single-parameter update
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc)
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 {
   int p=0, tempi=mcmc->tempi;
   double gamma=0.0,alphastar=0.25;
@@ -633,7 +701,7 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
       if(p==10 && gsl_rng_uniform(mcmc->ran) < 0.3) mcmc->nParam[tempi][10] = fmod(mcmc->nParam[tempi][10]+pi,tpi); //Move phi_Jo over 12h
       */
       
-      mcmc->acceptprior[tempi] = prior(&mcmc->nParam[tempi][p],p,mcmc->mcmcWaveform, *mcmc);
+      mcmc->acceptprior[tempi] = (int)prior(&mcmc->nParam[tempi][p],p,*mcmc);
       
       if(mcmc->acceptprior[tempi]==1) {
 	arr2part(mcmc->nParam, state, *mcmc);                                            //Get the parameters from their array
@@ -647,7 +715,7 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
 	  if(adapt==1){
 	    gamma = mcmc->scale[tempi][p]*pow(1.0/((double)(mcmc->iteri+1)),1.0/6.0);
 	    mcmc->sig[tempi][p] = max(0.0,mcmc->sig[tempi][p] + gamma*(1.0 - alphastar)); //Accept
-	    uncorrelated_mcmc_single_update_angle_prior(mcmc->sig[tempi][p], p, mcmc->mcmcWaveform);  //Bring the sigma between 0 and 2pi
+	    uncorrelated_mcmc_single_update_angle_prior(mcmc->sig[tempi][p], p, *mcmc);  //Bring the sigma between 0 and 2pi
 	  }
 	  mcmc->accepted[tempi][p] += 1;
 	}
@@ -656,7 +724,7 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
 	  if(adapt==1){
 	    gamma = mcmc->scale[tempi][p]*pow(1.0/((double)(mcmc->iteri+1)),1.0/6.0);
 	    mcmc->sig[tempi][p] = max(0.0,mcmc->sig[tempi][p] - gamma*alphastar); //Reject
-	    uncorrelated_mcmc_single_update_angle_prior(mcmc->sig[tempi][p], p, mcmc->mcmcWaveform);  //Bring the sigma between 0 and 2pi
+	    uncorrelated_mcmc_single_update_angle_prior(mcmc->sig[tempi][p], p, *mcmc);  //Bring the sigma between 0 and 2pi
 	    //mcmc->sig[tempi][p] = max(0.01*mcmc->sig[tempi][p], mcmc->sig[tempi][p] - gamma*alphastar);
 	  }
 	}
@@ -666,7 +734,7 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
 	if(adapt==1) {
 	  gamma = mcmc->scale[tempi][p]*pow(1.0/((double)(mcmc->iteri+1)),1.0/6.0);
 	  mcmc->sig[tempi][p] = max(0.0,mcmc->sig[tempi][p] - gamma*alphastar); //Reject
-	  uncorrelated_mcmc_single_update_angle_prior(mcmc->sig[tempi][p], p, mcmc->mcmcWaveform);  //Bring the sigma between 0 and 2pi
+	  uncorrelated_mcmc_single_update_angle_prior(mcmc->sig[tempi][p], p, *mcmc);  //Bring the sigma between 0 and 2pi
 	}
       } //if(mcmc->acceptprior[tempi]==1)
     } //if(mcmc->parFix[p]==0)
@@ -674,7 +742,7 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
   } //p
 }
 //End uncorrelated_mcmc_single_update
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 
 	
 
@@ -682,9 +750,9 @@ void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset
 
 
 //Do an uncorrelated block update
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc)
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 {
   int p=0;
   double ran=0.0, largejump1=0.0, largejumpall=0.0;
@@ -703,7 +771,7 @@ void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset 
       if(ran < 1.0e-3) largejump1 = 1.0e2;    //Every 1e3 iterations, take a 100x larger jump in this parameter
   
       mcmc->nParam[tempi][p] = mcmc->param[tempi][p] + gsl_ran_gaussian(mcmc->ran,mcmc->sig[tempi][p]) * largejump1 * largejumpall;
-      mcmc->acceptprior[tempi] *= prior(&mcmc->nParam[tempi][p],p,mcmc->mcmcWaveform, *mcmc);
+      mcmc->acceptprior[tempi] *= (int)prior(&mcmc->nParam[tempi][p],p,*mcmc);
     }
   }
   
@@ -725,7 +793,19 @@ void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset 
   }
 }
 //End uncorrelated_mcmc_block_update
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -734,9 +814,9 @@ void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset 
 
 
 //Write MCMC header to screen and file
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 void write_mcmc_header(struct interferometer *ifo[], struct mcmcvariables mcmc, struct runPar run)
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 {
   int i=0, tempi=0;
   
@@ -770,16 +850,16 @@ void write_mcmc_header(struct interferometer *ifo[], struct mcmcvariables mcmc, 
   }
 }
 //End write_mcmc_header
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 
 
 
 
 	
 //Write an MCMC line to screen and/or file
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 void write_mcmc_output(struct mcmcvariables mcmc, struct interferometer *ifo[])
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 {
   int p=0, tempi=mcmc.tempi, iteri=mcmc.iteri, i=0;
   
@@ -851,7 +931,7 @@ void write_mcmc_output(struct mcmcvariables mcmc, struct interferometer *ifo[])
   free(accrat);
 }
 //End write_mcmc_output
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 
 
 
@@ -862,9 +942,9 @@ void write_mcmc_output(struct mcmcvariables mcmc, struct interferometer *ifo[])
 
 
 //Allocate memory for the mcmcvariables struct.  Don't forget to deallocate whatever you put here in free_mcmcvariables()
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 void allocate_mcmcvariables(struct mcmcvariables *mcmc)
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 {
   int i=0, j=0;
   
@@ -951,14 +1031,14 @@ void allocate_mcmcvariables(struct mcmcvariables *mcmc)
   }  
 }
 //End allocate_mcmcvariables
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 
 
 
 //Deallocate memory for the mcmcvariables struct
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 void free_mcmcvariables(struct mcmcvariables *mcmc)
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 {
   int i=0, j=0;
   gsl_rng_free(mcmc->ran);
@@ -1017,7 +1097,7 @@ void free_mcmcvariables(struct mcmcvariables *mcmc)
   free(mcmc->covar);
 }
 //End free_mcmcvariables
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 
 
 
@@ -1030,9 +1110,9 @@ void free_mcmcvariables(struct mcmcvariables *mcmc)
 
 
 // Calculate the new covariance matrix and determine whether the matrix should be updated
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 void update_covariance_matrix(struct mcmcvariables *mcmc)
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 {
   int i=0, j=0, i1=0, p1=0, p2=0;
   double **tempcovar;
@@ -1166,7 +1246,7 @@ void update_covariance_matrix(struct mcmcvariables *mcmc)
   
 }
 //End update_covariance_matrix
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
   
   
 
@@ -1174,7 +1254,7 @@ void update_covariance_matrix(struct mcmcvariables *mcmc)
 
 
 
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 void chol(double **A, struct mcmcvariables *mcmc)
 // Performs cholesky decompositon of A and returns result in the same matrix - adapted from PJG Fortran function
 // If matrix is not positive definite, return zeroes
@@ -1219,7 +1299,7 @@ void chol(double **A, struct mcmcvariables *mcmc)
   }
 }
 //End chol()
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 
 
 
@@ -1231,9 +1311,9 @@ void chol(double **A, struct mcmcvariables *mcmc)
 
 
 // Annealing: set the temperature according to the iteration number and burnin
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 double anneal_temperature(double temp0, int nburn, int nburn0, int iteri)
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 {
   double anneal_temperature = 1.0;
   //anneal_temperature = temp0*pow(1.0/((double)(max(iteri,ncorr))),1.0/10.0);
@@ -1255,7 +1335,7 @@ double anneal_temperature(double temp0, int nburn, int nburn0, int iteri)
   return anneal_temperature;
 }
 //End anneal_temperature
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 
 
 
@@ -1265,9 +1345,9 @@ double anneal_temperature(double temp0, int nburn, int nburn0, int iteri)
 
 
 // Parallel tempering: Swap states between two chains
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 void swap_chains(struct mcmcvariables *mcmc)
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 {
   int i=0, tempi=0, tempj=0;
   double tmpdbl = 0.0;
@@ -1293,7 +1373,7 @@ void swap_chains(struct mcmcvariables *mcmc)
   } //tempi
 }
 //End swap_chains
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 
 
 
@@ -1302,9 +1382,9 @@ void swap_chains(struct mcmcvariables *mcmc)
 
 
 // Parallel tempering: Print chain and swap info to screen
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 void write_chain_info(struct mcmcvariables mcmc)
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 {
   int tempi=mcmc.tempi, p=0, t1=0, t2=0;
   double tmpdbl = 0.0;
@@ -1346,7 +1426,7 @@ void write_chain_info(struct mcmcvariables mcmc)
   } //if(prpartempinfo==2 && tempi==mcmc.ntemps-1)
 }
 //End write_chain_info
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 	      
 	      
 
@@ -1361,9 +1441,9 @@ void write_chain_info(struct mcmcvariables mcmc)
 // Testing with adaptive parallel tempering, didn't work.  Moved from mcmc() to here, should be transformed into subroutine in order to be used.
 // This doesn't really seem to work, since getting a particular likelihood value for a certain chain can also been done by zooming in on a piece of 
 // parameter space and dropping T; most T's go down to 1 this way.
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 //void adaptive_prarallel_tempering()
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 /*
 {    
   // *** Adapt temperature ladder ***
@@ -1405,12 +1485,12 @@ void write_chain_info(struct mcmcvariables mcmc)
 }
 */   
  //End adaptive_prarallel_tempering
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
     
 
 
 //Copy some of the elements of the struct runPar to the struct mcmcvariables
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 void copyRun2MCMC(struct runPar run, struct mcmcvariables *mcmc)
 {
   int i=0;
@@ -1436,10 +1516,14 @@ void copyRun2MCMC(struct runPar run, struct mcmcvariables *mcmc)
     mcmc->injParVal[i] = run.injParVal[i];
     mcmc->parStartMCMC[i] = run.parStartMCMC[i];
     mcmc->parSigma[i] = run.parSigma[i];
+    mcmc->priorBoundLow[i] = run.priorBoundLow[i];
+    mcmc->priorBoundUp[i] = run.priorBoundUp[i];
+    mcmc->priorType[i] = run.priorType[i];
+    //mcmc->[i] = run.[i];
   }
   
 }
-//****************************************************************************************************************************************************  
+// ****************************************************************************************************************************************************  
 // End copyRun2MCMC()
 
 
