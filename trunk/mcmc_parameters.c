@@ -10,6 +10,7 @@
 // Read the main input file.
 // Please keep this routine in sync with writeinputfile() below.
 // All parameters that are read in here should become members of the runvar struct and lose their global status
+// ****************************************************************************************************************************************************  
 void readMainInputfile(struct runPar *run)
 {
   int i;
@@ -47,6 +48,7 @@ void readMainInputfile(struct runPar *run)
   
   fclose(fin);
 }  //End of readMainInputfile
+// ****************************************************************************************************************************************************  
 
 
 
@@ -58,6 +60,7 @@ void readMainInputfile(struct runPar *run)
 // This provides a nicely formatted copy, which may later be used to start a follow-up run.
 // Try to keep this in sync with readinputfile() above.
 /*
+// ****************************************************************************************************************************************************  
 void writeMainInputfile(struct runPar *run)
 {
   int i;
@@ -197,6 +200,7 @@ void writeMainInputfile(struct runPar *run)
   fprintf(fout, "\n\n\n");
   fclose(fout);
 } //End of writeMainInputfile
+// ****************************************************************************************************************************************************  
 
   */
 
@@ -204,6 +208,7 @@ void writeMainInputfile(struct runPar *run)
 
 
 //Read the input file for local (system-dependent) variables: mcmc.local
+// ****************************************************************************************************************************************************  
 void readLocalInputfile()
 {
   int i;
@@ -226,6 +231,7 @@ void readLocalInputfile()
   
   fclose(fin);
 }  //End of readLocalInputfile
+// ****************************************************************************************************************************************************  
 
 
 
@@ -235,6 +241,7 @@ void readLocalInputfile()
 
 // Read the MCMC input file.
 // All parameters that are read in here should become members of the runvar struct and lose their global status
+// ****************************************************************************************************************************************************  
 void readMCMCinputfile(struct runPar *run)
 {
   int i;
@@ -325,6 +332,7 @@ void readMCMCinputfile(struct runPar *run)
   
   fclose(fin);
 }
+// ****************************************************************************************************************************************************  
 //End of void readMCMCinputfile(struct runPar *run)
 
 
@@ -339,6 +347,7 @@ void readMCMCinputfile(struct runPar *run)
 
 
 // Read the data input file.
+// ****************************************************************************************************************************************************  
 void readDataInputfile(struct runPar *run, struct interferometer ifo[])
 {
   int i=0,j=0;
@@ -425,12 +434,14 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
   fclose(fin);
   
 }  //End of readDataInputfile
+// ****************************************************************************************************************************************************  
 
 
 
 
 
 // All parameters that are read in here should be members of the runvar struct
+// ****************************************************************************************************************************************************  
 void readInjectionInputfile(struct runPar *run)
 {
   int i;
@@ -438,10 +449,10 @@ void readInjectionInputfile(struct runPar *run)
   FILE *fin;
   
   if((fin = fopen(run->injectionFilename,"r")) == NULL) {
-    printf("   Error reading parameter input file: %s, aborting.\n\n\n",run->injectionFilename);
+    printf("   Error reading injection input file: %s, aborting.\n\n\n",run->injectionFilename);
     exit(1);
   } else {
-    printf("   Using parameter input file: %s.\n",run->injectionFilename);
+    printf("   Using injection input file: %s.\n",run->injectionFilename);
   }
   
   
@@ -481,17 +492,22 @@ void readInjectionInputfile(struct runPar *run)
   for(i=1;i<=5;i++) fgets(bla,500,fin);  //Read empty and comment lines
   
   for(i=0;i<run->nInjectPar;i++) {
-    fscanf(fin,"%d %d %lf %d %lf %d %lf %lf",&run->injNumber[i],&run->injID[i],&run->injParVal[i],&run->injRanPar[i],&run->injSigma[i],&run->injBoundType[i],&run->injBoundLow[i],&run->injBoundUp[i]);
+    fscanf(fin,"%d %d %lf %d %lf %d %lf %lf",&run->injNumber[i],&run->injID[i],&run->injParValOrig[i],&run->injRanPar[i],&run->injSigma[i],&run->injBoundType[i],&run->injBoundLow[i],&run->injBoundUp[i]);
     fgets(bla,500,fin);  //Read rest of the line
     
-    //printf("%d %d %lf %d %lf %d %lf %lf\n",run->injNumber[i],run->injID[i],run->injParVal[i],run->injRanPar[i],run->injSigma[i],run->injBoundType[i],run->injBoundLow[i],run->injBoundUp[i]);
+    //printf("%d %d %lf %d %lf %d %lf %lf\n",run->injNumber[i],run->injID[i],run->injParValOrig[i],run->injRanPar[i],run->injSigma[i],run->injBoundType[i],run->injBoundLow[i],run->injBoundUp[i]);
     
     
     if(run->injNumber[i] != i+1) {
-      printf("   Error reading parameter input file %s:  parameter %d has number %d.\n   Aborting...\n\n",run->injectionFilename,i+1,run->injNumber[i]);
+      printf("   Error reading injection input file %s:  parameter %d has number %d.\n   Aborting...\n\n",run->injectionFilename,i+1,run->injNumber[i]);
       exit(1);
     }
     
+    if(run->parDef[run->injID[i]] != 1) {
+      printf("\n\n   Error reading injection input file %s, parameter %d:\n     parameter ID %d is not defined.\n   Aborting...\n\n",
+	     run->injectionFilename,run->injNumber[i],run->injID[i]);
+      exit(1);
+    }
     
     run->injRevID[run->injID[i]] = i;  //Reverse parameter ID
     
@@ -502,46 +518,46 @@ void readInjectionInputfile(struct runPar *run)
       break;
     case 2 :
       if(run->injBoundLow[i] > 0.0 || run->injBoundUp[i] < 0.0) {
-	printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     for injBoundType = 2, injBoundLow and injBoundUp must be <= 0 and >= 0 respectively.\n   Aborting...\n\n",
+	printf("\n\n   Error reading injection input file %s, parameter %d (%s):\n     for injBoundType = 2, injBoundLow and injBoundUp must be <= 0 and >= 0 respectively.\n   Aborting...\n\n",
 	       run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]]);
 	exit(1);
       }
-      run->injBoundLow[i] = run->injParVal[i] + run->injBoundLow[i];
-      run->injBoundUp[i]  = run->injParVal[i] + run->injBoundUp[i];
+      run->injBoundLow[i] = run->injParValOrig[i] + run->injBoundLow[i];
+      run->injBoundUp[i]  = run->injParValOrig[i] + run->injBoundUp[i];
       break;
     case 3 :
       if(run->injBoundLow[i] > 1.0 || run->injBoundUp[i] < 1.0) {
-	printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     for injBoundType = 3, injBoundLow and injBoundUp must be <= 1 and >= 1 respectively.\n   Aborting...\n\n",
+	printf("\n\n   Error reading injection input file %s, parameter %d (%s):\n     for injBoundType = 3, injBoundLow and injBoundUp must be <= 1 and >= 1 respectively.\n   Aborting...\n\n",
 	       run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]]);
 	exit(1);
       }
-      run->injBoundLow[i] = run->injParVal[i] * run->injBoundLow[i];
-      run->injBoundUp[i]  = run->injParVal[i] * run->injBoundUp[i];
+      run->injBoundLow[i] = run->injParValOrig[i] * run->injBoundLow[i];
+      run->injBoundUp[i]  = run->injParValOrig[i] * run->injBoundUp[i];
       break;
     default :
-      printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     %d is not a valid option for injBoundType.\n   Aborting...\n\n",
+      printf("\n\n   Error reading injection input file %s, parameter %d (%s):\n     %d is not a valid option for injBoundType.\n   Aborting...\n\n",
 	     run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]],run->injBoundType[i]);
       exit(1);
     } //End switch
     
     
-    // Check whether value for start is valid
+    // Check whether value for injRanPar is valid
     if(run->injRanPar[i] < 0 || run->injRanPar[i] > 2) {
-      printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     %d is not a valid option for injRanPar.\n   Aborting...\n\n",
+      printf("\n\n   Error reading injection input file %s, parameter %d (%s):\n     %d is not a valid option for injRanPar.\n   Aborting...\n\n",
 	     run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]],run->injRanPar[i]);
 	exit(1);
     }      
     
-    //Check whether the lower prior boundary < the upper
+    //Check whether the lower boundary < the upper
     if(run->injBoundLow[i] >= run->injBoundUp[i]) {
-      printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     the lower boundary of the prior is larger than or equal to the upper boundary (%lf vs. %lf).\n   Aborting...\n\n",
+      printf("\n\n   Error reading injection input file %s, parameter %d (%s):\n     the lower boundary of the prior is larger than or equal to the upper boundary (%lf vs. %lf).\n   Aborting...\n\n",
 	     run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]],run->injBoundLow[i],run->injBoundUp[i]);
       exit(1);
     }
     
-    //Check whether  lower prior boundary <= injection value <= upper boundary
-    if(run->injParVal[i] < run->injBoundLow[i] || run->injParVal[i] > run->injBoundUp[i]) {
-      printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     the injection value lies outside the prior range.\n   Aborting...\n\n",
+    //Check whether  lower boundary <= injection value <= upper boundary
+    if(run->injParValOrig[i] < run->injBoundLow[i] || run->injParValOrig[i] > run->injBoundUp[i]) {
+      printf("\n\n   Error reading injection input file %s, parameter %d (%s):\n     the injection value lies outside the prior range.\n   Aborting...\n\n",
 	     run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]]);
       exit(1);
     }
@@ -550,7 +566,8 @@ void readInjectionInputfile(struct runPar *run)
   } //End for
   
   
-  prior_tc_mean = run->injParVal[2];   //prior_tc_mean is used everywhere
+  setRandomInjectionParameters(run);    //Copy the injection parameters from injParValOrig to injParVal, and randomise where wanted
+  prior_tc_mean = run->injParVal[2];    //CHECK prior_tc_mean is (still) used everywhere
   
   
   fclose(fin);
@@ -563,14 +580,26 @@ void readInjectionInputfile(struct runPar *run)
   strcpy(StartStr[1],"Random value near injection value");
   strcpy(StartStr[2],"Random value from prior");
   
-  printf("\n      Nr: Name:           Injection value:     Prior:     min:            max:    Inject:\n");
+  printf("\n   Software-injection parameters:\n      Nr: Name:           Injection value:     Obtained:\n");
   for(i=0;i<run->nMCMCpar;i++) {
-    printf("      %2d  %-11s     %15.4lf     %15.4lf %15.4lf     %-25s\n",run->injNumber[i],run->parAbrev[run->injID[i]],run->injParVal[i],
-	   run->injBoundLow[i],run->injBoundUp[i],  StartStr[run->injRanPar[i]]);
+    //printf("      %2d  %-11s     %15.4lf     %15.4lf %15.4lf     %-25s\n",run->injNumber[i],run->parAbrev[run->injID[i]],run->injParVal[i],
+    //	   run->injBoundLow[i],run->injBoundUp[i],  StartStr[run->injRanPar[i]]);
+    if(run->injRanPar[i]==0) {
+      printf("      %2d  %-11s     %15.4lf      Taken from the value set in %s\n",run->injNumber[i],run->parAbrev[run->injID[i]],run->injParVal[i],
+	     run->injectionFilename);
+    } else if(run->injRanPar[i]==1) {
+      printf("      %2d  %-11s     %15.4lf      Drawn randomly from a Gaussian distribution with centre  %lf  and width  %lf\n",run->injNumber[i],
+      	     run->parAbrev[run->injID[i]],run->injParVal[i],run->injParValOrig[i],run->injSigma[i]);
+    } else if(run->injRanPar[i]==2) {
+      printf("      %2d  %-11s     %15.4lf      Drawn randomly from a uniform distribution  %14.4lf - %-14.4lf\n",run->injNumber[i],run->parAbrev[run->injID[i]]
+	     ,run->injParVal[i],run->injBoundLow[i],run->injBoundUp[i]);
+    }
   }
   printf("\n");
   
+  
 }  //End of readInjectionInputfile
+// ****************************************************************************************************************************************************  
 
 
 
@@ -585,6 +614,7 @@ void readInjectionInputfile(struct runPar *run)
 
 
 // All parameters that are read in here should be members of the runvar struct
+// ****************************************************************************************************************************************************  
 void readParameterInputfile(struct runPar *run)
 {
   int i;
@@ -627,6 +657,11 @@ void readParameterInputfile(struct runPar *run)
       exit(1);
     }
     
+    if(run->parDef[run->parID[i]] != 1) {
+      printf("\n\n   Error reading parameter input file %s, parameter %d:\n     parameter ID %d is not defined.\n   Aborting...\n\n",
+	     run->injectionFilename,run->parNumber[i],run->parID[i]);
+      exit(1);
+    }
     
     run->parRevID[run->parID[i]] = i;  //Reverse parameter ID
     
@@ -711,22 +746,67 @@ void readParameterInputfile(struct runPar *run)
   
   char StartStr[6][99];
   strcpy(StartStr[1],"From best value");
-  strcpy(StartStr[2],"Randomly near best value");
+  strcpy(StartStr[2],"Randomly from Gaussian around best value");
   strcpy(StartStr[3],"From injection value");
-  strcpy(StartStr[4],"Randomly near injection");
+  strcpy(StartStr[4],"Randomly from Gaussian around injection");
   strcpy(StartStr[5],"Randomly from prior");
   
-  printf("\n      Nr: Name:                Best value:     Prior:     min:            max:    Fix parameter?        Start chain:\n");
+  printf("\n   MCMC parameters:\n      Nr: Name:                Best value:     Prior:     min:            max:    Fix parameter?        Start chain:\n");
   for(i=0;i<run->nMCMCpar;i++) {
-    printf("      %2d  %-11s     %15.4lf     %15.4lf %15.4lf     %-20s  %-25s\n",run->parNumber[i],run->parAbrev[run->parID[i]],run->parBestVal[i],
+    printf("      %2d  %-11s     %15.4lf     %15.4lf %15.4lf     %-20s  %-45s\n",run->parNumber[i],run->parAbrev[run->parID[i]],run->parBestVal[i],
 	   run->priorBoundLow[i],run->priorBoundUp[i],  FixStr[run->parFix[i]],StartStr[run->parStartMCMC[i]]);
   }
   printf("\n");
   
 }  //End of readParameterInputfile
+// ****************************************************************************************************************************************************  
 
 
 
+
+
+
+
+
+// ****************************************************************************************************************************************************  
+void setRandomInjectionParameters(struct runPar *run)  //Get random values for the 'true' parameters for the 12-parameter spinning template. Contain priors for the injection, not the MCMC. 
+{
+  int i=0;
+  gsl_rng *ran;
+  double rannr1 = 0.0, rannr2=0.0, db=0.0;
+  ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
+  if(1==2 && run->injRanSeed == 0) {  //Select a random seed, *** ONLY FOR TESTING ***
+    printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setRandomInjectionParameters() \n\n");
+    run->injRanSeed = 0;
+    setseed(&run->injRanSeed);
+    printf("  Seed: %d\n", run->injRanSeed);
+  }
+  gsl_rng_set(ran, run->injRanSeed);     // Set seed
+  
+  for(i=0;i<run->nInjectPar;i++) {
+    db = run->injBoundUp[i]-run->injBoundLow[i];
+    rannr1 = gsl_ran_gaussian(ran,1.0);                                                   //Make sure you always draw the same number of random variables
+    rannr2 = gsl_rng_uniform(ran);                                                        //Make sure you always draw the same number of random variables
+    if(run->injRanPar[i]==0) {                  
+      run->injParVal[i] = run->injParValOrig[i];                                          //Keep the suggested value
+    } else if(run->injRanPar[i]==1) {                                                     
+      run->injParVal[i] = run->injParValOrig[i] + rannr1*run->injSigma[i];                    //Draw random number from Gaussian
+      run->injParVal[i] = max(run->injParVal[i],run->injBoundLow[i]);                     //Stick to the boundary, rather than redrawing to keep number of random numbers constant
+      run->injParVal[i] = min(run->injParVal[i],run->injBoundUp[i]);
+    } else if(run->injRanPar[i]==2) {
+      run->injParVal[i] = run->injBoundLow[i] + rannr2*db;                                //Draw random number from uniform range
+    }
+  }
+  
+  gsl_rng_free(ran);
+}
+// ****************************************************************************************************************************************************  
+
+
+
+
+
+// ****************************************************************************************************************************************************  
 void setParameterNames(struct runPar * run)
 {
   //Set 01: time
@@ -794,6 +874,7 @@ void setParameterNames(struct runPar * run)
   //run->parDef[] = 1;
   
 }
+// ****************************************************************************************************************************************************  
 
 
 
@@ -803,6 +884,7 @@ void setParameterNames(struct runPar * run)
 // Set the global variables.
 // Many of these are now in the input file or unused.
 // This routine should eventually contain mathematical and (astro)physical constants only
+// ****************************************************************************************************************************************************  
 void setconstants()
 {
   tempi = 0; //A global variable that determines the current chain (temperature) in the temperature ladder
@@ -820,6 +902,7 @@ void setconstants()
   Mpc  = 3.08568025e22;       // metres in a Mpc  (LAL: 3.0856775807e22)
   Mpcs = 1.029272137e14;      // seconds in a Mpc  (Mpc/c)
 }
+// ****************************************************************************************************************************************************  
 
 
 
@@ -828,6 +911,7 @@ void setconstants()
 
 
 
+// ****************************************************************************************************************************************************  
 void getInjectionParameters(struct parset *par, int nInjectionPar, double *injParVal)  //Set the parameters to the 'injection values'
 {
   int i=0;
@@ -866,8 +950,10 @@ void getInjectionParameters(struct parset *par, int nInjectionPar, double *injPa
   par->locazi   = NULL;
   par->locpolar = NULL;
 }
+// ****************************************************************************************************************************************************  
 
 
+// ****************************************************************************************************************************************************  
 void getStartParameters(struct parset *par, struct runPar run)  //Set the parameters for the 12-parameter spinning template to the starting values for the MCMC chain
 {
   
@@ -896,9 +982,11 @@ void allocparset(struct parset *par, int networksize)
   par->locazi   = (double*)calloc(networksize,sizeof(double));
   par->locpolar = (double*)calloc(networksize,sizeof(double));
 }
+// ****************************************************************************************************************************************************  
 
 
 //Deallocate the vectors in the struct parset
+// ****************************************************************************************************************************************************  
 void freeparset(struct parset *par)
 {
   free(par->loctc);         par->loctc        = NULL;
@@ -906,6 +994,7 @@ void freeparset(struct parset *par)
   free(par->locazi);        par->locazi       = NULL;
   free(par->locpolar);      par->locpolar     = NULL;
 }
+// ****************************************************************************************************************************************************  
 
 
 

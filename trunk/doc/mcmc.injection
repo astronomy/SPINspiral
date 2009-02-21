@@ -35,7 +35,7 @@
  InjectionValue: injectionvalue for the parameter, can be overwritten depending on ranInjPar
  RanInjPar:  randomise the injection value:
    0: no; inject InjectionValue
-   1: yes; inject random value near InjectionValue (Gaussian distribution with width Sigma)
+   1: yes; inject random value from a Gaussian distribution with centre InjectionValue and width Sigma (min BoundLow, max BoundUp)
    2: yes; inject random value from range determined by BoundLow-BoundUp (make sure your MCMC prior matches this!)
  sigma: width of the Gaussian distribution to draw from for RanInjPar=1
  
@@ -43,5 +43,5 @@
    1: general range, BoundLow-BoundUp
    2: general range, InjectionValue + BoundLow - InjectionValue + BoundUp;                 BoundLow must be <= 0, BoundUp must be >= 0  
    3: general range, InjectionValue * BoundLow - InjectionValue * BoundUp;                 BoundLow must be <= 1, BoundUp must be >= 1  
- BoundLow,Up: used to determine upper or lower bound, depending on BoundType
+ BoundLow,Up: used to determine upper or lower bound for BoundType = 1,2
    

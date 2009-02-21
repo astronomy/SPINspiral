@@ -130,6 +130,7 @@ struct runPar{
   int injID[20];                  // Unique parameter identifier
   int injRevID[200];              // Reverse parameter identifier
   double injParVal[20];           // Injection value for each parameter
+  double injParValOrig[20];       // Injection value for each parameter as suggested in the input file
   int injRanPar[20];              // Randomise injection parameters 
   double injSigma[20];            // Width of Gaussian distribution to draw injection parameters from
   int injBoundType[20];           // Type of boundary to use
@@ -351,9 +352,6 @@ void setconstants();
 void setIFOdata(struct runPar *run, struct interferometer ifo[]);
 
 void setRandomInjectionParameters(struct runPar *run);
-void setRandomInjectionParameters1(struct runPar *run);
-void setRandomInjectionParameters2(struct runPar *run);
-
 void getInjectionParameters(struct parset *par, int nInjectionPar, double *parInjectVal);
 void getStartParameters(struct parset *par, struct runPar run);
 void allocparset(struct parset *par, int networksize);

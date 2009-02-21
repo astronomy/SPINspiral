@@ -2,6 +2,11 @@
   ChangeLog for the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
 
+   133: sluys, 20/02/2009
+     - finished injection routines; software injections can be done 
+       using mcmc.injection, either using the values specified, or
+       using random values (from Gaussian or uniform distributions)
+   
    132: sluys, 20/02/2009
      - moved offset chain info from mcmc.mcmc to mcmc.parameters; 
        the format of both files was changed

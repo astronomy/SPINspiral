@@ -17,26 +17,8 @@ int prior(double *par, int p, int waveformVersion, struct mcmcvariables mcmc)
     return prior2(par, p, mcmc);  // LAL 15-parameter template
   }
   else return 0;
-  
-  
 }
 
-
-
-void setRandomInjectionParameters(struct runPar *run)
-// Set random injection parameters, the variable run->injectionWaveform determines which one
-{
-  if(run->injectionWaveform==1) {
-    setRandomInjectionParameters1(run);  // Apostolatos 12-parameter template
-  } 
-  else if(run->injectionWaveform==2) {
-    setRandomInjectionParameters1(run);  // LAL 12-parameter template
-  }
-  else if(run->injectionWaveform==3) {
-    setRandomInjectionParameters2(run);  // LAL 15-parameter template
-  }
-
-}
 
 
 double uncorrelated_mcmc_single_update_angle_prior(double sigma, int p, int waveformVersion)
@@ -125,70 +107,6 @@ int prior1(double *par, int p, struct mcmcvariables mcmc) //Apostolatos 12-param
 }
 //End prior
 //****************************************************************************************************************************************************  
-
-
-//****************************************************************************************************************************************************  
-void setRandomInjectionParameters1(struct runPar *run)  //Get random values for the 'true' parameters for the 12-parameter spinning template. Contain priors for the injection, not the MCMC. 
-// *** This changes the injected signal!!! ***
-{
-  int i=0;
-  gsl_rng *ran;
-  double rannr = 0.0;
-  ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
-  if(1==2) {  //Select a random seed, *** ONLY FOR TESTING ***
-    printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setRandomInjectionParameters1() \n\n");
-    run->injRanSeed = 0;
-    setseed(&run->injRanSeed);
-    //printf("  Seed: %d\n", run->injRanSeed);
-  }
-  gsl_rng_set(ran, run->injRanSeed);     // Set seed
-  
-  //Lower and upper boundaries:
-  double *lb,*ub,db,dt;
-  lb = (double*)calloc(run->nInjectPar,sizeof(double));
-  ub = (double*)calloc(run->nInjectPar,sizeof(double));
-  lb[0] = 2.0;       //M1 (Mo)
-  ub[0] = 4.0;
-  lb[1] = 0.05;       //M2 (Mo)
-  ub[1] = 0.15;
-  dt = 0.5; //This is dt/2
-  lb[2] = prior_tc_mean - dt; //t_c
-  ub[2] = prior_tc_mean + dt;
-  lb[3] = 2.3;      //d_L (Mpc)  !Linear!
-  ub[3] = 3.4;
-  lb[4] = 1.e-10;    //a_spin (0-1)
-  ub[4] = 0.999999;
-  lb[5] = -0.999999; //kappa
-  ub[5] = 0.999999;
-  lb[6] = 0.0;       //RA (h)
-  ub[6] = tpi;
-  lb[7] = -0.999999; //sin(dec)
-  ub[7] = 0.999999;
-  lb[8] = 0.0;       //phi_c (deg)
-  ub[8] = tpi;
-  lb[9] = -0.999999; //sin(theta_J0)
-  ub[9] = 0.999999;
-  lb[10] = 0.0;      //phi_Jo (deg)
-  ub[10] = tpi;
-  lb[11] = 0.0;      //alpha_c (deg)
-  ub[11] = tpi;
-  
-  for(i=0;i<run->nInjectPar;i++) {
-    db = ub[i]-lb[i];
-    rannr = gsl_rng_uniform(ran);                                                        //This assures you always draw the same number of random variables
-    if(run->injRanPar[i]==1) run->injParVal[i] = rannr*db + lb[i];
-   // if(i==5 && run->injRanPar[i]==1) run->injParVal[i] = acos(rannr*2.0 - 1.0)*r2d;             //kappa -> th_SL
-   // if((i==7 || i==9)  && run->injRanPar[i]==1) run->injParVal[i] = asin(rannr*2.0 - 1.0)*r2d;  //sin(dec)->dec, sin(th_J0)->th_J0
-    //printf("  %d  %lf  %lf  %lf  %lf\n",i,lb[i],ub[i],db,run->injParVal[i]);
-  }
-  
-  free(lb);
-  free(ub);
-  gsl_rng_free(ran);
-}
-//****************************************************************************************************************************************************  
-
-
 
 
 //****************************************************************************************************************************************************  
@@ -296,90 +214,6 @@ int prior2(double *par, int p, struct mcmcvariables mcmc) //LAL 15-parameter pri
   return prior;
 }
 //End prior
-//****************************************************************************************************************************************************  
-
-
-//****************************************************************************************************************************************************  
-void setRandomInjectionParameters2(struct runPar *run)  //Get random values for the 'true' parameters for the 15-parameter spinning template. Contain priors for the injection, not the MCMC. 
-// *** This changes the injected signal!!! ***
-{
-  int i=0;
-  gsl_rng *ran;
-  double rannr = 0.0;
-  ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
-  if(1==2) {  //Select a random seed, *** ONLY FOR TESTING ***
-    printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setRandomInjectionParameters2() \n\n");
-    run->injRanSeed = 0;
-    setseed(&run->injRanSeed);
-    //printf("  Seed: %d\n", run->injRanSeed);
-  }
-  gsl_rng_set(ran, run->injRanSeed);     // Set seed
-  
-  //Lower and upper boundaries:
-  double *lb,*ub,db,dt;
-  lb = (double*)calloc(run->nInjectPar,sizeof(double));
-  ub = (double*)calloc(run->nInjectPar,sizeof(double));
-
-  //Mc:
-  lb[0] = 2.0;
-  ub[0] = 4.0;
-
-  lb[1] = 0.05;//eta
-  ub[1] = 0.15;
-  
-  //t_c:
-  dt = 0.5; //This is dt/2
-  lb[2] = prior_tc_mean - dt;
-  ub[2] = prior_tc_mean + dt;
-  
-  lb[3] = 2.3; // 10Mpc
-  ub[3] = 3.4; // 30Mpc
-  
-  lb[4] = 0.0; //RA
-  ub[4] = tpi;
-  
-  lb[5] = -0.999999; //sin(dec)
-  ub[5] = 0.999999;
-  
-  lb[6] = -0.999999; //cos(i)
-  ub[6] = 0.999999;
-  
-  lb[7] = 0.0; //phi_c
-  ub[7] = tpi;
-  
-  lb[8] = 0.0; //psi
-  ub[8] = tpi;
-  
-  lb[9] = 1.e-10; //a_spin1
-  ub[9] = 0.999999;
-  
-  lb[10] = -0.999999; //cos(theta_1)
-  ub[10] = 0.999999;
-
-  lb[11] = 0.0; //phi_1
-  ub[11] = tpi;
-  
-  lb[12] = 1.e-10; //a_spin2
-  ub[12] = 0.999999;
-  
-  lb[13] = -0.999999; //cos(theta_2)
-  ub[13] = 0.999999;
-
-  lb[14] = 0.0; //phi_2
-  ub[14] = tpi;
-   
-  
-  for(i=0;i<run->nInjectPar;i++) {
-    db = ub[i]-lb[i];
-    rannr = gsl_rng_uniform(ran);                                                        //This assures you always draw the same number of random variables
-    if(run->injRanPar[i]==1) run->injParVal[i] = rannr*db + lb[i];
-    //printf("  %d  %lf  %lf  %lf  %lf\n",i,lb[i],ub[i],db,run->injParVal[i]);
-  }
-  
-  free(lb);
-  free(ub);
-  gsl_rng_free(ran);
-}
 //****************************************************************************************************************************************************  
 
 
