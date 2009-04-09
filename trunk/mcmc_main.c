@@ -10,6 +10,7 @@ int main(int argc, char * argv[])
 {
   // Interferometers are managed via the `database'; the `network' is a vector of pointers to the database (see below).
   // The interferometers that are actually used need to be initialised via the `ifoinit()'-function in order to determine noise PSD, signal FT &c.
+  printf("\n Produced with code version $Id$ \n");
   
   if(doMCMC>=1) printf("\n");
   printf("\n   Starting MCMC code...\n");
