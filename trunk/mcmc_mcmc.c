@@ -453,11 +453,7 @@ void mcmc(struct runPar run, struct interferometer *ifo[])
   }
   free(covar1);
   
-  free(state.loctc);
-  free(state.localti);
-  free(state.locazi);
-  free(state.locpolar); 
-  
+  freeparset(&state);
   
 }
 //End mcmc

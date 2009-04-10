@@ -1211,13 +1211,12 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
       raw[i] = vect->dataF[i];
     // Read 2nd half of data (again, M seconds):
     FrVectFree(vect);
-    if(ifo->noisedoubleprecision)
+    if(ifo->noisedoubleprecision) {
       vect = FrFileIGetVectD(iFile, ifo->noisechannel, ((double)ifo->noiseGPSstart)+((double)(j-1))*Mseconds, Mseconds);
-    else
+    } else {
       vect = FrFileIGetVectF(iFile, ifo->noisechannel, ((double)ifo->noiseGPSstart)+((double)(j-1))*Mseconds, Mseconds);
-    if(vect == NULL) {
-      printf("\n : error accessing noise channel!\n");
     }
+    if(vect == NULL) printf("\n : error accessing noise channel!\n");
     
     // Copy 2nd half of data:
     for(i=0; i<M; ++i) 
@@ -1251,9 +1250,9 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
     fftw_free(in); 
     
     // Add to PSD vector
-    for(i=0; i<PSDrange; ++i)
-      PSD[i] += pow(cabs(out[(lower-smoothrange)+i]),2.0);
+    for(i=0; i<PSDrange; ++i) PSD[i] += pow(cabs(out[(lower-smoothrange)+i]),2.0);
   }
+  
   FrVectFree(vect);
   FrFileIEnd(iFile);
   fftw_destroy_plan(FTplan);

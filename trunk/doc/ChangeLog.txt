@@ -2,6 +2,9 @@
   ChangeLog for the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
 
+   140: sluys, 10/04/2009
+     - removed the waveform_*.c files from the repository (still have a backup)
+   
    139: sluys, 09/04/2009
      - removed two bugs:
        - mcmc_parameters.c: getInjectionParameters(): still need to pass par->mc and par->eta
