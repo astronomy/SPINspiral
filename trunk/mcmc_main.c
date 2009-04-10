@@ -10,10 +10,10 @@ int main(int argc, char * argv[])
 {
   // Interferometers are managed via the `database'; the `network' is a vector of pointers to the database (see below).
   // The interferometers that are actually used need to be initialised via the `ifoinit()'-function in order to determine noise PSD, signal FT &c.
-  printf("\n Produced with code version $Id$ \n");
   
   if(doMCMC>=1) printf("\n");
   printf("\n   Starting MCMC code...\n");
+  printf("   Produced with source code version $Id$ \n");
   
   clock_t time0 = clock();
   int ifonr=0;
@@ -23,6 +23,17 @@ int main(int argc, char * argv[])
   
   //Initialise stuff for the run
   struct runPar run;
+  sprintf(run.executable,argv[0]);
+  if(system( NULL )) {
+    char shellCommand[199];
+    sprintf(shellCommand,"echo -en '   Executable:  %s,  compiled:  ';  ls -l --time-style=\"+%%a %%e %%b %%Y, %%T %%Z (UTC%%z)\" %s | gawk '{print $6,$7,$8,$9,$10,$11,$12}'",run.executable,run.executable);
+    system(shellCommand);
+    
+    sprintf(shellCommand,"echo '   Run path:    '`uname -n`':'`pwd`");
+    system(shellCommand);
+    printf("\n");
+  }
+  
   run.maxnPar = 20;                      //The maximum number of allowed MCMC/injection parameters (this number is hardcoded in many places in mcmc.h)
   setconstants();                        //Set the global constants (which are variable in C)
   setParameterNames(&run);               //Set the names of the parameters in the hardcoded parameter database

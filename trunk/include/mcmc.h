@@ -90,6 +90,7 @@ double *chaintemp;                  // vector of temperatures for individual cha
 // This should eventually include all variables in the input files and replace many of the global variables.
 // That also means that this struct must be passed throughout much of the code.
 struct runPar{
+  char executable[99];            // Name of the executable
   int maxnPar;                    // Maximum allowed number of MCMC/injection parameters
   int nMCMCpar;                   // Number of parameters in the MCMC template
   int nInjectPar;                 // Number of parameters in the injection template
