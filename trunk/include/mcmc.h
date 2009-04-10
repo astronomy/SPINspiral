@@ -145,11 +145,11 @@ struct runPar{
 
   int parNumber[20];              // Number of the current parameter
   int parID[20];                  // Unique parameter identifier
-  int parRevID[200];              // Reverse parameter identifier
   double parBestVal[20];          // Best known value for each parameter
   int parFix[20];                 // Fix an MCMC parameter or not
   int parStartMCMC[20];           // Method of choosing starting value for Markov chains
   double parSigma[20];            // Width of Gaussian distribution for offset start and first correlation matrix
+  
   int priorType[20];              // Type of prior to use
   double priorBoundLow[20];       // Info to determine lower boundary for prior
   double priorBoundUp[20];        // Info to determine upper boundary for prior
@@ -157,10 +157,12 @@ struct runPar{
   //Hardcoded MCMC parameter database:
   char parName[200][99];          // Names of the parameters in the database
   char parAbrev[200][99];         // Abbreviations of the parameter names
-  int  parDef[200];               // Is a parameter defined or not?
+  char parAbrv[200][29];          // Really short abbreviations of the parameter names
+  int parDef[200];                // Indicates whether a parameter is defined (1) or not (0)
+  int parRevID[200];              // Reverse parameter identifier
   
   
-  char mainFilename[99];            // Run input file name
+  char mainFilename[99];          // Run input file name
   char outfilename[99];           // Copy of input file name
   char mcmcFilename[99];          // Run MCMC input file name
   char dataFilename[99];          // Run data input file name
@@ -181,6 +183,20 @@ struct mcmcvariables{
   int networksize;                // Number of IFOs in the detector network
   int mcmcWaveform;               // Waveform used as the MCMC template
   
+  
+  double temp;                    // The current temperature
+  double mataccfr;                // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
+  double basetime;                // Base of time measurement, get rid of long GPS time format
+  
+  
+  //MCMC parameters:
+  int priorSet;                   // Set of priors to use for the MCMC parameters
+  int offsetMCMC;                 // Start MCMC offset (i.e., not from injection values) or not
+  double offsetX;                 // Start offset chains from a Gaussian distribution offsetX times wider than parSigma
+
+  int parNumber[20];              // Number of the current parameter
+  int parID[20];                  // Unique parameter identifier
+  double parBestVal[20];          // Best known value for each parameter
   int parFix[20];                 // Fix an MCMC parameter or not
   int parStartMCMC[20];           // Method of choosing starting value for Markov chains
   double injParVal[20];           // Injection value for each parameter
@@ -188,12 +204,13 @@ struct mcmcvariables{
   int priorType[20];              // Type of prior to use
   double priorBoundLow[20];       // Info to determine lower boundary for prior
   double priorBoundUp[20];        // Info to determine upper boundary for prior
-  int offsetMCMC;                 // Start MCMC offset (i.e., not from injection values) or not
-  double offsetX;                 // Start offset chains from a Gaussian distribution offsetX times wider than parSigma
   
-  double temp;                    // The current temperature
-  double mataccfr;                // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
-  double basetime;                // Base of time measurement, get rid of long GPS time format
+  //Hardcoded MCMC parameter database:
+  char parName[200][99];          // Names of the parameters in the database
+  char parAbrev[200][99];         // Abbreviations of the parameter names
+  char parAbrv[200][99];          // Really short abbreviations of the parameter names
+  int  parDef[200];               // Indicates whether a parameter is defined (1) or not (0)
+  int parRevID[200];              // Reverse parameter identifier
   
   
   double *histmean;               // Mean of hist block of iterations, used to get the covariance matrix

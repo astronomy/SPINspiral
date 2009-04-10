@@ -766,8 +766,6 @@ void readParameterInputfile(struct runPar *run)
 
 
 
-
-
 // ****************************************************************************************************************************************************  
 void setRandomInjectionParameters(struct runPar *run)  //Get random values for the 'true' parameters for the 12-parameter spinning template. Contain priors for the injection, not the MCMC. 
 {
@@ -811,58 +809,79 @@ void setParameterNames(struct runPar * run)
 {
   //Set 01: time
   strcpy(run->parAbrev[11], "t_c");
+  strcpy(run->parAbrv[11], "t_c");
   run->parDef[11] = 1;
   strcpy(run->parAbrev[12], "t_40");
+  strcpy(run->parAbrv[12], "t_40");
   run->parDef[12] = 1;
   
   //Set 02: distance
   strcpy(run->parAbrev[21], "d^3");
+  strcpy(run->parAbrv[21], "d^3");
   run->parDef[21] = 1;
   strcpy(run->parAbrev[22], "log(d)");
+  strcpy(run->parAbrv[22], "logD");
   run->parDef[22] = 1;
   
   //Set 03: sky position
   strcpy(run->parAbrev[31], "R.A.");
+  strcpy(run->parAbrv[31], "RA");
   run->parDef[31] = 1;
   strcpy(run->parAbrev[32], "sin(dec)");
+  strcpy(run->parAbrv[32], "sdec");
   run->parDef[32] = 1;
   
   //Set 04: phase
   strcpy(run->parAbrev[41], "phi_orb");
+  strcpy(run->parAbrv[41], "phio");
   run->parDef[41] = 1;
   
   //Set 05: orientation
   strcpy(run->parAbrev[51], "cos(i)");
+  strcpy(run->parAbrv[51], "cosi");
   run->parDef[51] = 1;
   strcpy(run->parAbrev[52], "psi");
+  strcpy(run->parAbrv[52], "psi");
   run->parDef[52] = 1;
   strcpy(run->parAbrev[53], "sin th_J0");
+  strcpy(run->parAbrv[53], "thJ0");
   run->parDef[53] = 1;
   strcpy(run->parAbrev[54], "phi_J0");
+  strcpy(run->parAbrv[54], "phJ0");
   run->parDef[54] = 1;
   
   //Set 06: mass
   strcpy(run->parAbrev[61], "Mc");
+  strcpy(run->parAbrv[61], "Mc");
   run->parDef[61] = 1;
   strcpy(run->parAbrev[62], "eta");
+  strcpy(run->parAbrv[62], "eta");
   run->parDef[62] = 1;
   strcpy(run->parAbrev[63], "M1");
+  strcpy(run->parAbrv[63], "M1");
   run->parDef[63] = 1;
   strcpy(run->parAbrev[64], "M2");
+  strcpy(run->parAbrv[64], "M2");
   run->parDef[64] = 1;
   
   //Set 07: spin
   strcpy(run->parAbrev[71], "a_spin1");
+  strcpy(run->parAbrv[71], "asp1");
   run->parDef[71] = 1;
   strcpy(run->parAbrev[72], "cs th_sp1");
+  strcpy(run->parAbrv[72], "ths1");
   run->parDef[72] = 1;
   strcpy(run->parAbrev[73], "phi_spin1");
+  strcpy(run->parAbrv[73], "phs1");
   run->parDef[73] = 1;
   strcpy(run->parAbrev[74], "a_spin2");
+  strcpy(run->parAbrv[74], "asp2");
   run->parDef[74] = 1;
   strcpy(run->parAbrev[75], "cs th_sp2");
+  strcpy(run->parAbrv[75], "ths2");
   run->parDef[75] = 1;
   strcpy(run->parAbrev[76], "phi_spin2");
+  strcpy(run->parAbrv[76], "phs2");
   run->parDef[76] = 1;
   
   //Set 08: merger, ringdown
@@ -920,12 +939,14 @@ void getInjectionParameters(struct parset *par, int nInjectionPar, double *injPa
   }
   
   //These should all disappear:
+  par->mc       = injParVal[0];                    // Chirp mass
+  par->eta      = injParVal[1];                    // mass ratio
   par->tc       = injParVal[2];                    // coalescence time
   //par->longi    = fmod(longitude(injParVal[6],GMST(par->tc))+mtpi,tpi);  //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
   par->longi    = injParVal[6];                    //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
   par->sinlati  = injParVal[7];           // sin latitude (sin(delta))  (40)     
   par->sinthJ0  = injParVal[9];           // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
-  //par->phiJ0    = fmod(longitude(injParVal[10],GMST(par->tc))+mtpi,tpi);  //The parameter in the input and output is a 'RA'; the MCMC parameter is a 'longi' ~ Greenwich hour angle
+  //par->phiJ0    = fmod(longitude(injParVal[10],GMST(par->tc))+mtpi,tpi);
   par->phiJ0    = injParVal[10];               // Phi_J0 ~ azimuthal            (125)
   
   /*

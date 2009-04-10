@@ -2,6 +2,13 @@
   ChangeLog for the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
 
+   139: sluys, 09/04/2009
+     - removed two bugs:
+       - mcmc_parameters.c: getInjectionParameters(): still need to pass par->mc and par->eta
+       - mcmc_main.c: line~157: "Global :...": parIDs 54 and 53 are not always defined
+     - added parameter headers to screen and file output
+     - added really short parameter abbreviations
+   
    134: sluys, 20/02/2009
      - implemented part of the functionality of the mcmc.parameters input file
        - prior routines are now waveform-independent, much smaller and moved back 
