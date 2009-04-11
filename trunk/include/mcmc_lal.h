@@ -13,10 +13,10 @@
 
 // Declare function prototypes:
 //void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr);
-void LALHpHc12(CoherentGW *waveform, int *l, struct parset *par, struct interferometer *ifo);
-void LALHpHc15(CoherentGW *waveform, int *l, struct parset *par, struct interferometer *ifo);
+void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, int *l, struct parset *par, struct interferometer *ifo);
+void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, int *l, struct parset *par, struct interferometer *ifo);
 //double LALFpFc(CoherentGW *waveform, double *wave, int *l, int length, struct parset *par, int ifonr);
-double LALFpFc(CoherentGW *waveform, double *wave, int length, struct parset *par, int ifonr);
+double LALFpFc(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, double *wave, int length, struct parset *par, struct interferometer *ifo, int ifonr);
 void LALfreedom(CoherentGW *waveform);
 
 
