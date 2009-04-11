@@ -2,7 +2,6 @@
 // Main routine of spinning MCMC code
 
 
-
 #include <mcmc.h>
 
 // Main program:
