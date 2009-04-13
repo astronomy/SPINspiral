@@ -28,7 +28,8 @@ int main(int argc, char * argv[])
   //Initialise stuff for the run
   struct runPar run;
   sprintf(run.executable,argv[0]);
-  if(system( NULL )) {
+  /*
+  if(system( NULL )) {  //Is incompatible with condor_compile
     char shellCommand[199];
     sprintf(shellCommand,"echo -n '   Executable:  %s,  compiled:  ';  ls -l --time-style=\"+%%a %%e %%b %%Y, %%T %%Z (UTC%%z)\" %s | gawk '{print $6,$7,$8,$9,$10,$11,$12}'",run.executable,run.executable);
     system(shellCommand);
@@ -37,6 +38,7 @@ int main(int argc, char * argv[])
     system(shellCommand);
     printf("\n");
   }
+  */
   
   run.maxnPar = 20;                      //The maximum number of allowed MCMC/injection parameters (this number is hardcoded in many places in mcmc.h)
   setconstants();                        //Set the global constants (which are variable in C)
