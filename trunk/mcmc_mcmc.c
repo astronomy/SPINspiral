@@ -191,10 +191,21 @@ void mcmc(struct runPar run, struct interferometer *ifo[])
 	mcmc.logL[tempi] = net_loglikelihood(&state, mcmc.networksize, ifo, mcmc.mcmcWaveform);  //Calculate the likelihood
       }
       nstart = nstart + 1;
+      
       // Print each trial starting value:
-      //printf("%9d %10.3lf  %7.4f %7.4f %8.4f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f\n",
-      //     nstart,mcmc.logL[tempi],mcmc.param[tempi][0],mcmc.param[tempi][1],mcmc.param[tempi][2]-mcmc.basetime,mcmc.param[tempi][3],mcmc.param[tempi][4],mcmc.param[tempi][5],mcmc.param[tempi][6],mcmc.param[tempi][7],mcmc.param[tempi][8],mcmc.param[tempi][9],mcmc.param[tempi][10],mcmc.param[tempi][11]);
+      if(1==2) {
+	printf("%9d%10.3lf",nstart,mcmc.logL[tempi]);
+	for(i=0;i<mcmc.nMCMCpar;i++) {
+	  if(mcmc.parID[i]>=11 && mcmc.parID[i]<=19) {  //GPS time
+	    printf(" %18.4f",mcmc.param[tempi][i]);
+	  } else {
+	    printf(" %9.4f",mcmc.param[tempi][i]);
+	  }
+	}
+	printf("\n");
+      }
     }
+    
     printf("%9s%10s", "nDraws","logL");
     for(i=0;i<mcmc.nMCMCpar;i++) {
       if(mcmc.parID[i]>=11 && mcmc.parID[i]<=19) {  //GPS time

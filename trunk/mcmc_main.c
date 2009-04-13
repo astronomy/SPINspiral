@@ -1,5 +1,13 @@
 // mcmc_main.c
 // Main routine of spinning MCMC code
+// Parameter estimation of binary inspirals detected by LIGO
+
+// MvdS: Marc van der Sluys
+// VR:   Vivien Raymond
+// IM:   Ilya Mandel
+// Northwestern University, 2007-2009
+
+
 
 
 #include <mcmc.h>
@@ -7,9 +15,6 @@
 // Main program:
 int main(int argc, char * argv[])
 {
-  // Interferometers are managed via the `database'; the `network' is a vector of pointers to the database (see below).
-  // The interferometers that are actually used need to be initialised via the `ifoinit()'-function in order to determine noise PSD, signal FT &c.
-  
   if(doMCMC>=1) printf("\n");
   printf("\n   Starting MCMC code...\n");
   printf("   Produced with source code version $Id$ \n");
@@ -25,7 +30,7 @@ int main(int argc, char * argv[])
   sprintf(run.executable,argv[0]);
   if(system( NULL )) {
     char shellCommand[199];
-    sprintf(shellCommand,"echo -en '   Executable:  %s,  compiled:  ';  ls -l --time-style=\"+%%a %%e %%b %%Y, %%T %%Z (UTC%%z)\" %s | gawk '{print $6,$7,$8,$9,$10,$11,$12}'",run.executable,run.executable);
+    sprintf(shellCommand,"echo -n '   Executable:  %s,  compiled:  ';  ls -l --time-style=\"+%%a %%e %%b %%Y, %%T %%Z (UTC%%z)\" %s | gawk '{print $6,$7,$8,$9,$10,$11,$12}'",run.executable,run.executable);
     system(shellCommand);
     
     sprintf(shellCommand,"echo '   Run path:    '`uname -n`':'`pwd`");

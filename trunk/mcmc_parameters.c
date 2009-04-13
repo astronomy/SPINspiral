@@ -567,7 +567,7 @@ void readInjectionInputfile(struct runPar *run)
   
   
   setRandomInjectionParameters(run);    //Copy the injection parameters from injParValOrig to injParVal, and randomise where wanted
-  prior_tc_mean = run->injParVal[2];    //CHECK prior_tc_mean is (still) used everywhere
+  prior_tc_mean = run->injParVal[2];    //CHECK prior_tc_mean is (still) used everywhere.  This value must be overwritten by the 'best' value in readParameterInputfile() which is called next, in the case of no SW injection
   
   
   fclose(fin);
@@ -734,6 +734,12 @@ void readParameterInputfile(struct runPar *run)
     
   } //End for
   
+  
+  if(run->injectSignal<=0) {
+    prior_tc_mean = run->parBestVal[2];       //CHECK prior_tc_mean is (still) used everywhere.  This value overwrites the injection value from readInjectionInputfile() called earlier
+    for(i=0;i<run->nMCMCpar;i++) run->injParVal[i] = run->parBestVal[i];   //CHECK Needed to avoid SegFault in the case of t_c
+  }
+
   fclose(fin);
   
   
@@ -751,6 +757,8 @@ void readParameterInputfile(struct runPar *run)
   strcpy(StartStr[4],"Randomly from Gaussian around injection");
   strcpy(StartStr[5],"Randomly from prior");
   
+  
+  //Write parameter choice to screen:
   printf("\n   MCMC parameters:\n      Nr: Name:                Best value:     Prior:     min:            max:    Fix parameter?        Start chain:\n");
   for(i=0;i<run->nMCMCpar;i++) {
     printf("      %2d  %-11s     %15.4lf     %15.4lf %15.4lf     %-20s  %-45s\n",run->parNumber[i],run->parAbrev[run->parID[i]],run->parBestVal[i],
