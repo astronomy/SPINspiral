@@ -645,9 +645,9 @@ double LALFpFc(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   
   memset( &signal, 0, sizeof(REAL4TimeSeries) );
   
-  REAL4TimeSeries chan;        // channel
+  //REAL4TimeSeries chan;        // channel
   
-  memset( &chan, 0, sizeof(REAL4TimeSeries) );
+  //memset( &chan, 0, sizeof(REAL4TimeSeries) );
 
   
   //signal.epoch.gpsSeconds = (INT4)par->par[2];
@@ -748,8 +748,8 @@ waveform->position.system=COORDINATESYSTEM_GEOGRAPHIC;
   // if(waveform->position.system==COORDINATESYSTEM_EQUATORIAL) printf("youpi\n");
   // printf("position=%f,%f\n",waveform->position.longitude,waveform->position.latitude);
   
-   // if ( detector.site ) LALFree( detector.site );
-  //LALFree( detector.transfer );
+    if ( detector.site ) LALFree( detector.site );
+  LALFree( detector.transfer );
 
   return delay;
   
