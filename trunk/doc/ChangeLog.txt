@@ -2,6 +2,9 @@
   ChangeLog for the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
 
+   147: sluys, 16/04/2009
+     - fixed SNR scaling for log(d) as MCMC parameter
+   
    145: sluys, 13/04/2009
      - removed printing of build info to screen: system( NULL ) seems to be 
        incompatible with condor_compile

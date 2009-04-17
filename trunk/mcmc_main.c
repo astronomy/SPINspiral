@@ -20,7 +20,7 @@ int main(int argc, char * argv[])
   printf("   Produced with source code version $Id$ \n");
   
   clock_t time0 = clock();
-  int ifonr=0;
+  int ifonr=0,i=0;
   double snr=0.0;
   
   
@@ -115,8 +115,8 @@ int main(int argc, char * argv[])
   
   //Get the desired SNR by scaling the distance
   if(run.injectionSNR > 0.001 && run.injectSignal>=1) {
-    run.injParVal[3] *= (run.netsnr/run.injectionSNR);  //Use total network SNR
-    printf("   Setting distance to %lf Mpc to get a network SNR of %lf.\n",run.injParVal[3],run.injectionSNR);
+    run.injParVal[3] += log(run.netsnr/run.injectionSNR);  //Use total network SNR
+    printf("   Setting distance to %lf Mpc (log(d/Mpc)=%lf) to get a network SNR of %lf.\n",exp(run.injParVal[3]),run.injParVal[3],run.injectionSNR);
     getInjectionParameters(&dummypar, run.nMCMCpar, run.injParVal);
     dummypar.loctc    = (double*)calloc(networksize,sizeof(double));
     dummypar.localti  = (double*)calloc(networksize,sizeof(double));
@@ -181,15 +181,30 @@ int main(int argc, char * argv[])
   printf("\n  %10d  %10d  %6d  %6d  ",iter,nburn,run.MCMCseed,networksize);
   for(ifonr=0;ifonr<networksize;ifonr++) printf("%20.10lf  ",network[ifonr]->snr);
   printf("%20.10lf\n\n",run.netsnr);
-  //printf("    %8s  %8s  %17s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s  %8s\n", "Mc","eta","tc","logdL","spin","kappa","longi","sinlati","phase","sinthJ0","phiJ0","alpha");
-  //printf("    %8.5f  %8.5f  %17.6lf  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f  %8.5f\n\n", dummypar.mc,dummypar.eta,dummypar.tc,dummypar.logdl,dummypar.spin,dummypar.kappa,dummypar.longi,dummypar.sinlati,dummypar.phase,dummypar.sinthJ0,dummypar.phiJ0,dummypar.alpha);
-  printf("   Injection parameters:\n");
-  int i=0;
-  for(i=0;i<run.nMCMCpar;i++)
-    {
-      printf(" %9.5f",dummypar.par[i]);
+  
+  
+  //Print actual injection parameters to screen:
+  if(doMCMC==0) {
+    printf("   Injection param:");
+    for(i=0;i<run.nMCMCpar;i++) {
+      if(run.parID[i]>=11 && run.parID[i]<=19) {  //GPS time
+	printf(" %18s",run.parAbrev[run.parID[i]]);
+      } else {
+	printf(" %9s",run.parAbrev[run.parID[i]]);
+      }
     }
-  printf("\n\n");
+    printf("\n");
+    
+    printf("                   ");
+    for(i=0;i<run.nMCMCpar;i++) {
+      if(run.parID[i]>=11 && run.parID[i]<=19) {  //GPS time
+	printf(" %18.4f",dummypar.par[i]);
+      } else {
+	printf(" %9.4f",dummypar.par[i]);
+      }
+    }
+    printf("\n\n");
+  }
   
   
   //Do MCMC

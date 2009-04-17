@@ -193,7 +193,7 @@ void mcmc(struct runPar run, struct interferometer *ifo[])
       nstart = nstart + 1;
       
       // Print each trial starting value:
-      if(1==2) {
+      if(printMuch>=1 && (nstart % thinOutput)==0) {
 	printf("%9d%10.3lf",nstart,mcmc.logL[tempi]);
 	for(i=0;i<mcmc.nMCMCpar;i++) {
 	  if(mcmc.parID[i]>=11 && mcmc.parID[i]<=19) {  //GPS time
