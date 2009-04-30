@@ -1,5 +1,5 @@
 // mcmc_signal.c:
-// Routines to calculate likelihood, SNR, match, etc.
+// SPINspiral code:  routines to calculate likelihood, SNR, match, etc.
 
 
 #include <mcmc.h>

@@ -1,3 +1,5 @@
+// include/mcmc.h:
+// SPINspiral code:  general header file
 
 
 

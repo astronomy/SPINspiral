@@ -1,4 +1,4 @@
-#Data input file for spinning MCMC code.  The LINE NUMBER for each parameter should not change!!!  The order of IFOs in this file *MUST* be H1, L1, V
+#SPINspiral:  Data input file.  The LINE NUMBER for each parameter should not change!!!  The order of IFOs in this file *MUST* be H1, L1, V
 
 #Value:                                                                         Variable:                Description:
 NINJA data set                                                                  datasetName              Name of the data set used (for printing purposes), upto 80 characters

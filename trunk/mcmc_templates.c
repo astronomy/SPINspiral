@@ -1,3 +1,7 @@
+// mcmc_templates.c:
+// SPINspiral code:  waveform templates and related routines
+
+
 #include <mcmc.h>
 
 

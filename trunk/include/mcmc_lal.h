@@ -1,3 +1,8 @@
+// include/mcmc_lal.h:
+// SPINspiral code:  LAL-interface header file
+
+
+
 #ifndef mcmc_lal_h
 #define mcmc_lal_h
 

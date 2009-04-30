@@ -1,4 +1,5 @@
-
+// mcmc_lal.c:
+// SPINspiral code:  interfaces to LAL routines
 
 
 #include <math.h>
@@ -724,7 +725,7 @@ waveform->position.system=COORDINATESYSTEM_GEOGRAPHIC;
   
    //printf("%d\t%10.10e\n", i, chan.data->data[i]);
   
-    wave[i] = signal.data->data[i]; // wave is my array of double to send back to the rest of the MCMC code the waveform.
+    wave[i] = signal.data->data[i]; // wave is my array of doubles to send back the waveform to the rest of SPINspiral.
   }
   
   /*********TIME DELAY***********/

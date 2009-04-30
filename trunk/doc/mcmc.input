@@ -1,4 +1,4 @@
-  #Input file for spinning MCMC code.  The LINE NUMBER for each parameter should not change!!!
+  #SPINspiral:  Main input file.  The LINE NUMBER for each parameter should not change!!!
 
   #Value:                                  Variable:                Description:
   

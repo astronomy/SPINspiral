@@ -1,5 +1,5 @@
 // mcmc_parameters.c:
-// Routines to read/write input files, set constants and set true and null parameters
+// SPINspiral code:  routines to read/write input files, set constants and set true and null parameters
 
 #include <mcmc.h>
 
@@ -71,7 +71,7 @@ void writeMainInputfile(struct runPar *run)
     exit(1);
   }
   
-  fprintf(fout, "  #Input file for spinning MCMC code.  The LINE NUMBER for each parameter should not change!!!\n\n");
+  fprintf(fout, "  #Input file for SPINspiral.  The LINE NUMBER for each parameter should not change!!!\n\n");
   fprintf(fout, "  %-39s  %-18s  %-s\n","#Value:","Variable:","Description:");
   
   

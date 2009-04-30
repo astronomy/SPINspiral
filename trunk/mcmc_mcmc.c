@@ -1,3 +1,7 @@
+// mcmc_mcmc.c:
+// SPINspiral code:  routines that form the MCMC core of the code
+
+
 #include <mcmc.h>
 
 
@@ -176,6 +180,7 @@ void mcmc(struct runPar run, struct interferometer *ifo[])
       mcmc.nParam[tempi][i] = mcmc.param[tempi][i];  //Temporarily store the true values
     }
     mcmc.logL[tempi] = -1.e30;
+    
     while(mcmc.logL[tempi] < 1.0) { //Accept only good starting values
       mcmc.acceptprior[tempi] = 1;
       for(i=0;i<mcmc.nMCMCpar;i++) {
@@ -204,7 +209,7 @@ void mcmc(struct runPar run, struct interferometer *ifo[])
 	}
 	printf("\n");
       }
-    }
+    }  //while(mcmc.logL[tempi] < 1.0)
     
     printf("%9s%10s", "nDraws","logL");
     for(i=0;i<mcmc.nMCMCpar;i++) {

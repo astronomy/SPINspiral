@@ -1,7 +1,8 @@
+// mcmc_routines.c:
+// SPINspiral code:  miscellaneous routines
+
+
 #include <mcmc.h>
-
-
-//***  Different routines for the spinning MCMC code  ***
 
 
 

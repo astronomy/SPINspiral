@@ -1,3 +1,14 @@
+// mcmc_3rdparty.c:
+// SPINspiral code:  3rd-party routines
+
+
+
+
+
+
+
+
+
 
 
 

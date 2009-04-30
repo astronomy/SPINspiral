@@ -1,4 +1,5 @@
-// File with dummy routine to compile and run the MCMC code without LAL
+// mcmc_nolal.c:
+// SPINspiral code:  dummy routines to compile and run SPINspiral without LAL
 
 
 #include <mcmc.h>
@@ -16,8 +17,8 @@ void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr)
   
   printf("\n\n");
   printf("\n    *** ERROR ***");
-  printf("\n    You have compiled the MCMC code without LAL support, but are trying to run it with the LAL waveform.");
-  printf("\n    Please change mcmcWaveform or injectionWaveform to use a non-LAL waveform  *OR*  compile with LAL support.");
+  printf("\n    You have compiled SPINspiral without LAL support, but are trying to run it using a LAL waveform.");
+  printf("\n    Please change mcmcWaveform or injectionWaveform to use a non-LAL waveform  *or*  recompile with LAL support.");
   printf("\n\n\n");
   exit(1);
 }
@@ -34,8 +35,8 @@ void templateLAL15(struct parset *par, struct interferometer *ifo[], int ifonr)
   
   printf("\n\n");
   printf("\n    *** ERROR ***");
-  printf("\n    You have compiled the MCMC code without LAL support, but are trying to run it with the LAL waveform.");
-  printf("\n    Please change mcmcWaveform or injectionWaveform to use a non-LAL waveform  *OR*  compile with LAL support.");
+  printf("\n    You have compiled SPINspiral without LAL support, but are trying to run it using a LAL waveform.");
+  printf("\n    Please change mcmcWaveform or injectionWaveform to use a non-LAL waveform  *or*  recompile with LAL support.");
   printf("\n\n\n");
   exit(1);
 }

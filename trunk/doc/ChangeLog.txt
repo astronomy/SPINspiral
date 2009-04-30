@@ -1,7 +1,10 @@
 
-  ChangeLog for the spinning_mcmc repository.  
+  ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
-
+  
+   148: sluys, 30/04/2009
+     - named the code SPINspiral
+   
    147: sluys, 16/04/2009
      - fixed SNR scaling for log(d) as MCMC parameter
    

@@ -1,6 +1,6 @@
 // mcmc_main.c
-// Main routine of spinning MCMC code
-// Parameter estimation of binary inspirals detected by LIGO
+// SPINspiral code:  main routine
+// Parameter estimation on binary inspirals detected by LIGO, including spins of the binary members
 
 // MvdS: Marc van der Sluys
 // VR:   Vivien Raymond
@@ -16,7 +16,7 @@
 int main(int argc, char * argv[])
 {
   if(doMCMC>=1) printf("\n");
-  printf("\n   Starting MCMC code...\n");
+  printf("\n   Starting SPINspiral...\n");
   printf("   Produced with source code version $Id$ \n");
   
   clock_t time0 = clock();
@@ -326,7 +326,7 @@ int main(int argc, char * argv[])
     printf("     total time:    %10.2lfs\n", (double)time3*1.e-6);
   }
   
-  printf("\n   MCMC code done.\n\n");
+  printf("\n   SPINspiral done.\n\n");
   if(doMCMC>=1) printf("\n");
   return 0;
 }
