@@ -2,6 +2,9 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
   
+   149: sluys, 07/05/2009
+     - added GNU licence stuff
+   
    148: sluys, 30/04/2009
      - named the code SPINspiral
    
