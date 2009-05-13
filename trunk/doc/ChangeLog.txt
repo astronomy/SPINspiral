@@ -2,6 +2,9 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
   
+   152: sluys, 13/05/2009
+     - moved files in doc/ around
+   
    151: sluys, 13/05/2009
      - changed mcmc.input: added file name for system-dependent parameters
        (see doc/mcmc.input)
