@@ -12,10 +12,10 @@
   
     
   #Secondary input files:
-  mcmc.mcmc                                mcmcFilename             File name of the MCMC input file, e.g. mcmc.mcmc
-  mcmc.data                                dataFilename             File name of the data/noise input file, e.g. mcmc.data
-  mcmc.injection                           injectionFilename        File name of the data/noise input file, e.g. mcmc.parameters
-  mcmc.parameters                          parameterFilename        File name of the data/noise input file, e.g. mcmc.parameters
-
-
+  mcmc.input.mcmc                          mcmcFilename             Name of the MCMC input file, e.g. mcmc.input.mcmc
+  mcmc.input.data                          dataFilename             Name of the data/noise input file, e.g. mcmc.input.data
+  mcmc.input.injection                     injectionFilename        Name of the data/noise input file, e.g. mcmc.input.injection
+  mcmc.input.parameters                    parameterFilename        Name of the data/noise input file, e.g. mcmc.input.parameters
+  mcmc.input.system                        systemFilename           Name of the file with system-dependent parameters, e.g. mcmc.input.system
+  
 

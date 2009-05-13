@@ -67,6 +67,7 @@ void readMainInputfile(struct runPar *run)
   fgets(bla,500,fin); sscanf(bla,"%s",run->dataFilename);
   fgets(bla,500,fin); sscanf(bla,"%s",run->injectionFilename);
   fgets(bla,500,fin); sscanf(bla,"%s",run->parameterFilename);
+  fgets(bla,500,fin); sscanf(bla,"%s",run->systemFilename);
   
   fclose(fin);
 }  //End of readMainInputfile
@@ -211,7 +212,7 @@ void writeMainInputfile(struct runPar *run)
   
   fprintf(fout, "\n");
   fprintf(fout, "  \n  #Secondary input files:\n");
-  fprintf(fout, "  %-39s  %-18s  %-s\n",      run->dataFilename,       "dataFilename",        "File name of the data/noise input file, e.g. mcmc.data");
+  fprintf(fout, "  %-39s  %-18s  %-s\n",      run->dataFilename,       "dataFilename",        "File name of the data/noise input file, e.g. mcmc.input.data");
   
   //Formats used:
   //fprintf(fout, "  \n  #:\n");
@@ -225,38 +226,6 @@ void writeMainInputfile(struct runPar *run)
 // ****************************************************************************************************************************************************  
 
   */
-
-
-
-
-//Read the input file for local (system-dependent) variables: mcmc.local
-// ****************************************************************************************************************************************************  
-void readLocalInputfile()
-{
-  int i;
-  char localfilename[99], bla[500];
-  FILE *fin;
-  
-  sprintf(localfilename,"mcmc.local");
-  if((fin = fopen(localfilename,"r")) == NULL) {
-    printf("   Error reading local file: %s, aborting.\n\n\n",localfilename);
-    exit(1);
-  }
-  
-  //Use and l for floats: %lf, %lg, etc, rather than %f, %g
-  for(i=1;i<=3;i++) { //Read first 3 lines
-    fgets(bla,500,fin);
-  }  
-
-  //Data directory:
-  fscanf(fin, "%s",datadir);
-  
-  fclose(fin);
-}  //End of readLocalInputfile
-// ****************************************************************************************************************************************************  
-
-
-
 
 
 
@@ -306,7 +275,7 @@ void readMCMCinputfile(struct runPar *run)
     printf("     1: Apostolatos, simple precession, 12 parameters\n");
     printf("     2: LAL, single spin, 12 parameters\n");
     printf("     3: LAL, double spin, 15 parameters\n");
-    printf("   Please set mcmcWaveform in mcmc.input to one of these values.\n\n");
+    printf("   Please set mcmcWaveform in %s to one of these values.\n\n",run->mcmcFilename);
     exit(1);
   }
   run->nInjectPar = run->nMCMCpar;
@@ -505,7 +474,7 @@ void readInjectionInputfile(struct runPar *run)
       printf("     1: Apostolatos, simple precession, 12 parameters\n");
       printf("     2: LAL, single spin, 12 parameters\n");
       printf("     3: LAL, double spin, 15 parameters\n");
-      printf("   Please set injectionWaveform in mcmc.input to one of these values.\n\n");
+      printf("   Please set injectionWaveform in %s to one of these values.\n\n",run->injectionFilename);
       exit(1);
     }
   }
@@ -790,6 +759,44 @@ void readParameterInputfile(struct runPar *run)
   
 }  //End of readParameterInputfile
 // ****************************************************************************************************************************************************  
+
+
+
+
+
+
+//Read the input file for system (system-dependent) variables, e.g. mcmc.input.system
+// ****************************************************************************************************************************************************  
+void readSystemInputfile(struct runPar *run)
+{
+  int i;
+  char bla[500];
+  FILE *fin;
+  
+  if((fin = fopen(run->systemFilename,"r")) == NULL) {
+    printf("   Error reading system file: %s, aborting.\n\n\n",run->systemFilename);
+    exit(1);
+  } else {
+    printf("   Using system input file: %s.\n",run->parameterFilename);
+  }
+  
+  //Use and l for floats: %lf, %lg, etc, rather than %f, %g
+  for(i=1;i<=3;i++) { //Read first 3 lines
+    fgets(bla,500,fin);
+  }  
+
+  //Data directory:
+  fscanf(fin, "%s",datadir);
+  
+  fclose(fin);
+}  //End of readSystemInputfile
+// ****************************************************************************************************************************************************  
+
+
+
+
+
+
 
 
 

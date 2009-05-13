@@ -62,7 +62,6 @@ int main(int argc, char * argv[])
   sprintf(run.mainFilename,"mcmc.input");  //Default input filename
   if(argc > 1) sprintf(run.mainFilename,argv[1]);
   
-  readLocalInputfile();                  //Read system-dependent data, e.g. path to data files
   readMainInputfile(&run);               //Read main input data file for this run from input.mcmc
   readMCMCinputfile(&run);               //Read the input data on how to do MCMC 
   setseed(&run.MCMCseed);                //Set MCMCseed if 0, otherwise keep the current value
@@ -70,6 +69,7 @@ int main(int argc, char * argv[])
   //setRandomInjectionParameters(&run);    //Randomise the injection parameters where wanted (do this in readInjectionInputfile
   readParameterInputfile(&run);          //Read the input data on how to handle MCMC parameters
   //writeInputfile(&run);                //Write run data to nicely formatted input.mcmc.<MCMCseed>
+  readSystemInputfile(&run);             //Read system-dependent data, e.g. path to data files
   
   
   

@@ -194,6 +194,7 @@ struct runPar{
   char dataFilename[99];          // Run data input file name
   char injectionFilename[99];     // Run injection input file name
   char parameterFilename[99];     // Run parameter input file name
+  char systemFilename[99];        // System-dependent input file name
 };
 
 
@@ -386,12 +387,12 @@ fftw_complex *FTout;                  // FT output (type here identical to `(dou
 
 // Declare functions (prototypes):
 void readMainInputfile(struct runPar *run);
-void readLocalInputfile();
 //void writeMainInputfile(struct runPar *run);
 void readMCMCinputfile(struct runPar *run);
 void readDataInputfile(struct runPar *run, struct interferometer ifo[]);
 void readInjectionInputfile(struct runPar *run);
 void readParameterInputfile(struct runPar *run);
+void readSystemInputfile();
 void setParameterNames(struct runPar * run);
 
 void setconstants();
