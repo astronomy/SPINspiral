@@ -53,7 +53,6 @@ int main(int argc, char * argv[])
     sprintf(shellCommand,"echo '   Run path:    '`uname -n`':'`pwd`");
     system(shellCommand);
     printf("\n");
-    //A small change to see whether the SVN email hook works...
   }
   */
   
