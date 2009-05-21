@@ -401,6 +401,7 @@ void setIFOdata(struct runPar *run, struct interferometer ifo[]);
 void setRandomInjectionParameters(struct runPar *run);
 void getInjectionParameters(struct parset *par, int nInjectionPar, double *parInjectVal);
 void getStartParameters(struct parset *par, struct runPar run);
+void startMCMCOffset(struct parset *par, struct mcmcvariables *mcmc, struct interferometer ifo[]);
 void allocparset(struct parset *par, int networksize);
 void freeparset(struct parset *par);
 void printparset(struct parset par);

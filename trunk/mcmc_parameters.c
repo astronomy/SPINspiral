@@ -723,7 +723,14 @@ void readParameterInputfile(struct runPar *run)
       exit(1);
     }
     
-  } //End for
+    //Check whether  lower prior boundary <= INJECTION value <= upper boundary
+    if(run->injParVal[i] < run->priorBoundLow[i] || run->injParVal[i] > run->priorBoundUp[i]) {
+      printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     the injection value lies outside the prior range.\n   Aborting...\n\n",
+	     run->parameterFilename,run->parNumber[i],run->parAbrev[run->parID[i]]);
+      exit(1);
+    }
+    
+  } //End for (i)
   
   
   if(run->injectSignal<=0) {

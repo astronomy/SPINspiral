@@ -3,18 +3,18 @@
   #General:
   #Value:                                  Variable:                Description:
   1                                        priorSet                 Set of priors to use
-  1                                        offsetMCMC               Start the MCMC with offset initial parameters: 0-no: use injection parameters, 1-yes: randomly around the injected parameters, 2-yes: at the starting parameters, 3-yes: randomly around the starting parameters.
-  10.0                                     offsetX                  Start the MCMC with an offset of offsetX times the Sigma below
+  1                                        offsetMCMC               Start the MCMC with offset initial parameters: 0-no: use injection parameters, overrules Start below; 1-yes: use Start below
+  10.0                                     offsetX                  Start the MCMC from a Gaussian distribution with a width of (offsetX times Sigma), if Start==2,4 below
   
   
   #Parameters:                                                                 Priors:                                                Description:
   #Number:     ID:     BestValue:          Fix:     Start:     Sigma:          Type:     BoundLow:           BoundUp:                 
 
-  1            61      4.0836              0        4          0.0233          11        1.000               6.000                    Mc             chirp mass (Mo)
-  2            62      0.2222              0        4          0.0252          11        0.03                0.25                     eta            symmetric mass ratio (-)
-  3            11      894377000.00000     0        4          0.0080          12        -0.05000            0.05000                  t_c            GPS time of coalescence (s)
+  1            61      4.0836              0        4          0.0250          11        1.000               6.000                    Mc             chirp mass (Mo)
+  2            62      0.2222              0        4          0.0250          11        0.03                0.25                     eta            symmetric mass ratio (-)
+  3            11      894377000.00000     0        4          0.0100          12        -0.05000            0.05                     t_c            GPS time of coalescence (s)
   4            22      2.8904              0        4          0.1000          11        -6.9                4.6                      log(d_L)       log of luminosity distance (Mpc)
-  5            71      0.9000              0        4          0.1000          11        1.0e-10             0.999999                 a_spin1        spin magnitude of object 1 (-)
+  5            71      0.9000              0        4          0.1000          11        1.0e-10             1.0                      a_spin1        spin magnitude of object 1 (-)
   6            72      0.1000              0        5          0.1000          11        -0.999999           0.999999                 cos theta1     spin tilt of object 1 (-)
   7            31      0.8000              0        5          0.1000          21        0.0                 6.28                     alpha          right ascension (rad)
   8            32      0.9000              0        5          0.1000          11        -0.999999           0.999999                 sin(delta)     sin declination (-)
@@ -42,7 +42,7 @@
      3: start at injection value
      4: start near injection value (Gaussian distribution with width sigma)
      5: start randomly from range determined by BoundLow-BoundUp (see prior type)
-   sigma: width of the Gaussian distribution to start from for start=2,4; also used for first correlation matrix
+   sigma: width of the Gaussian distribution to start from for start=2,4; also used for diagonal of first correlation matrix
  
  Prior:
    type: 
