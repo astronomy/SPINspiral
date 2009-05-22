@@ -1538,6 +1538,7 @@ void copyRun2MCMC(struct runPar run, struct mcmcvariables *mcmc)
 void startMCMCOffset(struct parset *par, struct mcmcvariables *mcmc, struct interferometer ifo[])
 {
   int i=0, nstart=0;
+  double db = 0.0;
   
   printf("\n");
   mcmc->logL[tempi] = -1.e30;
@@ -1559,8 +1560,8 @@ void startMCMCOffset(struct parset *par, struct mcmcvariables *mcmc, struct inte
 	if(mcmc->parStartMCMC[i]==2 || mcmc->parStartMCMC[i]==4) {
 	  mcmc->param[tempi][i] = mcmc->nParam[tempi][i] + mcmc->offsetX * gsl_ran_gaussian(mcmc->ran, mcmc->parSigma[i]);  //Gaussian with width parSigma around either Injection or BestValue
 	} else if(mcmc->parStartMCMC[i]==5) {
-	  mcmc->param[tempi][i] = (mcmc->priorBoundLow[i] + mcmc->priorBoundUp[i])/2.  +  
-	    (gsl_rng_uniform(mcmc->ran)-0.5) * fabs(mcmc->priorBoundUp[i] - mcmc->priorBoundLow[i]);  //Uniform on range 
+	  db = mcmc->priorBoundUp[i]-mcmc->priorBoundLow[i];                                     // Width of range
+	  mcmc->param[tempi][i] = mcmc->priorBoundLow[i] + gsl_rng_uniform(mcmc->ran)*db;        // Draw random number uniform on range with width db
 	}
 	mcmc->acceptprior[tempi] *= (int)prior(&mcmc->param[tempi][i],i,*mcmc);
 	

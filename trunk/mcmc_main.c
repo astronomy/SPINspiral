@@ -333,8 +333,8 @@ int main(int argc, char * argv[])
   
   
   clock_t time3 = clock();
-  printf("   Timimg:\n");
-  if(1==2) { 
+  if(printMuch>=1) { 
+    printf("   Timing:\n");
     if(doMCMC>=1) {
       printf("     initialisation:%10.2lfs\n", ((double)time1 - (double)time0)*1.e-6 );
       printf("     MCMC:          %10.2lfs\n", ((double)time2 - (double)time1)*1.e-6 );

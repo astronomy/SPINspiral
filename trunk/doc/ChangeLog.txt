@@ -2,6 +2,10 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
   
+   157: sluys, 21/05/2009
+     - treat random injection parameters properly
+     - todo: read parameter file before injection file
+     
    156: sluys, 21/05/2009
      - moved code to start MCMC offset to new subroutine startMCMCOffset()
      - choice from input file respected: start at inj/best value, start from

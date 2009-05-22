@@ -811,32 +811,36 @@ void readSystemInputfile(struct runPar *run)
 
 
 // ****************************************************************************************************************************************************  
-void setRandomInjectionParameters(struct runPar *run)  //Get random values for the 'true' parameters for the 12-parameter spinning template. Contain priors for the injection, not the MCMC. 
+void setRandomInjectionParameters(struct runPar *run)  
+// Get random values for the injection parameters.
 {
   int i=0;
   gsl_rng *ran;
-  double rannr1 = 0.0, rannr2=0.0, db=0.0;
+  double ranGauss = 0.0, ranUnif=0.0, db=0.0;
   ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
-  if(1==2 && run->injRanSeed == 0) {  //Select a random seed, *** ONLY FOR TESTING ***
+  
+  // Manually select a random seed, *** USE ONLY FOR TESTING ***
+  if(1==2 && run->injRanSeed == 0) {
     printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setRandomInjectionParameters() \n\n");
     run->injRanSeed = 0;
     setseed(&run->injRanSeed);
     printf("  Seed: %d\n", run->injRanSeed);
   }
+  
   gsl_rng_set(ran, run->injRanSeed);     // Set seed
   
   for(i=0;i<run->nInjectPar;i++) {
-    db = run->injBoundUp[i]-run->injBoundLow[i];
-    rannr1 = gsl_ran_gaussian(ran,1.0);                                                   //Make sure you always draw the same number of random variables
-    rannr2 = gsl_rng_uniform(ran);                                                        //Make sure you always draw the same number of random variables
+    ranGauss = gsl_ran_gaussian(ran,run->injSigma[i]);                                    //Make sure you always draw the same number of random variables
+    ranUnif = gsl_rng_uniform(ran);                                                       //Make sure you always draw the same number of random variables
     if(run->injRanPar[i]==0) {                  
       run->injParVal[i] = run->injParValOrig[i];                                          //Keep the suggested value
     } else if(run->injRanPar[i]==1) {                                                     
-      run->injParVal[i] = run->injParValOrig[i] + rannr1*run->injSigma[i];                    //Draw random number from Gaussian
+      run->injParVal[i] = run->injParValOrig[i] + ranGauss;                               //Draw random number from Gaussian with width ranGauss
       run->injParVal[i] = max(run->injParVal[i],run->injBoundLow[i]);                     //Stick to the boundary, rather than redrawing to keep number of random numbers constant
       run->injParVal[i] = min(run->injParVal[i],run->injBoundUp[i]);
     } else if(run->injRanPar[i]==2) {
-      run->injParVal[i] = run->injBoundLow[i] + rannr2*db;                                //Draw random number from uniform range
+      db = run->injBoundUp[i]-run->injBoundLow[i];                                        //Width of the range
+      run->injParVal[i] = run->injBoundLow[i] + ranUnif*db;                               //Draw random number from uniform range with width db
     }
   }
   
