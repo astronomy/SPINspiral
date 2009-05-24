@@ -40,7 +40,6 @@ int main(int argc, char * argv[])
   double snr=0.0;
   
   
-  
   //Initialise stuff for the run
   struct runPar run;
   sprintf(run.executable,argv[0]);
