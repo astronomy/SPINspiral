@@ -1,0 +1,7 @@
+#!/bin/bash
+
+pdflatex SPINspiral
+bibtex SPINspiral
+pdflatex SPINspiral
+pdflatex SPINspiral
+

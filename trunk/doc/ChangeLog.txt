@@ -2,7 +2,10 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
   
-   159: sluys, 27/05/2009	
+   160: sluys, 27/05/2009
+     - added SPINspiral 'manual' (aimed at summer student using the code)
+   
+   159: sluys, 27/05/2009
      - fixed bug (I think) introduced at r.156 (see Viviens email of 25/05/2009)
      
    157: sluys, 21/05/2009
