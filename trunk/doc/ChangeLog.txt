@@ -2,6 +2,9 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
   
+   159: sluys, 27/05/2009	
+     - fixed bug (I think) introduced at r.156 (see Viviens email of 25/05/2009)
+     
    157: sluys, 21/05/2009
      - treat random injection parameters properly
      - todo: read parameter file before injection file

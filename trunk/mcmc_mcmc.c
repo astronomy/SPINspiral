@@ -200,7 +200,7 @@ void mcmc(struct runPar run, struct interferometer *ifo[])
       mcmc.param[tempi][i] = mcmc.injParVal[i];
     }
   } else {
-    startMCMCOffset(&state,&mcmc,*ifo);  //Start MCMC offset
+    startMCMCOffset(&state,&mcmc,ifo);  //Start MCMC offset
   }
   
   
@@ -1535,13 +1535,13 @@ void copyRun2MCMC(struct runPar run, struct mcmcvariables *mcmc)
   
 // ****************************************************************************************************************************************************  
 // Offset starting values (only for the parameters we're fitting); at least some of the starting parameters will be chosen randomly here
-void startMCMCOffset(struct parset *par, struct mcmcvariables *mcmc, struct interferometer ifo[])
+void startMCMCOffset(struct parset *par, struct mcmcvariables *mcmc, struct interferometer *ifo[])
 {
   int i=0, nstart=0;
   double db = 0.0;
   
   printf("\n");
-  mcmc->logL[tempi] = -1.e30;
+  mcmc->logL[tempi] = -9999.999;
   
   for(i=0;i<mcmc->nMCMCpar;i++) {
     if(mcmc->parFix[i]==0 && (mcmc->parStartMCMC[i]==1 || mcmc->parStartMCMC[i]==2)) mcmc->nParam[tempi][i] = mcmc->parBestVal[i];  //Start at or around BestValue
@@ -1570,8 +1570,8 @@ void startMCMCOffset(struct parset *par, struct mcmcvariables *mcmc, struct inte
     
     if(mcmc->acceptprior[tempi]==1) {                     //Check the value of the likelihood for this draw
       arr2part(mcmc->param, par, *mcmc);	                      //Get the parameters from their array
-      localpar(par, &ifo, mcmc->networksize);
-      mcmc->logL[tempi] = net_loglikelihood(par, mcmc->networksize, &ifo, mcmc->mcmcWaveform);  //Calculate the likelihood
+      localpar(par, ifo, mcmc->networksize);
+      mcmc->logL[tempi] = net_loglikelihood(par, mcmc->networksize, ifo, mcmc->mcmcWaveform);  //Calculate the likelihood
     }
     nstart = nstart + 1;
     
