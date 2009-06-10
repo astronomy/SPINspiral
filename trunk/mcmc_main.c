@@ -29,7 +29,7 @@
 
 
 // Main program:
-int main(int argc, char * argv[])
+int main(int argc, char* argv[])
 {
   if(doMCMC>=1) printf("\n");
   printf("\n   Starting SPINspiral...\n");
@@ -40,9 +40,12 @@ int main(int argc, char * argv[])
   double snr=0.0;
   
   
-  //Initialise stuff for the run
+  //Initialise stuff for the run:
   struct runPar run;
   run.lowFrequencyCut = 0.0;
+  run.injXMLfilename = NULL;
+  run.injXMLnr = -1;
+  
   sprintf(run.executable,argv[0]);
   /*
   if(system( NULL )) {  //Is incompatible with condor_compile
@@ -56,25 +59,23 @@ int main(int argc, char * argv[])
   }
   */
   
-  run.maxnPar = 20;                      //The maximum number of allowed MCMC/injection parameters (this number is hardcoded in many places in mcmc.h)
-  setconstants();                        //Set the global constants (which are variable in C)
-  setParameterNames(&run);               //Set the names of the parameters in the hardcoded parameter database
+  run.maxnPar = 20;                        //The maximum number of allowed MCMC/injection parameters (this number is hardcoded in many places in mcmc.h)
+  setconstants();                          //Set the global constants (which are variable in C)
+  setParameterNames(&run);                 //Set the names of the parameters in the hardcoded parameter database
   sprintf(run.mainFilename,"mcmc.input");  //Default input filename
-  if(argc > 1) sprintf(run.mainFilename,argv[1]);
-  
-  readMainInputfile(&run);               //Read main input data file for this run from input.mcmc
-  readMCMCinputfile(&run);               //Read the input data on how to do MCMC 
-  setseed(&run.MCMCseed);                //Set MCMCseed if 0, otherwise keep the current value
-  readInjectionInputfile(&run);          //Read the input data on whether and how to do a software injection
-  //setRandomInjectionParameters(&run);    //Randomise the injection parameters where wanted (do this in readInjectionInputfile
-  readParameterInputfile(&run);          //Read the input data on how to handle MCMC parameters
-  //writeInputfile(&run);                //Write run data to nicely formatted input.mcmc.<MCMCseed>
-  readSystemInputfile(&run);             //Read system-dependent data, e.g. path to data files
+  readCommandLineOptions(argc,argv,&run);  //Read the command-line options
   
   
-  //Develop reading of injection XML file:
-  //readInjectionXML(&run);
-  //exit(1);
+  readMainInputfile(&run);                 //Read main input data file for this run from input.mcmc
+  readMCMCinputfile(&run);                 //Read the input data on how to do MCMC 
+  setseed(&run.MCMCseed);                  //Set MCMCseed if 0, otherwise keep the current value
+  readInjectionInputfile(&run);            //Read the input data on whether and how to do a software injection
+  readParameterInputfile(&run);            //Read the input data on how to handle MCMC parameters
+  readSystemInputfile(&run);               //Read system-dependent data, e.g. path to data files
+  
+  
+  //Read injection XML file if specified:
+  if(run.injXMLfilename != NULL && run.injXMLnr >= 0) readInjectionXML(&run);
   
   
   //Set up the data for the IFOs in an IFO database you may want to use (H1,L1 + VIRGO by default)

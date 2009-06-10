@@ -25,6 +25,7 @@
 */
 
 
+#include <getopt.h>
 
 #include <lal/LIGOMetadataTables.h>
 #include <lal/LIGOLwXMLRead.h>
@@ -32,9 +33,83 @@
 #include <mcmc.h>
 
 
+
+
+
+// ****************************************************************************************************************************************************  
+void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
+{
+  int c;
+  printf("\n\n   Parsing command-line arguments:\n");
+  
+  
+  
+  //Set up struct with long (--) options:
+  static struct option long_options[] =
+    {
+      {"injXMLfile",      required_argument, 0,               0},
+      {"injXMLnr",        required_argument, 0,               0},
+      {0, 0, 0, 0}
+    };
+  
+  
+  int option_index = 0;
+  while( (c = getopt_long(argc, argv, "i:",long_options, &option_index)) != -1) {
+    switch(c) {
+      
+      
+      //Treat (untranslated) long options:
+    case 0:
+      if(strcmp(long_options[option_index].name,"injXMLfile")==0) {
+	run->injXMLfilename=(char*)malloc(strlen(optarg)+1);
+	strcpy(run->injXMLfilename,optarg);
+	printf("     Reading injection parameters from the XML file %s\n",run->injXMLfilename);
+      }
+      if(strcmp(long_options[option_index].name,"injXMLnr")==0) {
+	run->injXMLnr = atoi(optarg);
+	printf("     Using injection %d from the injection XML file\n",run->injXMLnr);
+      }
+      
+      break; //For case 0: long options
+      
+      
+      
+      //Treat the short and translated long options:
+    case 'i':
+      strcpy(run->mainFilename,optarg);
+      printf("     Using main input file %s\n",run->mainFilename);
+      break;
+      
+    default:
+      //fprintf(stderr,"   Unrecognised option: %d\n",c);  // This notice is already produced by getopt_long()
+      fprintf(stderr,USAGE); 
+      exit(1);
+      break;
+      
+    } // switch()
+  } // while()
+  
+  
+  
+  
+  // Print any remaining command line arguments (the ones that are not options, i.e. lack a starting '-'):
+  if(optind < argc) {
+    printf("   SPINspiral - unused command-line arguments: ");
+    while(optind < argc) printf ("%s ", argv[optind++]);
+    printf("\n");
+  }
+  
+} // End void readCommandLineOptions(argc,argv)
+// ****************************************************************************************************************************************************  
+
+
+
+
+
+
+
 // Read the main input file.
-// Please keep this routine in sync with writeinputfile() below.
-// All parameters that are read in here should become members of the runvar struct and lose their global status
+// All parameters that are read here should be(come) members of the runvar struct and lose their global status
 // ****************************************************************************************************************************************************  
 void readMainInputfile(struct runPar *run)
 {
@@ -82,159 +157,11 @@ void readMainInputfile(struct runPar *run)
 
 
 
-// Write a copy of the input file.
-// This provides a nicely formatted copy, which may later be used to start a follow-up run.
-// Try to keep this in sync with readinputfile() above.
-/*
-// ****************************************************************************************************************************************************  
-void writeMainInputfile(struct runPar *run)
-{
-  int i;
-  FILE *fout;
-  sprintf(run->outfilename,"%s.%6.6d",run->mainFilename,run->MCMCseed);
-  if((fout = fopen(run->outfilename,"w")) == NULL) {
-    printf("   Could not create file: %s, aborting.\n\n\n",run->outfilename);
-    exit(1);
-  }
-  
-  fprintf(fout, "  #Input file for SPINspiral.  The LINE NUMBER for each parameter should not change!!!\n\n");
-  fprintf(fout, "  %-39s  %-18s  %-s\n","#Value:","Variable:","Description:");
-  
-  
-  fprintf(fout, "  \n  #Basic settings:\n");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      run->mcmcWaveform, "mcmcWaveform", "Waveform version used as MCMC template:  1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL, 3 for 3.5PN 15-parameter LAL");
-  fprintf(fout, "  %-39.3g  %-18s  %-s\n",    (double)iter,  "iter",           "Total number of iterations to be computed (e.g. 1e7).");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      thinOutput,    "thinOutput",           "Number of iterations to be skipped between stored steps (100 for 1d).");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      thinScreenOutput,  "thinScreenOutput",   "Number of iterations between screen outputs im the MCMC (1000 for 1d).");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      run->MCMCseed, "MCMCseed",       "Random number seed to start the MCMC: 0-let system clock determine seed.");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      run->injectSignal,        "inject",         "Inject a signal (1) or not (0).");
-  fprintf(fout, " ");
-  for(i=0;i<run->nMCMCpar;i++) fprintf(fout, "%2d",    run->injRanPar[i]);
-  for(i=0;i<max(19-run->nMCMCpar,0);i++) fprintf(fout, "  ");  //Line up the next colum nicely, for up to 20 parameters
-  fprintf(fout, "    %-18s  %-s\n",                          "injRanPar[]",  "Parameters you want to randomise before injecting the signal; 0: use the value in truepar below, 1: randomise.  These are the same parameters as trueval (ie M1, M2, etc!)");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      run->injRanSeed,"injRanSeed",    "Random number seed for random injection parameters. Don't change between serial chains of the same run!");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      adapt,         "adapt",          "Use adaptation: 0-no, 1-yes.");
-  fprintf(fout, "  %-39.2f  %-18s  %-s\n",    run->blockfrac,"blockfrac",      "Fraction of uncorrelated updates that is updated as a block of all parameters (<=0.0: none, >=1.0: all).");
-  fprintf(fout, " ");
-  
-  
-  fprintf(fout, "  \n  #Start from offset values:\n");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      run->offsetMCMC,    "run->offsetMCMC",     "Start the MCMC with offset initial parameters: 0-no: use injection parameters, 1-yes: randomly around the injected parameters, 2-yes: at the starting parameters, 3-yes: randomly around the starting parameters.  The individual parameters to be offset are determined in parStartMCMC below.");
-  fprintf(fout, "  %-39.1f  %-18s  %-s\n",    offsetX,       "offsetX",        "Start the MCMC with an offset of x times the typical pdf sigma.");
-  fprintf(fout, " ");
-  for(i=0;i<run->nMCMCpar;i++) fprintf(fout, "%2d",    run->parStartMCMC[i]);
-  for(i=0;i<max(19-run->nMCMCpar,0);i++) fprintf(fout, "  ");  //Line up the next colum nicely, for up to 20 parameters
-  fprintf(fout, "    %-18s  %-s\n",                          "parStartMCMC[]",  "Parameters you want to start from random offset values. At the moment only works if parameter is also 'fit' (i.e. value is 0 in parFix).");
-  
-  
-  fprintf(fout, "  \n  #Correlated update proposals:\n");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      corrupd,       "corrupd",        "Do correlated update proposals: 0-no, 1-yes but update the matrix only once, 2-yes and update the matrix every ncorr iterations.");
-  fprintf(fout, "  %-39.1f  %-18s  %-s\n",    run->corrfrac, "corrfrac",       "Fraction of update proposals that is correlated (0.0-1.0, ~0.7 seems ok). corrupd must be 2. Should this replace corrupd?");
-  fprintf(fout, "  %-39.3g  %-18s  %-s\n",    (double)ncorr, "ncorr",          "Number of iterations for which the covariance matrix is calculated.");
-  fprintf(fout, "  %-39.1f  %-18s  %-s\n",    run->mataccfr, "mataccfr",       "Fraction of elements on the diagonal that must 'improve' in order to accept a new covariance matrix. ???~0.6-0.8 for unimodal, 0.0-0.2 for multimodal???");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      prmatrixinfo,  "prmatrixinfo",   "Print information to screen on proposed matrix updates: 0-none, 1-some (default), 2-add the old and new matrices.");
-  
-  
-  fprintf(fout, "  \n  #Annealing:\n");
-  fprintf(fout, "  %-39.2f  %-18s  %-s\n",    temp0,         "temp0",          "Starting temperature of the chain, e.g. 100.0. Set 1.0 for no temperature effect.");
-  fprintf(fout, "  %-39.3g  %-18s  %-s\n",    (double)nburn, "nburn",          "Number of iterations for the burn-in phase (1e4) at this number, the temperature drops to 1.0.");
-  fprintf(fout, "  %-39.3g  %-18s  %-s\n",    (double)nburn0,"nburn0",         "Number of iterations during which temp=temp0 (e.g. 0.1*nburn, should be lower than ~0.9*nburn).");
-  
-  
-  fprintf(fout, "  \n  #Parallel tempering:\n");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      partemp,       "partemp",        "Use parallel tempering:  0-no,  1-auto, fixed T ladder,  2-auto, sinusoid T ladder,  3-manual, fixed T ladder,  4-manual, sinusoid T ladder.  For a manual ladder, see near the bottom of the file.");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      run->ntemps,   "ntemps",         "Number of steps in the temperature ladder for parallel tempering, typically 5-10.");
-  fprintf(fout, "  %-39.1f  %-18s  %-s\n",    tempmax,       "tempmax",        "Maximum temperature in automatic parallel-tempering ladder (equidistant in log(T)), typically 20-100, e.g. 50.");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      savehotchains, "savehotchains",  "Save hot (T>1) parallel-tempering chains: 0-no (just the T=1 chain), >0-yes; for every saved T=1 point, save every savehotchains-th hot point.");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      prpartempinfo, "prpartempinfo",  "Print information to screen on the temperature chains: 0-none, 1-some ladder info (default), 2-add chain-swap matrix.");
-  
-  
-  fprintf(fout, "  \n  #Output:\n");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      doSNR,         "doSNR",          "Calculate the SNR: 0-no, 1-yes.");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      doMCMC,        "doMCMC",         "Do MCMC: 0-no, 1-yes.");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      doMatch,       "doMatch",        "Calculate matches: 0-no, 1-yes.");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      intscrout,     "intscrout",      "Print initialisation output to screen: 0-no, 1-yes.");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      writeSignal,   "writeSignal",    "Write signal, noise, PSDs to file: 0-no, 1-yes.");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      printMuch,     "printMuch",      "Print long stretches of output (1) or not (0).");
-  
-
-  fprintf(fout, "  \n  #Data handling:\n");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      run->selectdata,        "selectdata",       "Select the data set to run on:  0 use input file  (set to -1 to print a list of data sets). Make sure you set the true tc and datadir accordingly.");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",      downsamplefactor,       "downsamplefactor", "Downsample the sampling frequency of the detector (16-20kHz for the detectors, 4kHz for NINJA) by this factor.  Default (for detectors): 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8");
-  fprintf(fout, "  %-39.1f  %-18s  %-s\n",    run->dataBeforeTc,      "dataBeforeTc",     "The stretch of data in seconds before presumed coalescence that is read in as part of the data segment");
-  fprintf(fout, "  %-39.1f  %-18s  %-s\n",    run->dataAfterTc,       "dataAfterTc",      "The stretch of data in seconds after presumed coalescence that is read in as part of the data segment");
-  fprintf(fout, "  %-39.1f  %-18s  %-s\n",    run->lowFrequencyCut,   "lowFrequencyCut",  "Templates and overlap integration start at this frequency");
-  fprintf(fout, "  %-39.1f  %-18s  %-s\n",    run->highFrequencyCut,  "highFrequencyCut", "Overlap integration ends at this frequency");
-
-  
-  fprintf(fout, "  \n  #Diverse:\n");
-  fprintf(fout, "  %-39d  %-18s  %-s\n",    run->networksize,"networksize",    "Set the number of detectors that make up the network");
-  fprintf(fout, "  ");
-  for(i=0;i<run->networksize;i++) fprintf(fout, "%-3d",run->selectifos[i]);
-  for(i=0;i<38-3*(run->networksize-1);i++) fprintf(fout, " ");
-  fprintf(fout, "%-18s  %-s\n", "selectifos",    "Select the IFOs to use  1: H1, 2: L1, 3: V");
-  fprintf(fout, "  %-39.1f  %-18s  %-s\n",   run->injectionSNR, "injectionSNR",      "If > 0: scale the distance such that the network SNR becomes injectionSNR");
-  
-
-
-  
-  //fprintf(fout, "  %-39.1f  %-18s  %-s\n",   cutoff_a,"cutoff_a","Low value of a/M where signal should be cut off, e.g. 7.5.");
-  
-  
-  fprintf(fout, "  \n");
-  fprintf(fout, "  \n  #Injection (first line) and starting (second line) parameter values, these are the exact MCMC parameters and units\n");
-  if(run->mcmcWaveform==1) {
-    fprintf(fout, "      Mc        eta             t_c(GPS)  log(d_L)     a_spin cos(th_SL)       R.A.   sin(dec)      phi_c   sinth_Jo      phi_Jo     alpha     \n");
-  } else if(run->mcmcWaveform==2 || run->mcmcWaveform==3) {
-    fprintf(fout, "      Mc        eta             t_0(GPS)   log(dL)       R.A.     sinDec     cos(i)      phi_c        psi    aspin_1 cos(theta1)     phi_1    aspin_2 cos(theta2)     phi_2  \n");
-  } else {
-    fprintf(fout, "  \n");
-  }
-  for(i=0;i<run->nMCMCpar;i++) {
-    if(i==2) {
-      fprintf(fout, "  %-18.6lf",run->injParVal[i]);
-    } else {
-      fprintf(fout, "  %-9.4lf",run->injParVal[i]);
-    }
-  }
-  fprintf(fout, "  \n");
-  for(i=0;i<run->nMCMCpar;i++) {
-    if(i==2) {
-      fprintf(fout, "  %-18.6lf",run->parBestVal[i]);
-    } else {
-      fprintf(fout, "  %-9.4lf",run->parBestVal[i]);
-    }
-  }
-  fprintf(fout, "\n");
-  
-  fprintf(fout, "  \n  #Manual temperature ladder for parallel tempering:\n");
-  for(i=0;i<run->ntemps;i++) fprintf(fout, "  %-7.2f",run->temps[i]);
-  
-  
-  fprintf(fout, "\n");
-  
-  fprintf(fout, "\n");
-  fprintf(fout, "  \n  #Secondary input files:\n");
-  fprintf(fout, "  %-39s  %-18s  %-s\n",      run->dataFilename,       "dataFilename",        "File name of the data/noise input file, e.g. mcmc.input.data");
-  
-  //Formats used:
-  //fprintf(fout, "  \n  #:\n");
-  //fprintf(fout, "  %-39d  %-18s  %-s\n",    ,"","");
-  //fprintf(fout, "  %-39.1f  %-18s  %-s\n",   ,"","");
-  //fprintf(fout, "  %-39.1e  %-18s  %-s\n",  ,"","");
-  
-  fprintf(fout, "\n\n\n");
-  fclose(fout);
-} //End of writeMainInputfile
-// ****************************************************************************************************************************************************  
-
-  */
-
 
 
 
 // Read the MCMC input file.
-// All parameters that are read in here should become members of the runvar struct and lose their global status
+// All parameters that are read in here should be(come) members of the runvar struct and lose their global status
 // ****************************************************************************************************************************************************  
 void readMCMCinputfile(struct runPar *run)
 {
@@ -345,7 +272,7 @@ void readMCMCinputfile(struct runPar *run)
 void readDataInputfile(struct runPar *run, struct interferometer ifo[])
 {
   int i=0,j=0;
-  double lati,longi,leftArm,rightArm,lowFrequencyCut=0.0;
+  double lati,longi,leftArm,rightArm;
   char bla[500], subdir[500];
   FILE *fin;
   
@@ -372,8 +299,7 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
   fgets(bla,500,fin); sscanf(bla,"%d",&downsamplefactor);
   fgets(bla,500,fin); sscanf(bla,"%lf",&run->dataBeforeTc);
   fgets(bla,500,fin); sscanf(bla,"%lf",&run->dataAfterTc);
-  fgets(bla,500,fin); sscanf(bla,"%lf",&lowFrequencyCut);
-  if(run->lowFrequencyCut < 1.e-9) run->lowFrequencyCut = lowFrequencyCut;  //Don't overwrite setting from injection XML file
+  fgets(bla,500,fin); sscanf(bla,"%lf",&run->lowFrequencyCut);
   fgets(bla,500,fin); sscanf(bla,"%lf",&run->highFrequencyCut);
   fgets(bla,500,fin); sscanf(bla,"%lf",&run->tukeyWin);
   
@@ -435,7 +361,7 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
 
 
 
-// All parameters that are read in here should be members of the runvar struct
+// All parameters that are read in here should be(come) members of the runvar struct
 // ****************************************************************************************************************************************************  
 void readInjectionInputfile(struct runPar *run)
 {
@@ -608,7 +534,7 @@ void readInjectionInputfile(struct runPar *run)
 
 
 
-// All parameters that are read in here should be members of the runvar struct
+// All parameters that are read in here should be(come) members of the runvar struct
 // ****************************************************************************************************************************************************  
 void readParameterInputfile(struct runPar *run)
 {
@@ -810,26 +736,24 @@ void readSystemInputfile(struct runPar *run)
 // ****************************************************************************************************************************************************  
 void readInjectionXML(struct runPar *run)
 {
-  printf("\n\n  Testing:  read an injection XML file:\n");
-  
-  
-  int NumInj=0,SelInj=0,i=0,j=0;
-  char injXMLFile[256];
+  int NumInj=0,i=0,j=0;
   SimInspiralTable *injTable = NULL;
   double Sx=0.0,Sy=0.0,Sz=0.0,Sxy=0.0,S=0.0;
   
-  strcpy(injXMLFile,"H1L1V1-COIRE_INJECTIONS_7856_FOUND_SUMMARY_SECOND_H1L1V1-894376679-108544.xml");
-  SelInj = 0; //0-NumInj
-  
-  printf("  Reading %s, injection %d.\n",injXMLFile,SelInj);
-  NumInj = SimInspiralTableFromLIGOLw(&injTable,injXMLFile,0,0);
-  if(SelInj >= NumInj) {
-    fprintf(stderr,"\n\n  ERROR: requested injection number %d larger than number of injections (%d) in XML file %s.\n  Aborting.\n\n",SelInj,NumInj-1,injXMLFile);
+  printf("  Reading injection XML file %s, injection %d.\n",run->injXMLfilename,run->injXMLnr);
+  NumInj = SimInspiralTableFromLIGOLw(&injTable,run->injXMLfilename,0,0);
+  if(NumInj <= 0) {
+    //fprintf(stderr,"\n  Error reading XML file %s.\n",run->injXMLfilename);
+    fprintf(stderr,"   Aborting.\n\n");
+    exit(1);
+  }
+  if(run->injXMLnr >= NumInj) {
+    fprintf(stderr,"\n\n  ERROR: requested injection number %d larger than number of injections (%d) in XML file %s.\n  Aborting.\n\n",run->injXMLnr,NumInj-1,run->injXMLfilename);
     exit(1);
   }
   
   j=0;
-  while(j<SelInj) {j++; injTable = injTable->next;}  // Select injection
+  while(j<run->injXMLnr) {j++; injTable = injTable->next;}  // Select injection
 
   i=0;
   for(i=0;i<run->nInjectPar;i++) {
@@ -911,14 +835,14 @@ void readInjectionXML(struct runPar *run)
     
     
     //Merger, ringdown, ...:
-    //if(run->injID[i] == 81) run->injParVal[i] = injTable->;                   // 
+    //if(run->injID[i] == 91) run->injParVal[i] = injTable->;                   // 
     
     printf("      %2d  %-11s     %15.4lf\n",run->injNumber[i],run->parAbrev[run->injID[i]],run->injParVal[i]);
     
   } // i (injectPar)
   
   
-  if(injTable->f_lower>0.0) run->lowFrequencyCut = injTable->f_lower;
+  run->lowFrequencyCutInj = injTable->f_lower;  // May be 0.0!
 
   printf("\n");
   
@@ -1138,29 +1062,10 @@ void getInjectionParameters(struct parset *par, int nInjectionPar, double *injPa
   par->mc       = injParVal[0];                    // Chirp mass
   par->eta      = injParVal[1];                    // mass ratio
   par->tc       = injParVal[2];                    // coalescence time
-  //par->longi    = fmod(longitude(injParVal[6],GMST(par->tc))+mtpi,tpi);  //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
   par->longi    = injParVal[6];                    //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
   par->sinlati  = injParVal[7];           // sin latitude (sin(delta))  (40)     
   par->sinthJ0  = injParVal[9];           // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
-  //par->phiJ0    = fmod(longitude(injParVal[10],GMST(par->tc))+mtpi,tpi);
   par->phiJ0    = injParVal[10];               // Phi_J0 ~ azimuthal            (125)
-  
-  /*
-  parSTOPGREPFROMFINDINGTHIS->m1       = injParVal[0];                    // M1 (10.0)
-  parSTOPGREPFROMFINDINGTHIS->m2       = injParVal[1];                    // M2  (1.4)
-  parSTOPGREPFROMFINDINGTHIS->m        = parSTOPGREPFROMFINDINGTHIS->m1+parSTOPGREPFROMFINDINGTHIS->m2;
-  parSTOPGREPFROMFINDINGTHIS->mu       = parSTOPGREPFROMFINDINGTHIS->m1*parSTOPGREPFROMFINDINGTHIS->m2/parSTOPGREPFROMFINDINGTHIS->m;
-  
-  parSTOPGREPFROMFINDINGTHIS->eta      = parSTOPGREPFROMFINDINGTHIS->mu/parSTOPGREPFROMFINDINGTHIS->m;                // mass ratio                
-  parSTOPGREPFROMFINDINGTHIS->mc       = parSTOPGREPFROMFINDINGTHIS->m*pow(parSTOPGREPFROMFINDINGTHIS->eta,0.6);      // chirp mass. in Mo         
-  parSTOPGREPFROMFINDINGTHIS->logdl    = log(injParVal[3]);               // log-distance (Mpc) (17.5)             
-  
-  parSTOPGREPFROMFINDINGTHIS->spin     = injParVal[4];                    // magnitude of total spin   (0.1)
-  parSTOPGREPFROMFINDINGTHIS->kappa    = cos(injParVal[5]*d2r);           // L^.S^, cos of angle between L^ & S^  (0.819152)
-  
-  parSTOPGREPFROMFINDINGTHIS->phase    = injParVal[8]*d2r;                // orbital phase   (phi_c)   (0.2)
-  parSTOPGREPFROMFINDINGTHIS->alpha    = injParVal[11]*d2r;               // Alpha_c                       (0.9 rad = 51.566202deg)
-  */
   
   par->loctc    = NULL;
   par->localti  = NULL;

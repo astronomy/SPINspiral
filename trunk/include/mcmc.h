@@ -57,6 +57,15 @@
 
 
 
+#define USAGE "\n\n\
+   Usage:  SPINspiral \n\
+                -i <main input file> \n\
+                --injXMLfile <injection XML file name> --injXMLnr <injection number in XML file (0-...)> \n \
+\n\n"
+
+
+
+
 
 
 
@@ -139,6 +148,7 @@ struct runPar{
   double dataBeforeTc;            // Data stretch in the time domain before t_c to use in the analysis
   double dataAfterTc;             // Data stretch in the time domain after t_c to use in the analysis
   double lowFrequencyCut;         // Lower frequency cutoff to compute the overlap for
+  double lowFrequencyCutInj;      // Lower frequency cutoff for the software injection
   double highFrequencyCut;        // Upper frequency cutoff to compute the overlap for
   double tukeyWin;                // Parameter for Tukey-window used in dataFT
   
@@ -195,6 +205,9 @@ struct runPar{
   char injectionFilename[99];     // Run injection input file name
   char parameterFilename[99];     // Run parameter input file name
   char systemFilename[99];        // System-dependent input file name
+  
+  char* injXMLfilename;           // Name of XML injection file
+  int injXMLnr;                   // Number of injection in XML injection file to use
 };
 
 
@@ -386,8 +399,8 @@ fftw_complex *FTout;                  // FT output (type here identical to `(dou
 
 
 // Declare functions (prototypes):
+void readCommandLineOptions(int argc, char* argv[], struct runPar *run);
 void readMainInputfile(struct runPar *run);
-//void writeMainInputfile(struct runPar *run);
 void readMCMCinputfile(struct runPar *run);
 void readDataInputfile(struct runPar *run, struct interferometer ifo[]);
 void readInjectionInputfile(struct runPar *run);

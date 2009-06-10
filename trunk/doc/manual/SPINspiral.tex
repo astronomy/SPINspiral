@@ -8,6 +8,22 @@
   from spinning binary inspirals}
 \author{Marc van der Sluys, Vivien Raymond, Ilya Mandel\\Northwestern University}
 
+
+\usepackage[pdftex=true]{hyperref}  
+\hypersetup{
+  pdftitle = Documentation SPINspiral: Parameter estimation on gravitational-wave signals from spinning binary inspirals,
+  pdfauthor = Marc van der Sluys,
+  pdfsubject = Documentation MCMC code SPINspiral,
+  pdfkeywords = SPINspiral MCMC Documentation,
+  colorlinks = true,
+  linkcolor = blue,
+  anchorcolor = blue,
+  citecolor = blue,
+  filecolor = blue,
+  urlcolor = blue,
+  pdfpagemode=UseThumbs,
+}
+ 
 \begin{document}
 
 \maketitle
@@ -16,8 +32,11 @@
 
 
 \begin{abstract}
-  \textsc{SPINspiral} was adapted from a Markov-chain Monte-Carlo code for non-spinning 
-  binary inspirals written by Christian R\"over~\cite{RoeverThesis2007}.
+  \textsc{SPINspiral} was developed at Northwestern University to analyse gravitational-wave signals from
+  stellar-mass binary inspirals, as can be detected by ground-based interferometers like LIGO and Virgo.  
+  The code performs parameter estimation on such signals, using Markov-chain Monte-Carlo (MCMC) techniques.
+  This analysis includes the spins of the binary components.  \textsc{SPINspiral} was adapted from an MCMC 
+  code for non-spinning binary inspirals written by Christian R\"over~\cite{RoeverThesis2007}.
 \end{abstract}
 
 \tableofcontents
@@ -88,6 +107,22 @@ The routines are grouped into six source files:
 
 
 
+\pagebreak
+\section{Command-line options}
+
+Most of \textsc{SPINspiral}'s options ($\sim 250-300$) are specified in input files (see Section~\ref{sec:input_files}).
+However, a small --- but possibly growing --- number of options can be passed to the program 
+using command-line options:
+
+\begin{description}
+  \item[\texttt{-i <main input file name>}] override the name of the main input file (Section~\ref{sec:mcmc.input})
+  \item[\texttt{--injXMLfilename <file name>}] specify an XML file to read injection data from
+  \item[\texttt{--injXMLnr <0-\ldots>}] specify the injection number in the injection XML file
+\end{description}
+  
+  
+
+
 
 
 
@@ -103,13 +138,16 @@ The routines are grouped into six source files:
 
 \pagebreak
 \section{Input files}
+\label{sec:input_files}
 
-\textsc{SPINspiral} has five different input files.  The main input file is assumed to be called
-\texttt{mcmc.input}, but can be specified differently as the only command-line argument.
-The names of the secondary are specified in \texttt{mcmc.input}.
+\textsc{SPINspiral} has six different ASCII input files.  The main input file is assumed to be called
+\texttt{mcmc.input}, but can be specified differently using the command-line option \texttt{-i 
+  <main input file name>}.  The names of the other five input files are specified in the main
+input file.
 
 
 \subsection{mcmc.input}
+\label{sec:mcmc.input}
 
 The file \texttt{mcmc.input} is the main input file and specifies the main mode of operation 
 and the names of the other input files.
@@ -157,7 +195,7 @@ The MCMC input file
 \item[mcmcWaveform] Waveform version used as MCMC template:  1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL, 3 for 3.5PN 15-parameter LAL.
 \item[iter] Total number of iterations to be computed, \textit{e.g.} $10^7$.
 \item[thinOutput] Number of iterations to be skipped between stored steps (100 for 1d).
-\item[thinScreenOutput] Number of iterations between screen outputs im the MCMC (1000 for 1d).
+\item[thinScreenOutput] Number of iterations between screen outputs in the MCMC (1000 for 1d).
 \item[MCMCseed] Random number seed to start the MCMC: 0-let system clock determine seed, $>0$: use the specified seed.  Default: 0.
 \item[adapt] Use adaptation: 0-no, 1-yes.  Default: 1.
 \item[blockfrac] Fraction of uncorrelated updates that is updated as a block of all parameters ($\leq 0.0$: none, $\geq 1.0$: all).  Default: 0.1.
@@ -166,8 +204,8 @@ The MCMC input file
 
 \subsubsection{Correlated update proposals}
 \begin{description}
-\item[corrupd] Do correlated update proposals: 0-no, 1-yes but update the matrix only once, 2-yes and update the matrix every ncorr iterations.  Default: 2.
-\item[corrfrac] Fraction of update proposals that is correlated (0.0-1.0, ~0.7 seems ok). corrupd must be 2. Should this replace corrupd?  Default: 0.7.
+\item[corrupd] Do correlated update proposals: 0-no, 1-yes but update the matrix only once, 2-yes and update the matrix every \texttt{ncorr} iterations.  Default: 2.
+\item[corrfrac] Fraction of update proposals that is correlated (0.0-1.0, ~0.7 seems OK). corrupd must be 2. Should this replace corrupd?  Default: 0.7.
 \item[ncorr] Number of iterations for which the covariance matrix is calculated.  Default: $10^3-10^4$.
 \item[mataccfr] Fraction of elements on the diagonal that must `improve' in order to accept a new covariance matrix. ???~0.6-0.8 for unimodal, 0.0-0.2 for multimodal???  Default: 0.5.
 \item[prmatrixinfo] Print information to screen on proposed matrix updates: 0-none, 1-some (default), 2-add the old and new matrices.  Default: 1.
@@ -190,7 +228,7 @@ The MCMC input file
 \end{description}
 
 \subsubsection{Manual temperature ladder for parallel tempering}
-At least \texttt{ntemps} increasing temerature values, starting with 1.0, \textit{e.g.} \texttt{1.00     2.00     4.00     8.00     16.00}
+At least \texttt{ntemps} increasing temperature values, starting with 1.0, \textit{e.g.} \texttt{1.00     2.00     4.00     8.00     16.00}
     
 
 
@@ -204,7 +242,7 @@ The data/noise input file
 
 \subsubsection{General}
 \begin{description}
-\item[datasetName] Name of the data set used (for printing purposes), upto 80 characters, \textit{e.g.} NINJA data set
+\item[datasetName] Name of the data set used (for printing purposes), up to 80 characters, \textit{e.g.} NINJA data set
 \end{description}
 
 \subsubsection{Detector network}
@@ -220,7 +258,7 @@ The data/noise input file
 \item[dataaftertc] The stretch of data in seconds after presumed coalescence that is read in as part of the data segment, \textit{e.g.} 1.0.
 \item[lowfrequencycut] Templates and overlap integration start at this frequency, \textit{e.g.} 40.0.
 \item[highfrequencycut] Overlap integration ends at this frequency, \textit{e.g.} 400.0.
-\item[tukeywin] Parameter for Tukey-window used in dataFT (non-flat fraction of window);  Use 0.15 for Virgo data.  Default: 0.15.
+\item[tukeywin] Parameter for Tukey-window used in \texttt{dataFT()} (non-flat fraction of window);  Use 0.15 for Virgo data.  Default: 0.15.
 \end{description}
 
 \subsubsection{Noise PSD estimation}
@@ -232,7 +270,7 @@ The data/noise input file
 
 
 
-\subsubsection{IFO $i$}
+\subsubsection{IFO i}
 Parameters for the location, orientation and data file for each detector used:
 
 \begin{description}
@@ -247,17 +285,17 @@ Parameters for the location, orientation and data file for each detector used:
 \item[ch$1$fileprefix] Prefix of the Frame data file name, \textit{e.g.} \texttt{H-H1\_NINJA\_NOISE}.
 \item[ch$1$filesuffix] Suffix of the Frame file name, \textit{e.g.} \texttt{-1024.gwf}.
 \item[ch$1$filesize] `Size' (in seconds) of the data in each data Frame file, \textit{e.g.} 1024.
-\item[ch$1$fileoffset] If the Frame filename ends in: -839366009-128.gwf (where 128 is the length of the data stream), \texttt{fileoffset} = \texttt{mod(839366009,128)}, \textit{e.g.} 743.
+\item[ch$1$fileoffset] If the Frame file name ends in: -839366009-128.gwf (where 128 is the length of the data stream), \texttt{fileoffset} = \texttt{mod(839366009,128)}, \textit{e.g.} 743.
 \item[ch$1$doubleprecision] Data in data Frame file is double precision (1) or not (0).  Default: 0.
 \item[add2channels] Keep 0, unless you want to read a signal from file.  Default: 0.
 
-\item[noiseGPSstart] GPS time to start reading data to gererate a noise PSD,  \textit{e.g.} 894377200.
+\item[noiseGPSstart] GPS time to start reading data to generate a noise PSD,  \textit{e.g.} 894377200.
 \item[noisechannel] Name of the data channel in the Frame file, \textit{e.g.} \texttt{H1:STRAIN}.
 \item[noisefilepath] Directory of the path in mcmc.local where the noise files sit.  Use ``.'' for no subdirectory.  Default: ``.''.
 \item[noisefileprefix] Prefix of the Frame data file name, \textit{e.g.} \texttt{H-H1\_NINJA\_NOISE}.
 \item[noisefilesuffix] Suffix of the Frame data file name, \textit{e.g.} \texttt{-1024.gwf}.
 \item[noisefilesize] `Size' (in seconds) of the data in each noise Frame file,  \textit{e.g.} 1024.
-\item[noisefileoffset]  Modulo between the start time and length of a Frame file.  If the Frame filename ends in: \texttt{-839366009-128.gwf}, \texttt{fileoffset} = \texttt{mod(839366009,128)},  \textit{e.g.} 743.
+\item[noisefileoffset]  Modulo between the start time and length of a Frame file.  If the Frame file name ends in: \texttt{-839366009-128.gwf}, \texttt{fileoffset} = \texttt{mod(839366009,128)},  \textit{e.g.} 743.
 \item[noisedoubleprecision] Data in data Frame file is double precision (1) or nor (0).  Default: 0.
 \end{description}
 
@@ -301,15 +339,15 @@ Following the ``General'' section is a table with nine columns containing the fo
 
 \begin{description}
 \item[Number] Currently just to guide the eye in this file.
-\item[ID] a unique number for each parameter.  See Section~\ref{sec:parameter_catalog} for a list of current IDs.
-\item[InjectionValue] injectionvalue for the parameter, can be overwritten depending on ranInjPar.
+\item[ID] a unique number for each parameter.  See Section~\ref{sec:parameter_catalogue} for a list of current IDs.
+\item[InjectionValue] injection value for the parameter, can be overwritten depending on \texttt{ranInjPar}.
 \item[RanInjPar] randomise the injection value:
   \begin{description}
   \item[0] no; inject InjectionValue.
   \item[1] yes; inject random value from a Gaussian distribution with centre InjectionValue and width Sigma (min BoundLow, max BoundUp).
   \item[2] yes; inject random value from range determined by BoundLow-BoundUp (make sure your MCMC prior matches this!).
   \end{description}
-\item[Sigma] width of the Gaussian distribution to draw from for RanInjPar=1, e.g. 0.1.
+\item[Sigma] width of the Gaussian distribution to draw from for \texttt{RanInjPar=1}, \textit{e.g.} 0.1.
 
   
 \item[BoundType] type of boundaries to use for the ranges of the injection parameters:
@@ -318,7 +356,7 @@ Following the ``General'' section is a table with nine columns containing the fo
   \item[2] general range, InjectionValue + BoundLow - InjectionValue + BoundUp; BoundLow must be $\leq 0$, BoundUp must be $\geq 0$.
   \item[3] general range, InjectionValue * BoundLow - InjectionValue * BoundUp; BoundLow must be $\leq 1$, BoundUp must be $\geq 1$.
   \end{description}
-\item[BoundLow] Up: used to determine upper or lower bound for BoundType = 1,2.
+\item[BoundLow, Up]: used to determine upper or lower bound for BoundType = 1,2.
 \item[Description] of the parameter, to increase readability of the file.
 \end{description}                
 
@@ -366,7 +404,7 @@ Following the ``General'' section is a table with nine columns containing the fo
 \subsubsection{Parameters}
 \begin{description}                
 \item[Number] Currently just to guide the eye in this file.
-\item[ID] a unique number for a parameter.  See Section~\ref{sec:parameter_catalog} for a list of current IDs.
+\item[ID] a unique number for a parameter.  See Section~\ref{sec:parameter_catalogue} for a list of current IDs.
 \item[BestValue] best value for the parameter, \textit{e.g.} from the trigger;  use to start from or close to.
 \item[Fix] fix an MCMC parameter (i.e., keep it constant throughout the MCMC run):
   \begin{description}                
@@ -420,15 +458,15 @@ A file with system-dependent parameters (well, currently one).
 \pagebreak
 \section{Output files}
 
-\subsection{mcmc.output.$abcdef$.$xy$}
+\subsection{mcmc.output.abcdef.xy}
 
 
 
 
 
 \pagebreak
-\section{Parameter catalog}
-\label{sec:parameter_catalog}
+\section{Parameter catalogue}
+\label{sec:parameter_catalogue}
 Goal: assign a unique identifier to each possible variable that has been used in \textsc{SPINspiral} so far.
 The identifier is stored in the variable \texttt{parID[]} and \texttt{injID[]} in the \texttt{runPar} and 
 \texttt{mcmcvariables} structs.  The reverse identification is stored in \texttt{parRevID[]} and 
@@ -513,7 +551,11 @@ $i$ is defined (1) or not (0).
 
 
 
-\section*{References}
+
+
+
+\pagebreak
+%\section*{References}
 %bibliographystyle{iopart-num}
 \bibliographystyle{unsrt}  %Includes titles as well, messes up my et al solutions...
 \bibliography{SPINspiral}
