@@ -393,6 +393,7 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[]);
 void readInjectionInputfile(struct runPar *run);
 void readParameterInputfile(struct runPar *run);
 void readSystemInputfile();
+void readInjectionXML(struct runPar *run);
 void setParameterNames(struct runPar * run);
 
 void setconstants();

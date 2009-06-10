@@ -2,6 +2,11 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
   
+   162: sluys, 09/06/2009
+     - implementing reading of injection XML files
+     - you need to include libmetaio/include and link against liblalmetaio to compile
+       and link SPINspiral, see Makefile and Makefile_LSC in doc/Makefiles/
+      
    160: sluys, 27/05/2009
      - added SPINspiral 'manual' (aimed at summer student using the code)
    

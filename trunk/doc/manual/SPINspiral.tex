@@ -34,13 +34,13 @@
 \item Check out a working copy from the \texttt{SVN} and cd to the directory \texttt{trunk}, or go to the
   directory \texttt{trunk} and update your working copy (\texttt{svn up}).
 \item Check whether a proper \texttt{Makefile} is in your trunk.  There's an example file in \texttt{doc/}, 
-make sure it is configured for your compiler and type \texttt{make clean all} for the first compilation
-and \texttt{make all} for subsequent ones.  The executable files \texttt{mcmc\_nolal} and \texttt{mcmc\_lal} should be produced.
+  make sure it is configured for your compiler and type \texttt{make clean all} for the first compilation
+  and \texttt{make all} for subsequent ones.  The executable files \texttt{mcmc\_nolal} and \texttt{mcmc\_lal} should be produced.
 \item Make sure you have the configuration files \texttt{mcmc.input*} in your trunk.  There are example
-files in \texttt{doc/input\_*}.  Set \texttt{iter} in \texttt{mcmc.input.mcmc} to 10 or 100 for a first test run.
-Example input files are available for both \texttt{mcmc\_nolal} and \texttt{mcmc\_lal}.
+  files in \texttt{doc/input\_*}.  Set \texttt{iter} in \texttt{mcmc.input.mcmc} to 10 or 100 for a first test run.
+  Example input files are available for both \texttt{mcmc\_nolal} and \texttt{mcmc\_lal}.
 \item Type \texttt{./mcmc\_nolal} or \texttt{./mcmc\_lal} and \textsc{SPINspiral} should run with the parameters specified
-in the input files.
+  in the input files.
 \end{enumerate}
 
 
@@ -430,6 +430,11 @@ A file with system-dependent parameters (well, currently one).
 \section{Parameter catalog}
 \label{sec:parameter_catalog}
 Goal: assign a unique identifier to each possible variable that has been used in \textsc{SPINspiral} so far.
+The identifier is stored in the variable \texttt{parID[]} and \texttt{injID[]} in the \texttt{runPar} and 
+\texttt{mcmcvariables} structs.  The reverse identification is stored in \texttt{parRevID[]} and 
+\texttt{injRevID[]}.  Thus, if the first parameter is $t_\mathrm{c}$, then \texttt{parID[0]}=11 and
+\texttt{parRevID[11]}=0.  The variable \texttt{parDef[i]} signifies whether the parameter with ID
+$i$ is defined (1) or not (0).
 
 \subsection{Time}
 \begin{tabular}{lllll}

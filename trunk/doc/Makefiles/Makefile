@@ -15,15 +15,16 @@ CC = icc
 CFLAGS = -O3 -traceback
 #CFLAGS = -O3 -static -traceback
 #CFLAGS = -O3 -static -traceback -Wcheck -Wall -wd981 
-#CFLAGS = -O0 -traceback -Wcheck -Wall -wd981 
+CFLAGS = -O0 -traceback -Wcheck -Wall -wd981 
 #CFLAGS = -g -O0  -traceback 
 
 
 
 DEF_MCMCOBJ = mcmc_main.o mcmc_mcmc.o mcmc_templates.o mcmc_routines.o mcmc_data.o mcmc_parameters.o mcmc_signal.o mcmc_3rdparty.o 
-DEF_CFLAGS = -I/usr/include -I./include -I ~/bin/include   -I ~/local/programs/lscsoft/lal/include/
+DEF_CFLAGS = -I/usr/include -I./include -I ~/bin/include   -I ~/local/programs/lscsoft/lal/include/ -I ~/local/programs/lscsoft/libmetaio/include/
 DEF_LFLAGS = -L ~/bin/lib -lFrame -lfftw3 -lgsl -lgslcblas -lm
-LAL_LFLAGS = -L ~/bin/lib -llal 
+LAL_LFLAGS = -L ~/bin/lib -llal -llalmetaio 
+
 
 
 
@@ -32,9 +33,9 @@ LAL_LFLAGS = -L ~/bin/lib -llal
 %.o: %.c Makefile include/mcmc.h
 	$(CC) $(CFLAGS) $(DEF_CFLAGS) -c $<
 
-exit:
+all: SPINspiral
 
-all: mcmc_nolal mcmc_lal
+exit:
 
 
 mcmc_lal.o: include/mcmc_lal.h
@@ -48,6 +49,9 @@ mcmc_nolal: $(DEF_MCMCOBJ) mcmc_nolal.o
 mcmc_lal: $(DEF_MCMCOBJ) mcmc_lal.o
 	$(CC) -o mcmc_lal $(DEF_MCMCOBJ) mcmc_lal.o $(DEF_LFLAGS) $(LAL_LFLAGS)
 
+SPINspiral: $(DEF_MCMCOBJ) mcmc_lal.o
+	$(CC) -o SPINspiral $(DEF_MCMCOBJ) mcmc_lal.o $(DEF_LFLAGS) $(LAL_LFLAGS)
+
 
 
 
@@ -58,7 +62,7 @@ cleanbin:
 	rm -f mcmc 
 
 cleanoutput:
-	rm -f mcmc.input.?????? mcmc.output.??????.?? *-signal*.dat
+	rm -f mcmc.output.??????.?? *-signal*.dat
 
 cleanall: clean cleanbin cleanoutput
 

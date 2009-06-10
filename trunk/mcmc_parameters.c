@@ -26,6 +26,9 @@
 
 
 
+#include <lal/LIGOMetadataTables.h>
+#include <lal/LIGOLwXMLRead.h>
+
 #include <mcmc.h>
 
 
@@ -799,6 +802,111 @@ void readSystemInputfile(struct runPar *run)
 }  //End of readSystemInputfile
 // ****************************************************************************************************************************************************  
 
+
+
+
+
+// ****************************************************************************************************************************************************  
+void readInjectionXML(struct runPar *run)
+{
+  printf("\n\n  Testing:  read an injection XML file:\n");
+  
+  
+  int Ninj=0;
+  char injXMLFile[256];
+  SimInspiralTable *injTable = NULL;
+  
+  strcpy(injXMLFile,"H1L1V1-COIRE_INJECTIONS_7856_FOUND_SUMMARY_SECOND_H1L1V1-894376679-108544.xml");
+  printf("  %s\n",injXMLFile);
+  Ninj=SimInspiralTableFromLIGOLw(&injTable,injXMLFile,0,0);
+  printf("  %d  Geoc:%21.10lf  H:%21.10lf  L:%21.10lf  V:%21.10lf,  RA:%8.5lf  Dec:%8.5lf\n",
+	 Ninj,
+	 injTable->geocent_end_time.gpsSeconds+injTable->geocent_end_time.gpsNanoSeconds*1.0e-9,
+	 injTable->h_end_time.gpsSeconds+injTable->h_end_time.gpsNanoSeconds*1.0e-9,
+	 injTable->l_end_time.gpsSeconds+injTable->l_end_time.gpsNanoSeconds*1.0e-9,
+	 injTable->v_end_time.gpsSeconds+injTable->v_end_time.gpsNanoSeconds*1.0e-9,
+	 injTable->longitude,injTable->latitude);
+  
+  int i=0;
+  for(i=0;i<run->nInjectPar;i++) {
+    
+    //Time:
+    if(run->injID[i] == 11) run->injParVal[i] = injTable->geocent_end_time.gpsSeconds+injTable->geocent_end_time.gpsNanoSeconds*1.0e-9;  // t_c in geocentre
+    
+    
+    //Distance:
+    if(run->injID[i] == 21) run->injParVal[i] = pow(injTable->distance,3.0);  // d_L^3
+    if(run->injID[i] == 22) run->injParVal[i] = log(injTable->distance);      // log(d_L/Mpc)
+    
+    
+    //Sky location:
+    if(run->injID[i] == 31) run->injParVal[i] = injTable->longitude;          // RA
+    if(run->injID[i] == 32) run->injParVal[i] = sin(injTable->latitude);      // sin Dec
+    
+    
+    //Orbital/GW phase:
+    if(run->injID[i] == 41) run->injParVal[i] = injTable->coa_phase;          // \phi_c
+    
+    
+    //Binary orientation:
+    if(run->injID[i] == 51) run->injParVal[i] = cos(injTable->inclination);   // cos(i)
+    if(run->injID[i] == 52) run->injParVal[i] = injTable->polarization;       // \psi
+    if(run->injID[i] == 53) {
+      fprintf(stderr,"\n  *** You're reading injection data from an XML file, while using the Apostolatos J_0.  This may lead to unexpected and unwanted results ***\n");
+      //exit(1);
+      run->injParVal[i] = sin(injTable->inclination);   // sin(\theta_J0), should probably not be used
+    }
+    if(run->injID[i] == 54) {
+      fprintf(stderr,"\n  *** You're reading injection data from an XML file, while using the Apostolatos J_0.  This may lead to unexpected and unwanted results ***\n");
+      //exit(1);
+      run->injParVal[i] = injTable->polarization;       // \phi_J0, should probably not be used
+    }
+    
+    
+    //Mass:
+    if(run->injID[i] == 61) run->injParVal[i] = injTable->mchirp;             // Mc
+    if(run->injID[i] == 62) run->injParVal[i] = injTable->eta;                // \eta
+    if(run->injID[i] == 63) run->injParVal[i] = injTable->mass1;              // M1
+    if(run->injID[i] == 64) run->injParVal[i] = injTable->mass2;              // M2
+    
+    
+    //Spin 1:
+    double Sx=0.0,Sy=0.0,Sz=0.0,Sxy=0.0,S=0.0;
+    Sx = injTable->spin1x;
+    Sy = injTable->spin1y;
+    Sz = injTable->spin1z;
+    Sxy = sqrt(Sx*Sx+Sy*Sy);
+    S = sqrt(Sxy*Sxy+Sz*Sz);
+    if(run->injID[i] == 71) run->injParVal[i] = S;                            // Spin1 magnitude (a_1)
+    if(run->injID[i] == 72) {
+      run->injParVal[i] = Sz/S;                                               // cos(\theta_1): angle between S1 and L (at t_c(?)))
+      if(fabs(S)<1.0e-9) run->injParVal[i] = 1.0;                             // In case S1=0
+    }
+    if(run->injID[i] == 73) run->injParVal[i] = atan2(Sy,Sx);                 // \phi_1: phase of spin in orbital plane (at t_c(?))
+    
+    //Spin 2:
+    Sx = injTable->spin2x;
+    Sy = injTable->spin2y;
+    Sz = injTable->spin2z;
+    Sxy = sqrt(Sx*Sx+Sy*Sy);
+    S = sqrt(Sxy*Sxy+Sz*Sz);
+    if(run->injID[i] == 74) run->injParVal[i] = S;                            // Spin2 magnitude (a_2)
+    if(run->injID[i] == 75) {
+      run->injParVal[i] = Sz/S;                                               // cos(\theta_2): angle between S2 and L (at t_c(?)))
+      if(fabs(S)<1.0e-9) run->injParVal[i] = 1.0;                             // In case S2=0
+    }
+    if(run->injID[i] == 76) run->injParVal[i] = atan2(Sy,Sx);                 // \phi_2: phase of spin in orbital plane (at t_c(?))
+    
+    
+    //Merger, ringdown, ...:
+    //if(run->injID[i] == 81) run->injParVal[i] = injTable->;                   // 
+    
+    printf("      %2d  %-11s     %15.4lf\n",run->injNumber[i],run->parAbrev[run->injID[i]],run->injParVal[i]);
+  }
+  printf("\n");
+  
+} // End void readInjectionXML()
+// ****************************************************************************************************************************************************  
 
 
 

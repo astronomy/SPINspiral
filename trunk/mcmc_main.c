@@ -71,6 +71,10 @@ int main(int argc, char * argv[])
   readSystemInputfile(&run);             //Read system-dependent data, e.g. path to data files
   
   
+  //Develop reading of injection XML file:
+  //readInjectionXML(&run);
+  //exit(1);
+  
   
   //Set up the data for the IFOs in an IFO database you may want to use (H1,L1 + VIRGO by default)
   run.maxIFOdbaseSize = 4;  //The maximum number of IFOs to read the properties in for from the data input file (mcmc.data or equivalent)
