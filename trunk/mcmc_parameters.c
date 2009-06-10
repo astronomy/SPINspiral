@@ -161,10 +161,10 @@ void writeMainInputfile(struct runPar *run)
   fprintf(fout, "  \n  #Data handling:\n");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      run->selectdata,        "selectdata",       "Select the data set to run on:  0 use input file  (set to -1 to print a list of data sets). Make sure you set the true tc and datadir accordingly.");
   fprintf(fout, "  %-39d  %-18s  %-s\n",      downsamplefactor,       "downsamplefactor", "Downsample the sampling frequency of the detector (16-20kHz for the detectors, 4kHz for NINJA) by this factor.  Default (for detectors): 4.0. 10+1.4Mo needs ~16x a<0.1, 8x: a<=0.8, 4x: a>0.8");
-  fprintf(fout, "  %-39.1f  %-18s  %-s\n",    run->databeforetc,      "databeforetc",     "The stretch of data in seconds before presumed coalescence that is read in as part of the data segment");
-  fprintf(fout, "  %-39.1f  %-18s  %-s\n",    run->dataaftertc,       "dataaftertc",      "The stretch of data in seconds after presumed coalescence that is read in as part of the data segment");
-  fprintf(fout, "  %-39.1f  %-18s  %-s\n",    run->lowfrequencycut,   "lowfrequencycut",  "Templates and overlap integration start at this frequency");
-  fprintf(fout, "  %-39.1f  %-18s  %-s\n",    run->highfrequencycut,  "highfrequencycut", "Overlap integration ends at this frequency");
+  fprintf(fout, "  %-39.1f  %-18s  %-s\n",    run->dataBeforeTc,      "dataBeforeTc",     "The stretch of data in seconds before presumed coalescence that is read in as part of the data segment");
+  fprintf(fout, "  %-39.1f  %-18s  %-s\n",    run->dataAfterTc,       "dataAfterTc",      "The stretch of data in seconds after presumed coalescence that is read in as part of the data segment");
+  fprintf(fout, "  %-39.1f  %-18s  %-s\n",    run->lowFrequencyCut,   "lowFrequencyCut",  "Templates and overlap integration start at this frequency");
+  fprintf(fout, "  %-39.1f  %-18s  %-s\n",    run->highFrequencyCut,  "highFrequencyCut", "Overlap integration ends at this frequency");
 
   
   fprintf(fout, "  \n  #Diverse:\n");
@@ -345,7 +345,7 @@ void readMCMCinputfile(struct runPar *run)
 void readDataInputfile(struct runPar *run, struct interferometer ifo[])
 {
   int i=0,j=0;
-  double lati,longi,leftarm,rightarm;
+  double lati,longi,leftArm,rightArm,lowFrequencyCut=0.0;
   char bla[500], subdir[500];
   FILE *fin;
   
@@ -370,11 +370,12 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
   //Data handling:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin); sscanf(bla,"%d",&downsamplefactor);
-  fgets(bla,500,fin); sscanf(bla,"%lf",&run->databeforetc);
-  fgets(bla,500,fin); sscanf(bla,"%lf",&run->dataaftertc);
-  fgets(bla,500,fin); sscanf(bla,"%lf",&run->lowfrequencycut);
-  fgets(bla,500,fin); sscanf(bla,"%lf",&run->highfrequencycut);
-  fgets(bla,500,fin); sscanf(bla,"%lf",&run->tukeywin);
+  fgets(bla,500,fin); sscanf(bla,"%lf",&run->dataBeforeTc);
+  fgets(bla,500,fin); sscanf(bla,"%lf",&run->dataAfterTc);
+  fgets(bla,500,fin); sscanf(bla,"%lf",&lowFrequencyCut);
+  if(run->lowFrequencyCut < 1.e-9) run->lowFrequencyCut = lowFrequencyCut;  //Don't overwrite setting from injection XML file
+  fgets(bla,500,fin); sscanf(bla,"%lf",&run->highFrequencyCut);
+  fgets(bla,500,fin); sscanf(bla,"%lf",&run->tukeyWin);
   
   
   //Read input for PSD estimation:
@@ -390,13 +391,13 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
     fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].name);
     fgets(bla,500,fin);  sscanf(bla,"%lf",&lati);
     fgets(bla,500,fin);  sscanf(bla,"%lf",&longi);
-    fgets(bla,500,fin);  sscanf(bla,"%lf",&rightarm);
-    fgets(bla,500,fin);  sscanf(bla,"%lf",&leftarm);
+    fgets(bla,500,fin);  sscanf(bla,"%lf",&rightArm);
+    fgets(bla,500,fin);  sscanf(bla,"%lf",&leftArm);
     
     ifo[i].lati      = lati     /180.0*pi;
     ifo[i].longi     = longi    /180.0*pi;
-    ifo[i].rightarm  = rightarm /180.0*pi;
-    ifo[i].leftarm   = leftarm  /180.0*pi;
+    ifo[i].rightArm  = rightArm /180.0*pi;
+    ifo[i].leftArm   = leftArm  /180.0*pi;
     
     fgets(bla,500,fin);  //Read the empty line
     
@@ -812,22 +813,25 @@ void readInjectionXML(struct runPar *run)
   printf("\n\n  Testing:  read an injection XML file:\n");
   
   
-  int Ninj=0;
+  int NumInj=0,SelInj=0,i=0,j=0;
   char injXMLFile[256];
   SimInspiralTable *injTable = NULL;
+  double Sx=0.0,Sy=0.0,Sz=0.0,Sxy=0.0,S=0.0;
   
   strcpy(injXMLFile,"H1L1V1-COIRE_INJECTIONS_7856_FOUND_SUMMARY_SECOND_H1L1V1-894376679-108544.xml");
-  printf("  %s\n",injXMLFile);
-  Ninj=SimInspiralTableFromLIGOLw(&injTable,injXMLFile,0,0);
-  printf("  %d  Geoc:%21.10lf  H:%21.10lf  L:%21.10lf  V:%21.10lf,  RA:%8.5lf  Dec:%8.5lf\n",
-	 Ninj,
-	 injTable->geocent_end_time.gpsSeconds+injTable->geocent_end_time.gpsNanoSeconds*1.0e-9,
-	 injTable->h_end_time.gpsSeconds+injTable->h_end_time.gpsNanoSeconds*1.0e-9,
-	 injTable->l_end_time.gpsSeconds+injTable->l_end_time.gpsNanoSeconds*1.0e-9,
-	 injTable->v_end_time.gpsSeconds+injTable->v_end_time.gpsNanoSeconds*1.0e-9,
-	 injTable->longitude,injTable->latitude);
+  SelInj = 0; //0-NumInj
   
-  int i=0;
+  printf("  Reading %s, injection %d.\n",injXMLFile,SelInj);
+  NumInj = SimInspiralTableFromLIGOLw(&injTable,injXMLFile,0,0);
+  if(SelInj >= NumInj) {
+    fprintf(stderr,"\n\n  ERROR: requested injection number %d larger than number of injections (%d) in XML file %s.\n  Aborting.\n\n",SelInj,NumInj-1,injXMLFile);
+    exit(1);
+  }
+  
+  j=0;
+  while(j<SelInj) {j++; injTable = injTable->next;}  // Select injection
+
+  i=0;
   for(i=0;i<run->nInjectPar;i++) {
     
     //Time:
@@ -871,7 +875,6 @@ void readInjectionXML(struct runPar *run)
     
     
     //Spin 1:
-    double Sx=0.0,Sy=0.0,Sz=0.0,Sxy=0.0,S=0.0;
     Sx = injTable->spin1x;
     Sy = injTable->spin1y;
     Sz = injTable->spin1z;
@@ -911,7 +914,12 @@ void readInjectionXML(struct runPar *run)
     //if(run->injID[i] == 81) run->injParVal[i] = injTable->;                   // 
     
     printf("      %2d  %-11s     %15.4lf\n",run->injNumber[i],run->parAbrev[run->injID[i]],run->injParVal[i]);
-  }
+    
+  } // i (injectPar)
+  
+  
+  if(injTable->f_lower>0.0) run->lowFrequencyCut = injTable->f_lower;
+
   printf("\n");
   
 } // End void readInjectionXML()

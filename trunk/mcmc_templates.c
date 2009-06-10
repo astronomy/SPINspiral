@@ -351,8 +351,8 @@ void localpar(struct parset *par, struct interferometer *ifo[], int networksize)
     
     // 'Azimuth' in the ifo' frame:
     for (j=0; j<3; ++j) dummyvec[j] = lineofsight[j];              // Temp vector with line of sight
-    orthoproject(dummyvec, ifo[ifonr]->rightvec, ifo[ifonr]->orthoarm);    // Project line of sight into ifo' arm plane
-    par->locazi[ifonr] = angle(dummyvec, ifo[ifonr]->rightvec);            // The 'true' azimuth (N=0,E=90deg) of the source at the location of the detector is:  pi - (par->locazi[ifonr] + ifo[ifonr]->rightarm) 
+    orthoproject(dummyvec, ifo[ifonr]->rightvec, ifo[ifonr]->orthoArm);    // Project line of sight into ifo' arm plane
+    par->locazi[ifonr] = angle(dummyvec, ifo[ifonr]->rightvec);            // The 'true' azimuth (N=0,E=90deg) of the source at the location of the detector is:  pi - (par->locazi[ifonr] + ifo[ifonr]->rightArm) 
     if (!righthanded(ifo[ifonr]->rightvec, dummyvec, ifo[ifonr]->normalvec)) par->locazi[ifonr] = 2.0*pi - par->locazi[ifonr];
     
     //printf("  %d  %lf  %lf  %s\n",ifonr,ifo[ifonr]->lati/pi*180.0,ifo[ifonr]->longi/pi*180.0,ifo[ifonr]->name);

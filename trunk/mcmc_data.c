@@ -75,16 +75,16 @@ void setIFOdata(struct runPar *run, struct interferometer ifo[])
   
   // *** Data time and frequency cutoffs per detector (same for all detectors for now):
   for(i=0;i<run->maxIFOdbaseSize;i++) {
-    ifo[i].lowCut    = run->lowfrequencycut;   // Define lower and upper limits of overlap integral
-    ifo[i].highCut   = run->highfrequencycut;
-    ifo[i].before_tc = run->databeforetc;      // Define data segment: [t_c-before_tc, t_c+after_tc]
-    ifo[i].after_tc  = run->dataaftertc;
+    ifo[i].lowCut    = run->lowFrequencyCut;   // Define lower and upper limits of overlap integral
+    ifo[i].highCut   = run->highFrequencyCut;
+    ifo[i].before_tc = run->dataBeforeTc;      // Define data segment: [t_c-before_tc, t_c+after_tc]
+    ifo[i].after_tc  = run->dataAfterTc;
   }
   
   // ***  Initialise hard-coded data sets ***
   // ***  Removed at revision 148
 }
-// End of set_ifo_data()
+// End of setIFOdata()
 
 
 
@@ -116,7 +116,7 @@ void ifoinit(struct interferometer **ifo, int networksize, struct runPar run)
     if(intscrout==1) printf(" at  %1.0f*%2.1f'%s  %1.0f*%2.1f'%s  (%3.0f/%3.0f)\n",
            floor(fabs(ifo[ifonr]->lati*r2d)),  (fabs(ifo[ifonr]->lati*r2d)-floor(fabs(ifo[ifonr]->lati*r2d)))*60.0, latchar,
            floor(fabs(ifo[ifonr]->longi*r2d)), (fabs(ifo[ifonr]->longi*r2d)-floor(fabs(ifo[ifonr]->longi*r2d)))*60.0, longchar,
-           360.0 - ifo[ifonr]->rightarm*r2d, 360.0 - ifo[ifonr]->leftarm*r2d);
+           360.0 - ifo[ifonr]->rightArm*r2d, 360.0 - ifo[ifonr]->leftArm*r2d);
     if(ifo[ifonr]->ch1doubleprecision && intscrout==1) printf(" | frame file precision: double (64 bit)\n"); 
     else if(intscrout==1) printf(" | frame file precision: float (32 bit)\n"); 
     if(intscrout==1) printf(" | frequency range: %.0f to %.0f Hz.\n", ifo[ifonr]->lowCut, ifo[ifonr]->highCut);
@@ -126,12 +126,12 @@ void ifoinit(struct interferometer **ifo, int networksize, struct runPar run)
     //Longitude: East is positive
     
     // Place arms on equator plane, so that its designated N-S-direction is aligned with its meridian plane:
-    ifo[ifonr]->rightvec[0]  = -cos(ifo[ifonr]->longi + ifo[ifonr]->rightarm);
-    ifo[ifonr]->rightvec[1]  = -sin(ifo[ifonr]->longi + ifo[ifonr]->rightarm);
+    ifo[ifonr]->rightvec[0]  = -cos(ifo[ifonr]->longi + ifo[ifonr]->rightArm);
+    ifo[ifonr]->rightvec[1]  = -sin(ifo[ifonr]->longi + ifo[ifonr]->rightArm);
     ifo[ifonr]->rightvec[2]  = 0.0;
     
-    ifo[ifonr]->leftvec[0]   = -cos(ifo[ifonr]->longi + ifo[ifonr]->leftarm);
-    ifo[ifonr]->leftvec[1]   = -sin(ifo[ifonr]->longi + ifo[ifonr]->leftarm);
+    ifo[ifonr]->leftvec[0]   = -cos(ifo[ifonr]->longi + ifo[ifonr]->leftArm);
+    ifo[ifonr]->leftvec[1]   = -sin(ifo[ifonr]->longi + ifo[ifonr]->leftArm);
     ifo[ifonr]->leftvec[2]   = 0.0;
     
     ifo[ifonr]->normalvec[0] = 0.0;
@@ -139,9 +139,9 @@ void ifoinit(struct interferometer **ifo, int networksize, struct runPar run)
     ifo[ifonr]->normalvec[2] = 1.0;
     
     // The following vector is rightarm + 90deg and usually (but not necessarily) identical to the left arm (leftvec):
-    ifo[ifonr]->orthoarm[0]  = -cos(ifo[ifonr]->longi + ifo[ifonr]->rightarm + 0.5*pi);
-    ifo[ifonr]->orthoarm[1]  = -sin(ifo[ifonr]->longi + ifo[ifonr]->rightarm + 0.5*pi);
-    ifo[ifonr]->orthoarm[2]  = 0.0;
+    ifo[ifonr]->orthoArm[0]  = -cos(ifo[ifonr]->longi + ifo[ifonr]->rightArm + 0.5*pi);
+    ifo[ifonr]->orthoArm[1]  = -sin(ifo[ifonr]->longi + ifo[ifonr]->rightArm + 0.5*pi);
+    ifo[ifonr]->orthoArm[2]  = 0.0;
     
     // Determine normal vector of meridian plane (i.e., the vector that points E(?) when standing at the equator at longi):
     merinormal[0] = cos(ifo[ifonr]->longi - 0.5*pi);
@@ -156,7 +156,7 @@ void ifoinit(struct interferometer **ifo, int networksize, struct runPar run)
     // Now turn all arms clockwise around the normal vector of meridian plane, to account for the latitude of the detectors:
     rotate(ifo[ifonr]->rightvec,  pi/2.0 - ifo[ifonr]->lati, merinormal);
     rotate(ifo[ifonr]->leftvec,   pi/2.0 - ifo[ifonr]->lati, merinormal);
-    rotate(ifo[ifonr]->orthoarm,  pi/2.0 - ifo[ifonr]->lati, merinormal);
+    rotate(ifo[ifonr]->orthoArm,  pi/2.0 - ifo[ifonr]->lati, merinormal);
     rotate(ifo[ifonr]->normalvec, pi/2.0 - ifo[ifonr]->lati, merinormal);
     
     // Initialise the ifo position (!NOT! unit-) vector:
@@ -360,8 +360,8 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
   
   // `from' and `to' are determined so that the range specified by `before_tc' and `after_tc'
   // falls into the flat part of the (Tukey-) window:                                        
-  from  = floor(prior_tc_mean - ifo[ifonr]->before_tc - (ifo[ifonr]->before_tc+ifo[ifonr]->after_tc) * 0.5 * (run.tukeywin/(1.0-run.tukeywin)));
-  to    =  ceil(prior_tc_mean + ifo[ifonr]->after_tc  + (ifo[ifonr]->before_tc+ifo[ifonr]->after_tc) * 0.5 * (run.tukeywin/(1.0-run.tukeywin)));
+  from  = floor(prior_tc_mean - ifo[ifonr]->before_tc - (ifo[ifonr]->before_tc+ifo[ifonr]->after_tc) * 0.5 * (run.tukeyWin/(1.0-run.tukeyWin)));
+  to    =  ceil(prior_tc_mean + ifo[ifonr]->after_tc  + (ifo[ifonr]->before_tc+ifo[ifonr]->after_tc) * 0.5 * (run.tukeyWin/(1.0-run.tukeyWin)));
   delta = (to) - (from);
   if(intscrout==1) printf(" | investigated time range : from %.1f to %.1f (%.1f seconds)\n", from, to, delta);
   
@@ -556,7 +556,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
   ifo[ifonr]->FTwindow = malloc(sizeof(double) * N);
   ifo[ifonr]->rawDownsampledWindowedData = (double*) fftw_malloc(sizeof(double)*N);
   for(j=0; j<N; ++j){
-    ifo[ifonr]->FTwindow[j] =  tukey(j, N, run.tukeywin);
+    ifo[ifonr]->FTwindow[j] =  tukey(j, N, run.tukeyWin);
     ifo[ifonr]->FTin[j] *= ifo[ifonr]->FTwindow[j];
     ifo[ifonr]->rawDownsampledWindowedData[j]=ifo[ifonr]->FTin[j];    
   }

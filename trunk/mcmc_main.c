@@ -42,6 +42,7 @@ int main(int argc, char * argv[])
   
   //Initialise stuff for the run
   struct runPar run;
+  run.lowFrequencyCut = 0.0;
   sprintf(run.executable,argv[0]);
   /*
   if(system( NULL )) {  //Is incompatible with condor_compile
@@ -192,7 +193,7 @@ int main(int argc, char * argv[])
   printf("\n");
   //printf("   Global     :    Source position:  RA: %5.2lfh, dec: %6.2lfd;  J0 points to:  RA: %5.2lfh, dec: %6.2lfd;   inclination J0: %5.2lfd  \n",  dummypar.par[run.parRevID[31]]*r2h, asin(dummypar.par[run.parRevID[32]])*r2d,  dummypar.par[run.parRevID[54]]*r2h,  asin(dummypar.par[run.parRevID[53]])*r2d, (pi/2.0-acos(dummypar.NdJ))*r2d );
   printf("   Global     :    Source position:  RA: %5.2lfh, dec: %6.2lfd\n",  dummypar.par[run.parRevID[31]]*r2h, asin(dummypar.par[run.parRevID[32]])*r2d);
-  for(ifonr=0;ifonr<networksize;ifonr++) printf("   %-11s:    theta: %5.1lfd,  phi: %5.1lfd;   azimuth: %5.1lfd,  altitude: %5.1lfd\n",network[ifonr]->name,dummypar.localti[ifonr]*r2d,dummypar.locazi[ifonr]*r2d,fmod(pi-(dummypar.locazi[ifonr]+network[ifonr]->rightarm)+mtpi,tpi)*r2d,(pi/2.0-dummypar.localti[ifonr])*r2d);
+  for(ifonr=0;ifonr<networksize;ifonr++) printf("   %-11s:    theta: %5.1lfd,  phi: %5.1lfd;   azimuth: %5.1lfd,  altitude: %5.1lfd\n",network[ifonr]->name,dummypar.localti[ifonr]*r2d,dummypar.locazi[ifonr]*r2d,fmod(pi-(dummypar.locazi[ifonr]+network[ifonr]->rightArm)+mtpi,tpi)*r2d,(pi/2.0-dummypar.localti[ifonr])*r2d);
   
   printf("\n  %10s  %10s  %6s  %6s  ","niter","nburn","seed","ndet");
   for(ifonr=0;ifonr<networksize;ifonr++) printf("%16s%4s  ",network[ifonr]->name,"SNR");

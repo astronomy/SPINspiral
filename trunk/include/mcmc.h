@@ -136,11 +136,11 @@ struct runPar{
   
   //Data:
   char datasetName[80];           // Name of the data set used (for printing purposes)
-  double databeforetc;            // Data stretch in the time domain before t_c to use in the analysis
-  double dataaftertc;             // Data stretch in the time domain after t_c to use in the analysis
-  double lowfrequencycut;         // Lower frequency cutoff to compute the overlap for
-  double highfrequencycut;        // Upper frequency cutoff to compute the overlap for
-  double tukeywin;                // Parameter for Tukey-window used in dataFT
+  double dataBeforeTc;            // Data stretch in the time domain before t_c to use in the analysis
+  double dataAfterTc;             // Data stretch in the time domain after t_c to use in the analysis
+  double lowFrequencyCut;         // Lower frequency cutoff to compute the overlap for
+  double highFrequencyCut;        // Upper frequency cutoff to compute the overlap for
+  double tukeyWin;                // Parameter for Tukey-window used in dataFT
   
   int PSDsegmentNumber;           // Number of data segments used for PSD estimation
   double PSDsegmentLength;        // Length of each segment of data used for PSD estimation
@@ -320,7 +320,7 @@ struct interferometer{
         char name[16];
          int index;
       double lati, longi;             // position coordinates                                     
-      double rightarm, leftarm;       // arm directions (counter-clockwise (!) from true north)   
+      double rightArm, leftArm;       // arm directions (counter-clockwise (!) from true north)   
       double radius_pole, radius_eqt; // earth radii at poles & equator (in metres)               
       double lowCut, highCut;         // frequency cutoffs (Hz) (`seismic' & `high-frequency' c.) 
       double before_tc;               // seconds of flat (!) window before `prior_tc_mean'        
@@ -357,7 +357,7 @@ struct interferometer{
       // Elements below this point are determined in `ifoinit()':
       double rightvec[3], leftvec[3], // arm (unit-) vectors            
              normalvec[3],            // normal vector of ifo arm plane  
-             orthoarm[3];             // vector orthogonal to right arm and normal vector    
+             orthoArm[3];             // vector orthogonal to right arm and normal vector    
                                       // (usually, but not necessarily identical to 2nd arm) 
       double positionvec[3];          // vector pointing to detector position on earth surface 
       double *raw_noisePSD;
