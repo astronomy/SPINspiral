@@ -884,18 +884,27 @@ void readInjectionXML(struct runPar *run)
     }
     if(run->injID[i] == 73) run->injParVal[i] = atan2(Sy,Sx);                 // \phi_1: phase of spin in orbital plane (at t_c(?))
     
+    if(run->injID[i] == 75) run->injParVal[i] = Sx;                           // Spin1_x magnitude
+    if(run->injID[i] == 76) run->injParVal[i] = Sy;                           // Spin1_y magnitude
+    if(run->injID[i] == 77) run->injParVal[i] = Sz;                           // Spin1_z magnitude
+    
+    
     //Spin 2:
     Sx = injTable->spin2x;
     Sy = injTable->spin2y;
     Sz = injTable->spin2z;
     Sxy = sqrt(Sx*Sx+Sy*Sy);
     S = sqrt(Sxy*Sxy+Sz*Sz);
-    if(run->injID[i] == 74) run->injParVal[i] = S;                            // Spin2 magnitude (a_2)
-    if(run->injID[i] == 75) {
+    if(run->injID[i] == 81) run->injParVal[i] = S;                            // Spin2 magnitude (a_2)
+    if(run->injID[i] == 82) {
       run->injParVal[i] = Sz/S;                                               // cos(\theta_2): angle between S2 and L (at t_c(?)))
       if(fabs(S)<1.0e-9) run->injParVal[i] = 1.0;                             // In case S2=0
     }
-    if(run->injID[i] == 76) run->injParVal[i] = atan2(Sy,Sx);                 // \phi_2: phase of spin in orbital plane (at t_c(?))
+    if(run->injID[i] == 83) run->injParVal[i] = atan2(Sy,Sx);                 // \phi_2: phase of spin in orbital plane (at t_c(?))
+    
+    if(run->injID[i] == 85) run->injParVal[i] = Sx;                           // Spin2_x magnitude
+    if(run->injID[i] == 86) run->injParVal[i] = Sy;                           // Spin2_y magnitude
+    if(run->injID[i] == 87) run->injParVal[i] = Sz;                           // Spin2_z magnitude
     
     
     //Merger, ringdown, ...:
@@ -1020,7 +1029,7 @@ void setParameterNames(struct runPar * run)
   strcpy(run->parAbrv[64], "M2");
   run->parDef[64] = 1;
   
-  //Set 07: spin
+  //Set 07: spin1
   strcpy(run->parAbrev[71], "a_spin1");
   strcpy(run->parAbrv[71], "asp1");
   run->parDef[71] = 1;
@@ -1030,17 +1039,40 @@ void setParameterNames(struct runPar * run)
   strcpy(run->parAbrev[73], "phi_spin1");
   strcpy(run->parAbrv[73], "phs1");
   run->parDef[73] = 1;
-  strcpy(run->parAbrev[74], "a_spin2");
-  strcpy(run->parAbrv[74], "asp2");
-  run->parDef[74] = 1;
-  strcpy(run->parAbrev[75], "cs th_sp2");
-  strcpy(run->parAbrv[75], "ths2");
-  run->parDef[75] = 1;
-  strcpy(run->parAbrev[76], "phi_spin2");
-  strcpy(run->parAbrv[76], "phs2");
-  run->parDef[76] = 1;
   
-  //Set 08: merger, ringdown
+  strcpy(run->parAbrev[75], "S1_x");
+  strcpy(run->parAbrv[75], "S1x");
+  run->parDef[75] = 1;
+  strcpy(run->parAbrev[76], "S1_y");
+  strcpy(run->parAbrv[76], "s1y");
+  run->parDef[76] = 1;
+  strcpy(run->parAbrev[77], "S1_z");
+  strcpy(run->parAbrv[77], "S1z");
+  run->parDef[77] = 1;
+  
+  //Set 08: spin2
+  strcpy(run->parAbrev[81], "a_spin2");
+  strcpy(run->parAbrv[81], "asp2");
+  run->parDef[81] = 1;
+  strcpy(run->parAbrev[82], "cs th_sp2");
+  strcpy(run->parAbrv[82], "ths2");
+  run->parDef[82] = 1;
+  strcpy(run->parAbrev[83], "phi_spin2");
+  strcpy(run->parAbrv[83], "phs2");
+  run->parDef[83] = 1;
+
+  strcpy(run->parAbrev[85], "S2_x");
+  strcpy(run->parAbrv[85], "S2x");
+  run->parDef[85] = 1;
+  strcpy(run->parAbrev[86], "S2_y");
+  strcpy(run->parAbrv[86], "s2y");
+  run->parDef[86] = 1;
+  strcpy(run->parAbrev[87], "S2_z");
+  strcpy(run->parAbrv[87], "S2z");
+  run->parDef[87] = 1;
+  
+  
+  //Set 09: merger, ringdown
   //strcpy(run->parAbrev[], "");
   //run->parDef[] = 1;
   
