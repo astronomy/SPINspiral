@@ -29,6 +29,13 @@
 #include <mcmc.h>
 
 
+/**
+ * \file mcmc_signal.c
+ * \brief Contains routines compute signal-related information, like likelihood, SNR, match, etc.
+ */
+
+
+
 double net_loglikelihood(struct parset *par, int networksize, struct interferometer *ifo[], int waveformVersion)
 //Calculate the loglikelihood for a network of IFOs
 {

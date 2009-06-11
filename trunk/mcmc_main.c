@@ -28,6 +28,13 @@
 #include <mcmc.h>
 
 
+/**
+ * \file mcmc_main.c
+ * \brief Contains main routine
+ */
+
+
+
 // Main program:
 int main(int argc, char* argv[])
 {

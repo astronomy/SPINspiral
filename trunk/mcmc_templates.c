@@ -29,6 +29,13 @@
 #include <mcmc.h>
 
 
+/**
+ * \file mcmc_templates.c
+ * \brief Contains routines that handle waveform-template generation
+ */
+
+
+
 void template(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion)
 // Call a waveform template, the local variable waveformVersion determines which one
 {

@@ -29,6 +29,13 @@
 #include <mcmc.h>
 
 
+/**
+ * \file mcmc_nolal.c
+ * \brief Contains dummy routines to compile without LAL support
+ */
+
+
+
 //Use the LAL 3.5/2.5 PN spinning waveform, with 1 spinning object (12 parameters)
 void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr)
 {

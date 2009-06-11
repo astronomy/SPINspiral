@@ -26,6 +26,13 @@
 
 
 
+/**
+ * \file include/mcmc.h
+ * \brief Main header file
+ */
+
+
+
 #ifndef mcmc_h
 #define mcmc_h
 

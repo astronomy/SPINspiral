@@ -29,6 +29,13 @@
 #include <mcmc.h>
 
 
+/**
+ * \file mcmc_routines.c
+ * \brief Contains various routines
+ */
+
+
+
 //*** MASSES ***//
 
 double massratio(double m1, double m2)

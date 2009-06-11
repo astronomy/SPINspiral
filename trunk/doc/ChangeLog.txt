@@ -1,7 +1,10 @@
 
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
-  
+   
+   168: sluys, 11/06/2009
+     - more Doxygen comments
+   
    167: sluys, 11/06/2009
      - implementing use of different waveforms for injection and MCMC
      - translation of injection -> mcmc parameters where possible

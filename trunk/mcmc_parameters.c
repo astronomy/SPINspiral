@@ -36,6 +36,13 @@
 
 
 
+/**
+ * \file mcmc_parameters.c
+ * \brief Contains routines that handle reading and randomisation of parameters
+ */
+
+
+
 // ****************************************************************************************************************************************************  
 void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
 {

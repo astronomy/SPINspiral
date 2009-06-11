@@ -27,6 +27,14 @@
 
 //Copied from remez.c, extracted from http://www.janovetz.com/jake/remez/remez-19980711.zip
 
+/**
+ * \file mcmc_3rdparty.c
+ * \brief Contains third-party routines
+ */
+
+
+
+
 /**************************************************************************
  * Parks-McClellan algorithm for FIR filter design (C version)
  *************************************************************************/

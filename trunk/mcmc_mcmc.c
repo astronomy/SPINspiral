@@ -29,7 +29,13 @@
 #include <mcmc.h>
 
 
-// MCMC routine
+/**
+ * \file mcmc_mcmc.c
+ * \brief Contains MCMC routines
+ */
+
+
+
 // ****************************************************************************************************************************************************  
 /**
  * \brief MCMC routine - forms the MCMC core of the program
@@ -519,7 +525,7 @@ void arr2par(double **param, struct parset *par, struct mcmcvariables mcmc)
  * Contains boundary conditions and prior information for the adaptive MCMC.  Try to avoid returning 0, to increase jump sizes
  */
 // ****************************************************************************************************************************************************  
-double prior(double *par, int p, struct mcmcvariables mcmc) //Apostolatos 12-parameter priors
+double prior(double *par, int p, struct mcmcvariables mcmc)
 {
   double prior = 1.0;
   

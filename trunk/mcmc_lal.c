@@ -53,6 +53,13 @@
 
 
 
+/**
+ * \file mcmc_lal.c
+ * \brief Contains interfaces to LAL routines
+ */
+
+
+
 void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr)
 //Use the LAL 3.5/2.5 PN spinning waveform, with 2 spinning objects (15 parameters)
 {

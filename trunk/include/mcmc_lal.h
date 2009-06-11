@@ -26,6 +26,13 @@
 
 
 
+/**
+ * \file include/mcmc_lal.h
+ * \brief LAL-interface header file
+ */
+
+
+
 #ifndef mcmc_lal_h
 #define mcmc_lal_h
 
