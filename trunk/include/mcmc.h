@@ -191,6 +191,7 @@ struct runPar{
   double priorBoundUp[20];        // Info to determine upper boundary for prior
   
   //Hardcoded MCMC parameter database:
+  int parDBn;                     // Size of the hardcoded database (set to 200 in the beginning of main())
   char parName[200][99];          // Names of the parameters in the database
   char parAbrev[200][99];         // Abbreviations of the parameter names
   char parAbrv[200][29];          // Really short abbreviations of the parameter names
@@ -246,6 +247,7 @@ struct mcmcvariables{
   double priorBoundUp[20];        // Info to determine upper boundary for prior
   
   //Hardcoded MCMC parameter database:
+  int parDBn;                     // Size of the hardcoded database (set to 200 in the beginning of main())
   char parName[200][99];          // Names of the parameters in the database
   char parAbrev[200][99];         // Abbreviations of the parameter names
   char parAbrv[200][99];          // Really short abbreviations of the parameter names

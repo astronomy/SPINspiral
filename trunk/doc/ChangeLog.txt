@@ -2,6 +2,10 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
   
+   166: sluys, 11/06/2009
+     - implementing use of different waveforms for injection and MCMC
+     - use rev.165 to run for now
+     
    165: sluys, 10/06/2009
      - added routine readCommandLineOptions() to parse command-line options
      - added command-line options to select an injection XML file and number

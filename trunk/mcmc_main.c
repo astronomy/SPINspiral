@@ -42,26 +42,19 @@ int main(int argc, char* argv[])
   
   //Initialise stuff for the run:
   struct runPar run;
+  run.maxnPar = 20;                        //The maximum number of allowed MCMC/injection parameters (this number is hardcoded in many places in mcmc.h)
+  run.parDBn = 200;                        //The size of the hardcoded parameter database (this number is hardcoded in many places in mcmc.h)
+  for(i=0;i<run.parDBn;i++) {
+    run.parRevID[i] = -1;
+    run.injRevID[i] = -1;
+  }
+  sprintf(run.executable,argv[0]);
   run.lowFrequencyCut = 0.0;
   run.injXMLfilename = NULL;
   run.injXMLnr = -1;
-  
-  sprintf(run.executable,argv[0]);
-  /*
-  if(system( NULL )) {  //Is incompatible with condor_compile
-    char shellCommand[199];
-    sprintf(shellCommand,"echo -n '   Executable:  %s,  compiled:  ';  ls -l --time-style=\"+%%a %%e %%b %%Y, %%T %%Z (UTC%%z)\" %s | gawk '{print $6,$7,$8,$9,$10,$11,$12}'",run.executable,run.executable);
-    system(shellCommand);
-    
-    sprintf(shellCommand,"echo '   Run path:    '`uname -n`':'`pwd`");
-    system(shellCommand);
-    printf("\n");
-  }
-  */
-  
-  run.maxnPar = 20;                        //The maximum number of allowed MCMC/injection parameters (this number is hardcoded in many places in mcmc.h)
   setconstants();                          //Set the global constants (which are variable in C)
   setParameterNames(&run);                 //Set the names of the parameters in the hardcoded parameter database
+  
   sprintf(run.mainFilename,"mcmc.input");  //Default input filename
   readCommandLineOptions(argc,argv,&run);  //Read the command-line options
   
@@ -190,11 +183,11 @@ int main(int argc, char* argv[])
      writeSignalsToFiles(network, networksize, run);
   }  
   
-  //Write some injection parameters to screen:
-  printf("\n");
+  //Write some injection parameters to screen:  CHECK: needs fix
+  //printf("\n");
   //printf("   Global     :    Source position:  RA: %5.2lfh, dec: %6.2lfd;  J0 points to:  RA: %5.2lfh, dec: %6.2lfd;   inclination J0: %5.2lfd  \n",  dummypar.par[run.parRevID[31]]*r2h, asin(dummypar.par[run.parRevID[32]])*r2d,  dummypar.par[run.parRevID[54]]*r2h,  asin(dummypar.par[run.parRevID[53]])*r2d, (pi/2.0-acos(dummypar.NdJ))*r2d );
-  printf("   Global     :    Source position:  RA: %5.2lfh, dec: %6.2lfd\n",  dummypar.par[run.parRevID[31]]*r2h, asin(dummypar.par[run.parRevID[32]])*r2d);
-  for(ifonr=0;ifonr<networksize;ifonr++) printf("   %-11s:    theta: %5.1lfd,  phi: %5.1lfd;   azimuth: %5.1lfd,  altitude: %5.1lfd\n",network[ifonr]->name,dummypar.localti[ifonr]*r2d,dummypar.locazi[ifonr]*r2d,fmod(pi-(dummypar.locazi[ifonr]+network[ifonr]->rightArm)+mtpi,tpi)*r2d,(pi/2.0-dummypar.localti[ifonr])*r2d);
+  //printf("   Global     :    Source position:  RA: %5.2lfh, dec: %6.2lfd\n",  dummypar.par[run.parRevID[31]]*r2h, asin(dummypar.par[run.parRevID[32]])*r2d);
+  //for(ifonr=0;ifonr<networksize;ifonr++) printf("   %-11s:    theta: %5.1lfd,  phi: %5.1lfd;   azimuth: %5.1lfd,  altitude: %5.1lfd\n",network[ifonr]->name,dummypar.localti[ifonr]*r2d,dummypar.locazi[ifonr]*r2d,fmod(pi-(dummypar.locazi[ifonr]+network[ifonr]->rightArm)+mtpi,tpi)*r2d,(pi/2.0-dummypar.localti[ifonr])*r2d);
   
   printf("\n  %10s  %10s  %6s  %6s  ","niter","nburn","seed","ndet");
   for(ifonr=0;ifonr<networksize;ifonr++) printf("%16s%4s  ",network[ifonr]->name,"SNR");

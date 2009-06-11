@@ -40,7 +40,7 @@
 void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
 {
   int c;
-  printf("\n\n   Parsing command-line arguments:\n");
+  if(argc > 1) printf("   Parsing %i command-line arguments:\n",argc-1);
   
   
   
@@ -188,7 +188,7 @@ void readMCMCinputfile(struct runPar *run)
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
   
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->mcmcWaveform);
-  run->injectionWaveform = run->mcmcWaveform;  //For now
+  //run->injectionWaveform = run->mcmcWaveform;  //For now
   
   
   if(run->mcmcWaveform==1) {
@@ -208,7 +208,7 @@ void readMCMCinputfile(struct runPar *run)
     printf("   Please set mcmcWaveform in %s to one of these values.\n\n",run->mcmcFilename);
     exit(1);
   }
-  run->nInjectPar = run->nMCMCpar;
+  //run->nInjectPar = run->nMCMCpar;  //For now
   
   
   fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);    
@@ -462,6 +462,7 @@ void readInjectionInputfile(struct runPar *run)
     } //End switch
     
     
+    
     // Check whether value for injRanPar is valid
     if(run->injRanPar[i] < 0 || run->injRanPar[i] > 2) {
       printf("\n\n   Error reading injection input file %s, parameter %d (%s):\n     %d is not a valid option for injRanPar.\n   Aborting...\n\n",
@@ -478,13 +479,13 @@ void readInjectionInputfile(struct runPar *run)
     
     //Check whether  lower boundary <= injection value <= upper boundary
     if(run->injParValOrig[i] < run->injBoundLow[i] || run->injParValOrig[i] > run->injBoundUp[i]) {
-      printf("\n\n   Error reading injection input file %s, parameter %d (%s):\n     the injection value lies outside the prior range.\n   Aborting...\n\n",
-	     run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]]);
+      printf("\n\n   Error reading injection input file %s, parameter %d (%s):\n     the injection value (%lf) lies outside the prior range (%lf - %lf).\n   Aborting...\n\n",
+	     run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]], run->injParValOrig[i], run->injBoundLow[i], run->injBoundUp[i]);
       exit(1);
     }
     
-    
   } //End for
+  
   
   
   setRandomInjectionParameters(run);    //Copy the injection parameters from injParValOrig to injParVal, and randomise where wanted
@@ -502,7 +503,7 @@ void readInjectionInputfile(struct runPar *run)
   strcpy(StartStr[2],"Random value from prior");
   
   printf("\n   Software-injection parameters:\n      Nr: Name:           Injection value:     Obtained:\n");
-  for(i=0;i<run->nMCMCpar;i++) {
+  for(i=0;i<run->nInjectPar;i++) {
     //printf("      %2d  %-11s     %15.4lf     %15.4lf %15.4lf     %-25s\n",run->injNumber[i],run->parAbrev[run->injID[i]],run->injParVal[i],
     //	   run->injBoundLow[i],run->injBoundUp[i],  StartStr[run->injRanPar[i]]);
     if(run->injRanPar[i]==0) {
@@ -538,7 +539,7 @@ void readInjectionInputfile(struct runPar *run)
 // ****************************************************************************************************************************************************  
 void readParameterInputfile(struct runPar *run)
 {
-  int i;
+  int i,iInj;
   char bla[500];
   FILE *fin;
   
@@ -648,16 +649,22 @@ void readParameterInputfile(struct runPar *run)
     
     //Check whether  lower prior boundary <= best value <= upper boundary
     if(run->parBestVal[i] < run->priorBoundLow[i] || run->parBestVal[i] > run->priorBoundUp[i]) {
-      printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     the best value lies outside the prior range.\n   Aborting...\n\n",
-	     run->parameterFilename,run->parNumber[i],run->parAbrev[run->parID[i]]);
+      printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     the best value (%lf) lies outside the prior range (%lf - %lf).\n   Aborting...\n\n",
+	     run->parameterFilename,run->parNumber[i],run->parAbrev[run->parID[i]], run->parBestVal[i], run->priorBoundLow[i], run->priorBoundUp[i]);
       exit(1);
     }
     
     //Check whether  lower prior boundary <= INJECTION value <= upper boundary
-    if(run->injParVal[i] < run->priorBoundLow[i] || run->injParVal[i] > run->priorBoundUp[i]) {
-      printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     the injection value lies outside the prior range.\n   Aborting...\n\n",
-	     run->parameterFilename,run->parNumber[i],run->parAbrev[run->parID[i]]);
-      exit(1);
+    iInj = run->injRevID[run->parID[i]];  //Get the index of this parameter in the injection set.  -1 if not available.
+    if(iInj >= 0) {
+      if(run->injParVal[iInj] < run->priorBoundLow[i] || run->injParVal[iInj] > run->priorBoundUp[i]) {
+	printf("\n\n   Error reading parameter input file %s, parameter %d (%s):\n     the injection value (%lf) lies outside the prior range (%lf - %lf).\n   Aborting...\n\n",
+	       run->parameterFilename, run->parNumber[i], run->parAbrev[run->parID[i]], run->injParVal[iInj], run->priorBoundLow[i], run->priorBoundUp[i]);
+	exit(1);
+      }
+    } else {
+      if(run->injectSignal != 0) printf("   Warning:  MCMC parameter %i (%s) does not occur in the injection template;  I cannot verify whether the injection value lies within the prior range.\n",
+					run->parNumber[i],run->parAbrev[run->parID[i]]);
     }
     
   } //End for (i)
@@ -1062,10 +1069,10 @@ void getInjectionParameters(struct parset *par, int nInjectionPar, double *injPa
   par->mc       = injParVal[0];                    // Chirp mass
   par->eta      = injParVal[1];                    // mass ratio
   par->tc       = injParVal[2];                    // coalescence time
-  par->longi    = injParVal[6];                    //The parameter in the input and output is RA; the MCMC parameter is 'longi' ~ Greenwich hour angle
-  par->sinlati  = injParVal[7];           // sin latitude (sin(delta))  (40)     
-  par->sinthJ0  = injParVal[9];           // sin Theta_J0 ~ latitude, pi/2 = NP    (15)
-  par->phiJ0    = injParVal[10];               // Phi_J0 ~ azimuthal            (125)
+  par->longi    = injParVal[6];                    // RA
+  par->sinlati  = injParVal[7];                    // sin latitude
+  par->sinthJ0  = injParVal[9];                    // sin Theta_J0 ~ latitude, pi/2 = NP
+  par->phiJ0    = injParVal[10];                   // Phi_J0 ~ azimuthal
   
   par->loctc    = NULL;
   par->localti  = NULL;
