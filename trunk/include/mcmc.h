@@ -178,7 +178,7 @@ struct runPar{
   int priorSet;                   // Set of priors to use for the MCMC parameters
   int offsetMCMC;                 // Start MCMC offset (i.e., not from injection values) or not
   double offsetX;                 // Start offset chains from a Gaussian distribution offsetX times wider than parSigma
-
+  
   int parNumber[20];              // Number of the current parameter
   int parID[20];                  // Unique parameter identifier
   double parBestVal[20];          // Best known value for each parameter
@@ -209,7 +209,7 @@ struct runPar{
   
   char* injXMLfilename;           // Name of XML injection file
   int injXMLnr;                   // Number of injection in XML injection file to use
-};
+};  // End struct runpar
 
 
 //Structure for MCMC variables
@@ -237,6 +237,7 @@ struct mcmcvariables{
 
   int parNumber[20];              // Number of the current parameter
   int parID[20];                  // Unique parameter identifier
+  int injID[20];                  // Unique parameter identifier
   double parBestVal[20];          // Best known value for each parameter
   int parFix[20];                 // Fix an MCMC parameter or not
   int parStartMCMC[20];           // Method of choosing starting value for Markov chains
@@ -252,7 +253,8 @@ struct mcmcvariables{
   char parAbrev[200][99];         // Abbreviations of the parameter names
   char parAbrv[200][99];          // Really short abbreviations of the parameter names
   int  parDef[200];               // Indicates whether a parameter is defined (1) or not (0)
-  int parRevID[200];              // Reverse parameter identifier
+  int parRevID[200];              // Reverse MCMC parameter identifier
+  int injRevID[200];              // Reverse injection parameter identifier
   
   
   double *histmean;               // Mean of hist block of iterations, used to get the covariance matrix
@@ -271,6 +273,7 @@ struct mcmcvariables{
   double *sumdlogL;               // Sum of the dlogLs, summed over 1 block of ncorr (?), was used in adaptive parallel tempering, still printed?
   double *avgdlogL;               // Average of the dlogLs, over 1 block of ncorr (?), was used in adaptive parallel tempering
   double *expdlogL;               // Expected dlogL for a flat distribution of chains, was used in adaptive parallel tempering                    
+  double minlogL;                 // Minimum value of logL to accept
   
 
   double *corrsig;                // Sigma for correlated update proposals
@@ -296,7 +299,7 @@ struct mcmcvariables{
   
   FILE *fout;                     // Output-file pointer
   FILE **fouts;                   // Output-file pointer array
-};
+}; // End struct mcmcvariables
 
 
 // Structure for spin parameter set with 12 parameters
@@ -428,10 +431,10 @@ void setseed(int *seed);
 
 void mcmc(struct runPar run, struct interferometer *ifo[]);
 void chol(double **A, struct mcmcvariables *mcmc);
-void par2arrt(struct parset par, double **param, struct mcmcvariables mcmc);
-void arr2part(double **param, struct parset *par, struct mcmcvariables mcmc);
+void par2arr(struct parset par, double **param, struct mcmcvariables mcmc);
+void arr2par(double **param, struct parset *par, struct mcmcvariables mcmc);
 double prior(double *par, int p, struct mcmcvariables mcmc);
-double uncorrelated_mcmc_single_update_angle_prior(double sigma, int p, struct mcmcvariables mcmc);
+double sigma_periodic_boundaries(double sigma, int p, struct mcmcvariables mcmc);
 
 void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
 void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
