@@ -236,9 +236,9 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   double cthJ0   = sqrt(1. - sthJ0*sthJ0);
   double n_J0[3] = { cos(pphiJ0)*cthJ0 , sin(pphiJ0)*cthJ0 , sthJ0 };
   
-  par->NdJ = dotproduct(n_N,n_J0);																						//Inclination of J_0; only for printing purposes, should be removed from this routine
+  par->NdJ = dotProduct(n_N,n_J0);																						//Inclination of J_0; only for printing purposes, should be removed from this routine
   
-  //Get individual masses from Mch and eta  CHECK: use mceta2masses()
+  //Get individual masses from Mch and eta  CHECK: use McEta2masses()
   double root = sqrt(0.25-peta);
   double fraction = (0.5-root) / (0.5+root);
   double inversefraction = 1.0/fraction;
@@ -253,18 +253,18 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   
   double cst5 = spin*sqrt(1.0-pkappa*pkappa);
      
-  facvec(n_J0,-sthJ0,tvec1);      
-  addvec(n_z,tvec1,tvec2);                                                                                                      //cvec1 = (n_z - J0^*cos(theta_J0))/sin(theta_J0)
-  facvec(tvec2,1.0/cthJ0,cvec1);
+  facVec(n_J0,-sthJ0,tvec1);      
+  addVec(n_z,tvec1,tvec2);                                                                                                      //cvec1 = (n_z - J0^*cos(theta_J0))/sin(theta_J0)
+  facVec(tvec2,1.0/cthJ0,cvec1);
   
   //Constant vector 2 for the construction of Eq.41e
-  crossproduct(n_J0,n_z,tvec1);                                                                                               //cvec2 = (J0^ x z^) / sin(theta_J0)
-  facvec(tvec1,1.0/cthJ0,cvec2);
+  crossProduct(n_J0,n_z,tvec1);                                                                                               //cvec2 = (J0^ x z^) / sin(theta_J0)
+  facVec(tvec1,1.0/cthJ0,cvec2);
   
   
   //Constant vector 3 for the construction of Eq.12
-  facvec(n_N,-dotproduct(normalvec,n_N),tvec1);                                                                          //tvec1 = -N^(z^'.N^)
-  addvec(normalvec,tvec1,cvec3);                                                                                         //cvec3 = z^' - N^(z^'.N^)
+  facVec(n_N,-dotProduct(normalvec,n_N),tvec1);                                                                          //tvec1 = -N^(z^'.N^)
+  addVec(normalvec,tvec1,cvec3);                                                                                         //cvec3 = z^' - N^(z^'.N^)
   
   
   double alpha=0.0;
@@ -293,14 +293,14 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   clamL = cst4/(l_L*G);                                                                                            //cos(lambda_L), Eq.48b
   
   //Construct Eq.41e
-  facvec(n_J0,clamL,tvec1);                                                                                        //tvec1 = J0^*cos(lambda_L)
-  facvec(cvec1,slamL*cos(alpha),tvec4);                                                                            //tvec4 = (n_z - J0^*cos(theta_J0))*sin(lambda_L)*cos(alpha)/sin(theta_J0)
-  facvec(cvec2,slamL*sin(alpha),tvec6);                                                                            //tvec6 = (J0^ x z^) * sin(lambds_L)*sin(alpha)/sin(theta_J0)
-  addvec(tvec1,tvec4,tvec7);                                                                                       //Construct Eq.41e
-  addvec(tvec7,tvec6,n_L);
+  facVec(n_J0,clamL,tvec1);                                                                                        //tvec1 = J0^*cos(lambda_L)
+  facVec(cvec1,slamL*cos(alpha),tvec4);                                                                            //tvec4 = (n_z - J0^*cos(theta_J0))*sin(lambda_L)*cos(alpha)/sin(theta_J0)
+  facVec(cvec2,slamL*sin(alpha),tvec6);                                                                            //tvec6 = (J0^ x z^) * sin(lambds_L)*sin(alpha)/sin(theta_J0)
+  addVec(tvec1,tvec4,tvec7);                                                                                       //Construct Eq.41e
+  addVec(tvec7,tvec6,n_L);
   //Eq.41e: n_L=L^
   
-  LdotN = dotproduct(n_L,n_N);
+  LdotN = dotProduct(n_L,n_N);
   
   double r = pow(M/(omega_orb*omega_orb),1.0/3.0);
   double e = (16.0/5.0)*sqrt((M/r)*(M/r)*(M/r)) / ((1.0+(3.0/4.0)*m2/m1)*(1.0+2.0*pkappa*Y+Y*Y));
@@ -323,17 +323,17 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   for(i=0;i<3;i++) yloc[i] = 0.0;
   for(i=0;i<3;i++) xloc[i] = 0.0;
   
-  crossproduct(zloc,n_L,yloc);
+  crossProduct(zloc,n_L,yloc);
   normalise(yloc);
-  crossproduct(yloc,zloc,xloc);
+  crossProduct(yloc,zloc,xloc);
   
   
   double n_Sloc[3];
   normalise(n_S);
   
-  n_Sloc[0] = dotproduct(n_S,xloc);
-  n_Sloc[1] = dotproduct(n_S,yloc);
-  n_Sloc[2] = dotproduct(n_S,zloc);
+  n_Sloc[0] = dotProduct(n_S,xloc);
+  n_Sloc[1] = dotProduct(n_S,yloc);
+  n_Sloc[2] = dotProduct(n_S,zloc);
   
   for(i=0;i<3;i++) n_S[i] = n_Sloc[i];
   
@@ -522,10 +522,10 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   
 
 
-  //Get masses from Mch and eta  CHECK: use mceta2masses()
+  //Get masses from Mch and eta  CHECK: use McEta2masses()
   
   double m1,m2;
-  mceta2masses(par->par[0],par->par[1],&m1,&m2);
+  McEta2masses(par->par[0],par->par[1],&m1,&m2);
   //printf("%f\t%f\n",m1,m2);
   /*
   double root = sqrt(0.25-par->par[1]);

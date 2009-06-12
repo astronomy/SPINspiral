@@ -3,7 +3,7 @@
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
    169: sluys, 12/06/2009
-     - selection of starting parameters with different waveforms
+     - selection of starting parameters with different waveforms works
      - fixed MCMC parameters may now start offset, depending on 'Start'
      - got rid of some compiler warnings from mcmc_lal.c
    

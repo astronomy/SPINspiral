@@ -83,18 +83,18 @@
 
 
 
-// Global constants etc., assigned in setconstants()
+// Global constants etc., assigned in setConstants()
 
-//  *** PLEASE DON'T ADD ANY NEW ONES, BUT USE THE STRUCTS BELOW INSTEAD (e.g. runPar or mcmcvariables) ***
+//  *** PLEASE DON'T ADD ANY NEW ONES, BUT USE THE STRUCTS BELOW INSTEAD (e.g. runPar or MCMCvariables) ***
 //      (and if you're bored, go ahead and place the variables below in these structs as well)
 
 //Global variables:
 
 char datadir[99];
 
-int iter,thinOutput,thinScreenOutput,adapt;
+int nIter,thinOutput,thinScreenOutput,adapt;
 
-int corrupd,ncorr,prmatrixinfo;
+int corrupd,nCorr,prMatrixInfo;
 
 double temp0;
 int nburn,nburn0;
@@ -136,16 +136,16 @@ struct runPar{
   int nMCMCpar;                   // Number of parameters in the MCMC template
   int nInjectPar;                 // Number of parameters in the injection template
   int mcmcWaveform;               // Waveform used as the MCMC template
-  int ntemps;		          // Size of temperature ladder
+  int nTemps;		          // Size of temperature ladder
   int MCMCseed;                   // Seed for MCMC
   int selectdata;                 // Select which data set to run on
-  int networksize;                // Number of IFOs in the detector network
+  int networkSize;                // Number of IFOs in the detector network
   int maxIFOdbaseSize;            // Maximum number of IFOs for which the properties are read in (e.g. from mcmc.data)
   int selectifos[9];              // Select IFOs to use for the analysis
   
   double blockfrac;               // Fraction of non-correlated updates that is a block update
   double corrfrac;                // Fraction of MCMC updates that used the correlation matrix
-  double mataccfr;                // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
+  double matAccFr;                // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
   
   double netsnr;                  // Total SNR of the network
   double temps[99];               // Temperature ladder for manual parallel tempering
@@ -220,22 +220,22 @@ struct runPar{
 
 
 //Structure for MCMC variables
-struct mcmcvariables{
+struct MCMCvariables{
   int maxnPar;                    // Maximum allowed number of MCMC/injection parameters
   int nMCMCpar;                   // Number of parameters in the MCMC template
   int nInjectPar;                 // Number of parameters in the injection template
-  int iteri;                      // State/iteration number
+  int iIter;                      // State/iteration number
   int nParFit;                    // Number of parameters in the MCMC that is fitted for
-  int ntemps;                     // Number of chains in the temperature ladder
-  int tempi;                      // The current temperature index
-  int networksize;                // Number of IFOs in the detector network
+  int nTemps;                     // Number of chains in the temperature ladder
+  int iTemp;                      // The current temperature index
+  int networkSize;                // Number of IFOs in the detector network
   int mcmcWaveform;               // Waveform used as the MCMC template
   int injectionWaveform;          // Waveform used to do software injections
   
   
-  double temp;                    // The current temperature
-  double mataccfr;                // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
-  double basetime;                // Base of time measurement, get rid of long GPS time format
+  double chTemp;                  // The current chain temperature
+  double matAccFr;                // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
+  double baseTime;                // Base of time measurement, get rid of long GPS time format
   
   
   //MCMC parameters:
@@ -265,38 +265,35 @@ struct mcmcvariables{
   int injRevID[200];              // Reverse injection parameter identifier
   
   
-  double *histmean;               // Mean of hist block of iterations, used to get the covariance matrix
-  double *histdev;                // Standard deviation of hist block of iterations, used to get the covariance matrix
+  double *histMean;               // Mean of hist block of iterations, used to get the covariance matrix
+  double *histDev;                // Standard deviation of hist block of iterations, used to get the covariance matrix
   
-  int *corrupdate;                // Switch (per chain) to do correlated (1) or uncorrelated (0) updates
-  int *acceptelems;               // Count 'improved' elements of diagonal of new corr matrix, to determine whether to accept it
+  int *corrUpdate;                // Switch (per chain) to do correlated (1) or uncorrelated (0) updates
+  int *acceptElems;               // Count 'improved' elements of diagonal of new corr matrix, to determine whether to accept it
 
   double *temps;                  // Array of temperatures in the temperature ladder
-  double *newtemps;               // New temperature ladder, was used in adaptive parallel tempering
-  double *tempampl;               // Temperature amplitudes for sinusoid T in parallel tempering
+  double *newTemps;               // New temperature ladder, was used in adaptive parallel tempering
+  double *tempAmpl;               // Temperature amplitudes for sinusoid T in parallel tempering
   double *logL;                   // Current log(L)
   double *nlogL;                  // New log(L)
   double *dlogL;                  // log(L)-log(Lo)
   double *maxdlogL;               // Remember the maximum dlog(L)
-  double *sumdlogL;               // Sum of the dlogLs, summed over 1 block of ncorr (?), was used in adaptive parallel tempering, still printed?
-  double *avgdlogL;               // Average of the dlogLs, over 1 block of ncorr (?), was used in adaptive parallel tempering
-  double *expdlogL;               // Expected dlogL for a flat distribution of chains, was used in adaptive parallel tempering                    
   double minlogL;                 // Minimum value of logL to accept
   
 
-  double *corrsig;                // Sigma for correlated update proposals
+  double *corrSig;                // Sigma for correlated update proposals
   int *swapTs1;                   // Totals for the columns in the chain-swap matrix
   int *swapTs2;                   // Totals for the rows in the chain-swap matrix                                               
-  int *acceptprior;               // Check boundary conditions and choose to accept (1) or not(0)
-  int *ihist;                     // Count the iteration number in the current history block to calculate the covar matrix from
+  int *acceptPrior;               // Check boundary conditions and choose to accept (1) or not(0)
+  int *iHist;                     // Count the iteration number in the current history block to calculate the covar matrix from
 
   int **accepted;                 // Count accepted proposals
   int **swapTss;                  // Count swaps between chains
   double **param;                 // The current parameters for all chains
   double **nParam;                // The new parameters for all chains
-  double **maxparam;              // The best parameters for all chains (max logL)
+  double **maxParam;              // The best parameters for all chains (max logL)
   double **sig;                   // The standard deviation of the gaussian to draw the jump size from
-  double **sigout;                // The sigma that gets written to output
+  double **sigOut;                // The sigma that gets written to output
   double **scale;                 // The rate of adaptation
   
   double ***hist;                 // Store a block of iterations, to calculate the covariance matrix
@@ -307,7 +304,10 @@ struct mcmcvariables{
   
   FILE *fout;                     // Output-file pointer
   FILE **fouts;                   // Output-file pointer array
-}; // End struct mcmcvariables
+}; // End struct MCMCvariables
+
+
+
 
 
 // Structure for spin parameter set with 12 parameters
@@ -315,10 +315,6 @@ struct parset{
   
   double par[20];
   
-  //double m1;         // mass 1                    
-  //double m2;         // mass 2                    
-  //double m;          // total mass                
-  //double mu;         // mass ratio                
   double mc;         // chirp mass                
   double eta;        // sym mass ratio            
   double tc;         // coalescence time          
@@ -422,89 +418,91 @@ void readSystemInputfile();
 void readInjectionXML(struct runPar *run);
 void setParameterNames(struct runPar * run);
 
-void setconstants();
+void setConstants();
 void setIFOdata(struct runPar *run, struct interferometer ifo[]);
 
 void setRandomInjectionParameters(struct runPar *run);
 void getInjectionParameters(struct parset *par, int nInjectionPar, double *parInjectVal);
 void getStartParameters(struct parset *par, struct runPar run);
-void startMCMCOffset(struct parset *par, struct mcmcvariables *mcmc, struct interferometer *ifo[]);
-void allocparset(struct parset *par, int networksize);
-void freeparset(struct parset *par);
-void printparset(struct parset par);
+void startMCMCOffset(struct parset *par, struct MCMCvariables *mcmc, struct interferometer *ifo[]);
+void allocParset(struct parset *par, int networkSize);
+void freeParset(struct parset *par);
 
-void copyRun2MCMC(struct runPar run, struct mcmcvariables *mcmc);
-void setmcmcseed(struct runPar *run);
-void setseed(int *seed);
+void copyRun2MCMC(struct runPar run, struct MCMCvariables *mcmc);
+void setMCMCseed(struct runPar *run);
+void setSeed(int *seed);
 
-void mcmc(struct runPar run, struct interferometer *ifo[]);
-void chol(double **A, struct mcmcvariables *mcmc);
-void par2arr(struct parset par, double **param, struct mcmcvariables mcmc);
-void arr2par(double **param, struct parset *par, struct mcmcvariables mcmc);
-double prior(double *par, int p, struct mcmcvariables mcmc);
-double sigma_periodic_boundaries(double sigma, int p, struct mcmcvariables mcmc);
+void MCMC(struct runPar run, struct interferometer *ifo[]);
+void CholeskyDecompose(double **A, struct MCMCvariables *mcmc);
+void par2arr(struct parset par, double **param, struct MCMCvariables mcmc);
+void arr2par(double **param, struct parset *par, struct MCMCvariables mcmc);
+double prior(double *par, int p, struct MCMCvariables mcmc);
+double sigmaPeriodicBoundaries(double sigma, int p, struct MCMCvariables mcmc);
 
-void correlated_mcmc_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
-void uncorrelated_mcmc_single_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
-void uncorrelated_mcmc_block_update(struct interferometer *ifo[], struct parset *state, struct mcmcvariables *mcmc);
+void correlatedMCMCupdate(struct interferometer *ifo[], struct parset *state, struct MCMCvariables *mcmc);
+void uncorrelatedMCMCsingleUpdate(struct interferometer *ifo[], struct parset *state, struct MCMCvariables *mcmc);
+void uncorrelatedMCMCblockUpdate(struct interferometer *ifo[], struct parset *state, struct MCMCvariables *mcmc);
 
-void write_mcmc_header(struct interferometer *ifo[], struct mcmcvariables mcmc, struct runPar run);
-void write_mcmc_output(struct mcmcvariables mcmc, struct interferometer *ifo[]);
-void allocate_mcmcvariables(struct mcmcvariables *mcmc);
-void free_mcmcvariables(struct mcmcvariables *mcmc);
+void writeMCMCheader(struct interferometer *ifo[], struct MCMCvariables mcmc, struct runPar run);
+void writeMCMCoutput(struct MCMCvariables mcmc, struct interferometer *ifo[]);
+void allocateMCMCvariables(struct MCMCvariables *mcmc);
+void freeMCMCvariables(struct MCMCvariables *mcmc);
 
-void update_covariance_matrix(struct mcmcvariables *mcmc);
-double anneal_temperature(double temp0, int nburn, int nburn0, int iteri);
-void swap_chains(struct mcmcvariables *mcmc);
-void write_chain_info(struct mcmcvariables mcmc);
-
+void updateCovarianceMatrix(struct MCMCvariables *mcmc);
+double annealTemperature(double temp0, int nburn, int nburn0, int iIter);
+void swapChains(struct MCMCvariables *mcmc);
+void writeChainInfo(struct MCMCvariables mcmc);
 
 
 
-double chirpmass(double m1, double m2);
-double massratio(double m1, double m2);
-void mceta2masses(double mc, double eta, double *m1, double *m2);
-void masses2mceta(double m1, double m2, double *Mc, double *eta);
+
+double chirpMass(double m1, double m2);
+double massRatio(double m1, double m2);
+void McEta2masses(double mc, double eta, double *m1, double *m2);
+void masses2McEta(double m1, double m2, double *Mc, double *eta);
 
 double GMST(double GPSsec);
 double rightAscension(double longi, double GMST);
 double longitude(double rightAscension, double GMST);
 
-double dotproduct(double vec1[3], double vec2[3]);
-void facvec(double vec1[3], double fac, double vec2[3]);
-void addvec(double vec1[3], double vec2[3], double result[3]);
+double dotProduct(double vec1[3], double vec2[3]);
+void facVec(double vec1[3], double fac, double vec2[3]);
+void addVec(double vec1[3], double vec2[3], double result[3]);
 void normalise(double vec[3]);
-void crossproduct(double vec1[3], double vec2[3], double result[3]);
+void crossProduct(double vec1[3], double vec2[3], double result[3]);
 void rotate(double x[3], double angle, double axis[3]);
-int righthanded(double x[3], double y[3], double z[3]);
-void orthoproject(double x[3], double vec1[3], double vec2[3]);
+int rightHanded(double x[3], double y[3], double z[3]);
+void orthoProject(double x[3], double vec1[3], double vec2[3]);
 double angle(double x[3], double y[3]);
 void coord2vec(double sinlati, double longi, double x[3]);
 void vec2coord(double x[3], double *sinlati, double *longi);
 
-void choleskyinv(double randlibout[], double inverse[]);
 
-void ifoinit(struct interferometer **ifo, int networksize, struct runPar run);
-void ifodispose(struct interferometer *ifo);
-void localpar(struct parset *par, struct interferometer *ifo[], int networksize);
+//************************************************************************************************************************************************
+
+void IFOinit(struct interferometer **ifo, int networkSize, struct runPar run);
+void IFOdispose(struct interferometer *ifo);
+void localPar(struct parset *par, struct interferometer *ifo[], int networkSize);
 double *filter(int *order, int samplerate, double upperlimit);
 double *downsample(double data[], int *datalength, double coef[], int ncoef);
-void dataFT(struct interferometer *ifo[], int i, int networksize, struct runPar run);
-double hann(int j, int N);
-double tukey(int j, int N, double r);
+void dataFT(struct interferometer *ifo[], int i, int networkSize, struct runPar run);
+double hannWindow(int j, int N);
+double tukeyWindow(int j, int N, double r);
 void noisePSDestimate(struct interferometer *ifo, struct runPar run);
-double log_noisePSD(double f, struct interferometer *ifo);
-double interpol_log_noisePSD(double f, struct interferometer *ifo);
-void writeDataToFiles(struct interferometer *ifo[], int networksize, int mcmcseed);
-void writeNoiseToFiles(struct interferometer *ifo[], int networksize, int mcmcseed);
-void writeSignalsToFiles(struct interferometer *ifo[], int networksize, struct runPar run);
+double logNoisePSD(double f, struct interferometer *ifo);
+double interpolLogNoisePSD(double f, struct interferometer *ifo);
+void writeDataToFiles(struct interferometer *ifo[], int networkSize, int mcmcseed);
+void writeNoiseToFiles(struct interferometer *ifo[], int networkSize, int mcmcseed);
+void writeSignalsToFiles(struct interferometer *ifo[], int networkSize, struct runPar run);
 void printParameterHeaderToFile(FILE * dump);
 
-void antennaepattern(double altitude, double azimuth, double polarisation,
-		     double *Fplus, double *Fcross);
+
+//************************************************************************************************************************************************
 void template(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion);
 void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr);
 		  
+
+
 //************************************************************************************************************************************************
 
 void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr);
@@ -520,26 +518,19 @@ void LALfreedom(CoherentGW *waveform);
 
 //************************************************************************************************************************************************
 
-double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int i, int waveformVersion);
-double net_loglikelihood(struct parset *par, int networksize, struct interferometer *ifo[], int waveformVersion);
-double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int i, int waveformVersion);
-double overlapwithdata(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion);
-double parmatch(struct parset *par1,struct parset *par2, struct interferometer *ifo[], int networksize, int waveformVersion);
-double paroverlap(struct parset *par1, struct parset *par2, struct interferometer *ifo[], int ifonr, int waveformVersion);
-double vecoverlap(fftw_complex *vec1, fftw_complex *vec2, double * noise, int j1, int j2, double deltaFT);
+double netLogLikelihood(struct parset *par, int networkSize, struct interferometer *ifo[], int waveformVersion);
+double IFOlogLikelihood(struct parset *par, struct interferometer *ifo[], int i, int waveformVersion);
+double signalToNoiseRatio(struct parset *par, struct interferometer *ifo[], int i, int waveformVersion);
+double overlapWithData(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion);
+double parMatch(struct parset *par1,struct parset *par2, struct interferometer *ifo[], int networkSize, int waveformVersion);
+double parOverlap(struct parset *par1, struct parset *par2, struct interferometer *ifo[], int ifonr, int waveformVersion);
+double vecOverlap(fftw_complex *vec1, fftw_complex *vec2, double * noise, int j1, int j2, double deltaFT);
 void signalFFT(fftw_complex * FFTout, struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion);
-double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct interferometer *ifo[], struct mcmcvariables mcmc);
-//void computeFishermatrixIFO(struct parset *par, int npar, struct interferometer *ifo[], int networksize, int ifonr, double **matrix);
-//void computeFishermatrix(struct parset *par, int npar, struct interferometer *ifo[], int networksize, double **matrix);
-//double match(struct parset *par, struct interferometer *ifo[], int i, int networksize);
+double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct interferometer *ifo[], struct MCMCvariables mcmc);
+//void computeFishermatrixIFO(struct parset *par, int npar, struct interferometer *ifo[], int networkSize, int ifonr, double **matrix);
+//void computeFishermatrix(struct parset *par, int npar, struct interferometer *ifo[], int networkSize, double **matrix);
+//double match(struct parset *par, struct interferometer *ifo[], int i, int networkSize);
 
-
-double logprior(struct parset *par);
-double logstartdens(struct parset *par);
-double logmultiplier(double mc, double eta, double logdl, double sinlati, double cosiota);
-double lgamma(double x);
-double logit(double x);
-double logitinverse(double x);
 
 
 

@@ -111,11 +111,11 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
   double cthJ0   = sqrt(1.0 - sthJ0*sthJ0);
   double n_J0[3] = { cos(pphiJ0)*cthJ0 , sin(pphiJ0)*cthJ0 , sthJ0 };                                           //Here, theta_Jo is a latitude-like angle like Dec (-pi/2-pi/2).
   
-  par->NdJ = dotproduct(n_N,n_J0);                                                                                      //Inclination of J_0; only for printing purposes, should be removed from this routine
+  par->NdJ = dotProduct(n_N,n_J0);                                                                                      //Inclination of J_0; only for printing purposes, should be removed from this routine
 
   //Get individual masses from Mch and eta:
   Mc = pmc*M0;                                                                                                      //Chirp mass in seconds
-  mceta2masses(Mc, peta, &m1, &m2);                                                                                    //Mc,eta->M1,M2; accepts 0.25<eta<0.50
+  McEta2masses(Mc, peta, &m1, &m2);                                                                                    //Mc,eta->M1,M2; accepts 0.25<eta<0.50
   Mtot = m1+m2;
   if(peta>0.25) peta = 0.5 - peta;
   mu = m1*m2/Mtot;                                                                                                         // Eq.16b
@@ -132,17 +132,17 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
   double cst5 = spin*sqrt(1.0-pkappa*pkappa);
   
   //Constant vector 1 for the construction of Eq.41e
-  facvec(n_J0,-sthJ0,tvec1);                                                                                             //tvec1 = -J0^*cos(theta_J0)   MvdS: theta_J0 is a latitude, not a co-latitude
-  addvec(n_z,tvec1,tvec2);                                                                                               //tvec2 = n_z - J0^*cos(theta_J0)
-  facvec(tvec2,1.0/cthJ0,cvec1);                                                                                         //cvec1 = (n_z - J0^*cos(theta_J0))/sin(theta_J0)
+  facVec(n_J0,-sthJ0,tvec1);                                                                                             //tvec1 = -J0^*cos(theta_J0)   MvdS: theta_J0 is a latitude, not a co-latitude
+  addVec(n_z,tvec1,tvec2);                                                                                               //tvec2 = n_z - J0^*cos(theta_J0)
+  facVec(tvec2,1.0/cthJ0,cvec1);                                                                                         //cvec1 = (n_z - J0^*cos(theta_J0))/sin(theta_J0)
   
   //Constant vector 2 for the construction of Eq.41e
-  crossproduct(n_J0,n_z,tvec1);                                                                                          //tvec1 = J0^ x z^
-  facvec(tvec1,1.0/cthJ0,cvec2);                                                                                         //cvec2 = (J0^ x z^) / sin(theta_J0)
+  crossProduct(n_J0,n_z,tvec1);                                                                                          //tvec1 = J0^ x z^
+  facVec(tvec1,1.0/cthJ0,cvec2);                                                                                         //cvec2 = (J0^ x z^) / sin(theta_J0)
   
   //Constant vector 3 for the construction of Eq.12 (local polarisation for F+,x)
-  facvec(n_N,-dotproduct(normalvec,n_N),tvec1);                                                                          //tvec1 = -N^(z^'.N^)
-  addvec(normalvec,tvec1,cvec3);                                                                                         //cvec3 = z^' - N^(z^'.N^)
+  facVec(n_N,-dotProduct(normalvec,n_N),tvec1);                                                                          //tvec1 = -N^(z^'.N^)
+  addVec(normalvec,tvec1,cvec3);                                                                                         //cvec3 = z^' - N^(z^'.N^)
   
   //Construct Eq.8ab, needed for F+,Fx
   double cosalti   = cos(altitude);
@@ -254,14 +254,14 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
         
         
         //Construct Eq.41e
-        facvec(n_J0,clamL,tvec1);                                                                                        //tvec1 = J0^*cos(lambda_L)
-        facvec(cvec1,slamL*cos(alpha),tvec4);                                                                            //tvec4 = (n_z - J0^*cos(theta_J0))*sin(lambda_L)*cos(alpha)/sin(theta_J0)
-        facvec(cvec2,slamL*sin(alpha),tvec6);                                                                            //tvec6 = (J0^ x z^) * sin(lambds_L)*sin(alpha)/sin(theta_J0)
-        addvec(tvec1,tvec4,tvec7);                                                                                       //Construct Eq.59
-        addvec(tvec7,tvec6,n_L);                                                                                         //Eq.59: n_L=L^
+        facVec(n_J0,clamL,tvec1);                                                                                        //tvec1 = J0^*cos(lambda_L)
+        facVec(cvec1,slamL*cos(alpha),tvec4);                                                                            //tvec4 = (n_z - J0^*cos(theta_J0))*sin(lambda_L)*cos(alpha)/sin(theta_J0)
+        facVec(cvec2,slamL*sin(alpha),tvec6);                                                                            //tvec6 = (J0^ x z^) * sin(lambds_L)*sin(alpha)/sin(theta_J0)
+        addVec(tvec1,tvec4,tvec7);                                                                                       //Construct Eq.59
+        addVec(tvec7,tvec6,n_L);                                                                                         //Eq.59: n_L=L^
 	
         
-        LdotN  = dotproduct(n_L,n_N);                                                                                    //L^.N^
+        LdotN  = dotProduct(n_L,n_N);                                                                                    //L^.N^
 	x1     = 2.0*exp(5.0*c3rd*log(Mc))/D_L;
         x3     = exp(2.0*c3rd*log(omega_orb));
         hplus  =      x1 * (1.0 + LdotN*LdotN) * x3 * cos(phi_gw);
@@ -269,8 +269,8 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
         
         
         //Local polarisation vector, F+,Fx:
-        crossproduct(n_L,normalvec,tvec1);                                                                              //tvec1 = n_L x z^'
-        locpolar  = atan(dotproduct(n_L,cvec3)/dotproduct(n_N,tvec1));                                                  //Eq.12 of Vecchio, result between -pi/2 and pi/2
+        crossProduct(n_L,normalvec,tvec1);                                                                              //tvec1 = n_L x z^'
+        locpolar  = atan(dotProduct(n_L,cvec3)/dotProduct(n_N,tvec1));                                                  //Eq.12 of Vecchio, result between -pi/2 and pi/2
         sin2polar = sin(2.0*locpolar);
 	cos2polar = sqrt(1.0-sin2polar*sin2polar);                                                                      //Since 2*locpolar should be between -pi and pi (?)
         Fplus     =  cst6*cos2polar + cst7*sin2polar;                                                                   //Eq.8a
@@ -331,7 +331,7 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
 
 
 
-void localpar(struct parset *par, struct interferometer *ifo[], int networksize)
+void localPar(struct parset *par, struct interferometer *ifo[], int networkSize)
 // Calculate the local parameters from the global ones, for the spinning parameters:
 //    par   :  pointer to parameter set (struct)
 //    ifo   :  pointer to interferometer data (struct)
@@ -345,22 +345,22 @@ void localpar(struct parset *par, struct interferometer *ifo[], int networksize)
   
   // Determine local coalescence times:
   coord2vec(psinlati, plongi, lineofsight);
-  for (ifonr=0; ifonr<networksize; ifonr++){
+  for (ifonr=0; ifonr<networkSize; ifonr++){
     scalprod1 =  ifo[ifonr]->positionvec[0]*lineofsight[0]  +  ifo[ifonr]->positionvec[1]*lineofsight[1]  +  ifo[ifonr]->positionvec[2]*lineofsight[2];  // Project line of sight onto positionvec, scalprod1 is in units of metres
     delay = scalprod1 / c;                                         // Time delay (wrt geocentre) in seconds
     par->loctc[ifonr] = ((ptc - ifo[ifonr]->FTstart) - delay);
   }
   
   // Determine local sky position:
-  for (ifonr=0; ifonr<networksize; ifonr++){
+  for (ifonr=0; ifonr<networkSize; ifonr++){
     // 'Altitude' in the ifo' frame:
     par->localti[ifonr] = angle(ifo[ifonr]->normalvec, lineofsight);       // Actually, this is the colatitude in the ifo' frame (i.e. 0deg=zenith, 90deg=horizon)
     
     // 'Azimuth' in the ifo' frame:
     for (j=0; j<3; ++j) dummyvec[j] = lineofsight[j];              // Temp vector with line of sight
-    orthoproject(dummyvec, ifo[ifonr]->rightvec, ifo[ifonr]->orthoArm);    // Project line of sight into ifo' arm plane
+    orthoProject(dummyvec, ifo[ifonr]->rightvec, ifo[ifonr]->orthoArm);    // Project line of sight into ifo' arm plane
     par->locazi[ifonr] = angle(dummyvec, ifo[ifonr]->rightvec);            // The 'true' azimuth (N=0,E=90deg) of the source at the location of the detector is:  pi - (par->locazi[ifonr] + ifo[ifonr]->rightArm) 
-    if (!righthanded(ifo[ifonr]->rightvec, dummyvec, ifo[ifonr]->normalvec)) par->locazi[ifonr] = 2.0*pi - par->locazi[ifonr];
+    if (!rightHanded(ifo[ifonr]->rightvec, dummyvec, ifo[ifonr]->normalvec)) par->locazi[ifonr] = 2.0*pi - par->locazi[ifonr];
     
     //printf("  %d  %lf  %lf  %s\n",ifonr,ifo[ifonr]->lati/pi*180.0,ifo[ifonr]->longi/pi*180.0,ifo[ifonr]->name);
   }

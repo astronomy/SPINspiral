@@ -38,19 +38,19 @@
 
 //*** MASSES ***//
 
-double massratio(double m1, double m2)
+double massRatio(double m1, double m2)
 // Compute symmetric mass ratio (eta) for given individual masses
 {
   return (m1*m2)/pow(m1+m2,2.0);
 }
 
-double chirpmass(double m1, double m2)
+double chirpMass(double m1, double m2)
 // Compute chirp mass (mc) for given individual masses
 {
   return pow(m1*m2,0.6) / pow(m1+m2,0.2);
 }
 
-void mceta2masses(double Mc, double eta, double *m1, double *m2)
+void McEta2masses(double Mc, double eta, double *m1, double *m2)
 // Compute individual masses (m1,m2) for given chirp mass (Mc) and symmetric mass ratio (eta)
 {
   if(eta<=0.25) {
@@ -67,7 +67,7 @@ void mceta2masses(double Mc, double eta, double *m1, double *m2)
   }
 }
 
-void masses2mceta(double m1, double m2, double *Mc, double *eta)
+void masses2McEta(double m1, double m2, double *Mc, double *eta)
 // Compute chirp mass (Mc) and symmetric mass ratio (eta) for given individual masses (m1,m2)
 {
   double Mtot = m1+m2;
@@ -124,13 +124,13 @@ double longitude(double rightAscension, double GMST)
 
 //*** VECTORS ***
 
-double dotproduct(double vec1[3], double vec2[3])
+double dotProduct(double vec1[3], double vec2[3])
 // Dot product of two vectors
 {
   return vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2];
 }
 
-void facvec(double vec1[3], double fac, double vec2[3])
+void facVec(double vec1[3], double fac, double vec2[3])
 // Multiply a vector by a factor (scalar): vec2 = fac*vec1
 {
   vec2[0] = fac*vec1[0];
@@ -138,7 +138,7 @@ void facvec(double vec1[3], double fac, double vec2[3])
   vec2[2] = fac*vec1[2];
 }
 
-void addvec(double vec1[3], double vec2[3], double result[3])
+void addVec(double vec1[3], double vec2[3], double result[3])
 // Add two vectors result = vec1 + vec2
 {
   result[0] = vec1[0] + vec2[0];
@@ -156,7 +156,7 @@ void normalise(double vec[3])
   vec[2] /= length;
 }
 
-void crossproduct(double vec1[3], double vec2[3], double result[3])
+void crossProduct(double vec1[3], double vec2[3], double result[3])
 /* cross product (cartesian p., outer p.) of two vectors: */
 /*    -  x*y is orthogonal to x and y.                    */
 /*    -  |x*y| = |x| * |y| * sin(angle(x,y)).             */
@@ -193,7 +193,7 @@ void rotate(double x[3], double angle, double axis[3])
   for (i=0; i<3; ++i) x[i] = result[i];
 }
 
-int righthanded(double x[3], double y[3], double z[3])
+int rightHanded(double x[3], double y[3], double z[3])
 /* Determines whether vectors x,y & z constitute a right-handed system */
 /* by checking the sign of the triple product or det(x,y,z).           */
 {
@@ -203,7 +203,7 @@ int righthanded(double x[3], double y[3], double z[3])
   return result;
 }
 
-void orthoproject(double x[3], double vec1[3], double vec2[3])
+void orthoProject(double x[3], double vec1[3], double vec2[3])
 /* Determines the orthogonal projection of vector x onto the span of */
 /* the two ORTHONORMAL (!) vectors vec1 and vec2.                    */
 {
@@ -245,9 +245,9 @@ void vec2coord(double x[3], double *sinlati, double *longi)
   double northpole[3] = {0.0, 0.0, 1.0};
   double dummy[3]     = {x[0], x[1], x[2]};
   *sinlati = sin(0.5*pi - angle(northpole, x));
-  orthoproject(dummy, greenwich, ganges);
+  orthoProject(dummy, greenwich, ganges);
   *longi = angle(greenwich, dummy);
-  if (righthanded(greenwich,northpole,dummy))
+  if (rightHanded(greenwich,northpole,dummy))
     *longi *= -1.0;
 }
 
@@ -257,7 +257,7 @@ void vec2coord(double x[3], double *sinlati, double *longi)
 
 
 
-void setseed(int *seed)
+void setSeed(int *seed)
 //If seed==0, set (randomise) it using the system clock
 {
   struct timeval time;

@@ -44,11 +44,14 @@
 
 
 // ****************************************************************************************************************************************************  
+/** 
+ * \brief Read and parse command-line arguments/options
+ */
+// ****************************************************************************************************************************************************  
 void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
 {
   int c;
   if(argc > 1) printf("   Parsing %i command-line arguments:\n",argc-1);
-  
   
   
   //Set up struct with long (--) options:
@@ -65,7 +68,7 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
     switch(c) {
       
       
-      //Treat (untranslated) long options:
+      // *** Treat (untranslated) long options:
     case 0:
       if(strcmp(long_options[option_index].name,"injXMLfile")==0) {
 	run->injXMLfilename=(char*)malloc(strlen(optarg)+1);
@@ -80,8 +83,7 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
       break; //For case 0: long options
       
       
-      
-      //Treat the short and translated long options:
+      // *** Treat the short and translated long options:
     case 'i':
       strcpy(run->mainFilename,optarg);
       printf("     Using main input file %s\n",run->mainFilename);
@@ -115,8 +117,12 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
 
 
 
-// Read the main input file.
-// All parameters that are read here should be(come) members of the runvar struct and lose their global status
+// ****************************************************************************************************************************************************  
+/** 
+ * \brief Read the main input file
+ * 
+ * All parameters that are read here should be(come) members of the runvar struct and lose their global status
+ */
 // ****************************************************************************************************************************************************  
 void readMainInputfile(struct runPar *run)
 {
@@ -167,8 +173,12 @@ void readMainInputfile(struct runPar *run)
 
 
 
-// Read the MCMC input file.
-// All parameters that are read in here should be(come) members of the runvar struct and lose their global status
+// ****************************************************************************************************************************************************  
+/** 
+ * \brief Read the MCMC input file
+ * 
+ * All parameters that are read here should be(come) members of the runvar struct and lose their global status
+ */
 // ****************************************************************************************************************************************************  
 void readMCMCinputfile(struct runPar *run)
 {
@@ -219,7 +229,7 @@ void readMCMCinputfile(struct runPar *run)
   
   
   fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);    
-  iter = (int)tmpdbl;
+  nIter = (int)tmpdbl;
   fgets(bla,500,fin);  sscanf(bla,"%d",&thinOutput);
   fgets(bla,500,fin);  sscanf(bla,"%d",&thinScreenOutput);
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->MCMCseed);
@@ -233,9 +243,9 @@ void readMCMCinputfile(struct runPar *run)
   fgets(bla,500,fin);  sscanf(bla,"%d",&corrupd);
   fgets(bla,500,fin);  sscanf(bla,"%lf",&run->corrfrac);
   fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);
-  ncorr = (int)tmpdbl;
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->mataccfr);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&prmatrixinfo);
+  nCorr = (int)tmpdbl;
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->matAccFr);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&prMatrixInfo);
   
   
   //Annealing:
@@ -249,19 +259,18 @@ void readMCMCinputfile(struct runPar *run)
   //Parallel tempering:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin);  sscanf(bla,"%d",&partemp);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&run->ntemps);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->nTemps);
   fgets(bla,500,fin);  sscanf(bla,"%lf",&tempmax);
   fgets(bla,500,fin);  sscanf(bla,"%d",&savehotchains);
   fgets(bla,500,fin);  sscanf(bla,"%d",&prpartempinfo);
   
   //Manual temperature ladder for parallel tempering:
   fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
-  for(i=0;i<run->ntemps;i++) fscanf(fin,"%lf",&run->temps[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  for(i=0;i<run->nTemps;i++) fscanf(fin,"%lf",&run->temps[i]);  //Read the array directly, because sscanf cannot be in a loop...
   
   fclose(fin);
-}
+} //End of void readMCMCinputfile(struct runPar *run)
 // ****************************************************************************************************************************************************  
-//End of void readMCMCinputfile(struct runPar *run)
 
 
 
@@ -274,7 +283,10 @@ void readMCMCinputfile(struct runPar *run)
 
 
 
-// Read the data input file.
+// ****************************************************************************************************************************************************  
+/** 
+ * \brief Read the data input file
+ */
 // ****************************************************************************************************************************************************  
 void readDataInputfile(struct runPar *run, struct interferometer ifo[])
 {
@@ -296,8 +308,8 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
   
   //Detector network:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%d",&run->networksize);
-  for(i=0;i<run->networksize;i++) fscanf(fin,"%d",&run->selectifos[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->networkSize);
+  for(i=0;i<run->networkSize;i++) fscanf(fin,"%d",&run->selectifos[i]);  //Read the array directly, because sscanf cannot be in a loop...
   fgets(bla,500,fin);  //Read the rest of the line
   
   
@@ -318,7 +330,7 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
   
   
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
-  for(i=0;i<run->networksize;i++){
+  for(i=0;i<run->networkSize;i++){
     fgets(bla,500,fin); fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
     
     fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].name);
@@ -368,7 +380,12 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
 
 
 
-// All parameters that are read in here should be(come) members of the runvar struct
+// ****************************************************************************************************************************************************  
+/** 
+ * \brief Read the injection input file
+ * 
+ * All parameters that are read in here should be(come) members of the runvar struct
+ */
 // ****************************************************************************************************************************************************  
 void readInjectionInputfile(struct runPar *run)
 {
@@ -542,7 +559,12 @@ void readInjectionInputfile(struct runPar *run)
 
 
 
-// All parameters that are read in here should be(come) members of the runvar struct
+// ****************************************************************************************************************************************************  
+/** 
+ * \brief Read the (MCMC) parameter input file
+ * 
+ * All parameters that are read in here should be(come) members of the runvar struct
+ */
 // ****************************************************************************************************************************************************  
 void readParameterInputfile(struct runPar *run)
 {
@@ -716,7 +738,12 @@ void readParameterInputfile(struct runPar *run)
 
 
 
-//Read the input file for system (system-dependent) variables, e.g. mcmc.input.system
+
+
+// ****************************************************************************************************************************************************  
+/** 
+ * \brief Read the input file for system (system-dependent) variables, e.g. mcmc.input.system
+ */
 // ****************************************************************************************************************************************************  
 void readSystemInputfile(struct runPar *run)
 {
@@ -747,6 +774,10 @@ void readSystemInputfile(struct runPar *run)
 
 
 
+// ****************************************************************************************************************************************************  
+/** 
+ * \brief Read an XML injection file if specified
+ */
 // ****************************************************************************************************************************************************  
 void readInjectionXML(struct runPar *run)
 {
@@ -874,8 +905,11 @@ void readInjectionXML(struct runPar *run)
 
 
 // ****************************************************************************************************************************************************  
+/** 
+ * \brief Get random values for the injection parameters.
+ */
+// ****************************************************************************************************************************************************  
 void setRandomInjectionParameters(struct runPar *run)  
-// Get random values for the injection parameters.
 {
   int i=0;
   gsl_rng *ran;
@@ -886,7 +920,7 @@ void setRandomInjectionParameters(struct runPar *run)
   if(1==2 && run->injRanSeed == 0) {
     printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setRandomInjectionParameters() \n\n");
     run->injRanSeed = 0;
-    setseed(&run->injRanSeed);
+    setSeed(&run->injRanSeed);
     printf("  Seed: %d\n", run->injRanSeed);
   }
   
@@ -908,13 +942,17 @@ void setRandomInjectionParameters(struct runPar *run)
   }
   
   gsl_rng_free(ran);
-}
+} // End setRandomInjectionParameters()
 // ****************************************************************************************************************************************************  
 
 
 
 
 
+// ****************************************************************************************************************************************************  
+/** 
+ * \brief Set parameters names in the hardcoded parameter database
+ */
 // ****************************************************************************************************************************************************  
 void setParameterNames(struct runPar * run)
 {
@@ -1026,7 +1064,7 @@ void setParameterNames(struct runPar * run)
   //strcpy(run->parAbrev[], "");
   //run->parDef[] = 1;
   
-}
+} // End setParameterNames()
 // ****************************************************************************************************************************************************  
 
 
@@ -1034,13 +1072,16 @@ void setParameterNames(struct runPar * run)
 
 
 
-// Set the global variables.
-// Many of these are now in the input file or unused.
-// This routine should eventually contain mathematical and (astro)physical constants only
 // ****************************************************************************************************************************************************  
-void setconstants()
+/** 
+ * \brief Set global variables
+ *
+ * \todo This routine should eventually contain mathematical and (astro)physical constants only.
+ */
+// ****************************************************************************************************************************************************  
+void setConstants()
 {
-  tempi = 0; //A global variable that determines the current chain (temperature) in the temperature ladder
+  tempi = 0; //A global variable that determines the current chain (temperature) in the temperature ladder - move this to MCMCvariables struct
   
   // Mathematical constants:
   pi   = 3.141592653589793;   // pi
@@ -1054,7 +1095,7 @@ void setconstants()
   Ms   = 1.9889194662e30;     // solar mass (kg)
   Mpc  = 3.08568025e22;       // metres in a Mpc  (LAL: 3.0856775807e22)
   Mpcs = 1.029272137e14;      // seconds in a Mpc  (Mpc/c)
-}
+} // End setConstants
 // ****************************************************************************************************************************************************  
 
 
@@ -1065,7 +1106,13 @@ void setconstants()
 
 
 // ****************************************************************************************************************************************************  
-void getInjectionParameters(struct parset *par, int nInjectionPar, double *injParVal)  //Set the parameters to the 'injection values'
+/** 
+ * \brief Returns the 'injection values' to the parameter set par
+ *
+ * \todo Remove par->mc etc. struct elements
+ */
+// ****************************************************************************************************************************************************  
+void getInjectionParameters(struct parset *par, int nInjectionPar, double *injParVal)
 {
   int i=0;
   for(i=0;i<nInjectionPar;i++) {
@@ -1085,10 +1132,16 @@ void getInjectionParameters(struct parset *par, int nInjectionPar, double *injPa
   par->localti  = NULL;
   par->locazi   = NULL;
   par->locpolar = NULL;
-}
+} // End getInjectionParameters()
 // ****************************************************************************************************************************************************  
 
 
+
+
+// ****************************************************************************************************************************************************  
+/** 
+ * \brief Returns the 'best-guess values' to the parameter set par
+ */
 // ****************************************************************************************************************************************************  
 void getStartParameters(struct parset *par, struct runPar run)  //Set the parameters to the starting values for the MCMC chain
 {
@@ -1107,31 +1160,40 @@ void getStartParameters(struct parset *par, struct runPar run)  //Set the parame
 
 
 
-//Allocate memory for the vectors in the struct parset
-void allocparset(struct parset *par, int networksize)
+// ****************************************************************************************************************************************************  
+/** 
+ * \brief Allocate memory for the vectors in the struct parset
+ */
+// ****************************************************************************************************************************************************  
+void allocParset(struct parset *par, int networkSize)
 {
   par->loctc    = NULL;
   par->localti  = NULL;
   par->locazi   = NULL;
   par->locpolar = NULL;
   
-  par->loctc    = (double*)calloc(networksize,sizeof(double));
-  par->localti  = (double*)calloc(networksize,sizeof(double));
-  par->locazi   = (double*)calloc(networksize,sizeof(double));
-  par->locpolar = (double*)calloc(networksize,sizeof(double));
-}
+  par->loctc    = (double*)calloc(networkSize,sizeof(double));
+  par->localti  = (double*)calloc(networkSize,sizeof(double));
+  par->locazi   = (double*)calloc(networkSize,sizeof(double));
+  par->locpolar = (double*)calloc(networkSize,sizeof(double));
+} // End allocParset
 // ****************************************************************************************************************************************************  
 
 
-//Deallocate the vectors in the struct parset
+
+
 // ****************************************************************************************************************************************************  
-void freeparset(struct parset *par)
+/** 
+ * \brief Deallocate memory for the vectors in the struct parset
+ */
+// ****************************************************************************************************************************************************  
+void freeParset(struct parset *par)
 {
   free(par->loctc);         par->loctc        = NULL;
   free(par->localti);       par->localti      = NULL;
   free(par->locazi);        par->locazi       = NULL;
   free(par->locpolar);      par->locpolar     = NULL;
-}
+} // End freeParset
 // ****************************************************************************************************************************************************  
 
 

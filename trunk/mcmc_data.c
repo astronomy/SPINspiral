@@ -118,7 +118,7 @@ void setIFOdata(struct runPar *run, struct interferometer ifo[])
  * 
  */
 // ****************************************************************************************************************************************************  
-void ifoinit(struct interferometer **ifo, int networksize, struct runPar run)
+void IFOinit(struct interferometer **ifo, int networkSize, struct runPar run)
 {
   double merinormal[3];  // Normal vector of meridian plane
   char latchar[2];
@@ -126,7 +126,7 @@ void ifoinit(struct interferometer **ifo, int networksize, struct runPar run)
   int ifonr,j;
   double f;
   double flattening, eccentricitySQ, curvatureradius;
-  for(ifonr=0; ifonr<networksize; ++ifonr){
+  for(ifonr=0; ifonr<networkSize; ++ifonr){
     ifo[ifonr]->index = ifonr;
     // Some text output...
     if(intscrout==1) printf(" | Interferometer %d: `%s'", ifo[ifonr]->index+1, ifo[ifonr]->name);
@@ -201,7 +201,7 @@ void ifoinit(struct interferometer **ifo, int networksize, struct runPar run)
   
     // Read 'detector' data for injection
     if(printMuch>=1) printf("   Reading data for the detector in %s...\n",ifo[ifonr]->name);
-    dataFT(ifo,ifonr,networksize,run);
+    dataFT(ifo,ifonr,networkSize,run);
     
     
     
@@ -222,16 +222,16 @@ void ifoinit(struct interferometer **ifo, int networksize, struct runPar run)
     ifo[ifonr]->dataTrafo  = ((fftw_complex*) malloc(sizeof(fftw_complex) * ifo[ifonr]->indexRange));
     for(j=0; j<ifo[ifonr]->indexRange; ++j){
       f = (((double)(j+ifo[ifonr]->lowIndex))/((double)ifo[ifonr]->deltaFT));
-      ifo[ifonr]->noisePSD[j]      = interpol_log_noisePSD(f,ifo[ifonr]);
+      ifo[ifonr]->noisePSD[j]      = interpolLogNoisePSD(f,ifo[ifonr]);
       
       // Although smoothing was done for log noise, we store real noise on output
       ifo[ifonr]->noisePSD[j] = exp(ifo[ifonr]->noisePSD[j]);
       ifo[ifonr]->dataTrafo[j]  = ifo[ifonr]->raw_dataTrafo[j+ifo[ifonr]->lowIndex];
     }
     if(intscrout==1) printf(" | %d Fourier frequencies within operational range %.0f--%.0f Hz.\n", ifo[ifonr]->indexRange, ifo[ifonr]->lowCut, ifo[ifonr]->highCut);
-    if(ifonr<networksize-1 && intscrout==1) printf(" | --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --\n");
-  } //for(ifonr=0; ifonr<networksize; ++ifonr)
-} // End of ifoinit()
+    if(ifonr<networkSize-1 && intscrout==1) printf(" | --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --\n");
+  } //for(ifonr=0; ifonr<networkSize; ++ifonr)
+} // End of IFOinit()
 // ****************************************************************************************************************************************************  
 
 
@@ -245,7 +245,7 @@ void ifoinit(struct interferometer **ifo, int networksize, struct runPar run)
  * 
  */
 // ****************************************************************************************************************************************************  
-void ifodispose(struct interferometer *ifo)
+void IFOdispose(struct interferometer *ifo)
 {
   if(intscrout==1) printf(" | Interferometer %d `%s' is taken offline.\n", ifo->index, ifo->name);
   free(ifo->raw_noisePSD);       ifo->raw_noisePSD = NULL;
@@ -257,7 +257,7 @@ void ifodispose(struct interferometer *ifo)
   fftw_free(ifo->rawDownsampledWindowedData); ifo->rawDownsampledWindowedData = NULL;  
   fftw_free(ifo->FTout);         ifo->FTout = NULL;
   free(ifo->FTwindow);           ifo->FTwindow = NULL;
-} // End of ifodispose()
+} // End of IFOdispose()
 // ****************************************************************************************************************************************************  
 
 
@@ -360,14 +360,14 @@ double* downsample(double data[], int *datalength, double filtercoef[], int ncoe
 /**
  * \brief Apply a 'Hann window' to data 
  * 
- * Window data using a Hahn window.
+ * Window data using a Hann window.
  * j = 0, ..., N-1                  
  */
 // ****************************************************************************************************************************************************  
-double hann(int j, int N)
+double hannWindow(int j, int N)
 {
   return 0.5*(1.0-cos(((double)j/(double)N)*2.0*pi));
-} // End of hahn()
+} // End of hannWindow()
 // ****************************************************************************************************************************************************  
 
 
@@ -382,14 +382,14 @@ double hann(int j, int N)
  * j = 0, ..., N-1
  */
 // ****************************************************************************************************************************************************  
-double tukey(int j, int N, double r)
+double tukeyWindow(int j, int N, double r)
 {
   double win = 1.0;
   if(((double)j) > (((double)N)/2.0)) j = N-j;
   if(((double)j) < (r*(((double)N)/2.0)))
     win = 0.5*(1.0-cos(((2.0*pi)/r)*(((double)j)/((double)N))));
   return win;
-} // End of tukey()
+} // End of tukeyWindow()
 // ****************************************************************************************************************************************************  
 
 
@@ -406,7 +406,7 @@ double tukey(int j, int N, double r)
  * Also takes care of preparing FT stuff  (ifo[ifonr]->FTplan, ->FTin, ->FTout, ...).
  */
 // ****************************************************************************************************************************************************  
-void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct runPar run)
+void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct runPar run)
 {
   struct FrFile *iFile=NULL;                // Frame file(s)
   struct FrVect *svect=NULL, *nvect=NULL;   // data vectors (signal & noise)
@@ -479,11 +479,11 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
     struct parset injectpar;
     getInjectionParameters(&injectpar, run.nInjectPar, run.injParVal);
     double m1=0.0,m2=0.0;
-    mceta2masses(injectpar.mc, injectpar.eta, &m1, &m2);
-    injectpar.loctc    = (double*)calloc(networksize,sizeof(double));
-    injectpar.localti  = (double*)calloc(networksize,sizeof(double));
-    injectpar.locazi   = (double*)calloc(networksize,sizeof(double));
-    injectpar.locpolar = (double*)calloc(networksize,sizeof(double));
+    McEta2masses(injectpar.mc, injectpar.eta, &m1, &m2);
+    injectpar.loctc    = (double*)calloc(networkSize,sizeof(double));
+    injectpar.localti  = (double*)calloc(networkSize,sizeof(double));
+    injectpar.locazi   = (double*)calloc(networkSize,sizeof(double));
+    injectpar.locpolar = (double*)calloc(networkSize,sizeof(double));
     
     if(intscrout==1) {
       printf(" :   m1 = %.1f Mo,  m2 = %.1f Mo  (Mc = %.3f Mo,  eta = %.4f)\n", m1, m2, injectpar.mc, injectpar.eta);
@@ -491,9 +491,9 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
       printf(" :   ra = %.2f h,  dec = %.2f deg  (GMST = %.2f h)\n",(rightAscension(injectpar.longi,GMST(injectpar.tc))/pi)*12.0, (asin(injectpar.sinlati)/pi)*180.0, (GMST(injectpar.tc)/pi)*12.0);
       printf(" :   phase = %.2f rad\n", injectpar.phase);
     }
-    ifo[ifonr]->FTstart = from; // Temporary setting so that localpar() works properly
+    ifo[ifonr]->FTstart = from; // Temporary setting so that localPar() works properly
     
-    localpar(&injectpar, ifo, networksize);
+    localPar(&injectpar, ifo, networkSize);
     
     if(intscrout==1) {
       printf(" :   local parameters:\n");
@@ -517,7 +517,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
     ifo[ifonr]->FTstart = tempfrom;
     ifo[ifonr]->samplesize = tempN;
     
-    freeparset(&injectpar);
+    freeParset(&injectpar);
     
     
   } // if(run.injectSignal >= 1)
@@ -619,7 +619,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networksize, struct run
   ifo[ifonr]->FTwindow = malloc(sizeof(double) * N);
   ifo[ifonr]->rawDownsampledWindowedData = (double*) fftw_malloc(sizeof(double)*N);
   for(j=0; j<N; ++j){
-    ifo[ifonr]->FTwindow[j] =  tukey(j, N, run.tukeyWin);
+    ifo[ifonr]->FTwindow[j] =  tukeyWindow(j, N, run.tukeyWin);
     ifo[ifonr]->FTin[j] *= ifo[ifonr]->FTwindow[j];
     ifo[ifonr]->rawDownsampledWindowedData[j]=ifo[ifonr]->FTin[j];    
   }
@@ -777,9 +777,9 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
   // Allocate memory for window:
   win = (double*) malloc(sizeof(double) * N);
   
-  // Compute Hahn windowing coefficients:
+  // Compute Hann windowing coefficients:
   for(i=0; i<N; ++i) {
-    win[i] = hann(i, N);
+    win[i] = hannWindow(i, N);
     wss += win[i]*win[i];
   }
   // Normalise window coefs as in Mark's/Nelson's code (see line 695):
@@ -893,7 +893,7 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
   
   // Smooth PSD:
   //sPSD = (double*) malloc((ifo->PSDsize)*sizeof(double));
-  //Since ifo->raw_noisePSD = sPSD, ifo->raw_noisePSD[highindex] goes up to ifo->PSDsize+2 (perhaps more?) in interpol_log_noisePSD()
+  //Since ifo->raw_noisePSD = sPSD, ifo->raw_noisePSD[highindex] goes up to ifo->PSDsize+2 (perhaps more?) in interpolLogNoisePSD()
   sPSD = (double*) malloc((ifo->PSDsize+10)*sizeof(double));
   for(i=0;i<ifo->PSDsize+10;i++) sPSD[i] = 0.0;
   for(i=smoothrange; i<(PSDrange-smoothrange); ++i) {
@@ -925,7 +925,7 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
  * 
  */
 // ****************************************************************************************************************************************************  
-double interpol_log_noisePSD(double f, struct interferometer *ifo)
+double interpolLogNoisePSD(double f, struct interferometer *ifo)
 {
   double dblindex = (((f-ifo->lowCut)/(ifo->highCut-ifo->lowCut)) * (double)ifo->PSDsize);
   int lowindex    = (int)dblindex;   // (truncated!)
@@ -934,7 +934,7 @@ double interpol_log_noisePSD(double f, struct interferometer *ifo)
   double weight2  = dblindex - ((double)lowindex);
   double result   = weight1*ifo->raw_noisePSD[lowindex] + weight2*ifo->raw_noisePSD[highindex];
   return result;
-} // End of interpol_log_noisePSD
+} // End of interpolLogNoisePSD
 // ****************************************************************************************************************************************************  
 
 
@@ -948,9 +948,9 @@ double interpol_log_noisePSD(double f, struct interferometer *ifo)
  * 
  */
 // ****************************************************************************************************************************************************  
-void writeDataToFiles(struct interferometer *ifo[], int networksize, int MCMCseed){
+void writeDataToFiles(struct interferometer *ifo[], int networkSize, int MCMCseed){
   int i, j;
-  for(i=0; i<networksize; i++){ 
+  for(i=0; i<networkSize; i++){ 
     char filename[1000]="";
     sprintf(filename, "%s-data.dat.%6.6d", ifo[i]->name, MCMCseed);  // Write in current dir
     FILE *dump = fopen(filename,"w");
@@ -1003,9 +1003,9 @@ void writeDataToFiles(struct interferometer *ifo[], int networksize, int MCMCsee
  * The noise ASD is the square root of the estimated noise PSD  (no injected signal).
  */
 // ****************************************************************************************************************************************************  
-void writeNoiseToFiles(struct interferometer *ifo[], int networksize, int MCMCseed){
+void writeNoiseToFiles(struct interferometer *ifo[], int networkSize, int MCMCseed){
   int i, j;
-  for(i=0; i<networksize; i++){ 
+  for(i=0; i<networkSize; i++){ 
     char filename[1000]="";
     sprintf(filename, "%s-noiseASD.dat.%6.6d", ifo[i]->name, MCMCseed);  // Write in current dir
     FILE *dump = fopen(filename,"w");
@@ -1039,20 +1039,20 @@ void writeNoiseToFiles(struct interferometer *ifo[], int networksize, int MCMCse
  * Write a signal with the injection parameters and its FFT to disc, as *-signal.dat.* and *-signalFFT.dat.*.
  */
 // ****************************************************************************************************************************************************  
-void writeSignalsToFiles(struct interferometer *ifo[], int networksize, struct runPar run){
+void writeSignalsToFiles(struct interferometer *ifo[], int networkSize, struct runPar run){
   int i, j;
   
   //Set local values in parameter struct (needed for template computation)
   struct parset par;
   getInjectionParameters(&par, run.nInjectPar, run.injParVal);
-  par.loctc    = (double*)calloc(networksize,sizeof(double));
-  par.localti  = (double*)calloc(networksize,sizeof(double));
-  par.locazi   = (double*)calloc(networksize,sizeof(double));
-  par.locpolar = (double*)calloc(networksize,sizeof(double));
-  localpar(&par, ifo, networksize);
+  par.loctc    = (double*)calloc(networkSize,sizeof(double));
+  par.localti  = (double*)calloc(networkSize,sizeof(double));
+  par.locazi   = (double*)calloc(networkSize,sizeof(double));
+  par.locpolar = (double*)calloc(networkSize,sizeof(double));
+  localPar(&par, ifo, networkSize);
   
   
-  for(i=0; i<networksize; i++){
+  for(i=0; i<networkSize; i++){
     double f;
     double complex FFTout;
     
@@ -1114,6 +1114,6 @@ void printParameterHeaderToFile(FILE * dump)
   fprintf(dump,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
 	  //par.m1,par.m2,par.mc,par.eta,par.tc,exp(par.logdl),asin(par.sinlati)*r2d,par.longi*r2d,par.phase,par.spin,par.kappa,par.sinthJ0,par.phiJ0,par.alpha);
 	  0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0);  //CHECK: replace with par.par[]
-  freeparset(&par);
+  freeParset(&par);
 } // End of printParameterHeaderToFile()
 // ****************************************************************************************************************************************************  

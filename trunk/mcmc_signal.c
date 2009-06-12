@@ -36,20 +36,20 @@
 
 
 
-double net_loglikelihood(struct parset *par, int networksize, struct interferometer *ifo[], int waveformVersion)
+double netLogLikelihood(struct parset *par, int networkSize, struct interferometer *ifo[], int waveformVersion)
 //Calculate the loglikelihood for a network of IFOs
 {
   double result = 0.0;
   int i;
-  for (i=0; i<networksize; ++i){
-    result += ifo_loglikelihood(par, ifo, i, waveformVersion);
+  for (i=0; i<networkSize; ++i){
+    result += IFOlogLikelihood(par, ifo, i, waveformVersion);
   }
   return result;
 }
 
 
 
-double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion)
+double IFOlogLikelihood(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion)
 //Calculate the loglikelihood for a single given IFO
 {
   int j=0;
@@ -65,14 +65,14 @@ double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int i
   fftw_execute(ifo[ifonr]->FTplan);
   
   // Compute the overlap between waveform and data:
-  double overlaphd = vecoverlap(ifo[ifonr]->raw_dataTrafo, 
+  double overlaphd = vecOverlap(ifo[ifonr]->raw_dataTrafo, 
 	ifo[ifonr]->FTout, ifo[ifonr]->noisePSD,
         ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
   //correct FFT for sampling rate of waveform
   overlaphd/=((double)ifo[ifonr]->samplerate);  
   
   // Compute the overlap between waveform and itself:
-  double overlaphh = vecoverlap(ifo[ifonr]->FTout,
+  double overlaphh = vecOverlap(ifo[ifonr]->FTout,
         ifo[ifonr]->FTout, ifo[ifonr]->noisePSD,
         ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
   //correct FFT for sampling rate of waveform
@@ -88,11 +88,11 @@ double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int i
         fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
   signalFFT(FFTwaveform, par, ifo, ifonr, waveformVersion);                             
   // Compute the overlap between waveform and data:
-  double overlaphd = vecoverlap(ifo[ifonr]->raw_dataTrafo,
+  double overlaphd = vecOverlap(ifo[ifonr]->raw_dataTrafo,
         FFTwaveform, ifo[ifonr]->noisePSD,
         ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
   // Compute the overlap between waveform and itself:
-  double overlaphh = vecoverlap(
+  double overlaphh = vecOverlap(
        FFTwaveform, FFTwaveform, ifo[ifonr]->noisePSD,
         ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
   return (overlaphd-0.5*overlaphh);
@@ -100,14 +100,14 @@ double ifo_loglikelihood(struct parset *par, struct interferometer *ifo[], int i
   
 /*
   // Clean, but computes waveform thrice for a slowdown by ~x3
-  return (overlapwithdata(par, ifo, ifonr) 
-	- 0.5*paroverlap(par, par, ifo, ifonr));
+  return (overlapWithData(par, ifo, ifonr) 
+	- 0.5*parOverlap(par, par, ifo, ifonr));
 */ 
 }
 
 
 
-double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion)
+double signalToNoiseRatio(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion)
 // SNR of signal corresponding to parameter set, w.r.t. i-th interferometer's noise.
 // (see SNR definition in Christensen/Meyer/Libson (2004), p.323)
 {
@@ -124,7 +124,7 @@ double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int 
   fftw_execute(ifo[ifonr]->FTplan);
   
   // Compute the overlap between waveform and itself:
-  double overlaphh = vecoverlap(ifo[ifonr]->FTout,
+  double overlaphh = vecOverlap(ifo[ifonr]->FTout,
         ifo[ifonr]->FTout, ifo[ifonr]->noisePSD,
         ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
 
@@ -138,7 +138,7 @@ double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int 
   
   /*
   //Clean, but recomputes waveform multiple times
-  return sqrt(paroverlap(par, par, ifo, ifonr));
+  return sqrt(parOverlap(par, par, ifo, ifonr));
   */
 }
 
@@ -147,23 +147,23 @@ double signaltonoiseratio(struct parset *par, struct interferometer *ifo[], int 
 
 
 
-double parmatch(struct parset * par1,struct parset * par2, struct interferometer *ifo[], int networksize, int waveformVersion)
+double parMatch(struct parset * par1,struct parset * par2, struct interferometer *ifo[], int networkSize, int waveformVersion)
 // Compute match between waveforms with parameter sets par1 and par2
 {
   double overlap11=0.0, overlap12=0.0, overlap22=0.0;
   int ifonr;
   fftw_complex *FFT1, *FFT2; 
      
-  for(ifonr=0; ifonr<networksize; ifonr++){
+  for(ifonr=0; ifonr<networkSize; ifonr++){
     FFT1 = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
     FFT2 = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
     signalFFT(FFT1, par1, ifo, ifonr, waveformVersion);
     signalFFT(FFT2, par2, ifo, ifonr, waveformVersion);
-    overlap11 += vecoverlap(FFT1, FFT1, ifo[ifonr]->noisePSD,
+    overlap11 += vecOverlap(FFT1, FFT1, ifo[ifonr]->noisePSD,
         ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
-    overlap12 += vecoverlap(FFT1, FFT2, ifo[ifonr]->noisePSD,
+    overlap12 += vecOverlap(FFT1, FFT2, ifo[ifonr]->noisePSD,
         ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
-    overlap22 += vecoverlap(FFT2, FFT2, ifo[ifonr]->noisePSD,
+    overlap22 += vecOverlap(FFT2, FFT2, ifo[ifonr]->noisePSD,
         ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
   }
   double match=overlap12/sqrt(overlap11*overlap22);
@@ -176,10 +176,10 @@ double parmatch(struct parset * par1,struct parset * par2, struct interferometer
   double match=0.0,ovrlp11=0.0,ovrlp12=0.0,ovrlp22=0.0;
   int ifonr=0;
   
-  for(ifonr=0; ifonr<networksize; ifonr++){
-    ovrlp11 += paroverlap(par1,par1,ifo,ifonr);
-    ovrlp22 += paroverlap(par2,par2,ifo,ifonr);
-    ovrlp12 += paroverlap(par1,par2,ifo,ifonr);
+  for(ifonr=0; ifonr<networkSize; ifonr++){
+    ovrlp11 += parOverlap(par1,par1,ifo,ifonr);
+    ovrlp22 += parOverlap(par2,par2,ifo,ifonr);
+    ovrlp12 += parOverlap(par1,par2,ifo,ifonr);
   }
   match = ovrlp12/sqrt(ovrlp11*ovrlp22);
   return match;
@@ -187,7 +187,7 @@ double parmatch(struct parset * par1,struct parset * par2, struct interferometer
 }
 
 
-double overlapwithdata(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion)
+double overlapWithData(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion)
 //compute frequency domain overlap of waveform of given parameters with raw data
 {
   fftw_complex *FFTwaveform = 
@@ -195,7 +195,7 @@ double overlapwithdata(struct parset *par, struct interferometer *ifo[], int ifo
   signalFFT(FFTwaveform, par, ifo, ifonr, waveformVersion);
 
   double overlap=
-     vecoverlap(ifo[ifonr]->raw_dataTrafo, FFTwaveform, ifo[ifonr]->noisePSD, 
+     vecOverlap(ifo[ifonr]->raw_dataTrafo, FFTwaveform, ifo[ifonr]->noisePSD, 
 	ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
 
   free(FFTwaveform);
@@ -204,7 +204,7 @@ double overlapwithdata(struct parset *par, struct interferometer *ifo[], int ifo
 
 
 
-double paroverlap(struct parset * par1, struct parset * par2, struct interferometer *ifo[], int ifonr, int waveformVersion)
+double parOverlap(struct parset * par1, struct parset * par2, struct interferometer *ifo[], int ifonr, int waveformVersion)
 //Compute the overlap in the frequency domain between two waveforms with parameter sets par1 and par2
 {
   double overlap = 0.0;
@@ -216,7 +216,7 @@ double paroverlap(struct parset * par1, struct parset * par2, struct interferome
   signalFFT(FFT2, par2, ifo, ifonr, waveformVersion);
   
   // Compute the overlap between the vectors FFT1,2, between index i1 and i2:
-  overlap = vecoverlap(FFT1, FFT2, ifo[ifonr]->noisePSD, 
+  overlap = vecOverlap(FFT1, FFT2, ifo[ifonr]->noisePSD, 
 	ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
   
   fftw_free(FFT1);
@@ -227,7 +227,7 @@ double paroverlap(struct parset * par1, struct parset * par2, struct interferome
 
 
 
-double vecoverlap(fftw_complex *vec1, fftw_complex *vec2, double * noise, int j1, int j2, double deltaFT)
+double vecOverlap(fftw_complex *vec1, fftw_complex *vec2, double * noise, int j1, int j2, double deltaFT)
 //Compute the overlap of vectors vec1 and vec2, between indices j1 and j2
 {
   int j=0;
@@ -267,23 +267,14 @@ void signalFFT(fftw_complex * FFTout, struct parset *par, struct interferometer 
   
   /*
   //Allocate the parset vectors, compute the local parameters and the time-domain template:
-  localpar(&par, ifo, networksize);
+  localPar(&par, ifo, networkSize);
   template(&par, ifo, ifonr); 
   */
 }
 
 
 
-void printparset(struct parset par) // Print the parameter set par to screen 
-{
-  printf("\n");
-  printf("  Mc:  %20.10lf,   eta:     %20.10lf,   tc:      %20.10lf,   logdl:   %20.10lf\n",par.mc,par.eta,par.tc,par.logdl);
-  printf("  a:   %20.10lf,   kappa:   %20.10lf,   longi:   %20.10lf,   sinlati: %20.10lf\n",par.spin,par.kappa,par.longi,par.sinlati);
-  printf("  phi: %20.10lf,   sinthJ0: %20.10lf,   phithJ0: %20.10lf,   alpha:   %20.10lf\n",par.phase,par.sinthJ0,par.phiJ0,par.alpha);
-  printf("\n");
-}
-
-double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct interferometer *ifo[], struct mcmcvariables mcmc) //CHECK Need support for 2 different waveforms
+double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct interferometer *ifo[], struct MCMCvariables mcmc) //CHECK Need support for 2 different waveforms
 {
   struct parset par, injectPar;
   //arr2par(pararray, &par);  //No longer exists
@@ -291,23 +282,23 @@ double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct int
   for(i=0;i<mcmc.nMCMCpar;i++) {
     par.par[i] = pararray[i];
   }
-  par.loctc    = (double*)calloc(mcmc.networksize,sizeof(double));
-  par.localti  = (double*)calloc(mcmc.networksize,sizeof(double));
-  par.locazi   = (double*)calloc(mcmc.networksize,sizeof(double));
-  par.locpolar = (double*)calloc(mcmc.networksize,sizeof(double));
-  //allocparset(&par,mcmc.networksize);
-  localpar(&par, ifo, mcmc.networksize);
+  par.loctc    = (double*)calloc(mcmc.networkSize,sizeof(double));
+  par.localti  = (double*)calloc(mcmc.networkSize,sizeof(double));
+  par.locazi   = (double*)calloc(mcmc.networkSize,sizeof(double));
+  par.locpolar = (double*)calloc(mcmc.networkSize,sizeof(double));
+  //allocParset(&par,mcmc.networkSize);
+  localPar(&par, ifo, mcmc.networkSize);
 
   //Get the true parameters
   getInjectionParameters(&injectPar, mcmc.nInjectPar, mcmc.injParVal);
-  injectPar.loctc    = (double*)calloc(mcmc.networksize,sizeof(double));
-  injectPar.localti  = (double*)calloc(mcmc.networksize,sizeof(double));
-  injectPar.locazi   = (double*)calloc(mcmc.networksize,sizeof(double));
-  injectPar.locpolar = (double*)calloc(mcmc.networksize,sizeof(double));
-  //allocparset(&injectPar,mcmc.networksize);
-  localpar(&injectPar, ifo, mcmc.networksize);
+  injectPar.loctc    = (double*)calloc(mcmc.networkSize,sizeof(double));
+  injectPar.localti  = (double*)calloc(mcmc.networkSize,sizeof(double));
+  injectPar.locazi   = (double*)calloc(mcmc.networkSize,sizeof(double));
+  injectPar.locpolar = (double*)calloc(mcmc.networkSize,sizeof(double));
+  //allocParset(&injectPar,mcmc.networkSize);
+  localPar(&injectPar, ifo, mcmc.networkSize);
   
-  return parmatch(&injectPar, &par, ifo, mcmc.networksize, mcmc.mcmcWaveform);
+  return parMatch(&injectPar, &par, ifo, mcmc.networkSize, mcmc.mcmcWaveform);
   
   //Shouldn't these guys be freed?
 }
@@ -315,7 +306,7 @@ double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct int
 
 
 /* NO LONGER USED
-double match(struct parset *par, struct interferometer *ifo[], int i, int networksize)
+double match(struct parset *par, struct interferometer *ifo[], int i, int networkSize)
 //Calculate the match between two waveforms
 {
   double match = 0.0;
@@ -338,11 +329,11 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
   
   //Get the true parameters and the corresponding waveform template:
   getInjectionParameters(&injectPar, mcmc.nInjectPar, mcmc.injParVal);
-  injectPar.loctc    = (double*)calloc(networksize,sizeof(double));
-  injectPar.localti  = (double*)calloc(networksize,sizeof(double));
-  injectPar.locazi   = (double*)calloc(networksize,sizeof(double));
-  injectPar.locpolar = (double*)calloc(networksize,sizeof(double));
-  localpar(&injectPar, ifo, networksize);
+  injectPar.loctc    = (double*)calloc(networkSize,sizeof(double));
+  injectPar.localti  = (double*)calloc(networkSize,sizeof(double));
+  injectPar.locazi   = (double*)calloc(networkSize,sizeof(double));
+  injectPar.locpolar = (double*)calloc(networkSize,sizeof(double));
+  localPar(&injectPar, ifo, networkSize);
   template(&injectPar, ifo, i);
   
   
@@ -369,12 +360,12 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
 
 
 /*
-void computeFishermatrixIFO(struct parset *par, int nParameters, struct interferometer *ifo[], int networksize, int ifonr, double **matrix)
+void computeFishermatrixIFO(struct parset *par, int nParameters, struct interferometer *ifo[], int networkSize, int ifonr, double **matrix)
 // Compute  Fisher matrix for parameter set par for a given IFO
 {
   int ip=0,jp=0,j=0,j1=0,j2=0,nFT=0;
   struct parset par1;
-  allocparset(&par1, networksize);
+  allocParset(&par1, networkSize);
   double pars[nParameters];
   
   nFT = ifo[ifonr]->FTsize;
@@ -395,7 +386,7 @@ void computeFishermatrixIFO(struct parset *par, int nParameters, struct interfer
     arr2par(pars,&par1);  // Put the changed parameter set into struct par1
     
     // Compute the FFTed signal for this parameter set FFT1
-    signalFFT(par1, ifo, networksize, ifonr, FFT1, waveformVersion);
+    signalFFT(par1, ifo, networkSize, ifonr, FFT1, waveformVersion);
     
     // Compute the partial derivative to parameter ip
     for(j=j1;j<=j2;j++) {
@@ -407,7 +398,7 @@ void computeFishermatrixIFO(struct parset *par, int nParameters, struct interfer
   // Compute the actual Fisher matrix (diagonal + lower triangle)
   for(ip=0;ip<nParameters;ip++) {
     for(jp=0;jp<=ip;jp++) {
-      matrix[ip][jp] = vecoverlap(dFFTs[ip], dFFTs[jp], 
+      matrix[ip][jp] = vecOverlap(dFFTs[ip], dFFTs[jp], 
 	ifo[ifonr]->noisePSD, j1, j2, ifo[ifonr]->deltaFT);
     }
   }
@@ -419,19 +410,19 @@ void computeFishermatrixIFO(struct parset *par, int nParameters, struct interfer
     }
   }
   
-  freeparset(&par1);
+  freeParset(&par1);
 }
 
 
-void computeFishermatrix(struct parset *par, int nParameters, struct interferometer *ifo[], int networksize, double **matrix)
+void computeFishermatrix(struct parset *par, int nParameters, struct interferometer *ifo[], int networkSize, double **matrix)
 // Compute the Fisher matrix for a network of IFOs, using computeFishermatrixIFO to compute the elements per IFO
 {
   int ip=0,jp=0,ifonr=0;
   double **dmatrix  = (double**)calloc(nParameters,sizeof(double*));
   for(ip=0;ip<nParameters;ip++) dmatrix[ip]  = (double*)calloc(nParameters,sizeof(double));
   
-  for(ifonr=0;ifonr<networksize;ifonr++) {
-    computeFishermatrixIFO(par,nParameters,ifo,networksize,ifonr,dmatrix);
+  for(ifonr=0;ifonr<networkSize;ifonr++) {
+    computeFishermatrixIFO(par,nParameters,ifo,networkSize,ifonr,dmatrix);
     
     for(ip=0;ip<nParameters;ip++) {
       for(jp=0;jp<nParameters;jp++) {
