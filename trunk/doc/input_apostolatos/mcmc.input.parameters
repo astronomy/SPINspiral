@@ -34,8 +34,7 @@
    BestValue: best value for the parameter, e.g. from trigger;  use to start from or close to
    Fix:  fix an MCMC parameter (i.e., keep it constant throughout the MCMC run
      0: no
-     1: fix to BestValue
-     2: fix to injection value
+     1: yes; fix to starting value determined by Start
    Start:  where to start the markov chains
      1: start at best value
      2: start near best value (Gaussian distribution with width sigma)

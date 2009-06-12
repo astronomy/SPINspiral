@@ -230,6 +230,7 @@ struct mcmcvariables{
   int tempi;                      // The current temperature index
   int networksize;                // Number of IFOs in the detector network
   int mcmcWaveform;               // Waveform used as the MCMC template
+  int injectionWaveform;          // Waveform used to do software injections
   
   
   double temp;                    // The current temperature

@@ -1090,9 +1090,8 @@ void getInjectionParameters(struct parset *par, int nInjectionPar, double *injPa
 
 
 // ****************************************************************************************************************************************************  
-void getStartParameters(struct parset *par, struct runPar run)  //Set the parameters for the 12-parameter spinning template to the starting values for the MCMC chain
+void getStartParameters(struct parset *par, struct runPar run)  //Set the parameters to the starting values for the MCMC chain
 {
-  
   int i=0;
   for(i=0;i<run.nMCMCpar;i++) {
     par->par[i]      = run.parBestVal[i];
@@ -1102,7 +1101,10 @@ void getStartParameters(struct parset *par, struct runPar run)  //Set the parame
   par->localti  = NULL;
   par->locazi   = NULL;
   par->locpolar = NULL;
-}
+  
+} // End getStartParameters
+// ****************************************************************************************************************************************************  
+
 
 
 //Allocate memory for the vectors in the struct parset

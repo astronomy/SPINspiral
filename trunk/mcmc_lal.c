@@ -64,7 +64,7 @@ void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr)
 //Use the LAL 3.5/2.5 PN spinning waveform, with 2 spinning objects (15 parameters)
 {
   int i=0;
-  double localtc=0.0,samplerate=0.0,inversesamplerate=0.0;
+  double samplerate=0.0,inversesamplerate=0.0;
   int length=0;
   
   samplerate = (double)ifo[ifonr]->samplerate;
@@ -109,8 +109,8 @@ void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr)
   
   // Compute the detector response
   //double delay = LALFpFc(&thewaveform, wave, &lengthLAL, length, par, ifonr);
-  double delay = LALFpFc(&status, &waveform, &injParams, &ppnParams, wave, length, par, ifo[ifonr], ifonr); //MvdS: lengthLAL never used or set. Uses waveforms in thewaveform to compute the detector response in wave (?)
-																	//Vivien: lentghLAL is set in LALinteface.c But is is also availble in the structure thewaveform (which holds h+,x) and the structure wave (which holds F+,x)
+  double delay = LALFpFc(&status, &waveform, &injParams, &ppnParams, wave, length, par, ifo[ifonr], ifonr); //Vivien: lentghLAL is set in LALinteface.c But is is also availble in the structure thewaveform (which holds h+,x) and the structure wave (which holds F+,x)
+  delay = delay; //MvdS: remove 'declared but never referenced' warnings
 		
   // printf("LALdelay = %10.10f\n", delay);
   
@@ -407,7 +407,7 @@ void templateLAL15(struct parset *par, struct interferometer *ifo[], int ifonr)
 //Use the LAL 3.5/2.5 PN spinning waveform, with 2 spinning objects (15 parameters)
 {
   int i=0;
-  double localtc=0.0,samplerate=0.0,inversesamplerate=0.0;
+  double samplerate=0.0,inversesamplerate=0.0;
   int length=0;
   
   samplerate = (double)ifo[ifonr]->samplerate;
@@ -452,8 +452,9 @@ void templateLAL15(struct parset *par, struct interferometer *ifo[], int ifonr)
   
   // Compute the detector response
   //double delay = LALFpFc(&thewaveform, wave, &lengthLAL, length, par, ifonr);
-  double delay = LALFpFc(&status, &waveform, &injParams, &ppnParams, wave, length, par, ifo[ifonr], ifonr); //MvdS: lengthLAL never used or set. Uses waveforms in thewaveform to compute the detector response in wave (?)
-																	//Vivien: lentghLAL is set in LALinteface.c But is is also availble in the structure thewaveform (which holds h+,x) and the structure wave (which holds F+,x)
+  double delay = LALFpFc(&status, &waveform, &injParams, &ppnParams, wave, length, par, ifo[ifonr], ifonr); //Vivien: lentghLAL is set in LALinteface.c But is is also availble in the structure thewaveform (which holds h+,x) and the structure wave (which holds F+,x)
+  delay = delay; //MvdS: remove 'declared but never referenced' warnings
+  
 		
   // printf("LALdelay = %10.10f\n", delay);
   
@@ -614,6 +615,7 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
 // Compute the detector response for a given detector (ifonr) and h_+,h_x. the structure waveform must already hold the computed values of h+,x (or just a1, a2, phi and shift as a function of time)
 
 double LALFpFc(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, double *wave, int length, struct parset *par, struct interferometer *ifo, int ifonr) {
+  par->par[2] = par->par[2]; //MvdS: remove 'never referenced' warning (or remove par from argument list)
   
  // static LALStatus stat;     // status structure
   
