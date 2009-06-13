@@ -36,7 +36,7 @@
 
 
 
-void template(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion)
+void waveformTemplate(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion)
 // Call a waveform template, the local variable waveformVersion determines which one
 {
   if(waveformVersion==1) {

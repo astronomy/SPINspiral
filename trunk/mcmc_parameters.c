@@ -1116,7 +1116,7 @@ void getInjectionParameters(struct parset *par, int nInjectionPar, double *injPa
 {
   int i=0;
   for(i=0;i<nInjectionPar;i++) {
-    par->par[i]      = injParVal[i];
+    par->par[i] = injParVal[i];
   }
   
   //These should all disappear:
@@ -1128,10 +1128,6 @@ void getInjectionParameters(struct parset *par, int nInjectionPar, double *injPa
   par->sinthJ0  = injParVal[9];                    // sin Theta_J0 ~ latitude, pi/2 = NP
   par->phiJ0    = injParVal[10];                   // Phi_J0 ~ azimuthal
   
-  par->loctc    = NULL;
-  par->localti  = NULL;
-  par->locazi   = NULL;
-  par->locpolar = NULL;
 } // End getInjectionParameters()
 // ****************************************************************************************************************************************************  
 
@@ -1149,11 +1145,6 @@ void getStartParameters(struct parset *par, struct runPar run)  //Set the parame
   for(i=0;i<run.nMCMCpar;i++) {
     par->par[i]      = run.parBestVal[i];
   }
-  
-  par->loctc    = NULL;
-  par->localti  = NULL;
-  par->locazi   = NULL;
-  par->locpolar = NULL;
   
 } // End getStartParameters
 // ****************************************************************************************************************************************************  

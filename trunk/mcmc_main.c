@@ -113,10 +113,7 @@ int main(int argc, char* argv[])
   //Get a parameter set to calculate SNR or write the wavefrom to disc
   struct parset dummypar;
   getInjectionParameters(&dummypar, run.nMCMCpar, run.injParVal);
-  dummypar.loctc    = (double*)calloc(networkSize,sizeof(double));
-  dummypar.localti  = (double*)calloc(networkSize,sizeof(double));
-  dummypar.locazi   = (double*)calloc(networkSize,sizeof(double));
-  dummypar.locpolar = (double*)calloc(networkSize,sizeof(double));
+  allocParset(&dummypar, networkSize);
   localPar(&dummypar, network, networkSize);
   
   
@@ -139,10 +136,7 @@ int main(int argc, char* argv[])
     run.injParVal[3] += log(run.netsnr/run.injectionSNR);  //Use total network SNR
     printf("   Setting distance to %lf Mpc (log(d/Mpc)=%lf) to get a network SNR of %lf.\n",exp(run.injParVal[3]),run.injParVal[3],run.injectionSNR);
     getInjectionParameters(&dummypar, run.nMCMCpar, run.injParVal);
-    dummypar.loctc    = (double*)calloc(networkSize,sizeof(double));
-    dummypar.localti  = (double*)calloc(networkSize,sizeof(double));
-    dummypar.locazi   = (double*)calloc(networkSize,sizeof(double));
-    dummypar.locpolar = (double*)calloc(networkSize,sizeof(double));
+    allocParset(&dummypar, networkSize);
     localPar(&dummypar, network, networkSize);
     
     //Recalculate SNR
@@ -183,11 +177,10 @@ int main(int argc, char* argv[])
   
   
   //Write the data and its FFT, the signal and its FFT, and the noise ASD to disc
-  if(writeSignal)
-  {
-     writeDataToFiles(network, networkSize, run.MCMCseed);
-     writeNoiseToFiles(network, networkSize, run.MCMCseed);
-     writeSignalsToFiles(network, networkSize, run);
+  if(writeSignal) {
+    writeDataToFiles(network, networkSize, run.MCMCseed);
+    writeNoiseToFiles(network, networkSize, run.MCMCseed);
+    writeSignalsToFiles(network, networkSize, run);
   }  
   
   //Write some injection parameters to screen:  CHECK: needs fix
@@ -247,10 +240,7 @@ int main(int argc, char* argv[])
     if(1==2) {
       printf("\n\n");
       getInjectionParameters(&dummypar, run.nMCMCpar, run.injParVal);
-      dummypar.loctc    = (double*)calloc(networkSize,sizeof(double));
-      dummypar.localti  = (double*)calloc(networkSize,sizeof(double));
-      dummypar.locazi   = (double*)calloc(networkSize,sizeof(double));
-      dummypar.locpolar = (double*)calloc(networkSize,sizeof(double));
+      allocParset(&dummypar, networkSize);
       
       FILE *fout;
       fout = fopen("tc.dat","w");

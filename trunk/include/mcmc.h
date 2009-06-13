@@ -498,7 +498,7 @@ void printParameterHeaderToFile(FILE * dump);
 
 
 //************************************************************************************************************************************************
-void template(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion);
+void waveformTemplate(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion);
 void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr);
 		  
 

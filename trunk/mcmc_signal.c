@@ -54,8 +54,8 @@ double IFOlogLikelihood(struct parset *par, struct interferometer *ifo[], int if
 {
   int j=0;
   
-  // Fill `ifo[ifonr]->FTin' with time-domain template:
-  template(par, ifo, ifonr, waveformVersion);
+  // Fill ifo[ifonr]->FTin with time-domain template:
+  waveformTemplate(par, ifo, ifonr, waveformVersion);
   
   // Window template, FTwindow is a Tukey window:
   for(j=0; j<ifo[ifonr]->samplesize; ++j) 
@@ -113,8 +113,8 @@ double signalToNoiseRatio(struct parset *par, struct interferometer *ifo[], int 
 {
   int j=0;
   
-  // Fill `ifo[ifonr]->FTin' with time-domain template:
-  template(par, ifo, ifonr, waveformVersion);
+  // Fill ifo[ifonr]->FTin with time-domain template:
+  waveformTemplate(par, ifo, ifonr, waveformVersion);
   
   // Window template, FTwindow is a Tukey window:
   for(j=0; j<ifo[ifonr]->samplesize; ++j)
@@ -157,47 +157,33 @@ double parMatch(struct parset * par1,struct parset * par2, struct interferometer
   for(ifonr=0; ifonr<networkSize; ifonr++){
     FFT1 = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
     FFT2 = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
+    
     signalFFT(FFT1, par1, ifo, ifonr, waveformVersion);
     signalFFT(FFT2, par2, ifo, ifonr, waveformVersion);
-    overlap11 += vecOverlap(FFT1, FFT1, ifo[ifonr]->noisePSD,
-        ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
-    overlap12 += vecOverlap(FFT1, FFT2, ifo[ifonr]->noisePSD,
-        ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
-    overlap22 += vecOverlap(FFT2, FFT2, ifo[ifonr]->noisePSD,
-        ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
+    
+    overlap11 += vecOverlap(FFT1, FFT1, ifo[ifonr]->noisePSD, ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
+    overlap12 += vecOverlap(FFT1, FFT2, ifo[ifonr]->noisePSD, ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
+    overlap22 += vecOverlap(FFT2, FFT2, ifo[ifonr]->noisePSD, ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
   }
-  double match=overlap12/sqrt(overlap11*overlap22);
+  
+  double match = overlap12/sqrt(overlap11*overlap22);
+  
   free(FFT1);
   free(FFT2);
-
-  return match;   
-
-/*Clean but slow
-  double match=0.0,ovrlp11=0.0,ovrlp12=0.0,ovrlp22=0.0;
-  int ifonr=0;
   
-  for(ifonr=0; ifonr<networkSize; ifonr++){
-    ovrlp11 += parOverlap(par1,par1,ifo,ifonr);
-    ovrlp22 += parOverlap(par2,par2,ifo,ifonr);
-    ovrlp12 += parOverlap(par1,par2,ifo,ifonr);
-  }
-  match = ovrlp12/sqrt(ovrlp11*ovrlp22);
-  return match;
-*/
+  return match;   
 }
 
 
 double overlapWithData(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion)
 //compute frequency domain overlap of waveform of given parameters with raw data
 {
-  fftw_complex *FFTwaveform = 
-	fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
+  fftw_complex *FFTwaveform = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
   signalFFT(FFTwaveform, par, ifo, ifonr, waveformVersion);
-
-  double overlap=
-     vecOverlap(ifo[ifonr]->raw_dataTrafo, FFTwaveform, ifo[ifonr]->noisePSD, 
-	ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
-
+  
+  double overlap = vecOverlap(ifo[ifonr]->raw_dataTrafo, FFTwaveform, ifo[ifonr]->noisePSD, 
+			      ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
+  
   free(FFTwaveform);
   return overlap;
 }
@@ -246,30 +232,21 @@ void signalFFT(fftw_complex * FFTout, struct parset *par, struct interferometer 
 //Compute the FFT of a waveform with given parameter set
 {
   int j=0;
-  if(FFTout==NULL)
-  {
-	printf("Memory should be allocated for FFTout vector");
-	printf(" before call to signalFFT()\n");
-	exit(1);
+  if(FFTout==NULL) {
+    printf("Memory should be allocated for FFTout vector before call to signalFFT()\n");
+    exit(1);
   }
-
-  // Fill `ifo[i]->FTin' with time-domain template:
-  template(par, ifo, ifonr, waveformVersion);
+  
+  // Fill ifo[i]->FTin with time-domain template:
+  waveformTemplate(par, ifo, ifonr, waveformVersion);
+  
   // Window template, FTwindow is a Tukey window:
-  for(j=0; j<ifo[ifonr]->samplesize; ++j) 
-	ifo[ifonr]->FTin[j] *= ifo[ifonr]->FTwindow[j];
-
+  for(j=0; j<ifo[ifonr]->samplesize; ++j) ifo[ifonr]->FTin[j] *= ifo[ifonr]->FTwindow[j];
+  
   // Execute Fourier transform of signal template:
   fftw_execute(ifo[ifonr]->FTplan);
-
-  for(j=0; j<ifo[ifonr]->FTsize; j++)
-	FFTout[j]=ifo[ifonr]->FTout[j]/((double)ifo[ifonr]->samplerate);
   
-  /*
-  //Allocate the parset vectors, compute the local parameters and the time-domain template:
-  localPar(&par, ifo, networkSize);
-  template(&par, ifo, ifonr); 
-  */
+  for(j=0; j<ifo[ifonr]->FTsize; j++) FFTout[j] = ifo[ifonr]->FTout[j]/((double)ifo[ifonr]->samplerate);
 }
 
 
@@ -277,30 +254,26 @@ void signalFFT(fftw_complex * FFTout, struct parset *par, struct interferometer 
 double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct interferometer *ifo[], struct MCMCvariables mcmc) //CHECK Need support for 2 different waveforms
 {
   struct parset par, injectPar;
-  //arr2par(pararray, &par);  //No longer exists
   int i=0;
   for(i=0;i<mcmc.nMCMCpar;i++) {
     par.par[i] = pararray[i];
   }
-  par.loctc    = (double*)calloc(mcmc.networkSize,sizeof(double));
-  par.localti  = (double*)calloc(mcmc.networkSize,sizeof(double));
-  par.locazi   = (double*)calloc(mcmc.networkSize,sizeof(double));
-  par.locpolar = (double*)calloc(mcmc.networkSize,sizeof(double));
-  //allocParset(&par,mcmc.networkSize);
+  //par.loctc    = (double*)calloc(mcmc.networkSize,sizeof(double));
+  //par.localti  = (double*)calloc(mcmc.networkSize,sizeof(double));
+  //par.locazi   = (double*)calloc(mcmc.networkSize,sizeof(double));
+  //par.locpolar = (double*)calloc(mcmc.networkSize,sizeof(double));
+  allocParset(&par,mcmc.networkSize);
   localPar(&par, ifo, mcmc.networkSize);
 
-  //Get the true parameters
+  //Get the injection parameters:
   getInjectionParameters(&injectPar, mcmc.nInjectPar, mcmc.injParVal);
-  injectPar.loctc    = (double*)calloc(mcmc.networkSize,sizeof(double));
-  injectPar.localti  = (double*)calloc(mcmc.networkSize,sizeof(double));
-  injectPar.locazi   = (double*)calloc(mcmc.networkSize,sizeof(double));
-  injectPar.locpolar = (double*)calloc(mcmc.networkSize,sizeof(double));
-  //allocParset(&injectPar,mcmc.networkSize);
+  allocParset(&injectPar,mcmc.networkSize);
   localPar(&injectPar, ifo, mcmc.networkSize);
   
-  return parMatch(&injectPar, &par, ifo, mcmc.networkSize, mcmc.mcmcWaveform);
+  freeParset(&par);
+  freeParset(&injectPar);
   
-  //Shouldn't these guys be freed?
+  return parMatch(&injectPar, &par, ifo, mcmc.networkSize, mcmc.mcmcWaveform);
 }
 
 
@@ -317,8 +290,8 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
   struct parset injectPar;
   double m1m2=0.0,m1m1=0.0,m2m2=0.0;
   
-  // Fill `ifo[i]->FTin' with time-domain template:
-  template(par, ifo, i); 
+  // Fill ifo[i]->FTin with time-domain template:
+  waveformTemplate(par, ifo, i); 
   
   // Window template, FTwindow is a Tukey window:
   for(j=0; j<ifo[i]->samplesize; ++j) ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
@@ -329,12 +302,9 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
   
   //Get the true parameters and the corresponding waveform template:
   getInjectionParameters(&injectPar, mcmc.nInjectPar, mcmc.injParVal);
-  injectPar.loctc    = (double*)calloc(networkSize,sizeof(double));
-  injectPar.localti  = (double*)calloc(networkSize,sizeof(double));
-  injectPar.locazi   = (double*)calloc(networkSize,sizeof(double));
-  injectPar.locpolar = (double*)calloc(networkSize,sizeof(double));
+  allocParset(&injectPar, networkSize);
   localPar(&injectPar, ifo, networkSize);
-  template(&injectPar, ifo, i);
+  waveformTemplate(&injectPar, ifo, i);
   
   
   // Window template, FTwindow is a Tukey window:
@@ -352,6 +322,7 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
   }
   fftw_free(FTout1);
   fftw_free(FTout2);
+  freeParset(&injectPar);
   //  printf("%g %g %g\n",m1m2,m1m1,m2m2);
   match = m1m2/sqrt(m1m1*m2m2);
   return match;

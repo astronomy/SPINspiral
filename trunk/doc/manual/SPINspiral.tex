@@ -321,20 +321,6 @@ The software injection input file
 
 
 \subsubsection{Table: Parameters}
-%Number:     ID:     InjectionValue:     ranInjPar:     Sigma:     BoundType:     BoundLow:           BoundUp:                        Description:
-%								                                               
-%  1            61      3.0836              0              0.1        1              3.000               12.000                          Mc             chirp mass (Mo)
-%  2            62      0.2222              0              0.1        1              0.03                0.25                            eta            symmetric mass ratio (-)
-%  3            11      894377000.00000     0              0.1        2              -0.05000            0.05000                         t\_c            GPS time of coalescence (s)
-%  4            22      2.8904              0              0.1        1              -6.9                4.6                             log(d\_L)       log of luminosity distance (Mpc)
-%  5            71      0.9000              0              0.1        1              0.000               1.000                           a\_spin1        spin magnitude of object 1 (-)
-%  6            72      0.1000              0              0.1        1              -1.000              1.000                           cos theta1     spin tilt of object 1 (-)
-%  7            31      0.8000              0              0.1        1              0.0                 6.28                            alpha          right ascension (rad)
-%  8            32      0.9000              0              0.1        1              -1.000              1.000                           sin(delta)     sin declination (-)
-%  9            41      1.5000              0              0.1        1              0.0                 6.28                            phi\_c          binary phase at coalescence (rad)
-% 10            53      0.5000              0              0.1        1              -1.000              1.000                           sin(theta\_J0)  orientation of J0 (-)
-% 11            54      2.0000              0              0.1        1              0.0                 6.28                            phi\_J0         orientation of J0 (rad)
-% 12            73      1.5000              0              0.1        1              0.0                 6.28                            phi1           spin phase of object 1 (rad)        
 
 
 Following the ``General'' section is a table with nine columns containing the following data:
@@ -386,23 +372,6 @@ Following the ``General'' section is a table with nine columns containing the fo
 
 
 
-%Number:     ID:     BestValue:          Fix:     Start:     Sigma:          Type:     BoundLow:           BoundUp:                 
-%
-%  1            61      4.0836              0        4          0.0250          11        1.000               6.000                    Mc             chirp mass (Mo)
-%  2            62      0.2222              0        4          0.0250          11        0.03                0.25                     eta            symmetric mass ratio (-)
-%  3            11      894377000.00000     0        4          0.0100          12        -0.05000            0.05                     t\_c            GPS time of coalescence (s)
-%  4            22      2.8904              0        4          0.1000          11        -6.9                4.6                      log(d\_L)       log of luminosity distance (Mpc)
-%  5            71      0.9000              0        4          0.1000          11        1.0e-10             1.0                      a\_spin1        spin magnitude of object 1 (-)
-%  6            72      0.1000              0        5          0.1000          11        -0.999999           0.999999                 cos theta1     spin tilt of object 1 (-)
-%  7            31      0.8000              0        5          0.1000          21        0.0                 6.28                     alpha          right ascension (rad)
-%  8            32      0.9000              0        5          0.1000          11        -0.999999           0.999999                 sin(delta)     sin declination (-)
-%  9            41      1.5000              0        5          0.1000          21        0.0                 6.28                     phi\_c          binary phase at coalescence (rad)
-% 10            53      0.5000              0        5          0.1000          11        -0.999999           0.999999                 sin(theta\_J0)  orientation of J0 (-)
-% 11            54      2.0000              0        5          0.1000          21        0.0                 6.28                     phi\_J0         orientation of J0 (rad)
-% 12            73      1.5000              0        5          0.1000          21        0.0                 6.28                     phi1           spin phase of object 1 (rad)
-  
-  
-  
 \subsubsection{Parameters}
 \begin{description}                
 \item[Number] Currently just to guide the eye in this file.
@@ -412,8 +381,6 @@ Following the ``General'' section is a table with nine columns containing the fo
   \begin{description}                
   \item[0] no.
   \item[1] yes; fix to the starting value determined by \texttt{Start}
-  %\item[1] fix to BestValue.
-  %\item[2] fix to injection value.
   \end{description}                
 \item[Start] where to start the Markov chains:
   \begin{description}                

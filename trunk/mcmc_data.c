@@ -478,12 +478,9 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
     // Define injection parameters:
     struct parset injectpar;
     getInjectionParameters(&injectpar, run.nInjectPar, run.injParVal);
+    allocParset(&injectpar, networkSize);
     double m1=0.0,m2=0.0;
-    McEta2masses(injectpar.mc, injectpar.eta, &m1, &m2);
-    injectpar.loctc    = (double*)calloc(networkSize,sizeof(double));
-    injectpar.localti  = (double*)calloc(networkSize,sizeof(double));
-    injectpar.locazi   = (double*)calloc(networkSize,sizeof(double));
-    injectpar.locpolar = (double*)calloc(networkSize,sizeof(double));
+    McEta2masses(injectpar.mc, injectpar.eta, &m1, &m2);  //CHECK: remove .mc and .eta
     
     if(intscrout==1) {
       printf(" :   m1 = %.1f Mo,  m2 = %.1f Mo  (Mc = %.3f Mo,  eta = %.4f)\n", m1, m2, injectpar.mc, injectpar.eta);
@@ -512,7 +509,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
     ifo[ifonr]->FTin = injection;
     ifo[ifonr]->FTstart = from;
     ifo[ifonr]->samplesize = N;
-    template(&injectpar,ifo,ifonr, run.injectionWaveform);
+    waveformTemplate(&injectpar,ifo,ifonr, run.injectionWaveform);
     ifo[ifonr]->FTin = tempinj;
     ifo[ifonr]->FTstart = tempfrom;
     ifo[ifonr]->samplesize = tempN;
@@ -1045,10 +1042,7 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networkSize, struct r
   //Set local values in parameter struct (needed for template computation)
   struct parset par;
   getInjectionParameters(&par, run.nInjectPar, run.injParVal);
-  par.loctc    = (double*)calloc(networkSize,sizeof(double));
-  par.localti  = (double*)calloc(networkSize,sizeof(double));
-  par.locazi   = (double*)calloc(networkSize,sizeof(double));
-  par.locpolar = (double*)calloc(networkSize,sizeof(double));
+  allocParset(&par, networkSize);
   localPar(&par, ifo, networkSize);
   
   
@@ -1057,7 +1051,7 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networkSize, struct r
     double complex FFTout;
     
     // Fill `ifo[i]->FTin' with time-domain template:
-    template(&par, ifo, i, run.injectionWaveform);
+    waveformTemplate(&par, ifo, i, run.injectionWaveform);
     // And FFT it
     fftw_execute(ifo[i]->FTplan);
     
@@ -1092,6 +1086,8 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networkSize, struct r
     }
     fclose(dump2);
     if(intscrout) printf(" : (signal FFT written to file)\n");
+    freeParset(&par);
+    
   }
 } // End of writeSignalsToFiles()
 // ****************************************************************************************************************************************************  
@@ -1109,7 +1105,6 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networkSize, struct r
 void printParameterHeaderToFile(FILE * dump)
 {
   struct parset par;
-  //getInjectionParameters(&par, 12, run.injParVal);  //CHECK - get nMCMCpar/nInjectPar and run here somehow
   fprintf(dump,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
   fprintf(dump,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
 	  //par.m1,par.m2,par.mc,par.eta,par.tc,exp(par.logdl),asin(par.sinlati)*r2d,par.longi*r2d,par.phase,par.spin,par.kappa,par.sinthJ0,par.phiJ0,par.alpha);

@@ -155,10 +155,7 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   
   // *** Get true (or best-guess) values for signal ***
   getInjectionParameters(&state, mcmc.nMCMCpar, mcmc.injParVal);
-  state.loctc    = (double*)calloc(mcmc.networkSize,sizeof(double));
-  state.localti  = (double*)calloc(mcmc.networkSize,sizeof(double));
-  state.locazi   = (double*)calloc(mcmc.networkSize,sizeof(double));
-  state.locpolar = (double*)calloc(mcmc.networkSize,sizeof(double));
+  allocParset(&state, mcmc.networkSize);
   
   
   // *** Write true/best-guess values to screen and file ***
@@ -202,10 +199,7 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   
   // Get the best-guess values for the chain:
   getStartParameters(&state, run);
-  state.loctc    = (double*)calloc(mcmc.networkSize,sizeof(double));
-  state.localti  = (double*)calloc(mcmc.networkSize,sizeof(double));
-  state.locazi   = (double*)calloc(mcmc.networkSize,sizeof(double));
-  state.locpolar = (double*)calloc(mcmc.networkSize,sizeof(double));
+  allocParset(&state, mcmc.networkSize);
   
   par2arr(state, mcmc.param, mcmc);  //Put the variables in their array
   startMCMCOffset(&state,&mcmc,ifo);  // Start MCMC offset if and where wanted
