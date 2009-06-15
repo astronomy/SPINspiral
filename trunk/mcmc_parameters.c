@@ -144,12 +144,12 @@ void readMainInputfile(struct runPar *run)
   
   //Operation and output:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%d",&doSNR);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&doMCMC);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&doMatch);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&intscrout);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&writeSignal);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&printMuch);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->doSNR);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->doMCMC);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->doMatch);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->intScrOut);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->writeSignal);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->printMuch);
   
   
   //Secondary input files:
@@ -229,40 +229,40 @@ void readMCMCinputfile(struct runPar *run)
   
   
   fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);    
-  nIter = (int)tmpdbl;
-  fgets(bla,500,fin);  sscanf(bla,"%d",&thinOutput);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&thinScreenOutput);
+  run->nIter = (int)tmpdbl;
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->thinOutput);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->thinScreenOutput);
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->MCMCseed);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&adapt);
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->blockfrac);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->adaptiveMCMC);
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->blockFrac);
   
   
 
   //Correlated update proposals:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%d",&corrupd);
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->corrfrac);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->correlatedUpdates);
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->corrFrac);
   fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);
-  nCorr = (int)tmpdbl;
+  run->nCorr = (int)tmpdbl;
   fgets(bla,500,fin);  sscanf(bla,"%lf",&run->matAccFr);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&prMatrixInfo);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->prMatrixInfo);
   
   
   //Annealing:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&temp0);
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->annealTemp0);
   fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);
-  nburn = (int)tmpdbl;
+  run->annealNburn = (int)tmpdbl;
   fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);
-  nburn0 = (int)tmpdbl;
+  run->annealNburn0 = (int)tmpdbl;
   
   //Parallel tempering:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin);  sscanf(bla,"%d",&partemp);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->parallelTempering);
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->nTemps);
-  fgets(bla,500,fin);  sscanf(bla,"%lf",&tempmax);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&savehotchains);
-  fgets(bla,500,fin);  sscanf(bla,"%d",&prpartempinfo);
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->maxTemp);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->saveHotChains);
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->prParTempInfo);
   
   //Manual temperature ladder for parallel tempering:
   fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
@@ -315,7 +315,7 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
   
   //Data handling:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
-  fgets(bla,500,fin); sscanf(bla,"%d",&downsamplefactor);
+  fgets(bla,500,fin); sscanf(bla,"%d",&run->downsampleFactor);
   fgets(bla,500,fin); sscanf(bla,"%lf",&run->dataBeforeTc);
   fgets(bla,500,fin); sscanf(bla,"%lf",&run->dataAfterTc);
   fgets(bla,500,fin); sscanf(bla,"%lf",&run->lowFrequencyCut);
@@ -349,7 +349,7 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
     fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].ch1name);
     //fgets(bla,500,fin);  sscanf(bla,"%s",&ifo[i].ch1filepath);
     fgets(bla,500,fin);  sscanf(bla,"%s",subdir);
-    sprintf(ifo[i].ch1filepath,"%s%s%s",datadir,"/",subdir);
+    sprintf(ifo[i].ch1filepath,"%s%s%s",run->dataDir,"/",subdir);
     fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].ch1fileprefix);
     fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].ch1filesuffix);
     fgets(bla,500,fin);  sscanf(bla,"%d",&ifo[i].ch1filesize);
@@ -363,7 +363,7 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
     fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].noisechannel);
     //fgets(bla,500,fin);  sscanf(bla,"%s",&ifo[i].noisefilepath);
     fgets(bla,500,fin);  sscanf(bla,"%s",subdir);
-    sprintf(ifo[i].noisefilepath,"%s%s%s",datadir,"/",subdir);
+    sprintf(ifo[i].noisefilepath,"%s%s%s",run->dataDir,"/",subdir);
     fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].noisefileprefix);
     fgets(bla,500,fin);  sscanf(bla,"%s",ifo[i].noisefilesuffix);
     fgets(bla,500,fin);  sscanf(bla,"%d",&ifo[i].noisefilesize);
@@ -513,8 +513,7 @@ void readInjectionInputfile(struct runPar *run)
   
   
   setRandomInjectionParameters(run);    //Copy the injection parameters from injParValOrig to injParVal, and randomise where wanted
-  prior_tc_mean = run->injParVal[2];    //CHECK prior_tc_mean is (still) used everywhere.  This value must be overwritten by the 'best' value in readParameterInputfile() which is called next, in the case of no SW injection
-  
+  run->geocentricTc = run->injParVal[run->injRevID[11]];    // This value must be overwritten by the 'best' value in readParameterInputfile() which is called next, in the case of no SW injection
   
   fclose(fin);
   
@@ -700,7 +699,7 @@ void readParameterInputfile(struct runPar *run)
   
   
   if(run->injectSignal<=0) {
-    prior_tc_mean = run->parBestVal[2];       //CHECK prior_tc_mean is (still) used everywhere.  This value overwrites the injection value from readInjectionInputfile() called earlier
+    run->geocentricTc = run->parBestVal[run->parRevID[11]];    // This value overwrites the injection value from readInjectionInputfile(), in the case of no SW injection
     for(i=0;i<run->nMCMCpar;i++) run->injParVal[i] = run->parBestVal[i];   //CHECK Needed to avoid SegFault in the case of t_c
   }
 
@@ -764,7 +763,7 @@ void readSystemInputfile(struct runPar *run)
   }  
 
   //Data directory:
-  fscanf(fin, "%s",datadir);
+  fscanf(fin, "%s",run->dataDir);
   
   fclose(fin);
 }  //End of readSystemInputfile
@@ -1081,8 +1080,6 @@ void setParameterNames(struct runPar * run)
 // ****************************************************************************************************************************************************  
 void setConstants()
 {
-  tempi = 0; //A global variable that determines the current chain (temperature) in the temperature ladder - move this to MCMCvariables struct
-  
   // Mathematical constants:
   pi   = 3.141592653589793;   // pi
   tpi  = 6.283185307179586;   // 2 pi

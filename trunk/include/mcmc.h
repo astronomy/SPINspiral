@@ -83,38 +83,13 @@
 
 
 
-// Global constants etc., assigned in setConstants()
-
-//  *** PLEASE DON'T ADD ANY NEW ONES, BUT USE THE STRUCTS BELOW INSTEAD (e.g. runPar or MCMCvariables) ***
-//      (and if you're bored, go ahead and place the variables below in these structs as well)
-
-//Global variables:
-
-char datadir[99];
-
-int nIter,thinOutput,thinScreenOutput,adapt;
-
-int corrupd,nCorr,prMatrixInfo;
-
-double temp0;
-int nburn,nburn0;
-
-int partemp,savehotchains,prpartempinfo;
-double tempmax;
-
-int doSNR,doMCMC,doMatch,intscrout,writeSignal;
-int printMuch;
-
-double prior_tc_mean;
-int downsamplefactor;
-
-int tempi;
-  
+// Global constants, assigned in setConstants()
 double Ms,Mpc,G,c,Mpcs,pi,tpi,mtpi;
+// *** PLEASE DON'T ADD ANY NEW ONES, BUT USE THE STRUCTS BELOW INSTEAD (e.g. runPar or MCMCvariables) ***
 
 
 
-double *chaintemp;                  // vector of temperatures for individual chains (initialised later) 
+
 
 
 
@@ -143,8 +118,26 @@ struct runPar{
   int maxIFOdbaseSize;            // Maximum number of IFOs for which the properties are read in (e.g. from mcmc.data)
   int selectifos[9];              // Select IFOs to use for the analysis
   
-  double blockfrac;               // Fraction of non-correlated updates that is a block update
-  double corrfrac;                // Fraction of MCMC updates that used the correlation matrix
+  int nIter;                      // Number of MCMC iterations to compute
+  int thinOutput;                 // Save every thiOutput-th MCMC iteration to file
+  int thinScreenOutput;           // Save every thiOutput-th MCMC iteration to screen
+  int adaptiveMCMC;               // Use adaptive MCMC
+  
+  int correlatedUpdates;          // Switch to do correlated update proposals
+  int nCorr;                      // Number of iterations for which the covariance matrix is calculated
+  int prMatrixInfo;               // Print information to screen on proposed matrix updates
+  
+  double annealTemp0;             // Starting temperature of the annealed chain
+  int annealNburn;                // Number of iterations for the annealing burn-in phase
+  int annealNburn0;               // Number of iterations during which temp=annealTemp0
+
+  int parallelTempering;          // Switch to use parallel tempering
+  double maxTemp;                 // Maximum temperature in automatic parallel-tempering ladder
+  int saveHotChains;              // Save hot (T>1) parallel-tempering chains
+  int prParTempInfo;              // Print information on the temperature chains
+
+  double blockFrac;               // Fraction of non-correlated updates that is a block update
+  double corrFrac;                // Fraction of MCMC updates that used the correlation matrix
   double matAccFr;                // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
   
   double netsnr;                  // Total SNR of the network
@@ -152,12 +145,14 @@ struct runPar{
   
   //Data:
   char datasetName[80];           // Name of the data set used (for printing purposes)
+  double geocentricTc;            // Geocentric time of coalescence
   double dataBeforeTc;            // Data stretch in the time domain before t_c to use in the analysis
   double dataAfterTc;             // Data stretch in the time domain after t_c to use in the analysis
   double lowFrequencyCut;         // Lower frequency cutoff to compute the overlap for
   double lowFrequencyCutInj;      // Lower frequency cutoff for the software injection
   double highFrequencyCut;        // Upper frequency cutoff to compute the overlap for
   double tukeyWin;                // Parameter for Tukey-window used in dataFT
+  int downsampleFactor;           // Factor by which the data should be downsampled before the analysis
   
   int PSDsegmentNumber;           // Number of data segments used for PSD estimation
   double PSDsegmentLength;        // Length of each segment of data used for PSD estimation
@@ -205,6 +200,12 @@ struct runPar{
   int parDef[200];                // Indicates whether a parameter is defined (1) or not (0)
   int parRevID[200];              // Reverse parameter identifier
   
+  int doSNR;                      // Calculate the injection SNR
+  int doMCMC;                     // Do MCMC
+  int doMatch;                    // Compute matches
+  int intScrOut;                  // Print initialisation output to screen
+  int writeSignal;                // Write signal, noise, PSDs to file
+  int printMuch;                  // Print long stretches of output
   
   char mainFilename[99];          // Run input file name
   char outfilename[99];           // Copy of input file name
@@ -213,10 +214,12 @@ struct runPar{
   char injectionFilename[99];     // Run injection input file name
   char parameterFilename[99];     // Run parameter input file name
   char systemFilename[99];        // System-dependent input file name
+  char dataDir[99];               // Absolute path of the directory where the detector data sits
   
   char* injXMLfilename;           // Name of XML injection file
   int injXMLnr;                   // Number of injection in XML injection file to use
 };  // End struct runpar
+
 
 
 //Structure for MCMC variables
@@ -232,9 +235,30 @@ struct MCMCvariables{
   int mcmcWaveform;               // Waveform used as the MCMC template
   int injectionWaveform;          // Waveform used to do software injections
   
+  int nIter;                      // Number of MCMC iterations to compute
+  int thinOutput;                 // Save every thiOutput-th MCMC iteration to file
+  int thinScreenOutput;           // Save every thiOutput-th MCMC iteration to screen
+  int adaptiveMCMC;               // Use adaptive MCMC
+  
+  int correlatedUpdates;          // Switch to do correlated update proposals
+  int nCorr;                      // Number of iterations for which the covariance matrix is calculated
+  int prMatrixInfo;               // Print information to screen on proposed matrix updates
+  
+  double annealTemp0;             // Starting temperature of the annealed chain
+  int annealNburn;                // Number of iterations for the annealing burn-in phase
+  int annealNburn0;               // Number of iterations during which temp=annealTemp0
+  
+  int parallelTempering;          // Switch to use parallel tempering
+  double maxTemp;                 // Maximum temperature in automatic parallel-tempering ladder
+  int saveHotChains;              // Save hot (T>1) parallel-tempering chains
+  int prParTempInfo;              // Print information on the temperature chains
+  
+  
   
   double chTemp;                  // The current chain temperature
   double tempOverlap;             // Overlap between sinusoidal chain temperatures
+  double blockFrac;               // Fraction of non-correlated updates that is a block update
+  double corrFrac;                // Fraction of MCMC updates that used the correlation matrix
   double matAccFr;                // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
   double baseTime;                // Base of time measurement, get rid of long GPS time format
   
@@ -243,6 +267,7 @@ struct MCMCvariables{
   int priorSet;                   // Set of priors to use for the MCMC parameters
   int offsetMCMC;                 // Start MCMC offset (i.e., not from injection values) or not
   double offsetX;                 // Start offset chains from a Gaussian distribution offsetX times wider than parSigma
+  double geocentricTc;            // Geocentric time of coalescence
 
   int parNumber[20];              // Number of the current parameter
   int parID[20];                  // Unique parameter identifier
@@ -264,6 +289,8 @@ struct MCMCvariables{
   int  parDef[200];               // Indicates whether a parameter is defined (1) or not (0)
   int parRevID[200];              // Reverse MCMC parameter identifier
   int injRevID[200];              // Reverse injection parameter identifier
+  
+  int printMuch;                  // Print long stretches of output
   
   
   double *histMean;               // Mean of hist block of iterations, used to get the covariance matrix
@@ -486,18 +513,18 @@ void vec2coord(double x[3], double *sinlati, double *longi);
 //************************************************************************************************************************************************
 
 void IFOinit(struct interferometer **ifo, int networkSize, struct runPar run);
-void IFOdispose(struct interferometer *ifo);
+void IFOdispose(struct interferometer *ifo, struct runPar run);
 void localPar(struct parset *par, struct interferometer *ifo[], int networkSize);
-double *filter(int *order, int samplerate, double upperlimit);
-double *downsample(double data[], int *datalength, double coef[], int ncoef);
+double *filter(int *order, int samplerate, double upperlimit, struct runPar run);
+double *downsample(double data[], int *datalength, double coef[], int ncoef, struct runPar run);
 void dataFT(struct interferometer *ifo[], int i, int networkSize, struct runPar run);
 double hannWindow(int j, int N);
 double tukeyWindow(int j, int N, double r);
 void noisePSDestimate(struct interferometer *ifo, struct runPar run);
 double logNoisePSD(double f, struct interferometer *ifo);
 double interpolLogNoisePSD(double f, struct interferometer *ifo);
-void writeDataToFiles(struct interferometer *ifo[], int networkSize, int mcmcseed);
-void writeNoiseToFiles(struct interferometer *ifo[], int networkSize, int mcmcseed);
+void writeDataToFiles(struct interferometer *ifo[], int networkSize, struct runPar run);
+void writeNoiseToFiles(struct interferometer *ifo[], int networkSize, struct runPar run);
 void writeSignalsToFiles(struct interferometer *ifo[], int networkSize, struct runPar run);
 void printParameterHeaderToFile(FILE * dump);
 

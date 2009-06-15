@@ -2,6 +2,11 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   173: sluys, 15/06/2009
+     - lots of cleaning (especially in mcmc_mcmc.c)
+     - all global variables removed
+     - keep old setTemperatureLadder() as default for now
+   
    172: sluys, 14/06/2009
      - MCMC line -1: convert injection to MCMC parameters as well as possible
      - created setTemperatureLadder; updated code to use less overlap between sin T chains

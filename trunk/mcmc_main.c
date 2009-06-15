@@ -38,8 +38,7 @@
 // Main program:
 int main(int argc, char* argv[])
 {
-  if(doMCMC>=1) printf("\n");
-  printf("\n   Starting SPINspiral...\n");
+  printf("\n\n   Starting SPINspiral...\n");
   printf("   Compiled from source code version $Id$ \n");
   
   clock_t time0 = clock();
@@ -120,7 +119,7 @@ int main(int argc, char* argv[])
   
   //Calculate SNR
   run.netsnr = 0.0;
-  if(doSNR==1) {
+  if(run.doSNR==1) {
     for(ifonr=0; ifonr<networkSize; ++ifonr) {
       snr = signalToNoiseRatio(&dummypar, network, ifonr, run.injectionWaveform);
       network[ifonr]->snr = snr;
@@ -141,7 +140,7 @@ int main(int argc, char* argv[])
     
     //Recalculate SNR
     run.netsnr = 0.0;
-    if(doSNR==1) {
+    if(run.doSNR==1) {
       for(ifonr=0; ifonr<networkSize; ++ifonr) {
 	snr = signalToNoiseRatio(&dummypar, network, ifonr, run.injectionWaveform);
 	network[ifonr]->snr = snr;
@@ -150,7 +149,7 @@ int main(int argc, char* argv[])
       run.netsnr = sqrt(run.netsnr);
     }
     
-    for(ifonr=0; ifonr<networkSize; ++ifonr) IFOdispose(network[ifonr]);
+    for(ifonr=0; ifonr<networkSize; ++ifonr) IFOdispose(network[ifonr], run);
     //Reinitialise interferometers, read and prepare data, inject signal (takes some time)
     if(networkSize == 1) {
       printf("   Reinitialising 1 IFO, reading data...\n");
@@ -172,14 +171,14 @@ int main(int argc, char* argv[])
   for(ifonr=0;ifonr<run.networkSize;ifonr++) {
     printf("%10s  %8.2lf Hz  %7.2lf Hz  %8.2lf s  %7.2lf s  %16.5lf s  %12.4lf s  %10d x  %9d Hz  %9d pt  %9d pt\n",
 	   network[ifonr]->name,network[ifonr]->lowCut,network[ifonr]->highCut,network[ifonr]->before_tc,network[ifonr]->after_tc,
-	   network[ifonr]->FTstart,network[ifonr]->deltaFT,downsamplefactor,network[ifonr]->samplerate,network[ifonr]->samplesize,network[ifonr]->FTsize);
+	   network[ifonr]->FTstart,network[ifonr]->deltaFT,run.downsampleFactor,network[ifonr]->samplerate,network[ifonr]->samplesize,network[ifonr]->FTsize);
   }
   
   
   //Write the data and its FFT, the signal and its FFT, and the noise ASD to disc
-  if(writeSignal) {
-    writeDataToFiles(network, networkSize, run.MCMCseed);
-    writeNoiseToFiles(network, networkSize, run.MCMCseed);
+  if(run.writeSignal) {
+    writeDataToFiles(network, networkSize, run);
+    writeNoiseToFiles(network, networkSize, run);
     writeSignalsToFiles(network, networkSize, run);
   }  
   
@@ -192,13 +191,13 @@ int main(int argc, char* argv[])
   printf("\n  %10s  %10s  %6s  %6s  ","niter","nburn","seed","ndet");
   for(ifonr=0;ifonr<networkSize;ifonr++) printf("%16s%4s  ",network[ifonr]->name,"SNR");
   printf("%20s  ","Network SNR");
-  printf("\n  %10d  %10d  %6d  %6d  ",nIter,nburn,run.MCMCseed,networkSize);
+  printf("\n  %10d  %10d  %6d  %6d  ",run.nIter,run.annealNburn,run.MCMCseed,networkSize);
   for(ifonr=0;ifonr<networkSize;ifonr++) printf("%20.10lf  ",network[ifonr]->snr);
   printf("%20.10lf\n\n",run.netsnr);
   
   
   //Print actual injection parameters to screen:
-  if(doMCMC==0) {
+  if(run.doMCMC==0) {
     printf("   Injection param:");
     for(i=0;i<run.nMCMCpar;i++) {
       if(run.parID[i]>=11 && run.parID[i]<=19) {  //GPS time
@@ -223,10 +222,10 @@ int main(int argc, char* argv[])
   
   //Do MCMC
   clock_t time1 = clock();
-  if(doMCMC==1) {
-    //printMuch=1;
+  if(run.doMCMC==1) {
+    //run.printMuch=1;
     MCMC(run, network);
-    //printMuch=0;
+    //run.printMuch=0;
   }
   clock_t time2 = clock();
   
@@ -235,7 +234,7 @@ int main(int argc, char* argv[])
   
   
   //Calculate matches between two signals
-  if(doMatch==1) {
+  if(run.doMatch==1) {
     /*
     if(1==2) {
       printf("\n\n");
@@ -316,21 +315,21 @@ int main(int argc, char* argv[])
       }
       free(matrix);
     }
-  } //if(doMatch=1)
+  } //if(run.doMatch=1)
 
   
   
     
   
   //Get rid of allocated memory and quit
-  for(ifonr=0; ifonr<networkSize; ++ifonr) IFOdispose(network[ifonr]);
+  for(ifonr=0; ifonr<networkSize; ++ifonr) IFOdispose(network[ifonr], run);
   freeParset(&dummypar);
   
   
   clock_t time3 = clock();
-  if(printMuch>=1) { 
+  if(run.printMuch>=1) { 
     printf("   Timing:\n");
-    if(doMCMC>=1) {
+    if(run.doMCMC>=1) {
       printf("     initialisation:%10.2lfs\n", ((double)time1 - (double)time0)*1.e-6 );
       printf("     MCMC:          %10.2lfs\n", ((double)time2 - (double)time1)*1.e-6 );
     }
@@ -338,7 +337,7 @@ int main(int argc, char* argv[])
   }
   
   printf("\n   SPINspiral done.\n\n");
-  if(doMCMC>=1) printf("\n");
+  if(run.doMCMC>=1) printf("\n");
   return 0;
 }
 
