@@ -2,6 +2,10 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   172: sluys, 14/06/2009
+     - MCMC line -1: convert injection to MCMC parameters as well as possible
+     - created setTemperatureLadder; updated code to use less overlap between sin T chains
+     
    169: sluys, 12/06/2009
      - selection of starting parameters with different waveforms works
      - fixed MCMC parameters may now start offset, depending on 'Start'

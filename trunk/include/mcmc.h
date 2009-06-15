@@ -234,6 +234,7 @@ struct MCMCvariables{
   
   
   double chTemp;                  // The current chain temperature
+  double tempOverlap;             // Overlap between sinusoidal chain temperatures
   double matAccFr;                // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
   double baseTime;                // Base of time measurement, get rid of long GPS time format
   
@@ -271,7 +272,7 @@ struct MCMCvariables{
   int *corrUpdate;                // Switch (per chain) to do correlated (1) or uncorrelated (0) updates
   int *acceptElems;               // Count 'improved' elements of diagonal of new corr matrix, to determine whether to accept it
 
-  double *temps;                  // Array of temperatures in the temperature ladder
+  double temps[99];               // Array of temperatures in the temperature ladder
   double *newTemps;               // New temperature ladder, was used in adaptive parallel tempering
   double *tempAmpl;               // Temperature amplitudes for sinusoid T in parallel tempering
   double *logL;                   // Current log(L)
@@ -291,7 +292,7 @@ struct MCMCvariables{
   int **swapTss;                  // Count swaps between chains
   double **param;                 // The current parameters for all chains
   double **nParam;                // The new parameters for all chains
-  double **maxParam;              // The best parameters for all chains (max logL)
+  double **maxLparam;             // The best parameters for all chains (max logL)
   double **sig;                   // The standard deviation of the gaussian to draw the jump size from
   double **sigOut;                // The sigma that gets written to output
   double **scale;                 // The rate of adaptation
@@ -310,17 +311,19 @@ struct MCMCvariables{
 
 
 
-// Structure for spin parameter set with 12 parameters
+// Structure for waveform parameter set with up to 20 parameters
 struct parset{
   
-  double par[20];
+  double par[20];    // Array with all parameters
+  int nPar;          // Number of parameters used
   
+  //CHECK Get rid of these!
   double mc;         // chirp mass                
   double eta;        // sym mass ratio            
   double tc;         // coalescence time          
   double logdl;      // log-distance              
   double spin;       // magnitude of total spin   
-  double kappa;      // L^.S^, cos of angle between L^ & S^
+  double kappa;      // L^.S^, cos of angle between L and S
   double longi;      // longitude                 
   double sinlati;    // latitude (sin(delta))     
   double phase;      // wave phase   (phi0)       
@@ -330,11 +333,11 @@ struct parset{
   
   double NdJ;        // N^.J_o^; inclination of J_o
   
-  // derived quantities (see also `localpar()'):
-  double *loctc;     // vector of `local coalescence times' (w.r.t. FT'd data!)         
-  double *localti;   // vector of local altitudes                                       
-  double *locazi;    // vector of local azimuths                                        
-  double *locpolar;  // vector of local polarisations                                   
+  // Derived quantities (see also localPar()):
+  double *loctc;     // vector of local coalescence times (w.r.t. FT'd data!)
+  double *localti;   // vector of local altitudes
+  double *locazi;    // vector of local azimuths
+  double *locpolar;  // vector of local polarisations
 };
 
 
@@ -425,6 +428,8 @@ void setRandomInjectionParameters(struct runPar *run);
 void getInjectionParameters(struct parset *par, int nInjectionPar, double *parInjectVal);
 void getStartParameters(struct parset *par, struct runPar run);
 void startMCMCOffset(struct parset *par, struct MCMCvariables *mcmc, struct interferometer *ifo[]);
+void setTemperatureLadder(struct MCMCvariables *mcmc);
+void setTemperatureLadderOld(struct MCMCvariables *mcmc);
 void allocParset(struct parset *par, int networkSize);
 void freeParset(struct parset *par);
 

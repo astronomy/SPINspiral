@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 {
   if(doMCMC>=1) printf("\n");
   printf("\n   Starting SPINspiral...\n");
-  printf("   Produced with source code version $Id$ \n");
+  printf("   Compiled from source code version $Id$ \n");
   
   clock_t time0 = clock();
   int ifonr=0,i=0;
@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
   
   //Get a parameter set to calculate SNR or write the wavefrom to disc
   struct parset dummypar;
-  getInjectionParameters(&dummypar, run.nMCMCpar, run.injParVal);
+  getInjectionParameters(&dummypar, run.nInjectPar, run.injParVal);
   allocParset(&dummypar, networkSize);
   localPar(&dummypar, network, networkSize);
   

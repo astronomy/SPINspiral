@@ -1118,6 +1118,7 @@ void getInjectionParameters(struct parset *par, int nInjectionPar, double *injPa
   for(i=0;i<nInjectionPar;i++) {
     par->par[i] = injParVal[i];
   }
+  par->nPar = nInjectionPar;
   
   //These should all disappear:
   par->mc       = injParVal[0];                    // Chirp mass
@@ -1145,6 +1146,7 @@ void getStartParameters(struct parset *par, struct runPar run)  //Set the parame
   for(i=0;i<run.nMCMCpar;i++) {
     par->par[i]      = run.parBestVal[i];
   }
+  par->nPar = run.nMCMCpar;
   
 } // End getStartParameters
 // ****************************************************************************************************************************************************  

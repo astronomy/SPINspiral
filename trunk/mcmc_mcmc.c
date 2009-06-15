@@ -50,11 +50,12 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   
   // *** MCMC struct ***
   struct MCMCvariables mcmc;                  // MCMC variables struct
-  mcmc.minlogL = 0.0;
-  mcmc.minlogL = -1.e30;
+  copyRun2MCMC(run, &mcmc);                   // Copy elements from run struct to mcmc struct
   
-  //Copy elements from run struct to mcmc struct:
-  copyRun2MCMC(run, &mcmc);
+  //mcmc.minlogL = 0.0;
+  mcmc.minlogL = -1.e30;
+  mcmc.tempOverlap = 1.1;                    // Set the overlap factor for the overlap between adjacent sinusoidal temperatures, e.g. 1.1.  1.0 means extremes touch. Keep <~ 1.3
+  
   
   printf("\n  GPS base time:  %15d\n",(int)mcmc.baseTime);
   
@@ -81,7 +82,6 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   // *** MEMORY ALLOCATION ********************************************************************************************************************************************************
   
   int i=0,j=0,j1=0,j2=0,iIter=0;
-  double tempratio=1.0;
   
   
   //Allocate memory for (most of) the MCMCvariables struct
@@ -110,31 +110,12 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   // *** INITIALISE PARALLEL TEMPERING ********************************************************************************************************************************************
   
   // *** Set up temperature ladder ***
-  if(mcmc.nTemps>1) {  
-    tempratio = exp(log(tempmax)/(double)(mcmc.nTemps-1));
-    if(prpartempinfo>0) {
-      printf("   Temperature ladder:\n     Number of chains:%3d,  Tmax:%7.2lf, Ti/Ti-1:%7.3lf\n",mcmc.nTemps,tempmax,tempratio);
-      if(partemp==1) printf("     Using fixed temperatures for the chains\n");
-      if(partemp==2) printf("     Using sinusoid temperatures for the chains\n");
-      if(partemp==3) printf("     Using a manual temperature ladder with fixed temperatures for the chains\n");
-      if(partemp==4) printf("     Using a manual temperature ladder with sinusoid temperatures for the chains\n");
-      printf("     Chain     To     Ampl.    Tmin     Tmax\n");
-    }
-    for(tempi=0;tempi<mcmc.nTemps;tempi++) {
-      mcmc.temps[tempi] = pow(10.0,log10(tempmax)/(double)(mcmc.nTemps-1)*(double)tempi);
-      if(partemp==3 || partemp==4) mcmc.temps[tempi] = run.temps[tempi];  //Set manual ladder
-      
-      //if(tempi>0) mcmc.tempAmpl[tempi] = (mcmc.temps[tempi] - mcmc.temps[tempi-1])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains just touch at extrema (since in antiphase)
-      //if(tempi>0) mcmc.tempAmpl[tempi] = 1.5*(mcmc.temps[tempi] - mcmc.temps[tempi-1])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains overlap somewhat at extrema (since in antiphase)
-      if(tempi>0)                    mcmc.tempAmpl[tempi] = min(3.0*(mcmc.temps[tempi] - mcmc.temps[tempi-1])/(tempratio+1.0)*tempratio , fabs(mcmc.temps[tempi]-mcmc.temps[tempi-1]));  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
-      if(mcmc.nTemps>10 && tempi>1)  mcmc.tempAmpl[tempi] = min(3.0*(mcmc.temps[tempi] - mcmc.temps[tempi-1])/(tempratio+1.0)*tempratio , fabs(mcmc.temps[tempi]-mcmc.temps[tempi-2]));  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
-      //if(tempi>0) mcmc.tempAmpl[tempi] = fabs(mcmc.temps[tempi]-mcmc.temps[tempi-1]);  //Temperatures of adjacent chains overlap: Amplitude = (T(i) - T(i-1))  (may be a bit smallish for large nTemps)
-      if(tempi==0 || partemp<=1 || partemp==3) mcmc.tempAmpl[tempi] = 0.0;
-      if(prpartempinfo>0) printf("     %3d  %7.2lf  %7.2lf  %7.2lf  %7.2lf\n",tempi,mcmc.temps[tempi],mcmc.tempAmpl[tempi],mcmc.temps[tempi]-mcmc.tempAmpl[tempi],mcmc.temps[tempi]+mcmc.tempAmpl[tempi]);
-    }
-    if(prpartempinfo>0) printf("\n\n");
+  if(mcmc.nTemps == 1) {
+    mcmc.temps[0] = 1.0;
+  } else {
+    setTemperatureLadder(&mcmc);
+    //setTemperatureLadderOld(&mcmc);
   }
-  if(mcmc.nTemps==1) mcmc.temps[0] = 1.0;
   tempi = 0;  //MUST be zero
   
   
@@ -143,7 +124,6 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   
   // *** WRITE RUN 'HEADER' TO SCREEN AND FILE ************************************************************************************************************************************
   
-  // Write 'header' to screen and file
   writeMCMCheader(ifo, mcmc, run);
   tempi = 0;  //MUST be zero
   
@@ -153,18 +133,39 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   
   // *** INITIALISE MARKOV CHAIN **************************************************************************************************************************************************
   
-  // *** Get true (or best-guess) values for signal ***
-  getInjectionParameters(&state, mcmc.nMCMCpar, mcmc.injParVal);
+  // *** Get the injection/best-guess values for signal ***
+  getInjectionParameters(&state, mcmc.nInjectPar, mcmc.injParVal);
   allocParset(&state, mcmc.networkSize);
   
   
-  // *** Write true/best-guess values to screen and file ***
+  // *** Write injection/best-guess values to screen and file ***
   par2arr(state, mcmc.param, mcmc);  //Put the variables in their array
   localPar(&state, ifo, mcmc.networkSize);
-  mcmc.logL[tempi] = netLogLikelihood(&state, mcmc.networkSize, ifo, mcmc.mcmcWaveform);  //Calculate the likelihood
+  mcmc.logL[tempi] = netLogLikelihood(&state, mcmc.networkSize, ifo, mcmc.injectionWaveform);  //Calculate the likelihood using the injection waveform
   
+  // Store Injection parameters in temp array:
+  for(i=0;i<mcmc.nInjectPar;i++) {
+    mcmc.nParam[tempi][i] = mcmc.param[tempi][i];
+  }
+  
+  // Copy Injection to MCMC parameters, as far as possible; otherwise use MCMC BestValue
+  int iInj=0, nDiffPar=0;
+  for(i=0;i<mcmc.nMCMCpar;i++) {
+    iInj = mcmc.injRevID[mcmc.parID[i]];  //Get the index of this parameter in the injection set.  -1 if not available.
+    if(iInj >= 0) {
+      mcmc.param[tempi][i] = mcmc.nParam[tempi][iInj];  // Set the MCMC parameter to the corresponding injection parameter
+    } else {
+      mcmc.param[tempi][i] = mcmc.parBestVal[i];        // Set the MCMC parameter to BestValue - this should only happen if the injection waveform has different parameters than the MCMC waveform
+      nDiffPar += 1;
+    }
+  }
+  
+  // Safety check:
+  if(mcmc.mcmcWaveform == mcmc.injectionWaveform && nDiffPar != 0) 
+    fprintf(stderr,"   MCMC:  WARNING:  The injection and MCMC waveform are identical, but %i parameters were found to be different !!!\n",nDiffPar);
+  
+  // Print/save injection parameters as MCMC output, line -1:
   mcmc.iIter = -1;
-  mcmc.iTemp = tempi;
   for(tempi=0;tempi<mcmc.nTemps;tempi++) {
     mcmc.iTemp = tempi;
     for(j1=0;j1<mcmc.nMCMCpar;j1++) {
@@ -284,7 +285,6 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
     
     for(tempi=0;tempi<mcmc.nTemps;tempi++) {  //loop over temperature ladder
       mcmc.iTemp = tempi;
-      //printf(" %d  %d  %d\n",tempi,mcmc.nTemps,iIter);
       
       //Set temperature
       if(partemp==1 || partemp==3) { //Chains at fixed T
@@ -295,12 +295,9 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
 	  mcmc.chTemp = 1.0;
 	}
 	else {
-	  //mcmc.chTemp = mcmc.temps[tempi] * (1.0  +  0.5 * pow((-1.0),tempi) * sin(tpi*(double)iIter/((double)nCorr)));  //Sinusoid around the temperature T_i with amplitude 0.5*T_i and period nCorr
-	  //mcmc.chTemp = mcmc.temps[tempi]  +  mcmc.tempAmpl[tempi] * pow((-1.0),tempi) * sin(tpi*(double)iIter/((double)nCorr));  //Sinusoid around the temperature T_i with amplitude tempAmpl and period nCorr
-	  //mcmc.chTemp = mcmc.temps[tempi]  +  mcmc.tempAmpl[tempi] * pow((-1.0),tempi) * sin(tpi*(double)iIter/(0.5*(double)nCorr));  //Sinusoid around the temperature T_i with amplitude tempAmpl and period 1/2 nCorr
-	  mcmc.chTemp = mcmc.temps[tempi]  +  mcmc.tempAmpl[tempi] * pow((-1.0),tempi) * sin(tpi*(double)iIter/(5.0*(double)nCorr));  //Sinusoid around the temperature T_i with amplitude tempAmpl and period 5 * nCorr
+	  mcmc.chTemp = mcmc.temps[tempi]  +  mcmc.tempAmpl[tempi] * pow((-1.0),tempi) * sin(tpi*(double)iIter/(5.0*(double)nCorr));  //Sinusoid around the temperature T_i with amplitude tempAmpl and period 5.0 * nCorr
+	  mcmc.chTemp = max(mcmc.chTemp, 1.0);  // Make sure T>=1
 	}
-	//printf("%4d  %10.3lf\n",tempi,mcmc.chTemp);
       }
       
       
@@ -308,22 +305,15 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
       // *** UPDATE MARKOV CHAIN STATE **************************************************************************************************************************************************
       
       // *** Uncorrelated update *************************************************************************************************
-      //if(mcmc.corrUpdate[tempi]<=0) {
       if(gsl_rng_uniform(mcmc.ran) > run.corrfrac) {                                               //Do correlated updates from the beginning (quicker, but less efficient start); this saves ~4-5h for 2D, nCorr=1e4, nTemps=5
-	//if(gsl_rng_uniform(mcmc.ran) > run.corrfrac || iIter < nCorr) {                              //Don't do correlated updates in the first block; more efficient per iteration, not necessarily per second
-	//if(iIter>nburn && gsl_rng_uniform(mcmc.ran) < run.blockfrac){                            //Block update: only after burnin
-	if(gsl_rng_uniform(mcmc.ran) < run.blockfrac){                                             //Block update: always
+	if(gsl_rng_uniform(mcmc.ran) < run.blockfrac){                                             //Block update
 	  uncorrelatedMCMCblockUpdate(ifo, &state, &mcmc);
-	}
-	else{                                                                                       //Componentwise update (e.g. 90% of the time)
+	} else {                                                                                   //Componentwise update (e.g. 90% of the time)
 	  uncorrelatedMCMCsingleUpdate(ifo, &state, &mcmc);
 	}
-      } //End uncorrelated update
-      
-      
-      // *** Correlated update ****************************************************************************************************
-      //if(mcmc.corrUpdate[tempi]>=1) {
-      else {
+	
+	// *** Correlated update ****************************************************************************************************
+      } else {
 	correlatedMCMCupdate(ifo, &state, &mcmc);
       }
       
@@ -333,7 +323,7 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
       if(mcmc.dlogL[tempi]>mcmc.maxdlogL[tempi]) {
 	mcmc.maxdlogL[tempi] = mcmc.dlogL[tempi];
 	for(i=0;i<mcmc.nMCMCpar;i++) {
-	  mcmc.maxParam[tempi][i] = mcmc.param[tempi][i];
+	  mcmc.maxLparam[tempi][i] = mcmc.param[tempi][i];
 	}
       }
       
@@ -985,7 +975,9 @@ void writeMCMCoutput(struct MCMCvariables mcmc, struct interferometer *ifo[])
 void allocateMCMCvariables(struct MCMCvariables *mcmc)
 // ****************************************************************************************************************************************************  
 {
-  int i=0, j=0;
+  int i=0, j=0, nPar=0;
+  
+  nPar = max(mcmc->nMCMCpar, mcmc->nInjectPar);  // param[] and nParam[] may be used for injection parameters at initialisation...
   
   mcmc->nParFit=0;
   
@@ -1003,7 +995,7 @@ void allocateMCMCvariables(struct MCMCvariables *mcmc)
     mcmc->acceptElems[i] = 0;
   }
   
-  mcmc->temps = (double*)calloc(mcmc->nTemps,sizeof(double));        // Array of temperatures in the temperature ladder								
+  //mcmc->temps = (double*)calloc(mcmc->nTemps,sizeof(double));        // Array of temperatures in the temperature ladder								
   mcmc->newTemps = (double*)calloc(mcmc->nTemps,sizeof(double));     // New temperature ladder, was used in adaptive parallel tempering						
   mcmc->tempAmpl = (double*)calloc(mcmc->nTemps,sizeof(double));     // Temperature amplitudes for sinusoid T in parallel tempering							
   mcmc->logL = (double*)calloc(mcmc->nTemps,sizeof(double));         // Current log(L)												
@@ -1011,7 +1003,7 @@ void allocateMCMCvariables(struct MCMCvariables *mcmc)
   mcmc->dlogL = (double*)calloc(mcmc->nTemps,sizeof(double));        // log(L)-log(Lo)												
   mcmc->maxdlogL = (double*)calloc(mcmc->nTemps,sizeof(double));     // Remember the maximum dlog(L)											
   for(i=0;i<mcmc->nTemps;i++) {
-    mcmc->temps[i] = 0.0;
+    //mcmc->temps[i] = 0.0;
     mcmc->newTemps[i] = 0.0;
     mcmc->tempAmpl[i] = 0.0;
     mcmc->logL[i] = 0.0;
@@ -1037,16 +1029,16 @@ void allocateMCMCvariables(struct MCMCvariables *mcmc)
   mcmc->swapTss = (int**)calloc(mcmc->nTemps,sizeof(int*));          // Count swaps between chains
   mcmc->param = (double**)calloc(mcmc->nTemps,sizeof(double*));      // The old parameters for all chains
   mcmc->nParam = (double**)calloc(mcmc->nTemps,sizeof(double*));     // The new parameters for all chains
-  mcmc->maxParam = (double**)calloc(mcmc->nTemps,sizeof(double*));   // The best parameters for all chains (max logL)
+  mcmc->maxLparam = (double**)calloc(mcmc->nTemps,sizeof(double*));   // The best parameters for all chains (max logL)
   mcmc->sig = (double**)calloc(mcmc->nTemps,sizeof(double*));        // The standard deviation of the gaussian to draw the jump size from
   mcmc->sigOut = (double**)calloc(mcmc->nTemps,sizeof(double*));     // The sigma that gets written to output
   mcmc->scale = (double**)calloc(mcmc->nTemps,sizeof(double*));      // The rate of adaptation
   for(i=0;i<mcmc->nTemps;i++) {
     mcmc->accepted[i] = (int*)calloc(mcmc->nMCMCpar,sizeof(int));
     mcmc->swapTss[i] = (int*)calloc(mcmc->nTemps,sizeof(int));
-    mcmc->param[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
-    mcmc->nParam[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
-    mcmc->maxParam[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
+    mcmc->param[i] = (double*)calloc(nPar,sizeof(double));
+    mcmc->nParam[i] = (double*)calloc(nPar,sizeof(double));
+    mcmc->maxLparam[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
     mcmc->sig[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
     mcmc->sigOut[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
     mcmc->scale[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
@@ -1086,7 +1078,7 @@ void freeMCMCvariables(struct MCMCvariables *mcmc)
   free(mcmc->corrUpdate);
   free(mcmc->acceptElems);
   
-  free(mcmc->temps);
+  //free(mcmc->temps);
   free(mcmc->newTemps);
   free(mcmc->tempAmpl);
   free(mcmc->logL);
@@ -1105,7 +1097,7 @@ void freeMCMCvariables(struct MCMCvariables *mcmc)
     free(mcmc->swapTss[i]);
     free(mcmc->param[i]);
     free(mcmc->nParam[i]);
-    free(mcmc->maxParam[i]);
+    free(mcmc->maxLparam[i]);
     free(mcmc->sig[i]);
     free(mcmc->sigOut[i]);
     free(mcmc->scale[i]);
@@ -1114,7 +1106,7 @@ void freeMCMCvariables(struct MCMCvariables *mcmc)
   free(mcmc->swapTss);
   free(mcmc->param);
   free(mcmc->nParam);
-  free(mcmc->maxParam);
+  free(mcmc->maxLparam);
   free(mcmc->sig);
   free(mcmc->sigOut);
   free(mcmc->scale);
@@ -1513,7 +1505,6 @@ void copyRun2MCMC(struct runPar run, struct MCMCvariables *mcmc)
   mcmc->injectionWaveform = run.injectionWaveform;      // Waveform used as injection template
   mcmc->networkSize = run.networkSize;                  // Network size
   mcmc->seed = run.MCMCseed;                            // MCMC seed
-  mcmc->nTemps = run.nTemps;                            // Size of temperature ladder
   mcmc->matAccFr = run.matAccFr;                        // Fraction of elements on the diagonal that must 'improve' in order to accept a new covariance matrix.
   mcmc->offsetMCMC = run.offsetMCMC;                    // Start MCMC offset (i.e., not from injection values) or not
   mcmc->offsetX = run.offsetX;                          // Start offset chains from a Gaussian distribution offsetX times wider than parSigma
@@ -1550,6 +1541,12 @@ void copyRun2MCMC(struct runPar run, struct MCMCvariables *mcmc)
       mcmc->parAbrv[i][j] = run.parAbrv[i][j];
     }
   }
+  
+  mcmc->nTemps = run.nTemps;                            // Size of temperature ladder
+  for(i=0;i<mcmc->nTemps;i++) {
+    mcmc->temps[i] = run.temps[i];
+  }
+
 } // End copyRun2MCMC()
 // ****************************************************************************************************************************************************  
 
@@ -1602,7 +1599,7 @@ void startMCMCOffset(struct parset *par, struct MCMCvariables *mcmc, struct inte
   
   // Safety check:
   if(mcmc->mcmcWaveform == mcmc->injectionWaveform && nDiffPar != 0) 
-    fprintf(stderr,"   startMCMCoffset:  WARNING:  The injection and MCMC waveform are identical, but %i different parameters were counted !!!\n",nDiffPar);
+    fprintf(stderr,"   startMCMCoffset:  WARNING:  The injection and MCMC waveform are identical, but %i parameters were found to be different !!!\n",nDiffPar);
   
   
   
@@ -1677,10 +1674,130 @@ void startMCMCOffset(struct parset *par, struct MCMCvariables *mcmc, struct inte
   }
   printf("\n");
   
-} // End void startOffset()
+} // End void startMCMCOffset()
 // ****************************************************************************************************************************************************  
 
 
 
 
 
+// ****************************************************************************************************************************************************  
+/**
+ * \brief Set up the temperature ladder for parallel tempering
+ */
+// ****************************************************************************************************************************************************  
+void setTemperatureLadder(struct MCMCvariables *mcmc)
+{
+  double tempratio = 0.0;
+  
+  if(mcmc->nTemps < 3) { 
+    exp(log(tempmax)/(double)(mcmc->nTemps-1));
+  } else {
+    tempratio = exp(log(tempmax)/(double)(mcmc->nTemps-2));
+  }
+  
+  if(prpartempinfo>0) {
+    printf("   Temperature ladder:\n     Number of chains:%3d,  Tmax:%7.2lf, Ti/Ti-1:%7.3lf, Overlap:%5.2lf\n",mcmc->nTemps,tempmax,tempratio,mcmc->tempOverlap);
+    if(partemp==1) printf("     Using fixed temperatures for the chains\n");
+    if(partemp==2) printf("     Using sinusoid temperatures for the chains\n");
+    if(partemp==3) printf("     Using a manual temperature ladder with fixed temperatures for the chains\n");
+    if(partemp==4) printf("     Using a manual temperature ladder with sinusoid temperatures for the chains\n");
+    printf("     Chain     To     Ampl.    Tmin     Tmax\n");
+  }
+  
+  for(tempi=0;tempi<mcmc->nTemps;tempi++) {
+    // Set (zero-amplitude) temperatures:
+    if(mcmc->nTemps < 3) {
+      mcmc->temps[tempi] = exp(log(tempmax)/(double)(mcmc->nTemps-1)*(double)tempi);
+    } else {
+      
+      if(tempi == 0) {
+	mcmc->temps[tempi] = 1.0;
+      } else if(tempi == 1) {
+	mcmc->temps[tempi+1] = exp(log(tempmax)/(double)(mcmc->nTemps-2)*(double)tempi);
+	mcmc->temps[tempi] = exp(log((mcmc->temps[tempi-1]) + log(mcmc->temps[tempi+1]))/2.0);
+      } else if(tempi < mcmc->nTemps-1) {
+	mcmc->temps[tempi+1] = exp(log(tempmax)/(double)(mcmc->nTemps-2)*(double)tempi);
+      }
+	
+    }
+    if(partemp==3 || partemp==4) mcmc->temps[tempi] = mcmc->temps[tempi];  //Set manual ladder
+  } //  for(tempi=0;tempi<mcmc->nTemps;tempi++) {
+  
+  for(tempi=mcmc->nTemps-1;tempi>=0;tempi--) {
+    if(tempi==0 || partemp<=1 || partemp==3) {
+      mcmc->tempAmpl[tempi] = 0.0;
+    } else {
+      if(mcmc->nTemps < 3) {
+	mcmc->tempAmpl[tempi] = mcmc->tempOverlap*(mcmc->temps[tempi] - mcmc->temps[tempi-1])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
+      } else {
+	
+	if(tempi == 1) {
+	  if(mcmc->tempOverlap < 1.01) {
+	    mcmc->temps[tempi] = (mcmc->temps[tempi-1] + (mcmc->temps[tempi+1] - mcmc->tempAmpl[tempi+1]))/2.0;
+	    mcmc->tempAmpl[tempi] = fabs(mcmc->temps[tempi-1] - (mcmc->temps[tempi+1] - mcmc->tempAmpl[tempi+1]))/2.0;  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
+	  } else {
+	    //mcmc->temps[tempi] = (mcmc->temps[tempi-1] + (mcmc->temps[tempi+1] - mcmc->tempAmpl[tempi+1]/mcmc->tempOverlap))/2.0;
+	    //mcmc->tempAmpl[tempi] = mcmc->tempOverlap * fabs(mcmc->temps[tempi-1] - (mcmc->temps[tempi+1] - mcmc->tempAmpl[tempi+1]/mcmc->tempOverlap))/2.0;  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
+	    mcmc->tempAmpl[tempi] = mcmc->tempAmpl[tempi+1]/tempratio;
+	    mcmc->temps[tempi] = exp((log(mcmc->temps[tempi-1]) + log(mcmc->temps[tempi+1] - mcmc->tempAmpl[tempi+1]/mcmc->tempOverlap))/2.0);
+	  }
+	} else if(tempi == 2) {
+	  mcmc->tempAmpl[tempi] = mcmc->tempOverlap*(mcmc->temps[tempi] - mcmc->temps[tempi-2])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
+	} else {
+	  mcmc->tempAmpl[tempi] = mcmc->tempOverlap*(mcmc->temps[tempi] - mcmc->temps[tempi-1])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
+	}
+	
+      }
+      
+    }
+  }
+  
+  if(prpartempinfo>0) {
+    for(tempi=0;tempi<mcmc->nTemps;tempi++) {
+      if(mcmc->temps[tempi]-mcmc->tempAmpl[tempi] < 1.0) {
+	printf("     %3d  %7.2lf  %7.2lf  %7.2lf* %7.2lf    * I will use max( T, 1.0 )",tempi,mcmc->temps[tempi],mcmc->tempAmpl[tempi],mcmc->temps[tempi]-mcmc->tempAmpl[tempi],mcmc->temps[tempi]+mcmc->tempAmpl[tempi]);
+      } else {
+	printf("     %3d  %7.2lf  %7.2lf  %7.2lf  %7.2lf",tempi,mcmc->temps[tempi],mcmc->tempAmpl[tempi],mcmc->temps[tempi]-mcmc->tempAmpl[tempi],mcmc->temps[tempi]+mcmc->tempAmpl[tempi]);
+      }
+      printf("\n");
+    }
+    printf("\n\n");
+  }
+} // End setTemperatureLadder()
+// ****************************************************************************************************************************************************  
+
+
+
+
+
+// ****************************************************************************************************************************************************  
+void setTemperatureLadderOld(struct MCMCvariables *mcmc)
+{
+  double tempratio = exp(log(tempmax)/(double)(mcmc->nTemps-1));
+  if(prpartempinfo>0) {
+    printf("   Temperature ladder:\n     Number of chains:%3d,  Tmax:%7.2lf, Ti/Ti-1:%7.3lf\n",mcmc->nTemps,tempmax,tempratio);
+    if(partemp==1) printf("     Using fixed temperatures for the chains\n");
+    if(partemp==2) printf("     Using sinusoid temperatures for the chains\n");
+    if(partemp==3) printf("     Using a manual temperature ladder with fixed temperatures for the chains\n");
+    if(partemp==4) printf("     Using a manual temperature ladder with sinusoid temperatures for the chains\n");
+    printf("     Chain     To     Ampl.    Tmin     Tmax\n");
+  }
+  for(tempi=0;tempi<mcmc->nTemps;tempi++) {
+    mcmc->temps[tempi] = pow(10.0,log10(tempmax)/(double)(mcmc->nTemps-1)*(double)tempi);
+    if(partemp==3 || partemp==4) mcmc->temps[tempi] = mcmc->temps[tempi];  //Set manual ladder
+    
+    if(tempi==0 || partemp<=1 || partemp==3) {
+      mcmc->tempAmpl[tempi] = 0.0;
+    } else {
+      //mcmc->tempAmpl[tempi] = (mcmc->temps[tempi] - mcmc->temps[tempi-1])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains just touch at extrema (since in antiphase)
+      //mcmc->tempAmpl[tempi] = 1.5*(mcmc->temps[tempi] - mcmc->temps[tempi-1])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains overlap somewhat at extrema (since in antiphase)
+      mcmc->tempAmpl[tempi] = min(3.0*(mcmc->temps[tempi] - mcmc->temps[tempi-1])/(tempratio+1.0)*tempratio , fabs(mcmc->temps[tempi]-mcmc->temps[tempi-1]));  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
+      //if(mcmc->nTemps>10)  mcmc->tempAmpl[tempi] = min(3.0*(mcmc->temps[tempi] - mcmc->temps[tempi-1])/(tempratio+1.0)*tempratio , fabs(mcmc->temps[tempi]-mcmc->temps[tempi-2]));  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
+      //mcmc->tempAmpl[tempi] = fabs(mcmc->temps[tempi]-mcmc->temps[tempi-1]);  //Temperatures of adjacent chains overlap: Amplitude = (T(i) - T(i-1))  (may be a bit smallish for large nTemps)
+    }
+    if(prpartempinfo>0) printf("     %3d  %7.2lf  %7.2lf  %7.2lf  %7.2lf\n",tempi,mcmc->temps[tempi],mcmc->tempAmpl[tempi],mcmc->temps[tempi]-mcmc->tempAmpl[tempi],mcmc->temps[tempi]+mcmc->tempAmpl[tempi]);
+  }
+  if(prpartempinfo>0) printf("\n\n");
+}
+// ****************************************************************************************************************************************************  

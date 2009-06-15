@@ -39,12 +39,25 @@
 void waveformTemplate(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion)
 // Call a waveform template, the local variable waveformVersion determines which one
 {
+  /*
+  //CHECK: test - remove this
+  int i=0;
+  printf("\n\n\n*** waveformTemplate(): %i %i ", waveformVersion,tempi);
+  for (i=0;i<par->nPar;i++) {
+    printf(" %i:%6.3lf", i, par->par[i]);
+  }
+  printf("\n");
+  */
+  
   if(waveformVersion==1) {
     templateApo(par, ifo, ifonr);  // Apostolatos 12-parameter template
   } else if(waveformVersion==2) {
     templateLAL12(par, ifo, ifonr);  // LAL 12-parameter template
   } else if(waveformVersion==3) {
     templateLAL15(par, ifo, ifonr);  // LAL 15-parameter template
+  } else {
+    fprintf(stderr,"\n\n   ERROR:  waveformTemplate(): waveformVersion %i not defined!\n\n",waveformVersion);
+    exit(1);
   }
 }
 
@@ -55,7 +68,6 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
 // Spinning, 'simple-precession' template in restricted 1.5PN order with 1 spin (Apostolatos et al., 1994, PhRvD..49.6274A)
 //  The output vector `output' is of length `length',  starting at `tstart' and with resolution `samplerate'.
 {
-  
   
   double pmc       = par->par[0];
   double peta      = par->par[1];
@@ -70,8 +82,8 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
   double pphiJ0    = par->par[10];
   double palpha    = par->par[11];
   
-
-
+  
+  
   double x=0.0;
   double Mc=0.0,m1=0.0,m2=0.0,Mtot=0.0,mu=0.0;
   double cvec1[3],cvec2[3],cvec3[3];
