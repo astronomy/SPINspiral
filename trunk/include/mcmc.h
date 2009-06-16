@@ -240,6 +240,10 @@ struct MCMCvariables{
   int thinScreenOutput;           // Save every thiOutput-th MCMC iteration to screen
   int adaptiveMCMC;               // Use adaptive MCMC
   
+  double acceptRateTarget;        // Target acceptance rate for MCMC
+  double decreaseSigma;           // Factor with which to decrease the jump-size sigma when a proposal is rejected
+  double increaseSigma;           // Factor with which to increase the jump-size sigma when a proposal is rejected
+  
   int correlatedUpdates;          // Switch to do correlated update proposals
   int nCorr;                      // Number of iterations for which the covariance matrix is calculated
   int prMatrixInfo;               // Print information to screen on proposed matrix updates
@@ -320,9 +324,9 @@ struct MCMCvariables{
   double **param;                 // The current parameters for all chains
   double **nParam;                // The new parameters for all chains
   double **maxLparam;             // The best parameters for all chains (max logL)
-  double **sig;                   // The standard deviation of the gaussian to draw the jump size from
-  double **sigOut;                // The sigma that gets written to output
-  double **scale;                 // The rate of adaptation
+  double **adaptSigma;            // The standard deviation of the gaussian to draw the jump size from
+  double **adaptSigmaOut;         // The sigma that gets written to output
+  double **adaptScale;            // The rate of adaptation
   
   double ***hist;                 // Store a block of iterations, to calculate the covariance matrix
   double ***covar;                // The Cholesky-decomposed covariance matrix

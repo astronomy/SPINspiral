@@ -52,9 +52,15 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   struct MCMCvariables mcmc;                  // MCMC variables struct
   copyRun2MCMC(run, &mcmc);                   // Copy elements from run struct to mcmc struct
   
-  //mcmc.minlogL = 0.0;
-  mcmc.minlogL = -1.e30;
+  //mcmc.minlogL = 0.0;                       // We've used this a long time
+  mcmc.minlogL = -1.e10;                      // See what happens...
+  
   mcmc.tempOverlap = 1.1;                     // Set the overlap factor for the overlap between adjacent sinusoidal temperatures, e.g. 1.1.  1.0 means extremes touch. Keep <~ 1.3
+  mcmc.acceptRateTarget = 0.25;               // Target acceptance rate for MCMC; between 0.0 and 1.0 - we've used ~0.25 for a long time
+  mcmc.decreaseSigma = 0.5;                   // Factor with which to decrease the jump-size sigma when a proposal is rejected
+  mcmc.increaseSigma = exp(log(mcmc.decreaseSigma)* -(1.0/mcmc.acceptRateTarget - 1.0));  // (0.5)^(-(1/0.25 -1)) gives 8 -> jump up 1x needs 3 jumps down (0.5^3=1/8), so ~every 1:4 jumps gets accepted
+  
+  
   
   printf("\n  GPS base time:  %15d\n",(int)mcmc.baseTime);
   
@@ -194,11 +200,11 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   // *** Set the NEW array, sigma and scale ***
   for(i=0;i<mcmc.nMCMCpar;i++) {
     mcmc.nParam[mcmc.iTemp][i] = mcmc.param[mcmc.iTemp][i];
-    mcmc.sig[mcmc.iTemp][i]   = 0.1  * mcmc.parSigma[i];
-    if(mcmc.adaptiveMCMC==1) mcmc.sig[mcmc.iTemp][i] = mcmc.parSigma[i]; //Don't use adaptation (?)
-    mcmc.scale[mcmc.iTemp][i] = 10.0 * mcmc.parSigma[i];
-    //mcmc.scale[mcmc.iTemp][i] = 0.0 * mcmc.parSigma[i]; //No adaptation
-    sigmaPeriodicBoundaries(mcmc.sig[mcmc.iTemp][i], i, mcmc);
+    mcmc.adaptSigma[mcmc.iTemp][i]   = 0.1  * mcmc.parSigma[i];
+    if(mcmc.adaptiveMCMC==1) mcmc.adaptSigma[mcmc.iTemp][i] = mcmc.parSigma[i]; //Don't use adaptation (?)
+    mcmc.adaptScale[mcmc.iTemp][i] = 10.0 * mcmc.parSigma[i];
+    //mcmc.adaptScale[mcmc.iTemp][i] = 0.0 * mcmc.parSigma[i]; //No adaptation
+    sigmaPeriodicBoundaries(mcmc.adaptSigma[mcmc.iTemp][i], i, mcmc);
   }
   
   
@@ -234,8 +240,8 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
       for(j=0;j<mcmc.nMCMCpar;j++) {
 	mcmc.param[mcmc.iTemp][j] = mcmc.param[0][j];
 	mcmc.nParam[mcmc.iTemp][j] = mcmc.nParam[0][j];
-	mcmc.sig[mcmc.iTemp][j] = mcmc.sig[0][j];
-	mcmc.scale[mcmc.iTemp][j] = mcmc.scale[0][j];
+	mcmc.adaptSigma[mcmc.iTemp][j] = mcmc.adaptSigma[0][j];
+	mcmc.adaptScale[mcmc.iTemp][j] = mcmc.adaptScale[0][j];
 	mcmc.logL[mcmc.iTemp] = mcmc.logL[0];
 	mcmc.nlogL[mcmc.iTemp] = mcmc.nlogL[0];
 
@@ -307,7 +313,7 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
       
       // *** ACCEPT THE PROPOSED UPDATE *************************************************************************************************************************************************
       
-      if(mcmc.acceptPrior[0]==1) { //Then write output and care about the correlation matrix
+      if(mcmc.acceptPrior[0]==1) { //Then write output and take care of the correlation matrix
 	
 	
 	// *** WRITE STATE TO SCREEN AND FILE *******************************************************************************************************************************************
@@ -531,6 +537,8 @@ double sigmaPeriodicBoundaries(double sigma, int p, struct MCMCvariables mcmc)
  *
  * Do an update for all non-fixed MCMC parameters. Use the covariance matrix to take into account correlations. 
  * The covariance matrix has been constructed from previous iterations.
+ * Use adaptation to scale the whole matrix.
+ * Some experiments with larger jumps using the 'hotter' covariance matrix.
  */
 // ****************************************************************************************************************************************************  
 void correlatedMCMCupdate(struct interferometer *ifo[], struct parset *state, struct MCMCvariables *mcmc)
@@ -570,9 +578,9 @@ void correlatedMCMCupdate(struct interferometer *ifo[], struct parset *state, st
   for(p1=0;p1<mcmc->nMCMCpar;p1++){
     if(mcmc->parFix[p1]==0) {
       dparam = 0.0;
-      for(p2=0;p2<=p1;p2++) dparam += mcmc->covar[tempi][p1][p2]*temparr[p2];   //Temparr is now a univariate gaussian random vector
-      mcmc->nParam[tempi][p1] = mcmc->param[tempi][p1] + dparam;       //Jump from the previous parameter value
-      mcmc->sigOut[tempi][p1] = fabs(dparam);                          //This isn't really sigma, but the proposed jump size
+      for(p2=0;p2<=p1;p2++) dparam += mcmc->covar[tempi][p1][p2]*temparr[p2];     //Temparr is now a univariate gaussian random vector
+      mcmc->nParam[tempi][p1] = mcmc->param[tempi][p1] + dparam;                  //Jump from the previous parameter value
+      mcmc->adaptSigmaOut[tempi][p1] = fabs(dparam);                              //This isn't really sigma, but the proposed jump size
       mcmc->acceptPrior[tempi] *= (int)prior(&mcmc->nParam[tempi][p1],p1,*mcmc);
    }
   }
@@ -591,14 +599,14 @@ void correlatedMCMCupdate(struct interferometer *ifo[], struct parset *state, st
   
   
   //Decide whether to accept
-  if(mcmc->acceptPrior[tempi]==1) {                                    //Then calculate the likelihood
+  if(mcmc->acceptPrior[tempi]==1) {                                            //Then calculate the likelihood
     arr2par(mcmc->nParam, state, *mcmc);	                               //Get the parameters from their array
     localPar(state, ifo, mcmc->networkSize);
     mcmc->nlogL[tempi] = netLogLikelihood(state, mcmc->networkSize, ifo, mcmc->mcmcWaveform); //Calculate the likelihood
     par2arr(*state, mcmc->nParam, *mcmc);	                               //Put the variables back in their array
     
     if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->chTemp) && mcmc->nlogL[tempi] > mcmc->minlogL) {  // Accept proposal
-      for(p1=0;p1<mcmc->nMCMCpar;p1++){
+      for(p1=0;p1<mcmc->nMCMCpar;p1++) {
 	if(mcmc->parFix[p1]==0) {
 	  mcmc->param[tempi][p1] = mcmc->nParam[tempi][p1];
 	  mcmc->accepted[tempi][p1] += 1;
@@ -606,14 +614,14 @@ void correlatedMCMCupdate(struct interferometer *ifo[], struct parset *state, st
       }
       mcmc->logL[tempi] = mcmc->nlogL[tempi];
       if(mcmc->adaptiveMCMC==1){ 
-	mcmc->corrSig[tempi] *= 10.0;  // Increase sigma
+	mcmc->corrSig[tempi] *= mcmc->increaseSigma;                    // Increase sigma
       }
     } else {                                                      // Reject proposal because of low likelihood
       if(mcmc->adaptiveMCMC==1){ 
-	mcmc->corrSig[tempi] *= 0.5;  // Decrease sigma
+	mcmc->corrSig[tempi] *= mcmc->decreaseSigma;                    // Decrease sigma
       }
     }
-  } else {                                                      // Reject proposal because of boundary conditions.  Perhaps one should increase the step size, or at least not decrease it?
+  } else {                                                        // Reject proposal because of boundary conditions.  Perhaps one should increase the step size, or at least not decrease it?
     /*
       if(mcmc->adaptiveMCMC==1){ 
       mcmc->corrSig[tempi] *= 0.8;
@@ -638,14 +646,16 @@ void correlatedMCMCupdate(struct interferometer *ifo[], struct parset *state, st
 /**
  * \brief Do an uncorrelated, per-parameter MCMC update
  *
- * Do an update for all non-fixed MCMC parameters in the current T chain. Propose a jump and decide whether to accept or not on a per-parameter basis.
+ * Do an update for all non-fixed MCMC parameters in the current T chain. 
+ * Propose a jump and decide whether to accept or not on a per-parameter basis.
+ * Use adaptation.
  */
 // ****************************************************************************************************************************************************  
 void uncorrelatedMCMCsingleUpdate(struct interferometer *ifo[], struct parset *state, struct MCMCvariables *mcmc)
 // ****************************************************************************************************************************************************  
 {
   int p=0, tempi=mcmc->iTemp;
-  double gamma=0.0,alphastar=0.25;
+  double gamma=0.0;
   double ran=0.0, largejump1=0.0, largejumpall=0.0;
   
   largejumpall = 1.0;
@@ -661,7 +671,7 @@ void uncorrelatedMCMCsingleUpdate(struct interferometer *ifo[], struct parset *s
       if(ran < 1.0e-2) largejump1 = 1.0e1;    //Every 1e2 iterations, take a 10x larger jump in this parameter
       if(ran < 1.0e-3) largejump1 = 1.0e2;    //Every 1e3 iterations, take a 100x larger jump in this parameter
       
-      mcmc->nParam[tempi][p] = mcmc->param[tempi][p] + gsl_ran_gaussian(mcmc->ran,mcmc->sig[tempi][p]) * largejump1 * largejumpall;
+      mcmc->nParam[tempi][p] = mcmc->param[tempi][p] + gsl_ran_gaussian(mcmc->ran,mcmc->adaptSigma[tempi][p]) * largejump1 * largejumpall;
       
       /*
       //Testing with sky position/orientation updates
@@ -677,41 +687,41 @@ void uncorrelatedMCMCsingleUpdate(struct interferometer *ifo[], struct parset *s
 	arr2par(mcmc->nParam, state, *mcmc);                                            //Get the parameters from their array
 	localPar(state, ifo, mcmc->networkSize);
 	mcmc->nlogL[tempi] = netLogLikelihood(state, mcmc->networkSize, ifo, mcmc->mcmcWaveform);   //Calculate the likelihood
-	par2arr(*state, mcmc->nParam, *mcmc);                                            //Put the variables back in their array
+	par2arr(*state, mcmc->nParam, *mcmc);                                           //Put the variables back in their array
 	
 	if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->chTemp) && mcmc->nlogL[tempi] > mcmc->minlogL) {  //Accept proposal
 	  mcmc->param[tempi][p] = mcmc->nParam[tempi][p];
 	  mcmc->logL[tempi] = mcmc->nlogL[tempi];
 	  if(mcmc->adaptiveMCMC==1){
-	    gamma = mcmc->scale[tempi][p]*pow(1.0/((double)(mcmc->iIter+1)),1.0/6.0);
-	    mcmc->sig[tempi][p] = max(0.0,mcmc->sig[tempi][p] + gamma*(1.0 - alphastar)); //Accept - increase sigma
-	    sigmaPeriodicBoundaries(mcmc->sig[tempi][p], p, *mcmc);  //Bring the sigma between 0 and 2pi
+	    gamma = mcmc->adaptScale[tempi][p]*pow(1.0/((double)(mcmc->iIter+1)),1.0/6.0);
+	    mcmc->adaptSigma[tempi][p] = max(0.0,mcmc->adaptSigma[tempi][p] + gamma*(1.0 - mcmc->acceptRateTarget)); //Accept - increase sigma
+	    sigmaPeriodicBoundaries(mcmc->adaptSigma[tempi][p], p, *mcmc);              //Bring the sigma between 0 and 2pi
 	  }
 	  mcmc->accepted[tempi][p] += 1;
-	} else {                                                      //Reject proposal
+	} else {                                                                        //Reject proposal
 	  mcmc->nParam[tempi][p] = mcmc->param[tempi][p];
 	  if(mcmc->adaptiveMCMC==1){
-	    gamma = mcmc->scale[tempi][p]*pow(1.0/((double)(mcmc->iIter+1)),1.0/6.0);
-	    mcmc->sig[tempi][p] = max(0.0,mcmc->sig[tempi][p] - gamma*alphastar); //Reject - decrease sigma
-	    sigmaPeriodicBoundaries(mcmc->sig[tempi][p], p, *mcmc);  //Bring the sigma between 0 and 2pi
-	    //mcmc->sig[tempi][p] = max(0.01*mcmc->sig[tempi][p], mcmc->sig[tempi][p] - gamma*alphastar);
+	    gamma = mcmc->adaptScale[tempi][p]*pow(1.0/((double)(mcmc->iIter+1)),1.0/6.0);
+	    mcmc->adaptSigma[tempi][p] = max(0.0,mcmc->adaptSigma[tempi][p] - gamma*mcmc->acceptRateTarget); //Reject - decrease sigma
+	    sigmaPeriodicBoundaries(mcmc->adaptSigma[tempi][p], p, *mcmc);              //Bring the sigma between 0 and 2pi
+	    //mcmc->adaptSigma[tempi][p] = max(0.01*mcmc->adaptSigma[tempi][p], mcmc->adaptSigma[tempi][p] - gamma*mcmc->acceptRateTarget);
 	  }
 	}
       } else {  //If new state not within boundaries
 	mcmc->nParam[tempi][p] = mcmc->param[tempi][p];
 	if(mcmc->adaptiveMCMC==1) {
-	  gamma = mcmc->scale[tempi][p]*pow(1.0/((double)(mcmc->iIter+1)),1.0/6.0);
-	  mcmc->sig[tempi][p] = max(0.0,mcmc->sig[tempi][p] - gamma*alphastar); //Reject - decrease sigma
-	  sigmaPeriodicBoundaries(mcmc->sig[tempi][p], p, *mcmc);  //Bring the sigma between 0 and 2pi
+	  gamma = mcmc->adaptScale[tempi][p]*pow(1.0/((double)(mcmc->iIter+1)),1.0/6.0);
+	  mcmc->adaptSigma[tempi][p] = max(0.0,mcmc->adaptSigma[tempi][p] - gamma*mcmc->acceptRateTarget);   //Reject - decrease sigma
+	  sigmaPeriodicBoundaries(mcmc->adaptSigma[tempi][p], p, *mcmc);                                     //Bring the sigma between 0 and 2pi
 	}
       } //if(mcmc->acceptPrior[tempi]==1)
     } //if(mcmc->parFix[p]==0)
-    mcmc->sigOut[tempi][p] = mcmc->sig[tempi][p]; //Save sigma for output
+    mcmc->adaptSigmaOut[tempi][p] = mcmc->adaptSigma[tempi][p]; //Save sigma for output
   } //p
 } // End uncorrelatedMCMCsingleUpdate
 // ****************************************************************************************************************************************************  
 
-	
+
 
 
 
@@ -720,7 +730,9 @@ void uncorrelatedMCMCsingleUpdate(struct interferometer *ifo[], struct parset *s
 /**
  * \brief Do an uncorrelated block update
  *
- * Do an update for all non-fixed MCMC parameters in the current T chain. Propose a jump and decide whether to accept or not for all parameters at once.
+ * Do an update for all non-fixed MCMC parameters in the current T chain. 
+ * Propose a jump and decide whether to accept or not for all parameters at once.
+ * No adaptation here, some experimenting with larger jumps every now and then.
  */
 // ****************************************************************************************************************************************************  
 void uncorrelatedMCMCblockUpdate(struct interferometer *ifo[], struct parset *state, struct MCMCvariables *mcmc)
@@ -742,7 +754,7 @@ void uncorrelatedMCMCblockUpdate(struct interferometer *ifo[], struct parset *st
       if(ran < 1.0e-2) largejump1 = 1.0e1;    //Every 1e2 iterations, take a 10x larger jump in this parameter
       if(ran < 1.0e-3) largejump1 = 1.0e2;    //Every 1e3 iterations, take a 100x larger jump in this parameter
   
-      mcmc->nParam[mcmc->iTemp][p] = mcmc->param[mcmc->iTemp][p] + gsl_ran_gaussian(mcmc->ran,mcmc->sig[mcmc->iTemp][p]) * largejump1 * largejumpall;
+      mcmc->nParam[mcmc->iTemp][p] = mcmc->param[mcmc->iTemp][p] + gsl_ran_gaussian(mcmc->ran,mcmc->adaptSigma[mcmc->iTemp][p]) * largejump1 * largejumpall;
       mcmc->acceptPrior[mcmc->iTemp] *= (int)prior(&mcmc->nParam[mcmc->iTemp][p],p,*mcmc);
     }
   }
@@ -988,18 +1000,18 @@ void allocateMCMCvariables(struct MCMCvariables *mcmc)
   mcmc->param = (double**)calloc(mcmc->nTemps,sizeof(double*));      // The old parameters for all chains
   mcmc->nParam = (double**)calloc(mcmc->nTemps,sizeof(double*));     // The new parameters for all chains
   mcmc->maxLparam = (double**)calloc(mcmc->nTemps,sizeof(double*));   // The best parameters for all chains (max logL)
-  mcmc->sig = (double**)calloc(mcmc->nTemps,sizeof(double*));        // The standard deviation of the gaussian to draw the jump size from
-  mcmc->sigOut = (double**)calloc(mcmc->nTemps,sizeof(double*));     // The sigma that gets written to output
-  mcmc->scale = (double**)calloc(mcmc->nTemps,sizeof(double*));      // The rate of adaptation
+  mcmc->adaptSigma = (double**)calloc(mcmc->nTemps,sizeof(double*));        // The standard deviation of the gaussian to draw the jump size from
+  mcmc->adaptSigmaOut = (double**)calloc(mcmc->nTemps,sizeof(double*));     // The sigma that gets written to output
+  mcmc->adaptScale = (double**)calloc(mcmc->nTemps,sizeof(double*));      // The rate of adaptation
   for(i=0;i<mcmc->nTemps;i++) {
     mcmc->accepted[i] = (int*)calloc(mcmc->nMCMCpar,sizeof(int));
     mcmc->swapTss[i] = (int*)calloc(mcmc->nTemps,sizeof(int));
     mcmc->param[i] = (double*)calloc(nPar,sizeof(double));
     mcmc->nParam[i] = (double*)calloc(nPar,sizeof(double));
     mcmc->maxLparam[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
-    mcmc->sig[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
-    mcmc->sigOut[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
-    mcmc->scale[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
+    mcmc->adaptSigma[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
+    mcmc->adaptSigmaOut[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
+    mcmc->adaptScale[i] = (double*)calloc(mcmc->nMCMCpar,sizeof(double));
   }
   
   mcmc->hist    = (double***)calloc(mcmc->nTemps,sizeof(double**));  // Store a block of iterations, to calculate the covariances
@@ -1056,18 +1068,18 @@ void freeMCMCvariables(struct MCMCvariables *mcmc)
     free(mcmc->param[i]);
     free(mcmc->nParam[i]);
     free(mcmc->maxLparam[i]);
-    free(mcmc->sig[i]);
-    free(mcmc->sigOut[i]);
-    free(mcmc->scale[i]);
+    free(mcmc->adaptSigma[i]);
+    free(mcmc->adaptSigmaOut[i]);
+    free(mcmc->adaptScale[i]);
   }
   free(mcmc->accepted);
   free(mcmc->swapTss);
   free(mcmc->param);
   free(mcmc->nParam);
   free(mcmc->maxLparam);
-  free(mcmc->sig);
-  free(mcmc->sigOut);
-  free(mcmc->scale);
+  free(mcmc->adaptSigma);
+  free(mcmc->adaptSigmaOut);
+  free(mcmc->adaptScale);
   
   for(i=0;i<mcmc->nTemps;i++) {
     for(j=0;j<mcmc->nMCMCpar;j++) {
