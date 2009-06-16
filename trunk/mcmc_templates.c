@@ -36,65 +36,94 @@
 
 
 
+// ****************************************************************************************************************************************************  
+/**
+ * \brief Compute an inspiral waveform
+ * 
+ * Compute an inspiral waveform template.
+ * waveformVersion determines the template to use.
+ * injectionWF indicates whether this is an injection waveform (1) or not (0).
+ */
+// ****************************************************************************************************************************************************  
 void waveformTemplate(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run)
-// Call a waveform template, waveformVersion determines which one, injectionWF indicates whether this is an injection waveform (1) or not (0)
 {
-  int i=0;
   
   /*
   //CHECK: test - remove this
+  int i=0;
   printf("\n\n\n*** waveformTemplate(): %i %i  ", waveformVersion, injectionWF);
-  for (i=0;i<par->nPar;i++) {
+  for(i=0;i<par->nPar;i++) {
     printf(" %i:%6.3lf", i, par->par[i]);
   }
   printf("\n");
   */
   
-  //Get rid of 'unused variable' messages for now
-  i = run.maxnPar;
-  i = injectionWF;
-  i = i;
-  
   if(waveformVersion==1) {
-    templateApo(par, ifo, ifonr);  // Apostolatos 12-parameter template
+    templateApostolatos(par, ifo, ifonr, injectionWF, run);  // Apostolatos 12-parameter template
   } else if(waveformVersion==2) {
-    templateLAL12(par, ifo, ifonr);  // LAL 12-parameter template
+    templateLAL12(par, ifo, ifonr, injectionWF, run);  // LAL 12-parameter template
   } else if(waveformVersion==3) {
-    templateLAL15(par, ifo, ifonr);  // LAL 15-parameter template
+    templateLAL15(par, ifo, ifonr, injectionWF, run);  // LAL 15-parameter template
   } else {
     fprintf(stderr,"\n\n   ERROR:  waveformTemplate(): waveformVersion %i not defined!\n\n",waveformVersion);
     exit(1);
   }
-}
+  
+} // End of waveformTemplate()
+// ****************************************************************************************************************************************************  
 
 
 
 
-void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
-// Spinning, 'simple-precession' template in restricted 1.5PN order with 1 spin (Apostolatos et al., 1994, PhRvD..49.6274A)
-//  The output vector `output' is of length `length',  starting at `tstart' and with resolution `samplerate'.
+
+
+
+// ****************************************************************************************************************************************************  
+/**
+ * \brief Compute an Apostolatos, 12-parameter, single spin, simple-precession waveform
+ * 
+ * Compute a spinning, 'simple-precession' template in restricted 1.5PN order with 1 spin (Apostolatos et al., 1994, PhRvD..49.6274A).
+ * The output vector ifo[ifonr]->FTin is of length ifo[ifonr]->samplesize,  starting at 'tstart'(?) and with resolution ifo[ifonr]->samplerate.
+ */
+// ****************************************************************************************************************************************************  
+void templateApostolatos(struct parset *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
 {
   
-  double pmc       = par->par[0];
-  double peta      = par->par[1];
-  double ptc       = par->par[2];
-  double plogdl    = par->par[3];
-  double pspin     = par->par[4];
-  double pkappa    = par->par[5];
-  double plongi    = fmod(longitude(par->par[6],GMST(ptc))+mtpi,tpi);  //par[6] contains RA
-  double psinlati  = par->par[7];
-  double pphase    = par->par[8];
-  double psinthJ0  = par->par[9];
-  double pphiJ0    = par->par[10];
-  double palpha    = par->par[11];
+  double pMc=0.0,pEta=0.0,pTc=0.0,pLogDl=0.0,pSpin1=0.0,pSpCosTh1=0.0,pLongi=0.0,pSinDec=0.0,pPhase=0.0,pSinThJ0=0.0,pPhiJ0=0.0,pSpPhi1=0.0;
   
-  
+  if(injectionWF==1) {                                               // Then this is an injection waveform template
+    pMc       = par->par[run.injRevID[61]];  // Mc
+    pEta      = par->par[run.injRevID[62]];  // eta
+    pTc       = par->par[run.injRevID[11]];  // t_c
+    pLogDl    = par->par[run.injRevID[22]];  // log(d_L)
+    pSpin1     = par->par[run.injRevID[71]];  // a_spin1
+    pSpCosTh1    = par->par[run.injRevID[72]];  // cos(theta_spin1)
+    pLongi    = fmod(longitude(par->par[run.injRevID[31]],GMST(pTc))+mtpi,tpi);  // RA; RA -> 'lon'
+    pSinDec  = par->par[run.injRevID[32]];  // sin(Dec)
+    pPhase    = par->par[run.injRevID[41]];  // phi_c
+    pSinThJ0  = par->par[run.injRevID[53]];  // sin(theta_J0)
+    pPhiJ0    = par->par[run.injRevID[54]];  // phi_J0
+    pSpPhi1    = par->par[run.injRevID[73]];  // phi_spin1    
+  } else {                                                           // Then this is an MCMC waveform template
+    pMc       = par->par[run.parRevID[61]];  // Mc
+    pEta      = par->par[run.parRevID[62]];  // eta
+    pTc       = par->par[run.parRevID[11]];  // t_c
+    pLogDl    = par->par[run.parRevID[22]];  // log(d_L)	
+    pSpin1     = par->par[run.parRevID[71]];  // a_spin1		
+    pSpCosTh1    = par->par[run.parRevID[72]];  // cos(theta_spin1)
+    pLongi    = fmod(longitude(par->par[run.parRevID[31]], GMST(pTc)) + mtpi,tpi);  // RA; RA -> 'lon'
+    pSinDec  = par->par[run.parRevID[32]];  // sin(Dec)     
+    pPhase    = par->par[run.parRevID[41]];  // phi_c	     
+    pSinThJ0  = par->par[run.parRevID[53]];  // sin(theta_J0)
+    pPhiJ0    = par->par[run.parRevID[54]];  // phi_J0	     
+    pSpPhi1    = par->par[run.parRevID[73]];  // phi_spin1    
+  }
   
   double x=0.0;
   double Mc=0.0,m1=0.0,m2=0.0,Mtot=0.0,mu=0.0;
   double cvec1[3],cvec2[3],cvec3[3];
   double tvec1[3],tvec2[3],tvec4[3],tvec6[3],tvec7[3];
-  int i, terminate=0;
+  int i=0,terminate=0;
   double n_L[3];
   double localtc=0.0,altitude=0.0,azimuth=0.0,spin=0.0,samplerate=0.0,inversesamplerate=0.0;
   int length=0;
@@ -121,33 +150,33 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
   double n_z[3] = {0.0,0.0,1.0};                                                                                        //North in global coordinates
   double normalvec[3];                                                                                                  
   for(i=0;i<3;i++) normalvec[i] = ifo[ifonr]->normalvec[i];                                                             //Detector position normal vector = local zenith vector z'
-  double D_L = exp(plogdl)*Mpcs;                                                                                    //Source luminosity distance, in seconds
-  double coslati = sqrt(1.0-psinlati*psinlati);
-  double n_N[3] = { cos(plongi)*coslati , sin(plongi)*coslati , psinlati };                                 //n_N: Position unit vector = N^
+  double D_L = exp(pLogDl)*Mpcs;                                                                                    //Source luminosity distance, in seconds
+  double coslati = sqrt(1.0-pSinDec*pSinDec);
+  double n_N[3] = { cos(pLongi)*coslati , sin(pLongi)*coslati , pSinDec };                                 //n_N: Position unit vector = N^
   
-  double sthJ0   = psinthJ0;                                                                                        //n_J0: 'total' AM unit vector, J0^  (almost equal to the real J, see Eq.15)
+  double sthJ0   = pSinThJ0;                                                                                        //n_J0: 'total' AM unit vector, J0^  (almost equal to the real J, see Eq.15)
   double cthJ0   = sqrt(1.0 - sthJ0*sthJ0);
-  double n_J0[3] = { cos(pphiJ0)*cthJ0 , sin(pphiJ0)*cthJ0 , sthJ0 };                                           //Here, theta_Jo is a latitude-like angle like Dec (-pi/2-pi/2).
+  double n_J0[3] = { cos(pPhiJ0)*cthJ0 , sin(pPhiJ0)*cthJ0 , sthJ0 };                                           //Here, theta_Jo is a latitude-like angle like Dec (-pi/2-pi/2).
   
   par->NdJ = dotProduct(n_N,n_J0);                                                                                      //Inclination of J_0; only for printing purposes, should be removed from this routine
 
   //Get individual masses from Mch and eta:
-  Mc = pmc*M0;                                                                                                      //Chirp mass in seconds
-  McEta2masses(Mc, peta, &m1, &m2);                                                                                    //Mc,eta->M1,M2; accepts 0.25<eta<0.50
+  Mc = pMc*M0;                                                                                                      //Chirp mass in seconds
+  McEta2masses(Mc, pEta, &m1, &m2);                                                                                    //Mc,eta->M1,M2; accepts 0.25<eta<0.50
   Mtot = m1+m2;
-  if(peta>0.25) peta = 0.5 - peta;
+  if(pEta>0.25) pEta = 0.5 - pEta;
   mu = m1*m2/Mtot;                                                                                                         // Eq.16b
-  spin = pspin*m1*m1;
+  spin = pSpin1*m1*m1;
   
   
-  //if(printMuch) {printf("Ms: eta: %g  Mc: %g  m1: %g  m2: %g  Mtot: %g  mu: %g  Mo: %g\n",peta,Mc/M0,m1/M0,m2/M0,Mtot/M0,mu/M0,M0);}
+  //if(printMuch) {printf("Ms: eta: %g  Mc: %g  m1: %g  m2: %g  Mtot: %g  mu: %g  Mo: %g\n",pEta,Mc/M0,m1/M0,m2/M0,Mtot/M0,mu/M0,M0);}
   //printf("  %d  %lf  %lf  %lf  %lf  %d\n",ifonr,localtc,altitude,azimuth,samplerate,length);
   
-  double beta = 1.0/12.0*(113.0*(m1*m1)/(Mtot*Mtot) + 75.0*peta)*pkappa*spin/(m1*m1);                                 // Eq.20, for S2=0 or m1=m2,S1=S2:  kappa*spin/(m1*m1) = L^.S/m1^2, see Blanchet et al., PRL 74, 3515, 1995
+  double beta = 1.0/12.0*(113.0*(m1*m1)/(Mtot*Mtot) + 75.0*pEta)*pSpCosTh1*spin/(m1*m1);                                 // Eq.20, for S2=0 or m1=m2,S1=S2:  kappa*spin/(m1*m1) = L^.S/m1^2, see Blanchet et al., PRL 74, 3515, 1995
   
-  double cst1 = 743.0/336.0 + 11.0/4.0*peta;
+  double cst1 = 743.0/336.0 + 11.0/4.0*pEta;
   double cst2 = (4.0*pi-beta);
-  double cst5 = spin*sqrt(1.0-pkappa*pkappa);
+  double cst5 = spin*sqrt(1.0-pSpCosTh1*pSpCosTh1);
   
   //Constant vector 1 for the construction of Eq.41e
   facVec(n_J0,-sthJ0,tvec1);                                                                                             //tvec1 = -J0^*cos(theta_J0)   MvdS: theta_J0 is a latitude, not a co-latitude
@@ -203,8 +232,8 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
     omegas[i] = 0.0;
   }
   
-  // Fill 'output' with time-domain template:
-  for (i=0; i<length; ++i){
+  // Fill ifo[ifonr]->FTin with time-domain template:
+  for(i=0; i<length; ++i){
     // Determine time left until coalescence, "(t_c-t)" in (4.17)/(11):
     t = localtc - ((double)i)*inversesamplerate;  // (time to t_c) = "(t_c-t)" in (4.17)
     if(t<0.0) { 
@@ -212,7 +241,7 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
       if(terminate==0) terminate = 1;  //Set to 1 only if it was 0
     }
     else {
-      tau    = peta/(5.0*Mtot)*t;   //t = localtc-t already
+      tau    = pEta/(5.0*Mtot)*t;   //t = localtc-t already
       tau18  = exp(0.125*log(tau));  //tau^(1/8)
       tau28  = tau18*tau18;
       tau38  = tau28*tau18;
@@ -228,10 +257,10 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
       //printf("  t: %lf  tau: %lf  omega_orb: %lf\n",t,tau,omega_orb);
     }
     
-    if ((omega_orb>=omega_low) && (terminate==0)) {  // After source comes into window, before tc and before frequency reaches its maximum  Careful, if t<0, omega = nan!!!
+    if((omega_orb>=omega_low) && (terminate==0)) {  // After source comes into window, before tc and before frequency reaches its maximum  Careful, if t<0, omega = nan!!!
       
-      if (omega_orb < oldomega || omega_orb >= omega_high){  // Frequency starts decreasing, or frequency higher than highCut --> terminate signal
-      //if (omega_orb < oldomega || omega_orb >= omega_high || taperx[i]>0.09){  // Frequency starts decreasing, or frequency higher than highCut, or v_orb>0.3c --> terminate signal
+      if(omega_orb < oldomega || omega_orb >= omega_high){  // Frequency starts decreasing, or frequency higher than highCut --> terminate signal
+      //if(omega_orb < oldomega || omega_orb >= omega_high || taperx[i]>0.09){  // Frequency starts decreasing, or frequency higher than highCut, or v_orb>0.3c --> terminate signal
         ifo[ifonr]->FTin[i] = 0.0; 
         if(omega_orb < oldomega) terminate = 2;
         if(omega_orb >= omega_high) terminate = 3;
@@ -248,22 +277,22 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
         l_L = m1*m2*exp(-c3rd*log(omega_orb*Mtot));
         
         //GW and orbital phase
-        phi_gw = pphase - 2.0/peta * (tau58 + 0.625*c3rd*cst1*tau38 - 0.1875*cst2*tau28);                       // GW phase
+        phi_gw = pPhase - 2.0/pEta * (tau58 + 0.625*c3rd*cst1*tau38 - 0.1875*cst2*tau28);                                   // GW phase at coalescence
 	if(fabs(phi1)<1.e-30) phi1 = phi_gw;   //Save initial phi
 	//phi2 = phi_gw;                       //Save final phi
         
         Y = spin/l_L;                                                                                                    //Y = |S|/|L|, Eq.43
-        Gsq = 1.0 + 2.0*pkappa*Y + Y*Y;                                                                                      //G^2, Eq.46
+        Gsq = 1.0 + 2.0*pSpCosTh1*Y + Y*Y;                                                                                      //G^2, Eq.46
         G   = sqrt(Gsq);
         
-        cst4 = l_L + pkappa*spin;
+        cst4 = l_L + pSpCosTh1*spin;
         x = mu*Mtot;
         x1 = x*x*x;
         x = G*l_L;
         x2 = x*x*x;
         x3 = spin*spin*spin;
-        alpha = palpha - 5.0/(96.0*x1) * (1.0+0.75*m2/m1) * 
-	  (2.0*x2 - 3.0*pkappa*spin*cst4*G*l_L - 3.0*pkappa*x3*(1.0-pkappa*pkappa) * asinh(cst4/cst5));                                            //Eq.47
+        alpha = pSpPhi1 - 5.0/(96.0*x1) * (1.0+0.75*m2/m1) * 
+	  (2.0*x2 - 3.0*pSpCosTh1*spin*cst4*G*l_L - 3.0*pSpCosTh1*x3*(1.0-pSpCosTh1*pSpCosTh1) * asinh(cst4/cst5));                                            //Eq.47
 	if(fabs(alpha1)<1.e-30) alpha1 = alpha;  //Save initial alpha
 	//alpha2 = alpha;                         //Save final alpha
 	
@@ -303,13 +332,13 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
 	//if((omega_orb/pi<40.002 || fabs(t)<0.2) && printMuch) {
 	//if(printMuch) {
 	//printf("i: %8d   t: %10g   f: %10g   x: %10g\n",i,t,omega_orb/pi,taperx[i]);
-	//printf("omg_orb: %10g  phi_orb: %10g  l_L: %10g  S: %10g  k: %10g  Y: %10g  G: %10g  alpha: %10g  slamL: %10g  clamL: %10g \n",  omega_orb,phi_orb,l_L,spin,pkappa,Y,G,alpha,slamL,clamL);
-	//printf("i: %8d   t: %10g  alpha_c: %10g   alpha0: %10g   alpha: %10g  alpha/2pi: %10g\n",  i,t,palpha,alpha0,alpha,alpha/tpi);
+	//printf("omg_orb: %10g  phi_orb: %10g  l_L: %10g  S: %10g  k: %10g  Y: %10g  G: %10g  alpha: %10g  slamL: %10g  clamL: %10g \n",  omega_orb,phi_orb,l_L,spin,pSpCosTh1,Y,G,alpha,slamL,clamL);
+	//printf("i: %8d   t: %10g  alpha_c: %10g   alpha0: %10g   alpha: %10g  alpha/2pi: %10g\n",  i,t,pSpPhi1,alpha0,alpha,alpha/tpi);
 	//}
 	
 	
       }
-    }  //end if ((omega_orb>=omega_low) && (terminate==0)) {  // After source comes into window, before tc and before frequency reaches its maximum  Careful, if t<0, omega = nan!!!
+    }  //end if((omega_orb>=omega_low) && (terminate==0)) {  // After source comes into window, before tc and before frequency reaches its maximum  Careful, if t<0, omega = nan!!!
     else {
       ifo[ifonr]->FTin[i]   = 0.0;  //  (If before omega_low, after t_c or after termination)
     }
@@ -318,10 +347,10 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
   
   
   //Print some stuff for diagnostics
-  //if(i1<=1 && pmc>0.02)  printf("   **********    Warning: length is too small to fit waveform template, increase before_tc    **********\n"); //Don't print when doing null-likelihood
-  //if(i2>=length-1 && pmc>0.02)  printf("   **********    Warning: length is too small to fit waveform template, increase after_tc    **********\n"); //Don't print when doing null-likelihood
+  //if(i1<=1 && pMc>0.02)  printf("   **********    Warning: length is too small to fit waveform template, increase before_tc    **********\n"); //Don't print when doing null-likelihood
+  //if(i2>=length-1 && pMc>0.02)  printf("   **********    Warning: length is too small to fit waveform template, increase after_tc    **********\n"); //Don't print when doing null-likelihood
   //if(printMuch) 
-  //printf("%10.2f  %10.2f  %10.2f  %10.1f  %10.2f  %10.2f",pspin,acos(pkappa)*r2d,(double)(i2-i1)*inversesamplerate,(phi2-phi1)/tpi,(alpha2-alpha1)/tpi,pow(Mtot*oldomega,-2.0*c3rd));
+  //printf("%10.2f  %10.2f  %10.2f  %10.1f  %10.2f  %10.2f",pSpin1,acos(pSpCosTh1)*r2d,(double)(i2-i1)*inversesamplerate,(phi2-phi1)/tpi,(alpha2-alpha1)/tpi,pow(Mtot*oldomega,-2.0*c3rd));
   //if(printMuch) 
   //printf("  term: %d  i1: %d  i2: %d  i2-i1: %d  length: %d  f_gw,old:%9.3lf  f_gw:%9.3lf  f_gw,low:%9.3lf  f_gw,high:%9.3lf  f_gw1:%9.3lf  f_gw2:%9.3lf\n",terminate,i1,i2,i2-i1,length,oldomega/pi,omega_orb/pi,omega_low/pi,omega_high/pi,omegas[i1]/pi,omegas[i2]/pi);
   //Terminate: 1: t>tc, 2: df/dt<0, 3: f>f_high
@@ -331,12 +360,12 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
   //Apply tapering
   //int i1a = i1 + ceil(2.0*samplerate*pi/omegas[i1]);  //pi/omega_orb = 1/f_gw = P_gw.  *samplerate: number of points in first GW cycle
   int i2a = i2 - (int)ceil(2.0*samplerate*pi/omegas[i2]);  //pi/omega_orb = 1/f_gw = P_gw.  *samplerate: number of points in last GW cycle
-  for (i=i1;i<=i2;i++) {
+  for(i=i1;i<=i2;i++) {
     //ifo[ifonr]->FTin[i] *= 0.5*(1.0 - tanh(15000.0*(taperx[i1a]-taperx[i])));  //Taper beginning of template
     ifo[ifonr]->FTin[i] *= 0.5*(1.0 - tanh(100.0*(taperx[i]-taperx[i2a])));  //Taper end of template
   }
-}
-//End template12()
+} // End of templateApostolatos()
+// ****************************************************************************************************************************************************  
 
 
 
@@ -349,40 +378,48 @@ void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr)
 
 
 
+// ****************************************************************************************************************************************************  
+/**
+ * \brief Calculate the local parameters from the global parameters
+ * 
+ * Calculate the local parameters from the global parameters, for the spinning parameters.
+ *    par   :  pointer to parameter set (struct)
+ *    ifo   :  pointer to interferometer data (struct)
+ */
+// ****************************************************************************************************************************************************  
 void localPar(struct parset *par, struct interferometer *ifo[], int networkSize)
-// Calculate the local parameters from the global ones, for the spinning parameters:
-//    par   :  pointer to parameter set (struct)
-//    ifo   :  pointer to interferometer data (struct)
 {
   int ifonr,j;
   double lineofsight[3], dummyvec[3], scalprod1, delay;
   
-  double ptc       = par->par[2];
-  double plongi    = fmod(longitude(par->par[6],GMST(ptc))+mtpi,tpi);  //par[6] contains RA
-  double psinlati  = par->par[7];
+  double pTc       = par->par[2];
+  double pLongi    = fmod(longitude(par->par[6],GMST(pTc))+mtpi,tpi);  //par[6] contains RA
+  double pSinDec   = par->par[7];
   
   // Determine local coalescence times:
-  coord2vec(psinlati, plongi, lineofsight);
-  for (ifonr=0; ifonr<networkSize; ifonr++){
+  coord2vec(pSinDec, pLongi, lineofsight);
+  for(ifonr=0; ifonr<networkSize; ifonr++){
     scalprod1 =  ifo[ifonr]->positionvec[0]*lineofsight[0]  +  ifo[ifonr]->positionvec[1]*lineofsight[1]  +  ifo[ifonr]->positionvec[2]*lineofsight[2];  // Project line of sight onto positionvec, scalprod1 is in units of metres
     delay = scalprod1 / c;                                         // Time delay (wrt geocentre) in seconds
-    par->loctc[ifonr] = ((ptc - ifo[ifonr]->FTstart) - delay);
+    par->loctc[ifonr] = ((pTc - ifo[ifonr]->FTstart) - delay);
   }
   
   // Determine local sky position:
-  for (ifonr=0; ifonr<networkSize; ifonr++){
+  for(ifonr=0; ifonr<networkSize; ifonr++){
     // 'Altitude' in the ifo' frame:
     par->localti[ifonr] = angle(ifo[ifonr]->normalvec, lineofsight);       // Actually, this is the colatitude in the ifo' frame (i.e. 0deg=zenith, 90deg=horizon)
     
     // 'Azimuth' in the ifo' frame:
-    for (j=0; j<3; ++j) dummyvec[j] = lineofsight[j];              // Temp vector with line of sight
+    for(j=0; j<3; ++j) dummyvec[j] = lineofsight[j];              // Temp vector with line of sight
     orthoProject(dummyvec, ifo[ifonr]->rightvec, ifo[ifonr]->orthoArm);    // Project line of sight into ifo' arm plane
     par->locazi[ifonr] = angle(dummyvec, ifo[ifonr]->rightvec);            // The 'true' azimuth (N=0,E=90deg) of the source at the location of the detector is:  pi - (par->locazi[ifonr] + ifo[ifonr]->rightArm) 
-    if (!rightHanded(ifo[ifonr]->rightvec, dummyvec, ifo[ifonr]->normalvec)) par->locazi[ifonr] = 2.0*pi - par->locazi[ifonr];
+    if(!rightHanded(ifo[ifonr]->rightvec, dummyvec, ifo[ifonr]->normalvec)) par->locazi[ifonr] = 2.0*pi - par->locazi[ifonr];
     
     //printf("  %d  %lf  %lf  %s\n",ifonr,ifo[ifonr]->lati/pi*180.0,ifo[ifonr]->longi/pi*180.0,ifo[ifonr]->name);
   }
   return;
-}
+  
+} // End of localPar()
+// ****************************************************************************************************************************************************  
 
 

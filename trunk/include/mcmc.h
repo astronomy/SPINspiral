@@ -535,22 +535,14 @@ void printParameterHeaderToFile(FILE * dump);
 
 //************************************************************************************************************************************************
 void waveformTemplate(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run);
-void templateApo(struct parset *par, struct interferometer *ifo[], int ifonr);
+void templateApostolatos(struct parset *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run);
 		  
 
 
 //************************************************************************************************************************************************
 
-void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr);
-void templateLAL15(struct parset *par, struct interferometer *ifo[], int ifonr);
-
-/*
-//void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr);
-void LALHpHc(CoherentGW *waveform, int *l, struct parset *par, struct interferometer *ifo);
-//double LALFpFc(CoherentGW *waveform, double *wave, int *l, int length, struct parset *par, int ifonr);
-double LALFpFc(CoherentGW *waveform, double *wave, int length, struct parset *par, int ifonr);
-void LALfreedom(CoherentGW *waveform);
-*/
+void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run);
+void templateLAL15(struct parset *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run);
 
 //************************************************************************************************************************************************
 

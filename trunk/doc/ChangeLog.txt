@@ -2,6 +2,11 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   178: sluys, 16/06/2009
+     - Treat parameters properly in template routines
+     - Added some comments to mcmc_templates() and mcmc_lal(); 
+       improves Doxygen's performance
+   
    177: sluys, 15/06/2009
      - Transport parameter injectionWF to waveformTemplate() to indicate whether
        an injection (1) or MCMC (0) waveform template is computed.

@@ -36,14 +36,20 @@
 
 
 
-//Use the LAL 3.5/2.5 PN spinning waveform, with 1 spinning object (12 parameters)
-void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr)
+// ****************************************************************************************************************************************************  
+/**
+ * \brief Dummy routine for compilation without LAL
+ */
+// ****************************************************************************************************************************************************  
+void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
 {
   //Get rid of warnings at compile time (x set but never used)
   double x = 0.0;
   x = par->par[0];
   x = ifo[0]->lati; 
   x = (double)ifonr;
+  x = (double)injectionWF;
+  x = run.maxTemp;
   x = x;
   
   printf("\n\n");
@@ -52,16 +58,27 @@ void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr)
   printf("\n    Please change mcmcWaveform or injectionWaveform to use a non-LAL waveform  *or*  recompile with LAL support.");
   printf("\n\n\n");
   exit(1);
-}
+} // End of templateLAL12()
+// ****************************************************************************************************************************************************  
 
-//Use the LAL 3.5/2.5 PN spinning waveform, with 2 spinning objects (15 parameters)
-void templateLAL15(struct parset *par, struct interferometer *ifo[], int ifonr)
+
+
+
+
+// ****************************************************************************************************************************************************  
+/**
+ * \brief Dummy routine for compilation without LAL
+ */
+// ****************************************************************************************************************************************************  
+void templateLAL15(struct parset *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
 {
   //Get rid of warnings at compile time (x set but never used)
   double x = 0.0;
   x = par->par[0];
   x = ifo[0]->lati; 
   x = (double)ifonr;
+  x = (double)injectionWF;
+  x = run.maxTemp;
   x = x;
   
   printf("\n\n");
@@ -70,5 +87,6 @@ void templateLAL15(struct parset *par, struct interferometer *ifo[], int ifonr)
   printf("\n    Please change mcmcWaveform or injectionWaveform to use a non-LAL waveform  *or*  recompile with LAL support.");
   printf("\n\n\n");
   exit(1);
-}
+} // End of templateLAL15()
+// ****************************************************************************************************************************************************  
 
