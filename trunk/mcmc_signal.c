@@ -36,26 +36,26 @@
 
 
 
-double netLogLikelihood(struct parset *par, int networkSize, struct interferometer *ifo[], int waveformVersion, struct runPar run)
+double netLogLikelihood(struct parset *par, int networkSize, struct interferometer *ifo[], int waveformVersion, int injectionWF, struct runPar run)
 //Calculate the loglikelihood for a network of IFOs
 {
   double result = 0.0;
   int i;
   for (i=0; i<networkSize; ++i){
-    result += IFOlogLikelihood(par, ifo, i, waveformVersion, run);
+    result += IFOlogLikelihood(par, ifo, i, waveformVersion, injectionWF, run);
   }
   return result;
 }
 
 
 
-double IFOlogLikelihood(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion, struct runPar run)
+double IFOlogLikelihood(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run)
 //Calculate the loglikelihood for a single given IFO
 {
   int j=0;
   
   // Fill ifo[ifonr]->FTin with time-domain template:
-  waveformTemplate(par, ifo, ifonr, waveformVersion, run);
+  waveformTemplate(par, ifo, ifonr, waveformVersion, injectionWF, run);
   
   // Window template, FTwindow is a Tukey window:
   for(j=0; j<ifo[ifonr]->samplesize; ++j) 
@@ -86,7 +86,7 @@ double IFOlogLikelihood(struct parset *par, struct interferometer *ifo[], int if
   //   and division of each FFT point by ((double)ifo[ifonr]->samplerate)
   fftw_complex *FFTwaveform =
         fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
-  signalFFT(FFTwaveform, par, ifo, ifonr, waveformVersion, run);                             
+  signalFFT(FFTwaveform, par, ifo, ifonr, waveformVersion, injectionWF, run);                             
   // Compute the overlap between waveform and data:
   double overlaphd = vecOverlap(ifo[ifonr]->raw_dataTrafo,
         FFTwaveform, ifo[ifonr]->noisePSD,
@@ -107,14 +107,14 @@ double IFOlogLikelihood(struct parset *par, struct interferometer *ifo[], int if
 
 
 
-double signalToNoiseRatio(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion, struct runPar run)
+double signalToNoiseRatio(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run)
 // SNR of signal corresponding to parameter set, w.r.t. i-th interferometer's noise.
 // (see SNR definition in Christensen/Meyer/Libson (2004), p.323)
 {
   int j=0;
   
   // Fill ifo[ifonr]->FTin with time-domain template:
-  waveformTemplate(par, ifo, ifonr, waveformVersion, run);
+  waveformTemplate(par, ifo, ifonr, waveformVersion, injectionWF, run);
   
   // Window template, FTwindow is a Tukey window:
   for(j=0; j<ifo[ifonr]->samplesize; ++j)
@@ -147,7 +147,7 @@ double signalToNoiseRatio(struct parset *par, struct interferometer *ifo[], int 
 
 
 
-double parMatch(struct parset * par1,struct parset * par2, struct interferometer *ifo[], int networkSize, int waveformVersion, struct runPar run)
+double parMatch(struct parset * par1,struct parset * par2, struct interferometer *ifo[], int networkSize, int waveformVersion, int injectionWF, struct runPar run)
 // Compute match between waveforms with parameter sets par1 and par2
 {
   double overlap11=0.0, overlap12=0.0, overlap22=0.0;
@@ -158,8 +158,8 @@ double parMatch(struct parset * par1,struct parset * par2, struct interferometer
     FFT1 = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
     FFT2 = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
     
-    signalFFT(FFT1, par1, ifo, ifonr, waveformVersion, run);
-    signalFFT(FFT2, par2, ifo, ifonr, waveformVersion, run);
+    signalFFT(FFT1, par1, ifo, ifonr, waveformVersion, injectionWF, run);
+    signalFFT(FFT2, par2, ifo, ifonr, waveformVersion, injectionWF, run);
     
     overlap11 += vecOverlap(FFT1, FFT1, ifo[ifonr]->noisePSD, ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
     overlap12 += vecOverlap(FFT1, FFT2, ifo[ifonr]->noisePSD, ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
@@ -175,11 +175,11 @@ double parMatch(struct parset * par1,struct parset * par2, struct interferometer
 }
 
 
-double overlapWithData(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion, struct runPar run)
+double overlapWithData(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run)
 //compute frequency domain overlap of waveform of given parameters with raw data
 {
   fftw_complex *FFTwaveform = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
-  signalFFT(FFTwaveform, par, ifo, ifonr, waveformVersion, run);
+  signalFFT(FFTwaveform, par, ifo, ifonr, waveformVersion, injectionWF, run);
   
   double overlap = vecOverlap(ifo[ifonr]->raw_dataTrafo, FFTwaveform, ifo[ifonr]->noisePSD, 
 			      ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
@@ -190,7 +190,7 @@ double overlapWithData(struct parset *par, struct interferometer *ifo[], int ifo
 
 
 
-double parOverlap(struct parset * par1, struct parset * par2, struct interferometer *ifo[], int ifonr, int waveformVersion, struct runPar run)
+double parOverlap(struct parset * par1, struct parset * par2, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run)
 //Compute the overlap in the frequency domain between two waveforms with parameter sets par1 and par2
 {
   double overlap = 0.0;
@@ -198,8 +198,8 @@ double parOverlap(struct parset * par1, struct parset * par2, struct interferome
   fftw_complex *FFT2 = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
   
   // Get waveforms, FFT them and store them in FFT1,2
-  signalFFT(FFT1, par1, ifo, ifonr, waveformVersion, run);
-  signalFFT(FFT2, par2, ifo, ifonr, waveformVersion, run);
+  signalFFT(FFT1, par1, ifo, ifonr, waveformVersion, injectionWF, run);
+  signalFFT(FFT2, par2, ifo, ifonr, waveformVersion, injectionWF, run);
   
   // Compute the overlap between the vectors FFT1,2, between index i1 and i2:
   overlap = vecOverlap(FFT1, FFT2, ifo[ifonr]->noisePSD, 
@@ -228,7 +228,7 @@ double vecOverlap(fftw_complex *vec1, fftw_complex *vec2, double * noise, int j1
 
 
 
-void signalFFT(fftw_complex * FFTout, struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion, struct runPar run)
+void signalFFT(fftw_complex * FFTout, struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run)
 //Compute the FFT of a waveform with given parameter set
 {
   int j=0;
@@ -238,7 +238,7 @@ void signalFFT(fftw_complex * FFTout, struct parset *par, struct interferometer 
   }
   
   // Fill ifo[i]->FTin with time-domain template:
-  waveformTemplate(par, ifo, ifonr, waveformVersion, run);
+  waveformTemplate(par, ifo, ifonr, waveformVersion, injectionWF, run);
   
   // Window template, FTwindow is a Tukey window:
   for(j=0; j<ifo[ifonr]->samplesize; ++j) ifo[ifonr]->FTin[j] *= ifo[ifonr]->FTwindow[j];
@@ -273,7 +273,8 @@ double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct int
   freeParset(&par);
   freeParset(&injectPar);
   
-  return parMatch(&injectPar, &par, ifo, mcmc.networkSize, mcmc.mcmcWaveform, run);
+  int injectionWF = 0;
+  return parMatch(&injectPar, &par, ifo, mcmc.networkSize, mcmc.mcmcWaveform, injectionWF, run);
 }
 
 
@@ -291,7 +292,7 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
   double m1m2=0.0,m1m1=0.0,m2m2=0.0;
   
   // Fill ifo[i]->FTin with time-domain template:
-  waveformTemplate(par, ifo, i, run); 
+  waveformTemplate(par, ifo, i, injectionWF, run); 
   
   // Window template, FTwindow is a Tukey window:
   for(j=0; j<ifo[i]->samplesize; ++j) ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
@@ -304,7 +305,7 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
   getInjectionParameters(&injectPar, mcmc.nInjectPar, mcmc.injParVal);
   allocParset(&injectPar, networkSize);
   localPar(&injectPar, ifo, networkSize);
-  waveformTemplate(&injectPar, ifo, i, run);
+  waveformTemplate(&injectPar, ifo, i, injectionWF, run);
   
   
   // Window template, FTwindow is a Tukey window:
@@ -347,7 +348,7 @@ void computeFishermatrixIFO(struct parset *par, int nParameters, struct interfer
   j2 = ifo[ifonr]->highIndex;
   
   // Compute the FFTed signal for the default parameter set FFT0
-  signalFFT(FFT0, par, ifo, ifonr, waveformVersion, run);
+  signalFFT(FFT0, par, ifo, ifonr, waveformVersion, injectionWF, run);
   
   for(ip=0;ip<nParameters;ip++) {
     // Change parameter ip with dx
@@ -357,7 +358,7 @@ void computeFishermatrixIFO(struct parset *par, int nParameters, struct interfer
     arr2par(pars,&par1);  // Put the changed parameter set into struct par1
     
     // Compute the FFTed signal for this parameter set FFT1
-    signalFFT(par1, ifo, networkSize, ifonr, FFT1, waveformVersion, run);
+    signalFFT(par1, ifo, networkSize, ifonr, FFT1, waveformVersion, injectionWF, run);
     
     // Compute the partial derivative to parameter ip
     for(j=j1;j<=j2;j++) {

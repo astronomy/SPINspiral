@@ -2,6 +2,10 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   177: sluys, 15/06/2009
+     - Transport parameter injectionWF to waveformTemplate() to indicate whether
+       an injection (1) or MCMC (0) waveform template is computed.
+     
    176: sluys, 15/06/2009
      - Transport struct runPar to waveformTemplate()
      

@@ -36,13 +36,14 @@
 
 
 
-void waveformTemplate(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion, struct runPar run)
-// Call a waveform template, the local variable waveformVersion determines which one
+void waveformTemplate(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run)
+// Call a waveform template, waveformVersion determines which one, injectionWF indicates whether this is an injection waveform (1) or not (0)
 {
+  int i=0;
+  
   /*
   //CHECK: test - remove this
-  int i=0;
-  printf("\n\n\n*** waveformTemplate(): %i %i ", waveformVersion,tempi);
+  printf("\n\n\n*** waveformTemplate(): %i %i  ", waveformVersion, injectionWF);
   for (i=0;i<par->nPar;i++) {
     printf(" %i:%6.3lf", i, par->par[i]);
   }
@@ -50,7 +51,8 @@ void waveformTemplate(struct parset *par, struct interferometer *ifo[], int ifon
   */
   
   //Get rid of 'unused variable' messages for now
-  int i = run.maxnPar;
+  i = run.maxnPar;
+  i = injectionWF;
   i = i;
   
   if(waveformVersion==1) {

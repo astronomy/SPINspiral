@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
   printf("   Compiled from source code version $Id$ \n");
   
   clock_t time0 = clock();
-  int ifonr=0,i=0;
+  int ifonr=0,i=0,injectionWF=0;
   double snr=0.0;
   
   
@@ -121,7 +121,8 @@ int main(int argc, char* argv[])
   run.netsnr = 0.0;
   if(run.doSNR==1) {
     for(ifonr=0; ifonr<networkSize; ++ifonr) {
-      snr = signalToNoiseRatio(&dummypar, network, ifonr, run.injectionWaveform, run);
+      injectionWF = 1;                           //Call signalToNoiseRatio with the injection waveform
+      snr = signalToNoiseRatio(&dummypar, network, ifonr, run.injectionWaveform, injectionWF, run);
       network[ifonr]->snr = snr;
       run.netsnr += snr*snr;
     }
@@ -142,7 +143,8 @@ int main(int argc, char* argv[])
     run.netsnr = 0.0;
     if(run.doSNR==1) {
       for(ifonr=0; ifonr<networkSize; ++ifonr) {
-	snr = signalToNoiseRatio(&dummypar, network, ifonr, run.injectionWaveform, run);
+	injectionWF = 1;                           //Call signalToNoiseRatio with the injection waveform
+	snr = signalToNoiseRatio(&dummypar, network, ifonr, run.injectionWaveform, injectionWF, run);
 	network[ifonr]->snr = snr;
 	run.netsnr += snr*snr;
       }
@@ -274,8 +276,9 @@ int main(int argc, char* argv[])
 	
 	//getparameterset(&par2, 3.0,eta,700009012.346140,3.0, 0.5,0.9,3.0,0.5, 1.0,0.1,2.0,3.0);
 	
-	double matchres = parMatch(&par1,&par2,network, networkSize, run.injectionWaveform, run);
-	double overlap = parOverlap(&par1,&par2,network,0, run.injectionWaveform, run);
+	injectionWF = 1;                    // Call parMatch and parOverlap with the injection waveform
+	double matchres = parMatch(&par1,&par2,network, networkSize, run.injectionWaveform, injectionWF, run);
+	double overlap = parOverlap(&par1,&par2,network,0, run.injectionWaveform, injectionWF, run);
 	
 	printf("   Eta: %6.4f,  match: %10.5lf,  overlap: %g \n",eta,matchres,overlap);
       }

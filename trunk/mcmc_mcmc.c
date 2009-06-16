@@ -88,7 +88,7 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   
   // *** MEMORY ALLOCATION ********************************************************************************************************************************************************
   
-  int i=0,j=0,j1=0,j2=0;
+  int i=0,j=0,j1=0,j2=0,injectionWF=0;
   
   //Allocate memory for (most of) the MCMCvariables struct
   allocateMCMCvariables(&mcmc);
@@ -141,7 +141,8 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   // *** Write injection/best-guess values to screen and file ***
   par2arr(state, mcmc.param, mcmc);  //Put the variables in their array
   localPar(&state, ifo, mcmc.networkSize);
-  mcmc.logL[mcmc.iTemp] = netLogLikelihood(&state, mcmc.networkSize, ifo, mcmc.injectionWaveform, run);  //Calculate the likelihood using the injection waveform
+  injectionWF = 1;                                                 // Call netLogLikelihood with an injection waveform
+  mcmc.logL[mcmc.iTemp] = netLogLikelihood(&state, mcmc.networkSize, ifo, mcmc.injectionWaveform, injectionWF, run);  //Calculate the likelihood using the injection waveform
   
   // Store Injection parameters in temp array:
   for(i=0;i<mcmc.nInjectPar;i++) mcmc.nParam[mcmc.iTemp][i] = mcmc.param[mcmc.iTemp][i];
@@ -216,7 +217,8 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   
   arr2par(mcmc.param, &state, mcmc);                         //Get the parameters from their array
   localPar(&state, ifo, mcmc.networkSize);
-  mcmc.logL[mcmc.iTemp] = netLogLikelihood(&state, mcmc.networkSize, ifo, mcmc.mcmcWaveform, run);  //Calculate the likelihood
+  injectionWF = 0;                                                 // Call netLogLikelihood with an MCMC waveform
+  mcmc.logL[mcmc.iTemp] = netLogLikelihood(&state, mcmc.networkSize, ifo, mcmc.mcmcWaveform, injectionWF, run);  //Calculate the likelihood
 
   // *** Write output line to screen and/or file
   printf("\n");
@@ -603,7 +605,8 @@ void correlatedMCMCupdate(struct interferometer *ifo[], struct parset *state, st
   if(mcmc->acceptPrior[tempi]==1) {                                            //Then calculate the likelihood
     arr2par(mcmc->nParam, state, *mcmc);	                               //Get the parameters from their array
     localPar(state, ifo, mcmc->networkSize);
-    mcmc->nlogL[tempi] = netLogLikelihood(state, mcmc->networkSize, ifo, mcmc->mcmcWaveform, run); //Calculate the likelihood
+    int injectionWF = 0;                                                 // Call netLogLikelihood with an MCMC waveform
+    mcmc->nlogL[tempi] = netLogLikelihood(state, mcmc->networkSize, ifo, mcmc->mcmcWaveform, injectionWF, run); //Calculate the likelihood
     par2arr(*state, mcmc->nParam, *mcmc);	                               //Put the variables back in their array
     
     if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->chTemp) && mcmc->nlogL[tempi] > mcmc->minlogL) {  // Accept proposal
@@ -687,7 +690,8 @@ void uncorrelatedMCMCsingleUpdate(struct interferometer *ifo[], struct parset *s
       if(mcmc->acceptPrior[tempi]==1) {
 	arr2par(mcmc->nParam, state, *mcmc);                                            //Get the parameters from their array
 	localPar(state, ifo, mcmc->networkSize);
-	mcmc->nlogL[tempi] = netLogLikelihood(state, mcmc->networkSize, ifo, mcmc->mcmcWaveform, run);   //Calculate the likelihood
+	int injectionWF = 0;                                                 // Call netLogLikelihood with an MCMC waveform
+	mcmc->nlogL[tempi] = netLogLikelihood(state, mcmc->networkSize, ifo, mcmc->mcmcWaveform, injectionWF, run);   //Calculate the likelihood
 	par2arr(*state, mcmc->nParam, *mcmc);                                           //Put the variables back in their array
 	
 	if(exp(max(-30.0,min(0.0,mcmc->nlogL[tempi]-mcmc->logL[tempi]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->chTemp) && mcmc->nlogL[tempi] > mcmc->minlogL) {  //Accept proposal
@@ -763,7 +767,8 @@ void uncorrelatedMCMCblockUpdate(struct interferometer *ifo[], struct parset *st
   if(mcmc->acceptPrior[mcmc->iTemp]==1) {
     arr2par(mcmc->nParam, state, *mcmc);	                              //Get the parameters from their array
     localPar(state, ifo, mcmc->networkSize);                               //Calculate local variables
-    mcmc->nlogL[mcmc->iTemp] = netLogLikelihood(state, mcmc->networkSize, ifo, mcmc->mcmcWaveform, run);  //Calculate the likelihood
+    int injectionWF = 0;                                                 // Call netLogLikelihood with an MCMC waveform
+    mcmc->nlogL[mcmc->iTemp] = netLogLikelihood(state, mcmc->networkSize, ifo, mcmc->mcmcWaveform, injectionWF, run);  //Calculate the likelihood
     par2arr(*state, mcmc->nParam, *mcmc);	                              //Put the variables back in their array
     
     if(exp(max(-30.0,min(0.0,mcmc->nlogL[mcmc->iTemp]-mcmc->logL[mcmc->iTemp]))) > pow(gsl_rng_uniform(mcmc->ran),mcmc->chTemp) && mcmc->nlogL[mcmc->iTemp] > mcmc->minlogL){  //Accept proposal if L>Lo
@@ -1587,7 +1592,8 @@ void startMCMCOffset(struct parset *par, struct MCMCvariables *mcmc, struct inte
       if(mcmc->acceptPrior[mcmc->iTemp]==1) {                     //Check the value of the likelihood for this draw
 	arr2par(mcmc->param, par, *mcmc);	                      //Get the parameters from their array
 	localPar(par, ifo, mcmc->networkSize);
-	mcmc->logL[mcmc->iTemp] = netLogLikelihood(par, mcmc->networkSize, ifo, mcmc->mcmcWaveform, run);  //Calculate the likelihood
+	int injectionWF = 0;                                                 // Call netLogLikelihood with an MCMC waveform
+	mcmc->logL[mcmc->iTemp] = netLogLikelihood(par, mcmc->networkSize, ifo, mcmc->mcmcWaveform, injectionWF, run);  //Calculate the likelihood
       }
       nstart = nstart + 1;
       
