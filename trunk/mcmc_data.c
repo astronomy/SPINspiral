@@ -129,7 +129,7 @@ void IFOinit(struct interferometer **ifo, int networkSize, struct runPar run)
   for(ifonr=0; ifonr<networkSize; ++ifonr){
     ifo[ifonr]->index = ifonr;
     // Some text output...
-    if(run.intScrOut==1) printf(" | Interferometer %d: `%s'", ifo[ifonr]->index+1, ifo[ifonr]->name);
+    if(run.intScrOut==1) printf(" | Interferometer %d: '%s'", ifo[ifonr]->index+1, ifo[ifonr]->name);
     if((ifo[ifonr]->lati)  < 0.0) sprintf(latchar, "S");
     else sprintf(latchar, "N");
     if((ifo[ifonr]->longi) < 0.0) sprintf(longchar, "W");
@@ -247,7 +247,7 @@ void IFOinit(struct interferometer **ifo, int networkSize, struct runPar run)
 // ****************************************************************************************************************************************************  
 void IFOdispose(struct interferometer *ifo, struct runPar run)
 {
-  if(run.intScrOut==1) printf(" | Interferometer %d `%s' is taken offline.\n", ifo->index, ifo->name);
+  if(run.intScrOut==1) printf(" | interferometer %d '%s' is taken offline.\n", ifo->index, ifo->name);
   free(ifo->raw_noisePSD);       ifo->raw_noisePSD = NULL;
   fftw_free(ifo->raw_dataTrafo); ifo->raw_dataTrafo = NULL;
   free(ifo->noisePSD);           ifo->noisePSD = NULL;
@@ -473,7 +473,8 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
   
   // Inject the signal into the noise
   if(run.injectSignal >= 1) {
-    if(run.intScrOut==1) printf(" :  injecting signal:\n");
+    //if(run.intScrOut==1) printf(" :  injecting signal:\n");
+    if(run.intScrOut==1) printf(" | injecting signal...\n");
     
     // Define injection parameters:
     struct parset injectpar;
@@ -483,21 +484,21 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
     McEta2masses(injectpar.mc, injectpar.eta, &m1, &m2);  //CHECK: remove .mc and .eta
     
     if(run.intScrOut==1) {
-      printf(" :   m1 = %.1f Mo,  m2 = %.1f Mo  (Mc = %.3f Mo,  eta = %.4f)\n", m1, m2, injectpar.mc, injectpar.eta);
-      printf(" :   tc = %.4f s,  dist = %.1f Mpc\n", injectpar.tc, exp(injectpar.logdl));
-      printf(" :   ra = %.2f h,  dec = %.2f deg  (GMST = %.2f h)\n",(rightAscension(injectpar.longi,GMST(injectpar.tc))/pi)*12.0, (asin(injectpar.sinlati)/pi)*180.0, (GMST(injectpar.tc)/pi)*12.0);
-      printf(" :   phase = %.2f rad\n", injectpar.phase);
+      //printf(" :   m1 = %.1f Mo,  m2 = %.1f Mo  (Mc = %.3f Mo,  eta = %.4f)\n", m1, m2, injectpar.mc, injectpar.eta);
+      //printf(" :   tc = %.4f s,  dist = %.1f Mpc\n", injectpar.tc, exp(injectpar.logdl));
+      //printf(" :   ra = %.2f h,  dec = %.2f deg  (GMST = %.2f h)\n",(rightAscension(injectpar.longi,GMST(injectpar.tc))/pi)*12.0, (asin(injectpar.sinlati)/pi)*180.0, (GMST(injectpar.tc)/pi)*12.0);
+      //printf(" :   phase = %.2f rad\n", injectpar.phase);
     }
     ifo[ifonr]->FTstart = from; // Temporary setting so that localPar() works properly
     
     localPar(&injectpar, ifo, networkSize);
     
     if(run.intScrOut==1) {
-      printf(" :   local parameters:\n");
-      printf(" :   tc           = %.5f s\n",injectpar.loctc[ifonr]+from);
-      printf(" :   altitude     = %.2f rad\n",injectpar.localti[ifonr]);
-      printf(" :   azimuth      = %.2f rad\n",injectpar.locazi[ifonr]);
-      printf(" :   polarisation = %.2f rad\n",injectpar.locpolar[ifonr]);
+      //printf(" :   local parameters:\n");
+      //printf(" :   tc           = %.5f s\n",injectpar.loctc[ifonr]+from);
+      //printf(" :   altitude     = %.2f rad\n",injectpar.localti[ifonr]);
+      //printf(" :   azimuth      = %.2f rad\n",injectpar.locazi[ifonr]);
+      //printf(" :   polarisation = %.2f rad\n",injectpar.locpolar[ifonr]);
     }
     
     

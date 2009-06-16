@@ -62,7 +62,8 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   
   
   
-  printf("\n  GPS base time:  %15d\n",(int)mcmc.baseTime);
+  printf("\n");
+  printf("   GPS base time:%12d,    target acceptance rate:%7.3f\n\n",(int)mcmc.baseTime,mcmc.acceptRateTarget);
   
   if(mcmc.parallelTempering==0) mcmc.nTemps=1;
   mcmc.ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
@@ -1743,7 +1744,7 @@ void setTemperatureLadderOld(struct MCMCvariables *mcmc)
   int tempi=0;
   double tempratio = exp(log(mcmc->maxTemp)/(double)(mcmc->nTemps-1));
   if(mcmc->prParTempInfo>0) {
-    printf("   Temperature ladder:\n     Number of chains:%3d,  Tmax:%7.2lf, Ti/Ti-1:%7.3lf\n",mcmc->nTemps,mcmc->maxTemp,tempratio);
+    printf("   Temperature ladder:  (old routine)\n     Number of chains:%3d,  Tmax:%7.2lf, Ti/Ti-1:%7.3lf\n",mcmc->nTemps,mcmc->maxTemp,tempratio);
     if(mcmc->parallelTempering==1) printf("     Using fixed temperatures for the chains\n");
     if(mcmc->parallelTempering==2) printf("     Using sinusoid temperatures for the chains\n");
     if(mcmc->parallelTempering==3) printf("     Using a manual temperature ladder with fixed temperatures for the chains\n");
