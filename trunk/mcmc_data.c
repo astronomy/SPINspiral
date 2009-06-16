@@ -510,7 +510,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
     ifo[ifonr]->FTin = injection;
     ifo[ifonr]->FTstart = from;
     ifo[ifonr]->samplesize = N;
-    waveformTemplate(&injectpar,ifo,ifonr, run.injectionWaveform);
+    waveformTemplate(&injectpar,ifo,ifonr, run.injectionWaveform, run);
     ifo[ifonr]->FTin = tempInj;
     ifo[ifonr]->FTstart = tempFrom;
     ifo[ifonr]->samplesize = tempN;
@@ -1052,7 +1052,7 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networkSize, struct r
     double complex FFTout;
     
     // Fill `ifo[i]->FTin' with time-domain template:
-    waveformTemplate(&par, ifo, i, run.injectionWaveform);
+    waveformTemplate(&par, ifo, i, run.injectionWaveform, run);
     // And FFT it
     fftw_execute(ifo[i]->FTplan);
     

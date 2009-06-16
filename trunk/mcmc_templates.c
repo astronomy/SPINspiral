@@ -36,7 +36,7 @@
 
 
 
-void waveformTemplate(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion)
+void waveformTemplate(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion, struct runPar run)
 // Call a waveform template, the local variable waveformVersion determines which one
 {
   /*
@@ -48,6 +48,10 @@ void waveformTemplate(struct parset *par, struct interferometer *ifo[], int ifon
   }
   printf("\n");
   */
+  
+  //Get rid of 'unused variable' messages for now
+  int i = run.maxnPar;
+  i = i;
   
   if(waveformVersion==1) {
     templateApo(par, ifo, ifonr);  // Apostolatos 12-parameter template

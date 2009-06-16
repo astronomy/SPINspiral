@@ -2,6 +2,9 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   176: sluys, 15/06/2009
+     - Transport struct runPar to waveformTemplate()
+     
    174: sluys, 15/06/2009
      - cleaned up adapdation: single parameter set at the beginning of MCMC()
        (mcmc.acceptRateTarget = 0.25) for easier experimentation
