@@ -1,7 +1,7 @@
 /* 
    
    SPINspiral:                parameter estimation on binary inspirals detected by LIGO, including spins of the binary members
-   mcmc_data.c:               data-handling routines: data I/O, noise PSD, filtering, windowing, downsampling, FFTing
+   SPINspiral_data.c:         data-handling routines: data I/O, noise PSD, filtering, windowing, downsampling, FFTing
    
    
    Copyright 2007, 2008, 2009 Marc van der Sluys, Vivien Raymond, Christian Roever, Ilya Mandel
@@ -25,13 +25,13 @@
 */
 
 
-#include <mcmc.h>
+#include <SPINspiral.h>
 
 
 
 
 /**
- * \file mcmc_data.c
+ * \file SPINspiral_data.c
  * \brief Contains routines that do IFO initialisation and data handling
  */
 

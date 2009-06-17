@@ -1,7 +1,7 @@
 /* 
    
    SPINspiral:                parameter estimation on binary inspirals detected by LIGO, including spins of the binary members
-   mcmc_main.c:               main routine
+   SPINspiral_main.c:         main routine
    
    
    Copyright 2007, 2008, 2009 Marc van der Sluys, Vivien Raymond, Christian Roever, Ilya Mandel
@@ -25,11 +25,11 @@
 */
 
 
-#include <mcmc.h>
+#include <SPINspiral.h>
 
 
 /**
- * \file mcmc_main.c
+ * \file SPINspiral_main.c
  * \brief Contains main routine
  */
 
@@ -48,8 +48,8 @@ int main(int argc, char* argv[])
   
   //Initialise stuff for the run:
   struct runPar run;
-  run.maxnPar = 20;                        //The maximum number of allowed MCMC/injection parameters (this number is hardcoded in many places in mcmc.h)
-  run.parDBn = 200;                        //The size of the hardcoded parameter database (this number is hardcoded in many places in mcmc.h)
+  run.maxnPar = 20;                        //The maximum number of allowed MCMC/injection parameters (this number is hardcoded in many places in SPINspiral.h)
+  run.parDBn = 200;                        //The size of the hardcoded parameter database (this number is hardcoded in many places in SPINspiral.h)
   for(i=0;i<run.parDBn;i++) {
     run.parRevID[i] = -1;
     run.injRevID[i] = -1;

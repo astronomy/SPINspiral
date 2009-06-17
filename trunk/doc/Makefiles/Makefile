@@ -22,7 +22,7 @@ CFLAGS = -O0 -traceback -Wcheck -Wall -wd981
 
 
 
-DEF_MCMCOBJ = mcmc_main.o mcmc_mcmc.o mcmc_templates.o mcmc_routines.o mcmc_data.o mcmc_parameters.o mcmc_signal.o mcmc_lal.o mcmc_3rdparty.o 
+DEF_MCMCOBJ = SPINspiral_main.o SPINspiral_mcmc.o SPINspiral_templates.o SPINspiral_routines.o SPINspiral_data.o SPINspiral_parameters.o SPINspiral_signal.o SPINspiral_lal.o SPINspiral_3rdparty.o 
 DEF_CFLAGS = -I/usr/include -I./include -I ~/bin/include   -I ~/local/programs/lscsoft/lal/include/ -I ~/local/programs/lscsoft/libmetaio/include/
 DEF_LFLAGS = -L ~/bin/lib -lFrame -lfftw3 -lgsl -lgslcblas -lm
 LAL_LFLAGS = -L ~/bin/lib -llal -llalmetaio 
@@ -32,7 +32,7 @@ LAL_LFLAGS = -L ~/bin/lib -llal -llalmetaio
 
 
 
-%.o: %.c Makefile include/mcmc.h
+%.o: %.c Makefile include/SPINspiral.h
 	$(CC) $(CFLAGS) $(DEF_CFLAGS) -c $<
 
 all: SPINspiral
@@ -40,7 +40,7 @@ all: SPINspiral
 exit:
 
 
-mcmc_3rdparty.o: include/remez.h
+SPINspiral_3rdparty.o: include/remez.h
 
 
 SPINspiral: $(DEF_MCMCOBJ)

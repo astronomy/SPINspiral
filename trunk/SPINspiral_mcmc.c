@@ -1,7 +1,7 @@
 /* 
    
    SPINspiral:                parameter estimation on binary inspirals detected by LIGO, including spins of the binary members
-   mcmc_mcmc.c:               routines that form the MCMC core of the code
+   SPINspiral_mcmc.c:         routines that form the MCMC core of the code
    
    
    Copyright 2007, 2008, 2009 Marc van der Sluys, Vivien Raymond, Christian Roever, Ilya Mandel
@@ -26,11 +26,11 @@
 
 
 
-#include <mcmc.h>
+#include <SPINspiral.h>
 
 
 /**
- * \file mcmc_mcmc.c
+ * \file SPINspiral_mcmc.c
  * \brief Contains MCMC routines
  */
 

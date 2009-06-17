@@ -1,7 +1,7 @@
 /* 
    
    SPINspiral:                parameter estimation on binary inspirals detected by LIGO, including spins of the binary members
-   mcmc_lal.c:                interfaces to LAL routines
+   SPINspiral_lal.c:          interfaces to LAL routines
    
    
    Copyright 2007, 2008, 2009 Marc van der Sluys, Vivien Raymond, Christian Roever, Ilya Mandel
@@ -42,7 +42,7 @@
 //#include <lal/DetectorSite.h>
 
 //////////////////////////////////////////
-#include <mcmc.h>
+#include <SPINspiral.h>
 //////////////////////////////////////////
 
 
@@ -53,7 +53,7 @@
 
 
 /**
- * \file mcmc_lal.c
+ * \file SPINspiral_lal.c
  * \brief Contains interfaces to LAL routines
  */
 

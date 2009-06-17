@@ -1,7 +1,7 @@
 /* 
    
    SPINspiral:                parameter estimation on binary inspirals detected by LIGO, including spins of the binary members
-   mcmc_templates.c:          waveform templates and related routines
+   SPINspiral_templates.c:    waveform templates and related routines
    
    
    Copyright 2007, 2008, 2009 Marc van der Sluys, Vivien Raymond, Christian Roever, Ilya Mandel
@@ -26,11 +26,11 @@
 
 
 
-#include <mcmc.h>
+#include <SPINspiral.h>
 
 
 /**
- * \file mcmc_templates.c
+ * \file SPINspiral_templates.c
  * \brief Contains routines that handle waveform-template generation
  */
 

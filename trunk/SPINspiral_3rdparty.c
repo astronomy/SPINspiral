@@ -1,7 +1,7 @@
 /* 
    
    SPINspiral:                parameter estimation on binary inspirals detected by LIGO, including spins of the binary members
-   mcmc_3rdparty.c:           3rd-party routines
+   SPINspiral_3rdparty.c:     3rd-party routines
    
    
    Copyright 1995, 1998  Jake Janovetz (janovetz@uiuc.edu)
@@ -28,7 +28,7 @@
 //Copied from remez.c, extracted from http://www.janovetz.com/jake/remez/remez-19980711.zip
 
 /**
- * \file mcmc_3rdparty.c
+ * \file SPINspiral_3rdparty.c
  * \brief Contains third-party routines
  */
 

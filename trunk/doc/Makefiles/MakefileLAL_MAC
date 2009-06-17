@@ -11,11 +11,11 @@ CFLAGS = -O3 -I/opt/local/include -I./include -I/opt/lal/include -I/opt/lscsoft/
 
 #MCMCLFLAGS = -L ~/bin/lib -lFrame -lm -lgsl -lgslcblas -lfftw3
 MCMCLFLAGS = -L/opt/lal/lib -llal -L/opt/local/lib -lgsl -lgslcblas -lfftw3 -lm -L./bin/lib -lFrame
-MCMCOBJ = mcmc_main.o mcmc_mcmc.o mcmc_templates.o mcmc_routines.o mcmc_data.o mcmc_parameters.o mcmc_signal.o mcmc_3rdparty.o LALinterface.o
+MCMCOBJ = SPINspiral_main.o SPINspiral_mcmc.o SPINspiral_templates.o SPINspiral_routines.o SPINspiral_data.o SPINspiral_parameters.o SPINspiral_signal.o SPINspiral_3rdparty.o SPINspiral_lal.o
 
 #WAVELFLAGS = -lfftw3
 WAVELFLAGS = -L/opt/lal/lib -llal -L/opt/local/lib -lfftw3 -L/opt/lscsoft/non-lsc/lib -lgsl -lgslcblas -lfftw3  -L/opt/lscsoft/libframe/lib -lFrame#-static
-WAVEOBJ = waveform_main.o mcmc_templates.o mcmc_routines.o waveform_data.o mcmc_parameters.o mcmc_signal.o mcmc_3rdparty.o LALinterface.o
+WAVEOBJ = waveform_main.o SPINspiral_templates.o SPINspiral_routines.o waveform_data.o SPINspiral_parameters.o SPINspiral_signal.o SPINspiral_3rdparty.o SPINspiral_lal.o
 
 
 
@@ -25,8 +25,8 @@ WAVEOBJ = waveform_main.o mcmc_templates.o mcmc_routines.o waveform_data.o mcmc_
 exit:
 
 
-mcmc: $(MCMCOBJ) 
-	$(CC) -o mcmc $(MCMCOBJ) $(MCMCLFLAGS)
+SPINspiral: $(MCMCOBJ) 
+	$(CC) -o SPINspiral $(MCMCOBJ) $(MCMCLFLAGS)
 
 waveform: $(WAVEOBJ) 
 	$(CC) -o waveform $(WAVEOBJ) $(WAVELFLAGS)

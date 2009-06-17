@@ -1,7 +1,7 @@
 /* 
    
    SPINspiral:                parameter estimation on binary inspirals detected by LIGO, including spins of the binary members
-   include/mcmc.h:            main header file
+   include/SPINspiral.h:      main header file
    
    
    Copyright 2007, 2008, 2009 Marc van der Sluys, Vivien Raymond, Christian Roever, Ilya Mandel
@@ -33,8 +33,8 @@
 
 
 
-#ifndef mcmc_h
-#define mcmc_h
+#ifndef SPINspiral_h
+#define SPINspiral_h
 
 
 #include <stdio.h>

@@ -1,7 +1,7 @@
 /* 
    
    SPINspiral:                parameter estimation on binary inspirals detected by LIGO, including spins of the binary members
-   mcmc_parameters.c:         routines to read/write input files, set constants and set true and null parameters
+   SPINspiral_parameters.c:   routines to read/write input files, set constants and set true and null parameters
    
    
    Copyright 2007, 2008, 2009 Marc van der Sluys, Vivien Raymond, Christian Roever, Ilya Mandel
@@ -30,14 +30,14 @@
 #include <lal/LIGOMetadataTables.h>
 #include <lal/LIGOLwXMLRead.h>
 
-#include <mcmc.h>
+#include <SPINspiral.h>
 
 
 
 
 
 /**
- * \file mcmc_parameters.c
+ * \file SPINspiral_parameters.c
  * \brief Contains routines that handle reading and randomisation of parameters
  */
 
