@@ -555,8 +555,8 @@ double parOverlap(struct parset *par1, struct parset *par2, struct interferomete
 double vecOverlap(fftw_complex *vec1, fftw_complex *vec2, double * noise, int j1, int j2, double deltaFT);
 void signalFFT(fftw_complex * FFTout, struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run);
 double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct interferometer *ifo[], struct MCMCvariables mcmc, struct runPar run);
-//void computeFishermatrixIFO(struct parset *par, int npar, struct interferometer *ifo[], int networkSize, int ifonr, double **matrix);
-//void computeFishermatrix(struct parset *par, int npar, struct interferometer *ifo[], int networkSize, double **matrix);
+//void computeFisherMatrixIFO(struct parset *par, int npar, struct interferometer *ifo[], int networkSize, int ifonr, double **matrix);
+//void computeFisherMatrix(struct parset *par, int npar, struct interferometer *ifo[], int networkSize, double **matrix);
 //double match(struct parset *par, struct interferometer *ifo[], int i, int networkSize);
 
 

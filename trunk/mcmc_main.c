@@ -301,8 +301,8 @@ int main(int argc, char* argv[])
       allocParset(&par, networkSize);
       //getparameterset(&par, 3.0,0.11,700009012.346140,3.0, 0.5,0.9,3.0,0.5, 1.0,0.1,2.0,3.0);
       
-      //computeFishermatrixIFO(par,run.nMCMCpar,network,networkSize,0,matrix);
-      //computeFishermatrix(&par,run.nMCMCpar,network,networkSize,matrix);
+      //computeFisherMatrixIFO(par,run.nMCMCpar,network,networkSize,0,matrix);
+      //computeFisherMatrix(&par,run.nMCMCpar,network,networkSize,matrix);
       
       for(i=0;i<run.nMCMCpar;i++) {
 	for(j=0;j<run.nMCMCpar;j++) {
