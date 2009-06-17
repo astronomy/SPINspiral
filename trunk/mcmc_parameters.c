@@ -1109,22 +1109,13 @@ void setConstants()
  * \todo Remove par->mc etc. struct elements
  */
 // ****************************************************************************************************************************************************  
-void getInjectionParameters(struct parset *par, int nInjectionPar, double *injParVal)
+void getInjectionParameters(struct parSet *par, int nInjectionPar, double *injParVal)
 {
   int i=0;
   for(i=0;i<nInjectionPar;i++) {
     par->par[i] = injParVal[i];
   }
   par->nPar = nInjectionPar;
-  
-  //These should all disappear:
-  par->mc       = injParVal[0];                    // Chirp mass
-  par->eta      = injParVal[1];                    // mass ratio
-  par->tc       = injParVal[2];                    // coalescence time
-  par->longi    = injParVal[6];                    // RA
-  par->sinlati  = injParVal[7];                    // sin latitude
-  par->sinthJ0  = injParVal[9];                    // sin Theta_J0 ~ latitude, pi/2 = NP
-  par->phiJ0    = injParVal[10];                   // Phi_J0 ~ azimuthal
   
 } // End getInjectionParameters()
 // ****************************************************************************************************************************************************  
@@ -1137,7 +1128,7 @@ void getInjectionParameters(struct parset *par, int nInjectionPar, double *injPa
  * \brief Returns the 'best-guess values' to the parameter set par
  */
 // ****************************************************************************************************************************************************  
-void getStartParameters(struct parset *par, struct runPar run)  //Set the parameters to the starting values for the MCMC chain
+void getStartParameters(struct parSet *par, struct runPar run)  //Set the parameters to the starting values for the MCMC chain
 {
   int i=0;
   for(i=0;i<run.nMCMCpar;i++) {
@@ -1152,20 +1143,18 @@ void getStartParameters(struct parset *par, struct runPar run)  //Set the parame
 
 // ****************************************************************************************************************************************************  
 /** 
- * \brief Allocate memory for the vectors in the struct parset
+ * \brief Allocate memory for the vectors in the struct parSet
  */
 // ****************************************************************************************************************************************************  
-void allocParset(struct parset *par, int networkSize)
+void allocParset(struct parSet *par, int networkSize)
 {
   par->loctc    = NULL;
   par->localti  = NULL;
   par->locazi   = NULL;
-  par->locpolar = NULL;
   
   par->loctc    = (double*)calloc(networkSize,sizeof(double));
   par->localti  = (double*)calloc(networkSize,sizeof(double));
   par->locazi   = (double*)calloc(networkSize,sizeof(double));
-  par->locpolar = (double*)calloc(networkSize,sizeof(double));
 } // End allocParset
 // ****************************************************************************************************************************************************  
 
@@ -1174,15 +1163,14 @@ void allocParset(struct parset *par, int networkSize)
 
 // ****************************************************************************************************************************************************  
 /** 
- * \brief Deallocate memory for the vectors in the struct parset
+ * \brief Deallocate memory for the vectors in the struct parSet
  */
 // ****************************************************************************************************************************************************  
-void freeParset(struct parset *par)
+void freeParset(struct parSet *par)
 {
   free(par->loctc);         par->loctc        = NULL;
   free(par->localti);       par->localti      = NULL;
   free(par->locazi);        par->locazi       = NULL;
-  free(par->locpolar);      par->locpolar     = NULL;
 } // End freeParset
 // ****************************************************************************************************************************************************  
 

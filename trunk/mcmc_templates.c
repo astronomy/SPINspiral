@@ -45,7 +45,7 @@
  * injectionWF indicates whether this is an injection waveform (1) or not (0).
  */
 // ****************************************************************************************************************************************************  
-void waveformTemplate(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run)
+void waveformTemplate(struct parSet *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run)
 {
   
   /*
@@ -86,7 +86,7 @@ void waveformTemplate(struct parset *par, struct interferometer *ifo[], int ifon
  * The output vector ifo[ifonr]->FTin is of length ifo[ifonr]->samplesize,  starting at 'tstart'(?) and with resolution ifo[ifonr]->samplerate.
  */
 // ****************************************************************************************************************************************************  
-void templateApostolatos(struct parset *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
+void templateApostolatos(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
 {
   
   double pMc=0.0,pEta=0.0,pTc=0.0,pLogDl=0.0,pSpin1=0.0,pSpCosTh1=0.0,pLongi=0.0,pSinDec=0.0,pPhase=0.0,pSinThJ0=0.0,pPhiJ0=0.0,pSpPhi1=0.0;
@@ -389,7 +389,7 @@ void templateApostolatos(struct parset *par, struct interferometer *ifo[], int i
  *    ifo   :  pointer to interferometer data (struct)
  */
 // ****************************************************************************************************************************************************  
-void localPar(struct parset *par, struct interferometer *ifo[], int networkSize, int injectionWF, struct runPar run)
+void localPar(struct parSet *par, struct interferometer *ifo[], int networkSize, int injectionWF, struct runPar run)
 {
   int ifonr=0,j=0;
   double lineofsight[3], dummyvec[3], scalprod1=0.0, delay=0.0;

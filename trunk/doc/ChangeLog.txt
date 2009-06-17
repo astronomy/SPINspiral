@@ -2,6 +2,10 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   181: sluys, 16/06/2009
+     - Removed last MCMC-parameter elements from struct parSet
+     - Properly fixed intScrOut output
+     
    179: sluys, 16/06/2009
      - Treat MCMC parameters properly in localPar()
      

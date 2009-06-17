@@ -471,23 +471,26 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
   ifo[ifonr]->samplerate = (int)(1.0 / (nvect->dx[0]) + 0.5);  // Add 0.5 for correct truncation/rounding
   if(run.intScrOut==1) printf(" | original sampling rate: %d Hz\n", ifo[ifonr]->samplerate);
   
-  // Inject the signal into the noise
+  // Inject the signal into the noise:
   if(run.injectSignal >= 1) {
-    //if(run.intScrOut==1) printf(" :  injecting signal:\n");
-    if(run.intScrOut==1) printf(" | injecting signal...\n");
+    if(run.intScrOut==1) printf(" :  injecting signal:\n");
+    
     
     // Define injection parameters:
-    struct parset injectpar;
+    struct parSet injectpar;
     getInjectionParameters(&injectpar, run.nInjectPar, run.injParVal);
     allocParset(&injectpar, networkSize);
     double m1=0.0,m2=0.0;
-    McEta2masses(injectpar.mc, injectpar.eta, &m1, &m2);  //CHECK: remove .mc and .eta
+    double Mc = injectpar.par[run.injRevID[61]];
+    double eta = injectpar.par[run.injRevID[62]];
+    McEta2masses(Mc, eta, &m1, &m2);
     
     if(run.intScrOut==1) {
-      //printf(" :   m1 = %.1f Mo,  m2 = %.1f Mo  (Mc = %.3f Mo,  eta = %.4f)\n", m1, m2, injectpar.mc, injectpar.eta);
-      //printf(" :   tc = %.4f s,  dist = %.1f Mpc\n", injectpar.tc, exp(injectpar.logdl));
-      //printf(" :   ra = %.2f h,  dec = %.2f deg  (GMST = %.2f h)\n",(rightAscension(injectpar.longi,GMST(injectpar.tc))/pi)*12.0, (asin(injectpar.sinlati)/pi)*180.0, (GMST(injectpar.tc)/pi)*12.0);
-      //printf(" :   phase = %.2f rad\n", injectpar.phase);
+      printf(" :   m1 = %.1f Mo,  m2 = %.1f Mo  (Mc = %.3f Mo,  eta = %.4f)\n", m1, m2, Mc, eta);
+      printf(" :   tc = %.4f s,  dist = %.1f Mpc\n", injectpar.par[run.injRevID[11]], exp(injectpar.par[run.injRevID[22]]));
+      printf(" :   ra = %.2f h,  dec = %.2f deg  (GMST = %.2f h)\n",injectpar.par[run.injRevID[31]]/pi*12.0, asin(injectpar.par[run.injRevID[32]])/pi*180.0, 
+	     GMST(injectpar.par[run.injRevID[11]])/pi*12.0 );
+      printf(" :   phase = %.2f rad\n", injectpar.par[run.injRevID[41]]);
     }
     ifo[ifonr]->FTstart = from; // Temporary setting so that localPar() works properly
     
@@ -495,11 +498,10 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
     localPar(&injectpar, ifo, networkSize, injectionWF, run);
     
     if(run.intScrOut==1) {
-      //printf(" :   local parameters:\n");
-      //printf(" :   tc           = %.5f s\n",injectpar.loctc[ifonr]+from);
-      //printf(" :   altitude     = %.2f rad\n",injectpar.localti[ifonr]);
-      //printf(" :   azimuth      = %.2f rad\n",injectpar.locazi[ifonr]);
-      //printf(" :   polarisation = %.2f rad\n",injectpar.locpolar[ifonr]);
+      printf(" :   local parameters:\n");
+      printf(" :   tc           = %.5f s\n",injectpar.loctc[ifonr]+from);
+      printf(" :   altitude     = %.2f deg\n",injectpar.localti[ifonr]/pi*180.0);
+      printf(" :   azimuth      = %.2f deg\n",injectpar.locazi[ifonr]/pi*180.0);
     }
     
     
@@ -1043,7 +1045,7 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networkSize, struct r
   int i=0, j=0;
   
   //Set local values in parameter struct (needed for template computation)
-  struct parset par;
+  struct parSet par;
   getInjectionParameters(&par, run.nInjectPar, run.injParVal);
   allocParset(&par, networkSize);
   int injectionWF = 1;                            //Call waveformTemplate with the injection template
@@ -1108,7 +1110,7 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networkSize, struct r
 // ****************************************************************************************************************************************************  
 void printParameterHeaderToFile(FILE * dump)
 {
-  struct parset par;
+  struct parSet par;
   fprintf(dump,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
   fprintf(dump,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
 	  //par.m1,par.m2,par.mc,par.eta,par.tc,exp(par.logdl),asin(par.sinlati)*r2d,par.longi*r2d,par.phase,par.spin,par.kappa,par.sinthJ0,par.phiJ0,par.alpha);

@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
   
   
   // Get a injection parameter set to calculate SNR or write the wavefrom to disc:
-  struct parset dummypar;
+  struct parSet dummypar;
   getInjectionParameters(&dummypar, run.nInjectPar, run.injParVal);
   allocParset(&dummypar, networkSize);
   injectionWF = 1;
@@ -265,9 +265,9 @@ int main(int argc, char* argv[])
     //Compute match between waveforms with parameter sets par1 and par2
     if(1==2) {
       printf("\n\n");
-      struct parset par1;
+      struct parSet par1;
       allocParset(&par1, networkSize);
-      struct parset par2;
+      struct parSet par2;
       allocParset(&par2, networkSize);
       
       double eta=0.0;
@@ -295,7 +295,7 @@ int main(int argc, char* argv[])
       printf("\n\n  Computing Fisher matrix...\n\n");
       i = 0;
       int j=0;
-      struct parset par;
+      struct parSet par;
       double **matrix  = (double**)calloc(run.nMCMCpar,sizeof(double*));
       for(i=0;i<run.nMCMCpar;i++) matrix[i]  = (double*)calloc(run.nMCMCpar,sizeof(double));
       allocParset(&par, networkSize);

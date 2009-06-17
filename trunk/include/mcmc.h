@@ -343,24 +343,10 @@ struct MCMCvariables{
 
 
 // Structure for waveform parameter set with up to 20 parameters
-struct parset{
+struct parSet{
   
   double par[20];    // Array with all parameters
   int nPar;          // Number of parameters used
-  
-  //CHECK Get rid of these!
-  double mc;         // chirp mass                
-  double eta;        // sym mass ratio            
-  double tc;         // coalescence time          
-  double logdl;      // log-distance              
-  double spin;       // magnitude of total spin   
-  double kappa;      // L^.S^, cos of angle between L and S
-  double longi;      // longitude                 
-  double sinlati;    // latitude (sin(delta))     
-  double phase;      // wave phase   (phi0)       
-  double sinthJ0;    // sin Theta_J0              
-  double phiJ0;      // Phi_J0                    
-  double alpha;      // Alpha_c                   
   
   double NdJ;        // N^.J_o^; inclination of J_o
   
@@ -368,7 +354,6 @@ struct parset{
   double *loctc;     // vector of local coalescence times (w.r.t. FT'd data!)
   double *localti;   // vector of local altitudes
   double *locazi;    // vector of local azimuths
-  double *locpolar;  // vector of local polarisations
 };
 
 
@@ -456,13 +441,13 @@ void setConstants();
 void setIFOdata(struct runPar *run, struct interferometer ifo[]);
 
 void setRandomInjectionParameters(struct runPar *run);
-void getInjectionParameters(struct parset *par, int nInjectionPar, double *parInjectVal);
-void getStartParameters(struct parset *par, struct runPar run);
-void startMCMCOffset(struct parset *par, struct MCMCvariables *mcmc, struct interferometer *ifo[], struct runPar run);
+void getInjectionParameters(struct parSet *par, int nInjectionPar, double *parInjectVal);
+void getStartParameters(struct parSet *par, struct runPar run);
+void startMCMCOffset(struct parSet *par, struct MCMCvariables *mcmc, struct interferometer *ifo[], struct runPar run);
 void setTemperatureLadder(struct MCMCvariables *mcmc);
 void setTemperatureLadderOld(struct MCMCvariables *mcmc);
-void allocParset(struct parset *par, int networkSize);
-void freeParset(struct parset *par);
+void allocParset(struct parSet *par, int networkSize);
+void freeParset(struct parSet *par);
 
 void copyRun2MCMC(struct runPar run, struct MCMCvariables *mcmc);
 void setMCMCseed(struct runPar *run);
@@ -470,14 +455,14 @@ void setSeed(int *seed);
 
 void MCMC(struct runPar run, struct interferometer *ifo[]);
 void CholeskyDecompose(double **A, struct MCMCvariables *mcmc);
-void par2arr(struct parset par, double **param, struct MCMCvariables mcmc);
-void arr2par(double **param, struct parset *par, struct MCMCvariables mcmc);
+void par2arr(struct parSet par, double **param, struct MCMCvariables mcmc);
+void arr2par(double **param, struct parSet *par, struct MCMCvariables mcmc);
 double prior(double *par, int p, struct MCMCvariables mcmc);
 double sigmaPeriodicBoundaries(double sigma, int p, struct MCMCvariables mcmc);
 
-void correlatedMCMCupdate(struct interferometer *ifo[], struct parset *state, struct MCMCvariables *mcmc, struct runPar run);
-void uncorrelatedMCMCsingleUpdate(struct interferometer *ifo[], struct parset *state, struct MCMCvariables *mcmc, struct runPar run);
-void uncorrelatedMCMCblockUpdate(struct interferometer *ifo[], struct parset *state, struct MCMCvariables *mcmc, struct runPar run);
+void correlatedMCMCupdate(struct interferometer *ifo[], struct parSet *state, struct MCMCvariables *mcmc, struct runPar run);
+void uncorrelatedMCMCsingleUpdate(struct interferometer *ifo[], struct parSet *state, struct MCMCvariables *mcmc, struct runPar run);
+void uncorrelatedMCMCblockUpdate(struct interferometer *ifo[], struct parSet *state, struct MCMCvariables *mcmc, struct runPar run);
 
 void writeMCMCheader(struct interferometer *ifo[], struct MCMCvariables mcmc, struct runPar run);
 void writeMCMCoutput(struct MCMCvariables mcmc, struct interferometer *ifo[]);
@@ -533,31 +518,31 @@ void printParameterHeaderToFile(FILE * dump);
 
 
 //************************************************************************************************************************************************
-void waveformTemplate(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run);
-void templateApostolatos(struct parset *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run);
-void localPar(struct parset *par, struct interferometer *ifo[], int networkSize, int injectionWF, struct runPar run);
+void waveformTemplate(struct parSet *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run);
+void templateApostolatos(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run);
+void localPar(struct parSet *par, struct interferometer *ifo[], int networkSize, int injectionWF, struct runPar run);
 		  
 
 
 //************************************************************************************************************************************************
 
-void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run);
-void templateLAL15(struct parset *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run);
+void templateLAL12(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run);
+void templateLAL15(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run);
 
 //************************************************************************************************************************************************
 
-double netLogLikelihood(struct parset *par, int networkSize, struct interferometer *ifo[], int waveformVersion, int injectionWF, struct runPar run);
-double IFOlogLikelihood(struct parset *par, struct interferometer *ifo[], int i, int waveformVersion, int injectionWF, struct runPar run);
-double signalToNoiseRatio(struct parset *par, struct interferometer *ifo[], int i, int waveformVersion, int injectionWF, struct runPar run);
-double parMatch(struct parset *par1,struct parset *par2, struct interferometer *ifo[], int networkSize, int waveformVersion, int injectionWF, struct runPar run);
-double overlapWithData(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run);
-double parOverlap(struct parset *par1, struct parset *par2, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run);
+double netLogLikelihood(struct parSet *par, int networkSize, struct interferometer *ifo[], int waveformVersion, int injectionWF, struct runPar run);
+double IFOlogLikelihood(struct parSet *par, struct interferometer *ifo[], int i, int waveformVersion, int injectionWF, struct runPar run);
+double signalToNoiseRatio(struct parSet *par, struct interferometer *ifo[], int i, int waveformVersion, int injectionWF, struct runPar run);
+double parMatch(struct parSet *par1,struct parSet *par2, struct interferometer *ifo[], int networkSize, int waveformVersion, int injectionWF, struct runPar run);
+double overlapWithData(struct parSet *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run);
+double parOverlap(struct parSet *par1, struct parSet *par2, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run);
 double vecOverlap(fftw_complex *vec1, fftw_complex *vec2, double * noise, int j1, int j2, double deltaFT);
-void signalFFT(fftw_complex * FFTout, struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run);
+void signalFFT(fftw_complex * FFTout, struct parSet *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run);
 double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct interferometer *ifo[], struct MCMCvariables mcmc, struct runPar run);
-//void computeFisherMatrixIFO(struct parset *par, int npar, struct interferometer *ifo[], int networkSize, int ifonr, double **matrix);
-//void computeFisherMatrix(struct parset *par, int npar, struct interferometer *ifo[], int networkSize, double **matrix);
-//double match(struct parset *par, struct interferometer *ifo[], int i, int networkSize);
+//void computeFisherMatrixIFO(struct parSet *par, int npar, struct interferometer *ifo[], int networkSize, int ifonr, double **matrix);
+//void computeFisherMatrix(struct parSet *par, int npar, struct interferometer *ifo[], int networkSize, double **matrix);
+//double match(struct parSet *par, struct interferometer *ifo[], int i, int networkSize);
 
 
 

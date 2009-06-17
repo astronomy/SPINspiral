@@ -68,7 +68,7 @@
  * Can this routine be merged with LALHpHc12() ?
  */
 // ****************************************************************************************************************************************************  
-void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
+void templateLAL12(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
 //Use the LAL 3.5/2.5 PN spinning waveform, with 2 spinning objects (15 parameters)
 {
   int i=0;
@@ -166,7 +166,7 @@ void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr, 
  * Can this routine be merged with templateLAL12() ?
  */
 // ****************************************************************************************************************************************************  
-void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, int *l, struct parset *par, struct interferometer *ifo, int injectionWF, struct runPar run) {
+void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, int *l, struct parSet *par, struct interferometer *ifo, int injectionWF, struct runPar run) {
   // Compute h_+ and h_x form the parameters in par and interferometer information in ifo. l is a pointer to get the lenght of the waveform computed. this length is also available in waveform->phi->data->length
   
   //  static LALStatus    mystatus;
@@ -449,7 +449,7 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
  * Can this routine be merged with templateLAL12() ?
  */
 // ****************************************************************************************************************************************************  
-void templateLAL15(struct parset *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
+void templateLAL15(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
 //Use the LAL 3.5/2.5 PN spinning waveform, with 2 spinning objects (15 parameters)
 {
   int i=0;
@@ -548,7 +548,7 @@ void templateLAL15(struct parset *par, struct interferometer *ifo[], int ifonr, 
  * Can this routine be merged with templateLAL12() ?
  */
 // ****************************************************************************************************************************************************  
-void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, int *l, struct parset *par, struct interferometer *ifo, int injectionWF, struct runPar run) {
+void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, int *l, struct parSet *par, struct interferometer *ifo, int injectionWF, struct runPar run) {
   // Compute h_+ and h_x form the parameters in par and interferometer information in ifo. l is a pointer to get the lenght of the waveform computed. this length is also available in waveform->phi->data->length
   
   // static LALStatus    mystatus;
@@ -706,7 +706,7 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
  * Compute the detector response for a given detector (ifonr) and h_+,h_x. the structure waveform must already hold the computed values of h+,x (or just a1, a2, phi and shift as a function of time)
  */
 // ****************************************************************************************************************************************************  
-double LALFpFc(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, double *wave, int length, struct parset *par, struct interferometer *ifo, int ifonr) 
+double LALFpFc(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, double *wave, int length, struct parSet *par, struct interferometer *ifo, int ifonr) 
 {
   par->par[2] = par->par[2]; //MvdS: CHECK: remove 'never referenced' warning (or remove par from argument list)
   

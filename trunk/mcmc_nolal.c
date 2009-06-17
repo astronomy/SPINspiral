@@ -41,7 +41,7 @@
  * \brief Dummy routine for compilation without LAL
  */
 // ****************************************************************************************************************************************************  
-void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
+void templateLAL12(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
 {
   //Get rid of warnings at compile time (x set but never used)
   double x = 0.0;
@@ -70,7 +70,7 @@ void templateLAL12(struct parset *par, struct interferometer *ifo[], int ifonr, 
  * \brief Dummy routine for compilation without LAL
  */
 // ****************************************************************************************************************************************************  
-void templateLAL15(struct parset *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
+void templateLAL15(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
 {
   //Get rid of warnings at compile time (x set but never used)
   double x = 0.0;

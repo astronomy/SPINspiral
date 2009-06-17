@@ -46,7 +46,7 @@
 void MCMC(struct runPar run, struct interferometer *ifo[])
 {
   
-  struct parset state;                        // MCMC/template parameter set struct
+  struct parSet state;                        // MCMC/template parameter set struct
   
   // *** MCMC struct ***
   struct MCMCvariables mcmc;                  // MCMC variables struct
@@ -443,7 +443,7 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
  *
  */
 // ****************************************************************************************************************************************************  
-void par2arr(struct parset par, double **param, struct MCMCvariables mcmc)
+void par2arr(struct parSet par, double **param, struct MCMCvariables mcmc)
 {
   int i=0;
   for(i=0;i<mcmc.nMCMCpar;i++) param[mcmc.iTemp][i] = par.par[i];
@@ -458,7 +458,7 @@ void par2arr(struct parset par, double **param, struct MCMCvariables mcmc)
  *
  */
 // ****************************************************************************************************************************************************  
-void arr2par(double **param, struct parset *par, struct MCMCvariables mcmc)
+void arr2par(double **param, struct parSet *par, struct MCMCvariables mcmc)
 {
   int i=0;
   for(i=0;i<mcmc.nMCMCpar;i++) par->par[i] = param[mcmc.iTemp][i];
@@ -544,7 +544,7 @@ double sigmaPeriodicBoundaries(double sigma, int p, struct MCMCvariables mcmc)
  * Some experiments with larger jumps using the 'hotter' covariance matrix.
  */
 // ****************************************************************************************************************************************************  
-void correlatedMCMCupdate(struct interferometer *ifo[], struct parset *state, struct MCMCvariables *mcmc, struct runPar run)
+void correlatedMCMCupdate(struct interferometer *ifo[], struct parSet *state, struct MCMCvariables *mcmc, struct runPar run)
 // ****************************************************************************************************************************************************  
 {
   int p1=0, p2=0, tempi=mcmc->iTemp, tempj=0;
@@ -655,7 +655,7 @@ void correlatedMCMCupdate(struct interferometer *ifo[], struct parset *state, st
  * Use adaptation.
  */
 // ****************************************************************************************************************************************************  
-void uncorrelatedMCMCsingleUpdate(struct interferometer *ifo[], struct parset *state, struct MCMCvariables *mcmc, struct runPar run)
+void uncorrelatedMCMCsingleUpdate(struct interferometer *ifo[], struct parSet *state, struct MCMCvariables *mcmc, struct runPar run)
 // ****************************************************************************************************************************************************  
 {
   int p=0, tempi=mcmc->iTemp;
@@ -740,7 +740,7 @@ void uncorrelatedMCMCsingleUpdate(struct interferometer *ifo[], struct parset *s
  * No adaptation here, some experimenting with larger jumps every now and then.
  */
 // ****************************************************************************************************************************************************  
-void uncorrelatedMCMCblockUpdate(struct interferometer *ifo[], struct parset *state, struct MCMCvariables *mcmc, struct runPar run)
+void uncorrelatedMCMCblockUpdate(struct interferometer *ifo[], struct parSet *state, struct MCMCvariables *mcmc, struct runPar run)
 // ****************************************************************************************************************************************************  
 {
   int p=0;
@@ -1533,7 +1533,7 @@ void copyRun2MCMC(struct runPar run, struct MCMCvariables *mcmc)
  * Finally, print the selected starting values to screen.
  */
 // ****************************************************************************************************************************************************  
-void startMCMCOffset(struct parset *par, struct MCMCvariables *mcmc, struct interferometer *ifo[], struct runPar run)
+void startMCMCOffset(struct parSet *par, struct MCMCvariables *mcmc, struct interferometer *ifo[], struct runPar run)
 {
   int i=0, iInj=0, nstart=0, nDiffPar=0;
   double db = 0.0;

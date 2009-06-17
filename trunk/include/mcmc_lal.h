@@ -47,11 +47,11 @@
 
 
 // Declare function prototypes:
-//void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parset *par, struct interferometer *ifo, int ifonr);
-void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, int *l, struct parset *par, struct interferometer *ifo, int injectionWF, struct runPar run);
-void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, int *l, struct parset *par, struct interferometer *ifo, int injectionWF, struct runPar run);
-//double LALFpFc(CoherentGW *waveform, double *wave, int *l, int length, struct parset *par, int ifonr);
-double LALFpFc(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, double *wave, int length, struct parset *par, struct interferometer *ifo, int ifonr);
+//void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parSet *par, struct interferometer *ifo, int ifonr);
+void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, int *l, struct parSet *par, struct interferometer *ifo, int injectionWF, struct runPar run);
+void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, int *l, struct parSet *par, struct interferometer *ifo, int injectionWF, struct runPar run);
+//double LALFpFc(CoherentGW *waveform, double *wave, int *l, int length, struct parSet *par, int ifonr);
+double LALFpFc(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, double *wave, int length, struct parSet *par, struct interferometer *ifo, int ifonr);
 void LALfreedom(CoherentGW *waveform);
 
 
