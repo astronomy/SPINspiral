@@ -263,17 +263,19 @@ double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct int
   //par.locazi   = (double*)calloc(mcmc.networkSize,sizeof(double));
   //par.locpolar = (double*)calloc(mcmc.networkSize,sizeof(double));
   allocParset(&par,mcmc.networkSize);
-  localPar(&par, ifo, mcmc.networkSize);
+  int injectionWF = 0;                                     // Call localPar for an MCMC template
+  localPar(&par, ifo, mcmc.networkSize, injectionWF, run);
 
   //Get the injection parameters:
   getInjectionParameters(&injectPar, mcmc.nInjectPar, mcmc.injParVal);
   allocParset(&injectPar,mcmc.networkSize);
-  localPar(&injectPar, ifo, mcmc.networkSize);
+  injectionWF = 1;                                     // Call localPar for an injection template
+  localPar(&injectPar, ifo, mcmc.networkSize, injectionWF, run);
   
   freeParset(&par);
   freeParset(&injectPar);
   
-  int injectionWF = 0;
+  injectionWF = 0;
   return parMatch(&injectPar, &par, ifo, mcmc.networkSize, mcmc.mcmcWaveform, injectionWF, run);
 }
 
@@ -304,7 +306,7 @@ double match(struct parset *par, struct interferometer *ifo[], int i, int networ
   //Get the true parameters and the corresponding waveform template:
   getInjectionParameters(&injectPar, mcmc.nInjectPar, mcmc.injParVal);
   allocParset(&injectPar, networkSize);
-  localPar(&injectPar, ifo, networkSize);
+  localPar(&injectPar, ifo, networkSize, injectionWF, run);
   waveformTemplate(&injectPar, ifo, i, injectionWF, run);
   
   

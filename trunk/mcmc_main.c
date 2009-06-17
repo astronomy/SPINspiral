@@ -109,15 +109,16 @@ int main(int argc, char* argv[])
   
   
   
-  //Get a parameter set to calculate SNR or write the wavefrom to disc
+  // Get a injection parameter set to calculate SNR or write the wavefrom to disc:
   struct parset dummypar;
   getInjectionParameters(&dummypar, run.nInjectPar, run.injParVal);
   allocParset(&dummypar, networkSize);
-  localPar(&dummypar, network, networkSize);
+  injectionWF = 1;
+  localPar(&dummypar, network, networkSize, injectionWF, run);
   
   
   
-  //Calculate SNR
+  // Calculate SNR:
   run.netsnr = 0.0;
   if(run.doSNR==1) {
     for(ifonr=0; ifonr<networkSize; ++ifonr) {
@@ -131,15 +132,16 @@ int main(int argc, char* argv[])
   
   
   
-  //Get the desired SNR by scaling the distance
+  // Get the desired SNR by scaling the distance:
   if(run.injectionSNR > 0.001 && run.injectSignal>=1) {
     run.injParVal[3] += log(run.netsnr/run.injectionSNR);  //Use total network SNR
     printf("   Setting distance to %lf Mpc (log(d/Mpc)=%lf) to get a network SNR of %lf.\n",exp(run.injParVal[3]),run.injParVal[3],run.injectionSNR);
     getInjectionParameters(&dummypar, run.nMCMCpar, run.injParVal);
     allocParset(&dummypar, networkSize);
-    localPar(&dummypar, network, networkSize);
+    injectionWF = 1;
+    localPar(&dummypar, network, networkSize, injectionWF, run);
     
-    //Recalculate SNR
+    // Recalculate SNR:
     run.netsnr = 0.0;
     if(run.doSNR==1) {
       for(ifonr=0; ifonr<networkSize; ++ifonr) {
@@ -250,7 +252,7 @@ int main(int argc, char* argv[])
       for(fac=-0.002;fac<0.002;fac+=0.00005) {
 	dummypar.tc = matchpar+fac;
 	for(ifonr=0;ifonr<networkSize;ifonr++) {
-	  localPar(&dummypar, network, networkSize);
+	  localPar(&dummypar, network, networkSize, injectionWF, run);
 	  matchres = match(&dummypar,network,ifonr,networkSize);
 	  printf("%10.6f  %10.6f\n",fac,matchres);
 	  fprintf(fout,"%10.6f  %10.6f\n",fac,matchres);

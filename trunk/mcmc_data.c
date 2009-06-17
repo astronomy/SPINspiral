@@ -491,7 +491,8 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
     }
     ifo[ifonr]->FTstart = from; // Temporary setting so that localPar() works properly
     
-    localPar(&injectpar, ifo, networkSize);
+    int injectionWF = 1;                  //Call waveformTemplate with the injection template
+    localPar(&injectpar, ifo, networkSize, injectionWF, run);
     
     if(run.intScrOut==1) {
       //printf(" :   local parameters:\n");
@@ -510,7 +511,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
     ifo[ifonr]->FTin = injection;
     ifo[ifonr]->FTstart = from;
     ifo[ifonr]->samplesize = N;
-    int injectionWF = 1;                  //Call waveformTemplate with the injection template
+    injectionWF = 1;                  //Call waveformTemplate with the injection template
     waveformTemplate(&injectpar,ifo,ifonr, run.injectionWaveform, injectionWF, run);
     ifo[ifonr]->FTin = tempInj;
     ifo[ifonr]->FTstart = tempFrom;
@@ -1045,14 +1046,15 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networkSize, struct r
   struct parset par;
   getInjectionParameters(&par, run.nInjectPar, run.injParVal);
   allocParset(&par, networkSize);
-  localPar(&par, ifo, networkSize);
+  int injectionWF = 1;                            //Call waveformTemplate with the injection template
+  localPar(&par, ifo, networkSize, injectionWF, run);
   
   for(i=0; i<networkSize; i++){
     double f;
     double complex FFTout;
     
     // Fill ifo[i]->FTin with time-domain template:
-    int injectionWF = 1;                          //Call waveformTemplate with the injection template
+    injectionWF = 1;                              //Call waveformTemplate with the injection template
     waveformTemplate(&par, ifo, i, run.injectionWaveform, injectionWF, run);
     // And FFT it
     fftw_execute(ifo[i]->FTplan);

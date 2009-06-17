@@ -91,32 +91,33 @@ void templateApostolatos(struct parset *par, struct interferometer *ifo[], int i
   
   double pMc=0.0,pEta=0.0,pTc=0.0,pLogDl=0.0,pSpin1=0.0,pSpCosTh1=0.0,pLongi=0.0,pSinDec=0.0,pPhase=0.0,pSinThJ0=0.0,pPhiJ0=0.0,pSpPhi1=0.0;
   
-  if(injectionWF==1) {                                               // Then this is an injection waveform template
-    pMc       = par->par[run.injRevID[61]];  // Mc
-    pEta      = par->par[run.injRevID[62]];  // eta
-    pTc       = par->par[run.injRevID[11]];  // t_c
-    pLogDl    = par->par[run.injRevID[22]];  // log(d_L)
-    pSpin1     = par->par[run.injRevID[71]];  // a_spin1
-    pSpCosTh1    = par->par[run.injRevID[72]];  // cos(theta_spin1)
-    pLongi    = fmod(longitude(par->par[run.injRevID[31]],GMST(pTc))+mtpi,tpi);  // RA; RA -> 'lon'
-    pSinDec  = par->par[run.injRevID[32]];  // sin(Dec)
-    pPhase    = par->par[run.injRevID[41]];  // phi_c
-    pSinThJ0  = par->par[run.injRevID[53]];  // sin(theta_J0)
-    pPhiJ0    = par->par[run.injRevID[54]];  // phi_J0
-    pSpPhi1    = par->par[run.injRevID[73]];  // phi_spin1    
-  } else {                                                           // Then this is an MCMC waveform template
-    pMc       = par->par[run.parRevID[61]];  // Mc
-    pEta      = par->par[run.parRevID[62]];  // eta
-    pTc       = par->par[run.parRevID[11]];  // t_c
-    pLogDl    = par->par[run.parRevID[22]];  // log(d_L)	
-    pSpin1     = par->par[run.parRevID[71]];  // a_spin1		
-    pSpCosTh1    = par->par[run.parRevID[72]];  // cos(theta_spin1)
-    pLongi    = fmod(longitude(par->par[run.parRevID[31]], GMST(pTc)) + mtpi,tpi);  // RA; RA -> 'lon'
-    pSinDec  = par->par[run.parRevID[32]];  // sin(Dec)     
-    pPhase    = par->par[run.parRevID[41]];  // phi_c	     
-    pSinThJ0  = par->par[run.parRevID[53]];  // sin(theta_J0)
-    pPhiJ0    = par->par[run.parRevID[54]];  // phi_J0	     
-    pSpPhi1    = par->par[run.parRevID[73]];  // phi_spin1    
+  if(injectionWF==1) {                                               // Then this is an injection waveform template:
+    pMc       = par->par[run.injRevID[61]];                                           // 61: Mc
+    pEta      = par->par[run.injRevID[62]];                                           // 62: eta
+    pTc       = par->par[run.injRevID[11]];                                           // 11: t_c
+    pLogDl    = par->par[run.injRevID[22]];                                           // 22: log(d_L)
+    pSpin1    = par->par[run.injRevID[71]];                                           // 71: a_spin1
+    pSpCosTh1 = par->par[run.injRevID[72]];                                           // 72: cos(theta_spin1)
+    pLongi    = fmod(longitude(par->par[run.injRevID[31]], GMST(pTc)) + mtpi, tpi);   // 31: RA; RA -> 'lon'
+    pSinDec   = par->par[run.injRevID[32]];                                           // 32: sin(Dec)
+    pPhase    = par->par[run.injRevID[41]];                                           // 41: phi_c
+    pSinThJ0  = par->par[run.injRevID[53]];                                           // 53: sin(theta_J0)
+    pPhiJ0    = par->par[run.injRevID[54]];                                           // 54: phi_J0
+    pSpPhi1   = par->par[run.injRevID[73]];                                           // 73: phi_spin1    
+    
+  } else {                                                           // Then this is an MCMC waveform template:
+    pMc       = par->par[run.parRevID[61]];                                           // 61: Mc
+    pEta      = par->par[run.parRevID[62]];                                           // 62: eta
+    pTc       = par->par[run.parRevID[11]];                                           // 11: t_c
+    pLogDl    = par->par[run.parRevID[22]];                                           // 22: log(d_L)	
+    pSpin1    = par->par[run.parRevID[71]];                                           // 71: a_spin1		
+    pSpCosTh1 = par->par[run.parRevID[72]];                                           // 72: cos(theta_spin1)
+    pLongi    = fmod(longitude(par->par[run.parRevID[31]], GMST(pTc)) + mtpi,tpi);    // 31: RA; RA -> 'lon'
+    pSinDec   = par->par[run.parRevID[32]];                                           // 32: sin(Dec)     
+    pPhase    = par->par[run.parRevID[41]];                                           // 41: phi_c	     
+    pSinThJ0  = par->par[run.parRevID[53]];                                           // 53: sin(theta_J0)
+    pPhiJ0    = par->par[run.parRevID[54]];                                           // 54: phi_J0	     
+    pSpPhi1   = par->par[run.parRevID[73]];                                           // 73: phi_spin1    
   }
   
   double x=0.0;
@@ -364,6 +365,7 @@ void templateApostolatos(struct parset *par, struct interferometer *ifo[], int i
     //ifo[ifonr]->FTin[i] *= 0.5*(1.0 - tanh(15000.0*(taperx[i1a]-taperx[i])));  //Taper beginning of template
     ifo[ifonr]->FTin[i] *= 0.5*(1.0 - tanh(100.0*(taperx[i]-taperx[i2a])));  //Taper end of template
   }
+  
 } // End of templateApostolatos()
 // ****************************************************************************************************************************************************  
 
@@ -382,42 +384,51 @@ void templateApostolatos(struct parset *par, struct interferometer *ifo[], int i
 /**
  * \brief Calculate the local parameters from the global parameters
  * 
- * Calculate the local parameters from the global parameters, for the spinning parameters.
+ * Calculate the local (i.e. in the detector frame) parameters from the global parameters.
  *    par   :  pointer to parameter set (struct)
  *    ifo   :  pointer to interferometer data (struct)
  */
 // ****************************************************************************************************************************************************  
-void localPar(struct parset *par, struct interferometer *ifo[], int networkSize)
+void localPar(struct parset *par, struct interferometer *ifo[], int networkSize, int injectionWF, struct runPar run)
 {
-  int ifonr,j;
-  double lineofsight[3], dummyvec[3], scalprod1, delay;
+  int ifonr=0,j=0;
+  double lineofsight[3], dummyvec[3], scalprod1=0.0, delay=0.0;
   
-  double pTc       = par->par[2];
-  double pLongi    = fmod(longitude(par->par[6],GMST(pTc))+mtpi,tpi);  //par[6] contains RA
-  double pSinDec   = par->par[7];
+  double pTc=0.0,pLongi=0.0,pSinDec=0.0;
+  if(injectionWF==1) {                                                               // Then this is for an injection waveform template
+    pTc       = par->par[run.injRevID[11]];                                            // 11: Tc
+    pLongi    = fmod(longitude(par->par[run.injRevID[31]], GMST(pTc)) + mtpi, tpi);    // 31: RA;  RA -> 'longitude'
+    pSinDec   = par->par[run.injRevID[32]];                                            // 32: sin(Dec)
+  } else {                                                                           // Then this is for an MCMC waveform template
+    pTc       = par->par[run.parRevID[11]];                                            // 11: Tc
+    pLongi    = fmod(longitude(par->par[run.parRevID[31]], GMST(pTc)) + mtpi, tpi);    // 31: RA;  RA -> 'longitude'
+    pSinDec   = par->par[run.parRevID[32]];                                            // 32: sin(Dec)
+  }
+  
   
   // Determine local coalescence times:
   coord2vec(pSinDec, pLongi, lineofsight);
-  for(ifonr=0; ifonr<networkSize; ifonr++){
+  for(ifonr=0; ifonr<networkSize; ifonr++) {
     scalprod1 =  ifo[ifonr]->positionvec[0]*lineofsight[0]  +  ifo[ifonr]->positionvec[1]*lineofsight[1]  +  ifo[ifonr]->positionvec[2]*lineofsight[2];  // Project line of sight onto positionvec, scalprod1 is in units of metres
     delay = scalprod1 / c;                                         // Time delay (wrt geocentre) in seconds
     par->loctc[ifonr] = ((pTc - ifo[ifonr]->FTstart) - delay);
   }
   
+  
   // Determine local sky position:
-  for(ifonr=0; ifonr<networkSize; ifonr++){
-    // 'Altitude' in the ifo' frame:
-    par->localti[ifonr] = angle(ifo[ifonr]->normalvec, lineofsight);       // Actually, this is the colatitude in the ifo' frame (i.e. 0deg=zenith, 90deg=horizon)
+  for(ifonr=0; ifonr<networkSize; ifonr++) {
     
-    // 'Azimuth' in the ifo' frame:
-    for(j=0; j<3; ++j) dummyvec[j] = lineofsight[j];              // Temp vector with line of sight
-    orthoProject(dummyvec, ifo[ifonr]->rightvec, ifo[ifonr]->orthoArm);    // Project line of sight into ifo' arm plane
-    par->locazi[ifonr] = angle(dummyvec, ifo[ifonr]->rightvec);            // The 'true' azimuth (N=0,E=90deg) of the source at the location of the detector is:  pi - (par->locazi[ifonr] + ifo[ifonr]->rightArm) 
+    // 'Altitude' in the IFO' frame:
+    par->localti[ifonr] = angle(ifo[ifonr]->normalvec, lineofsight);                     // Actually, this is the colatitude in the IFO' frame (i.e. 0deg=zenith, 90deg=horizon)
+    
+    // 'Azimuth' in the IFO' frame:
+    for(j=0; j<3; ++j) dummyvec[j] = lineofsight[j];                                     // Temp vector with line of sight
+    orthoProject(dummyvec, ifo[ifonr]->rightvec, ifo[ifonr]->orthoArm);                  // Project line of sight into IFO' arm plane
+    par->locazi[ifonr] = angle(dummyvec, ifo[ifonr]->rightvec);                          // The 'true' azimuth (N=0,E=90deg) of the source at the location of the detector is:  pi - (par->locazi[ifonr] + ifo[ifonr]->rightArm) 
     if(!rightHanded(ifo[ifonr]->rightvec, dummyvec, ifo[ifonr]->normalvec)) par->locazi[ifonr] = 2.0*pi - par->locazi[ifonr];
     
     //printf("  %d  %lf  %lf  %s\n",ifonr,ifo[ifonr]->lati/pi*180.0,ifo[ifonr]->longi/pi*180.0,ifo[ifonr]->name);
   }
-  return;
   
 } // End of localPar()
 // ****************************************************************************************************************************************************  

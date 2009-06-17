@@ -364,7 +364,7 @@ struct parset{
   
   double NdJ;        // N^.J_o^; inclination of J_o
   
-  // Derived quantities (see also localPar()):
+  // Derived quantities (computed in localPar()):
   double *loctc;     // vector of local coalescence times (w.r.t. FT'd data!)
   double *localti;   // vector of local altitudes
   double *locazi;    // vector of local azimuths
@@ -518,7 +518,6 @@ void vec2coord(double x[3], double *sinlati, double *longi);
 
 void IFOinit(struct interferometer **ifo, int networkSize, struct runPar run);
 void IFOdispose(struct interferometer *ifo, struct runPar run);
-void localPar(struct parset *par, struct interferometer *ifo[], int networkSize);
 double *filter(int *order, int samplerate, double upperlimit, struct runPar run);
 double *downsample(double data[], int *datalength, double coef[], int ncoef, struct runPar run);
 void dataFT(struct interferometer *ifo[], int i, int networkSize, struct runPar run);
@@ -536,6 +535,7 @@ void printParameterHeaderToFile(FILE * dump);
 //************************************************************************************************************************************************
 void waveformTemplate(struct parset *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run);
 void templateApostolatos(struct parset *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run);
+void localPar(struct parset *par, struct interferometer *ifo[], int networkSize, int injectionWF, struct runPar run);
 		  
 
 

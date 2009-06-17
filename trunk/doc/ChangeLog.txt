@@ -2,8 +2,11 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   179: sluys, 16/06/2009
+     - Treat MCMC parameters properly in localPar()
+     
    178: sluys, 16/06/2009
-     - Treat parameters properly in template routines
+     - Treat MCMC parameters properly in template routines
      - Added some comments to mcmc_templates() and mcmc_lal(); 
        improves Doxygen's performance
    

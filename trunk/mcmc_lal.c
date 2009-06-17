@@ -194,32 +194,33 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   double pMc=0,pEta=0,pTc=0,pLogDl=0,pSpin1=0,pSpCosTh1=0,pLongi=0,pSinDec=0,pPhase=0,pSinThJ0=0,pPhiJ0=0,pSpPhi1=0;
   
   if(injectionWF==1) {                                               // Then this is an injection waveform template
-    pMc       = par->par[run.injRevID[61]];  // Mc
-    pEta      = par->par[run.injRevID[62]];  // eta
-    pTc       = par->par[run.injRevID[11]];  // t_c
-    pLogDl    = par->par[run.injRevID[22]];  // log(d_L)
-    pSpin1    = par->par[run.injRevID[71]];  // a_spin1
-    pSpCosTh1 = par->par[run.injRevID[72]];  // cos(theta_spin1)
-    pLongi    = fmod(longitude(par->par[run.injRevID[31]],GMST(pTc))+mtpi,tpi);  // RA; RA -> 'lon'
-    pSinDec   = par->par[run.injRevID[32]];  // sin(Dec)
-    pPhase    = par->par[run.injRevID[41]];  // phi_c - GW phase at coalescence
-    pSinThJ0  = par->par[run.injRevID[53]];  // sin(theta_J0)
-    pPhiJ0    = par->par[run.injRevID[54]];  // phi_J0
-    pSpPhi1   = par->par[run.injRevID[73]];  // phi_spin1    
+    pMc       = par->par[run.injRevID[61]];                                            // 61: Mc
+    pEta      = par->par[run.injRevID[62]];                                            // 62: eta
+    pTc       = par->par[run.injRevID[11]];                                            // 11: t_c
+    pLogDl    = par->par[run.injRevID[22]];                                            // 22: log(d_L)
+    pSpin1    = par->par[run.injRevID[71]];                                            // 71: a_spin1
+    pSpCosTh1 = par->par[run.injRevID[72]];                                            // 72: cos(theta_spin1)
+    pLongi    = fmod(longitude(par->par[run.injRevID[31]], GMST(pTc)) + mtpi, tpi);    // 31: RA; RA -> 'lon'
+    pSinDec   = par->par[run.injRevID[32]];                                            // 32: sin(Dec)
+    pPhase    = par->par[run.injRevID[41]];                                            // 41: phi_c - GW phase at coalescence
+    pSinThJ0  = par->par[run.injRevID[53]];                                            // 53: sin(theta_J0)
+    pPhiJ0    = par->par[run.injRevID[54]];                                            // 54: phi_J0
+    pSpPhi1   = par->par[run.injRevID[73]];                                            // 73: phi_spin1    
   } else {                                                           // Then this is an MCMC waveform template
-    pMc       = par->par[run.parRevID[61]];  // Mc
-    pEta      = par->par[run.parRevID[62]];  // eta
-    pTc       = par->par[run.parRevID[11]];  // t_c
-    pLogDl    = par->par[run.parRevID[22]];  // log(d_L)	
-    pSpin1    = par->par[run.parRevID[71]];  // a_spin1		
-    pSpCosTh1 = par->par[run.parRevID[72]];  // cos(theta_spin1)
-    pLongi    = fmod(longitude(par->par[run.parRevID[31]], GMST(pTc)) + mtpi,tpi);  // RA; RA -> 'lon'
-    pSinDec   = par->par[run.parRevID[32]];  // sin(Dec)     
-    pPhase    = par->par[run.parRevID[41]];  // phi_c - GW phase at coalescence
-    pSinThJ0  = par->par[run.parRevID[53]];  // sin(theta_J0)
-    pPhiJ0    = par->par[run.parRevID[54]];  // phi_J0	     
-    pSpPhi1   = par->par[run.parRevID[73]];  // phi_spin1    
+    pMc       = par->par[run.parRevID[61]];                                            // 61: Mc
+    pEta      = par->par[run.parRevID[62]];                                            // 62: eta
+    pTc       = par->par[run.parRevID[11]];                                            // 11: t_c
+    pLogDl    = par->par[run.parRevID[22]];                                            // 22: log(d_L)	
+    pSpin1    = par->par[run.parRevID[71]];                                            // 71: a_spin1		
+    pSpCosTh1 = par->par[run.parRevID[72]];                                            // 72: cos(theta_spin1)
+    pLongi    = fmod(longitude(par->par[run.parRevID[31]], GMST(pTc)) + mtpi, tpi);    // 31: RA; RA -> 'lon'
+    pSinDec   = par->par[run.parRevID[32]];                                            // 32: sin(Dec)     
+    pPhase    = par->par[run.parRevID[41]];                                            // 41: phi_c - GW phase at coalescence
+    pSinThJ0  = par->par[run.parRevID[53]];                                            // 53: sin(theta_J0)
+    pPhiJ0    = par->par[run.parRevID[54]];                                            // 54: phi_J0	     
+    pSpPhi1   = par->par[run.parRevID[73]];                                            // 73: phi_spin1    
   }
+
   
   double x;
   double m1=0.0,m2=0.0,M=0.0,mu=0.0;
@@ -579,41 +580,41 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   double pMc=0,pEta=0,pTc=0,pLogDl=0,pLongi=0,pSinDec=0,pPhase=0,pCosI=0,pPsi=0,pSpin1=0,pSpCosTh1=0,pSpPhi1=0,pSpin2=0,pSpCosTh2=0,pSpPhi2=0;
   
   if(injectionWF==1) {                                               // Then this is an injection waveform template
-    pTc       = par->par[run.injRevID[11]];  // t_c
-    pLogDl    = par->par[run.injRevID[22]];  // log(d_L)
-    pMc       = par->par[run.injRevID[61]];  // Mc
-    pEta      = par->par[run.injRevID[62]];  // eta
+    pTc       = par->par[run.injRevID[11]];                                            // 11: t_c
+    pLogDl    = par->par[run.injRevID[22]];                                            // 22: log(d_L)
+    pMc       = par->par[run.injRevID[61]];                                            // 61: Mc
+    pEta      = par->par[run.injRevID[62]];                                            // 62: eta
     
-    pLongi    = fmod(longitude(par->par[run.injRevID[31]],GMST(pTc))+mtpi,tpi);  // RA; RA -> 'lon'
-    pSinDec   = par->par[run.injRevID[32]];  // sin(Dec)
-    pPhase    = par->par[run.injRevID[41]];  // phi_c - GW phase at coalescence
-    pCosI     = par->par[run.injRevID[51]];  // cos(inclination)
-    pPsi      = par->par[run.injRevID[52]];  // psi: polarisation angle
+    pLongi    = fmod(longitude(par->par[run.injRevID[31]], GMST(pTc)) + mtpi, tpi);    // 31: RA; RA -> 'lon'
+    pSinDec   = par->par[run.injRevID[32]];                                            // 32: sin(Dec)
+    pPhase    = par->par[run.injRevID[41]];                                            // 41: phi_c - GW phase at coalescence
+    pCosI     = par->par[run.injRevID[51]];                                            // 51: cos(inclination)
+    pPsi      = par->par[run.injRevID[52]];                                            // 52: psi: polarisation angle
     
-    pSpin1    = par->par[run.injRevID[71]];  // a_spin1
-    pSpCosTh1 = par->par[run.injRevID[72]];  // cos(theta_spin1)
-    pSpPhi1   = par->par[run.injRevID[73]];  // phi_spin1    
-    pSpin2    = par->par[run.injRevID[81]];  // a_spin2
-    pSpCosTh2 = par->par[run.injRevID[82]];  // cos(theta_spin2)
-    pSpPhi2   = par->par[run.injRevID[83]];  // phi_spin2    
+    pSpin1    = par->par[run.injRevID[71]];                                            // 71: a_spin1
+    pSpCosTh1 = par->par[run.injRevID[72]];                                            // 72: cos(theta_spin1)
+    pSpPhi1   = par->par[run.injRevID[73]];                                            // 73: phi_spin1    
+    pSpin2    = par->par[run.injRevID[81]];                                            // 81: a_spin2
+    pSpCosTh2 = par->par[run.injRevID[82]];                                            // 82: cos(theta_spin2)
+    pSpPhi2   = par->par[run.injRevID[83]];                                            // 83: phi_spin2    
   } else {                                                           // Then this is an MCMC waveform template
-    pTc       = par->par[run.parRevID[11]];  // t_c
-    pLogDl    = par->par[run.parRevID[22]];  // log(d_L)
-    pMc       = par->par[run.parRevID[61]];  // Mc
-    pEta      = par->par[run.parRevID[62]];  // eta
+    pTc       = par->par[run.parRevID[11]];                                            // 11: t_c
+    pLogDl    = par->par[run.parRevID[22]];                                            // 22: log(d_L)
+    pMc       = par->par[run.parRevID[61]];                                            // 61: Mc
+    pEta      = par->par[run.parRevID[62]];                                            // 62: eta
     
-    pLongi    = fmod(longitude(par->par[run.parRevID[31]],GMST(pTc))+mtpi,tpi);  // RA; RA -> 'lon'
-    pSinDec   = par->par[run.parRevID[32]];  // sin(Dec)
-    pPhase    = par->par[run.parRevID[41]];  // phi_c - GW phase at coalescence
-    pCosI     = par->par[run.parRevID[51]];  // cos(inclination) of the binary
-    pPsi      = par->par[run.parRevID[52]];  // psi: polarisation angle of the binary
+    pLongi    = fmod(longitude(par->par[run.parRevID[31]], GMST(pTc)) + mtpi, tpi);    // 31: RA; RA -> 'lon'
+    pSinDec   = par->par[run.parRevID[32]];                                            // 32: sin(Dec)
+    pPhase    = par->par[run.parRevID[41]];                                            // 41: phi_c - GW phase at coalescence
+    pCosI     = par->par[run.parRevID[51]];                                            // 51: cos(inclination) of the binary
+    pPsi      = par->par[run.parRevID[52]];                                            // 52: psi: polarisation angle of the binary
     
-    pSpin1    = par->par[run.parRevID[71]];  // a_spin1
-    pSpCosTh1 = par->par[run.parRevID[72]];  // cos(theta_spin1)
-    pSpPhi1   = par->par[run.parRevID[73]];  // phi_spin1    
-    pSpin2    = par->par[run.parRevID[81]];  // a_spin2
-    pSpCosTh2 = par->par[run.parRevID[82]];  // cos(theta_spin2)
-    pSpPhi2   = par->par[run.parRevID[83]];  // phi_spin2    
+    pSpin1    = par->par[run.parRevID[71]];                                            // 71: a_spin1
+    pSpCosTh1 = par->par[run.parRevID[72]];                                            // 72: cos(theta_spin1)
+    pSpPhi1   = par->par[run.parRevID[73]];                                            // 73: phi_spin1    
+    pSpin2    = par->par[run.parRevID[81]];                                            // 81: a_spin2
+    pSpCosTh2 = par->par[run.parRevID[82]];                                            // 82: cos(theta_spin2)
+    pSpPhi2   = par->par[run.parRevID[83]];                                            // 83: phi_spin2    
   }
   
   
