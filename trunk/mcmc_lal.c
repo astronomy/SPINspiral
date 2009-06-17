@@ -33,7 +33,6 @@
 
 //#include <lal/LALConstants.h>
 
-#include <mcmc_lal.h>
 
 #include <lal/DetectorSite.h>
 
