@@ -12,10 +12,10 @@
   
     
   #Secondary input files:
-  mcmc.input.mcmc                          mcmcFilename             Name of the MCMC input file, e.g. mcmc.input.mcmc
-  mcmc.input.data                          dataFilename             Name of the data/noise input file, e.g. mcmc.input.data
-  mcmc.input.injection                     injectionFilename        Name of the data/noise input file, e.g. mcmc.input.injection
-  mcmc.input.parameters                    parameterFilename        Name of the data/noise input file, e.g. mcmc.input.parameters
-  mcmc.input.system                        systemFilename           Name of the file with system-dependent parameters, e.g. mcmc.input.system
+  SPINspiral.input.mcmc                    mcmcFilename             Name of the MCMC input file, e.g. SPINspiral.input.mcmc
+  SPINspiral.input.data                    dataFilename             Name of the data/noise input file, e.g. SPINspiral.input.data
+  SPINspiral.input.injection               injectionFilename        Name of the data/noise input file, e.g. SPINspiral.input.injection
+  SPINspiral.input.parameters              parameterFilename        Name of the data/noise input file, e.g. SPINspiral.input.parameters
+  SPINspiral.input.system                  systemFilename           Name of the file with system-dependent parameters, e.g. SPINspiral.input.system
   
 

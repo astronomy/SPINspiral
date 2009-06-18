@@ -75,7 +75,7 @@ void setIFOdata(struct runPar *run, struct interferometer ifo[])
   //printf("   Using data set %d: %s.\n",run->selectdata,datadescriptions[run->selectdata]);
   
   
-  // *** Read detector position, orientation, file and channel names for detector strains from file (e.g. mcmc.data):
+  // *** Read detector position, orientation, file and channel names for detector strains from file (e.g. SPINspiral.input.data):
   if(run->selectdata == 0) readDataInputfile(run,ifo);        //Read data on the noise files to use
   
   // Print selected type of data/noise:

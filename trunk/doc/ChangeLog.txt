@@ -2,6 +2,15 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   184: sluys, 18/06/2009
+     - Renamed I/O files as well
+     
+   183: sluys, 17/06/2009
+     - Renamed files from mcmc_*.c to SPINspiral_*.c and mcmc.h to SPINspiral.h (sorry!)
+     - Chaged example Makefiles accordingly
+     - Added doc/Doxyfile as an example Doxygen input file.  Run 'doxygen Doxyfile' in
+       trunk/ and your output will be in doc/code_structure
+     
    182: sluys, 16/06/2009
      - Removed mcmc_nolal.c
      - Merged include/mcmc_lal.h into include/mcmc.h

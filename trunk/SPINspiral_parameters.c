@@ -741,7 +741,7 @@ void readParameterInputfile(struct runPar *run)
 
 // ****************************************************************************************************************************************************  
 /** 
- * \brief Read the input file for system (system-dependent) variables, e.g. mcmc.input.system
+ * \brief Read the input file for system (system-dependent) variables, e.g. SPINspiral.input.system
  */
 // ****************************************************************************************************************************************************  
 void readSystemInputfile(struct runPar *run)

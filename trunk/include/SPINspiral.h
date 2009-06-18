@@ -27,7 +27,7 @@
 
 
 /**
- * \file include/mcmc.h
+ * \file include/SPINspiral.h
  * \brief Main header file
  */
 

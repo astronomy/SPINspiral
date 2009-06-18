@@ -28,7 +28,16 @@
 #include <SPINspiral.h>
 
 
+
 /**
+ * \mainpage documentation
+ * SPINspiral is a parameter-estimation code designed to extract the physical parameters of compact-binary coalescences (CBCs) from observed gravitational-wave signals.
+ *
+ * More information about SPINspiral can be found on its web page: 
+ * <a href="http://www.astro.northwestern.edu/~sluys/index.php?title=SPINspiral">http://www.astro.northwestern.edu/~sluys/index.php?title=SPINspiral</a>.
+ *
+ * The pages in this documentation provide information on the SPINspiral code.
+ *
  * \file SPINspiral_main.c
  * \brief Contains main routine
  */
@@ -61,7 +70,7 @@ int main(int argc, char* argv[])
   setConstants();                          //Set the global constants (which are variable in C)
   setParameterNames(&run);                 //Set the names of the parameters in the hardcoded parameter database
   
-  sprintf(run.mainFilename,"mcmc.input");  //Default input filename
+  sprintf(run.mainFilename,"SPINspiral.input");  //Default input filename
   readCommandLineOptions(argc,argv,&run);  //Read the command-line options
   
   
@@ -78,7 +87,7 @@ int main(int argc, char* argv[])
   
   
   //Set up the data for the IFOs in an IFO database you may want to use (H1,L1 + VIRGO by default)
-  run.maxIFOdbaseSize = 4;  //The maximum number of IFOs to read the properties in for from the data input file (mcmc.data or equivalent)
+  run.maxIFOdbaseSize = 4;  //The maximum number of IFOs to read the properties in for from the data input file (SPINspiral.input.data or equivalent)
   struct interferometer database[run.maxIFOdbaseSize];
   setIFOdata(&run, database);
   
