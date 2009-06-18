@@ -87,7 +87,7 @@ double GMST(double GPSsec)
   double GPS_Jan1st2000midnight    = 630720013.0;
   double leapseconds = 32.0;  // at Jan 1st 2000
   double seconds, days, centuries, secCurrentDay, result;
-  if(GPSsec < GPS_Jan1st2000midnight) printf(" : WARNING: GMST's before 1.1.2000 are inaccurate! \n");
+  if(GPSsec < GPS_Jan1st2000midnight) fprintf(stderr, "\n ***  Warning: GMST's before 1.1.2000 are inaccurate ***\n\n");
   if(GPSsec > 820108813.0) leapseconds += 1.0; // Leap second after 2005/'06
   if(GPSsec > 914803214.0) leapseconds += 1.0; // Leap second after 2008/'09
   

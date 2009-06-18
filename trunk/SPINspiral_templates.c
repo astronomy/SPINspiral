@@ -170,7 +170,7 @@ void templateApostolatos(struct parSet *par, struct interferometer *ifo[], int i
   spin = pSpin1*m1*m1;
   
   
-  //if(printMuch) {printf("Ms: eta: %g  Mc: %g  m1: %g  m2: %g  Mtot: %g  mu: %g  Mo: %g\n",pEta,Mc/M0,m1/M0,m2/M0,Mtot/M0,mu/M0,M0);}
+  //if(beVerbose>=1) {printf("Ms: eta: %g  Mc: %g  m1: %g  m2: %g  Mtot: %g  mu: %g  Mo: %g\n",pEta,Mc/M0,m1/M0,m2/M0,Mtot/M0,mu/M0,M0);}
   //printf("  %d  %lf  %lf  %lf  %lf  %d\n",ifonr,localtc,altitude,azimuth,samplerate,length);
   
   double beta = 1.0/12.0*(113.0*(m1*m1)/(Mtot*Mtot) + 75.0*pEta)*pSpCosTh1*spin/(m1*m1);                                 // Eq.20, for S2=0 or m1=m2,S1=S2:  kappa*spin/(m1*m1) = L^.S/m1^2, see Blanchet et al., PRL 74, 3515, 1995
@@ -205,7 +205,7 @@ void templateApostolatos(struct parSet *par, struct interferometer *ifo[], int i
   //double omega_high = min(pi*ifo[ifonr]->highCut, exp(-1.5*log(cutoff_a) - log(Mtot)) );  //1600 Hz, translated from f_gw to omega_orb, or a/Mtot = cutoff_a, whichever is smaller
   
   /*
-  if(printMuch) {
+  if(beVerbose>=1) {
     double Tcoal = 5.0*pow(8.0*omega_low,-8.0*c3rd)*pow(Mc,-5.0*c3rd) * (1.0 + 4.0*c3rd*cst1*pow(omega_low*Mtot,2.0*c3rd) - 1.6*cst2*(omega_low*Mtot));   //Time between f_low and coalescence
     double t0 = localtc - Tcoal;
     double deltat = (double)length*inversesamplerate;
@@ -330,8 +330,8 @@ void templateApostolatos(struct parSet *par, struct interferometer *ifo[], int i
 	
 	
 	//Print some stuff for diagnostics:
-	//if((omega_orb/pi<40.002 || fabs(t)<0.2) && printMuch) {
-	//if(printMuch) {
+	//if((omega_orb/pi<40.002 || fabs(t)<0.2) && beVerbose>=1) {
+	//if(beVerbose>=1) {
 	//printf("i: %8d   t: %10g   f: %10g   x: %10g\n",i,t,omega_orb/pi,taperx[i]);
 	//printf("omg_orb: %10g  phi_orb: %10g  l_L: %10g  S: %10g  k: %10g  Y: %10g  G: %10g  alpha: %10g  slamL: %10g  clamL: %10g \n",  omega_orb,phi_orb,l_L,spin,pSpCosTh1,Y,G,alpha,slamL,clamL);
 	//printf("i: %8d   t: %10g  alpha_c: %10g   alpha0: %10g   alpha: %10g  alpha/2pi: %10g\n",  i,t,pSpPhi1,alpha0,alpha,alpha/tpi);
@@ -348,11 +348,11 @@ void templateApostolatos(struct parSet *par, struct interferometer *ifo[], int i
   
   
   //Print some stuff for diagnostics
-  //if(i1<=1 && pMc>0.02)  printf("   **********    Warning: length is too small to fit waveform template, increase before_tc    **********\n"); //Don't print when doing null-likelihood
-  //if(i2>=length-1 && pMc>0.02)  printf("   **********    Warning: length is too small to fit waveform template, increase after_tc    **********\n"); //Don't print when doing null-likelihood
-  //if(printMuch) 
+  //if(i1<=1 && pMc>0.02)  fprintf(stderr, "\n ***  Warning: length is too small to fit waveform template, increase before_tc ***\n\n"); //Don't print when doing null-likelihood
+  //if(i2>=length-1 && pMc>0.02)  fprintf(stderr, "\n ***  Warning: length is too small to fit waveform template, increase after_tc ***\n\n"); //Don't print when doing null-likelihood
+  //if(beVerbose>=1) 
   //printf("%10.2f  %10.2f  %10.2f  %10.1f  %10.2f  %10.2f",pSpin1,acos(pSpCosTh1)*r2d,(double)(i2-i1)*inversesamplerate,(phi2-phi1)/tpi,(alpha2-alpha1)/tpi,pow(Mtot*oldomega,-2.0*c3rd));
-  //if(printMuch) 
+  //if(beVerbose>=1) 
   //printf("  term: %d  i1: %d  i2: %d  i2-i1: %d  length: %d  f_gw,old:%9.3lf  f_gw:%9.3lf  f_gw,low:%9.3lf  f_gw,high:%9.3lf  f_gw1:%9.3lf  f_gw2:%9.3lf\n",terminate,i1,i2,i2-i1,length,oldomega/pi,omega_orb/pi,omega_low/pi,omega_high/pi,omegas[i1]/pi,omegas[i2]/pi);
   //Terminate: 1: t>tc, 2: df/dt<0, 3: f>f_high
   

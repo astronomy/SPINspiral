@@ -416,7 +416,7 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   LALGenerateInspiral( status, waveform, injParams, ppnParams );
   if ( status->statusCode )
     {
-      fprintf( stderr, "LALSTPNWaveformTest: error generating waveform\n" );
+      fprintf(stderr, "\n\n   LALSTPNWaveformTest:  ERROR generating waveform\n" );
       exit( 1 );
     }
   
@@ -672,7 +672,7 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   LALGenerateInspiral( status, waveform, injParams, ppnParams );
   if ( status->statusCode )
     {
-      fprintf( stderr, "LALSTPNWaveformTest: error generating waveform\n" );
+      fprintf(stderr, "\n\n   LALSTPNWaveformTest:  ERROR generating waveform\n" );
       exit( 1 );
     }
   // printf("ppnParams->tc = %f\n",ppnParams->tc);

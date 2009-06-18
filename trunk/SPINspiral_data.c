@@ -79,7 +79,7 @@ void setIFOdata(struct runPar *run, struct interferometer ifo[])
   if(run->selectdata == 0) readDataInputfile(run,ifo);        //Read data on the noise files to use
   
   // Print selected type of data/noise:
-  printf("   Data set used: %s\n",run->datasetName);
+  if(run->beVerbose>=1) printf("   Data set used: %s\n",run->datasetName);
   
   // WGS-84 data:
   for(i=0;i<run->maxIFOdbaseSize;i++) {
@@ -129,19 +129,19 @@ void IFOinit(struct interferometer **ifo, int networkSize, struct runPar run)
   for(ifonr=0; ifonr<networkSize; ++ifonr){
     ifo[ifonr]->index = ifonr;
     // Some text output...
-    if(run.intScrOut==1) printf(" | Interferometer %d: '%s'", ifo[ifonr]->index+1, ifo[ifonr]->name);
+    if(run.beVerbose>=2) printf(" | Interferometer %d: '%s'", ifo[ifonr]->index+1, ifo[ifonr]->name);
     if((ifo[ifonr]->lati)  < 0.0) sprintf(latchar, "S");
     else sprintf(latchar, "N");
     if((ifo[ifonr]->longi) < 0.0) sprintf(longchar, "W");
     else sprintf(longchar, "E");
-    if(run.intScrOut==1) printf(" at  %1.0f*%2.1f'%s  %1.0f*%2.1f'%s  (%3.0f/%3.0f)\n",
+    if(run.beVerbose>=2) printf(" at  %1.0f*%2.1f'%s  %1.0f*%2.1f'%s  (%3.0f/%3.0f)\n",
 			    floor(fabs(ifo[ifonr]->lati*r2d)),  (fabs(ifo[ifonr]->lati*r2d)-floor(fabs(ifo[ifonr]->lati*r2d)))*60.0, latchar,
 			    floor(fabs(ifo[ifonr]->longi*r2d)), (fabs(ifo[ifonr]->longi*r2d)-floor(fabs(ifo[ifonr]->longi*r2d)))*60.0, longchar,
 			    360.0 - ifo[ifonr]->rightArm*r2d, 360.0 - ifo[ifonr]->leftArm*r2d);
-    if(ifo[ifonr]->ch1doubleprecision && run.intScrOut==1) printf(" | frame file precision: double (64 bit)\n"); 
-    else if(run.intScrOut==1) printf(" | frame file precision: float (32 bit)\n"); 
-    if(run.intScrOut==1) printf(" | frequency range: %.0f to %.0f Hz.\n", ifo[ifonr]->lowCut, ifo[ifonr]->highCut);
-    if(run.intScrOut==1) printf(" | initialising vectors etc...");
+    if(ifo[ifonr]->ch1doubleprecision && run.beVerbose>=2) printf(" | Frame-file precision: double (64 bit)\n"); 
+    else if(run.beVerbose>=2) printf(" | Frame-file precision: float (32 bit)\n"); 
+    if(run.beVerbose>=2) printf(" | Frequency range: %.0f to %.0f Hz.\n", ifo[ifonr]->lowCut, ifo[ifonr]->highCut);
+    if(run.beVerbose>=2) printf(" | Initialising vectors etc...");
     
     
     //Longitude: East is positive
@@ -189,18 +189,18 @@ void IFOinit(struct interferometer **ifo, int networkSize, struct runPar run)
     ifo[ifonr]->positionvec[0] *= curvatureradius;
     ifo[ifonr]->positionvec[1] *= curvatureradius;
     ifo[ifonr]->positionvec[2] *= curvatureradius*(1.0-eccentricitySQ);
-    if(run.intScrOut==1) printf(" ok.\n");
-    // printf("== normalvec (%1.2f, %1.2f, %1.2f)\n", ifo[ifonr]->normalvec[0],ifo[ifonr]->normalvec[1],ifo[ifonr]->normalvec[2]);
-    // if(run.intScrOut==1) printf(" : f=%f  e^2=%f  v=%f \n", flattening, eccentricitySQ, curvatureradius);
+    if(run.beVerbose>=2) printf(" OK.\n");
+    if(run.beVerbose>=2) printf(" | Normalvec (%1.2f, %1.2f, %1.2f)\n", ifo[ifonr]->normalvec[0],ifo[ifonr]->normalvec[1],ifo[ifonr]->normalvec[2]);
+    if(run.beVerbose>=2) printf(" : f=%f  e^2=%f  v=%f \n", flattening, eccentricitySQ, curvatureradius);
     
     
     // Read 'detector' noise and estimate PSD
-    if(run.printMuch>=1) printf("   Reading noise for the detector in %s...\n",ifo[ifonr]->name);
+    if(run.beVerbose>=1) printf("   Reading noise for the detector in %s...\n",ifo[ifonr]->name);
     noisePSDestimate(ifo[ifonr],run);
   
   
     // Read 'detector' data for injection
-    if(run.printMuch>=1) printf("   Reading data for the detector in %s...\n",ifo[ifonr]->name);
+    if(run.beVerbose>=1) printf("   Reading data for the detector in %s...\n",ifo[ifonr]->name);
     dataFT(ifo,ifonr,networkSize,run);
     
     
@@ -228,8 +228,8 @@ void IFOinit(struct interferometer **ifo, int networkSize, struct runPar run)
       ifo[ifonr]->noisePSD[j] = exp(ifo[ifonr]->noisePSD[j]);
       ifo[ifonr]->dataTrafo[j]  = ifo[ifonr]->raw_dataTrafo[j+ifo[ifonr]->lowIndex];
     }
-    if(run.intScrOut==1) printf(" | %d Fourier frequencies within operational range %.0f--%.0f Hz.\n", ifo[ifonr]->indexRange, ifo[ifonr]->lowCut, ifo[ifonr]->highCut);
-    if(ifonr<networkSize-1 && run.intScrOut==1) printf(" | --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --\n");
+    if(run.beVerbose>=2) printf(" | %d Fourier frequencies within operational range %.0f--%.0f Hz.\n", ifo[ifonr]->indexRange, ifo[ifonr]->lowCut, ifo[ifonr]->highCut);
+    if(ifonr<networkSize-1 && run.beVerbose>=2) printf(" | --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --\n");
   } //for(ifonr=0; ifonr<networkSize; ++ifonr)
 } // End of IFOinit()
 // ****************************************************************************************************************************************************  
@@ -247,7 +247,7 @@ void IFOinit(struct interferometer **ifo, int networkSize, struct runPar run)
 // ****************************************************************************************************************************************************  
 void IFOdispose(struct interferometer *ifo, struct runPar run)
 {
-  if(run.intScrOut==1) printf(" | interferometer %d '%s' is taken offline.\n", ifo->index, ifo->name);
+  if(run.beVerbose>=2) printf(" | Interferometer %d '%s' is taken offline.\n", ifo->index, ifo->name);
   free(ifo->raw_noisePSD);       ifo->raw_noisePSD = NULL;
   fftw_free(ifo->raw_dataTrafo); ifo->raw_dataTrafo = NULL;
   free(ifo->noisePSD);           ifo->noisePSD = NULL;
@@ -426,7 +426,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
   from  = floor(run.geocentricTc - ifo[ifonr]->before_tc - (ifo[ifonr]->before_tc+ifo[ifonr]->after_tc) * 0.5 * (run.tukeyWin/(1.0-run.tukeyWin)));
   to    =  ceil(run.geocentricTc + ifo[ifonr]->after_tc  + (ifo[ifonr]->before_tc+ifo[ifonr]->after_tc) * 0.5 * (run.tukeyWin/(1.0-run.tukeyWin)));
   delta = (to) - (from);
-  if(run.intScrOut==1) printf(" | investigated time range : from %.1f to %.1f (%.1f seconds)\n", from, to, delta);
+  if(run.beVerbose>=2) printf(" | Investigated time range : from %.1f to %.1f (%.1f seconds)\n", from, to, delta);
   
   
   // Starting time of first(!) Frame file to be read:
@@ -439,7 +439,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
       sprintf(filenames, "%s/%s%ld%s", ifo[ifonr]->ch1filepath, ifo[ifonr]->ch1fileprefix, (long)filestart, ifo[ifonr]->ch1filesuffix);  // Fill in filename etc. for first file
     else
       sprintf(filenames, "%s %s/%s%ld%s", filenames, ifo[ifonr]->ch1filepath, ifo[ifonr]->ch1fileprefix, (long)filestart, ifo[ifonr]->ch1filesuffix);  // Append filename etc. for following files
-    //if(run.intScrOut==1) printf(" |   %s%ld%s\n", ifo[ifonr]->framefileprefix, (long)filestart, ifo[ifonr]->framefilesuffix);
+    if(run.beVerbose>=2) printf(" |   %s%ld%s\n", ifo[ifonr]->ch1fileprefix, (long)filestart, ifo[ifonr]->ch1filesuffix);
     filestart += ifo[ifonr]->ch1filesize;
     filecount += 1;
   }
@@ -447,13 +447,13 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
   
   
   // Open frame file(s):
-  if(run.intScrOut==1) printf(" | opening %d chirp data file(s)... \n", filecount);
+  if(run.beVerbose>=2) printf(" | Opening %d chirp data file(s)... \n", filecount);
   iFile = FrFileINew(filenames);
   if(iFile == NULL) {
-    printf("\n\n   ERROR opening data file: %s (channel 1), aborting.\n\n\n",filenames);
+    fprintf(stderr, "\n\n   ERROR opening data file: %s (channel 1), aborting.\n\n\n",filenames);
     exit(1);
   }
-  if(run.intScrOut==1) printf(" | %s\n",filenames);
+  if(run.beVerbose>=2) printf(" | %s\n",filenames);
   
   // Read 1st channel (noise or noise+signal):
   if(ifo[ifonr]->ch1doubleprecision) //Seems precision is double
@@ -461,7 +461,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
   else
     nvect = FrFileIGetVectF(iFile, ifo[ifonr]->ch1name, from, delta);
   if(nvect == NULL) {
-    printf("\n\n   ERROR reading data file: %s (channel 1), aborting.\n\n\n",filenames);
+    fprintf(stderr, "\n\n   ERROR reading data file: %s (channel 1), aborting.\n\n\n",filenames);
     exit(1);
   }
   
@@ -469,11 +469,11 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
   
   N = nvect->nData;
   ifo[ifonr]->samplerate = (int)(1.0 / (nvect->dx[0]) + 0.5);  // Add 0.5 for correct truncation/rounding
-  if(run.intScrOut==1) printf(" | original sampling rate: %d Hz\n", ifo[ifonr]->samplerate);
+  if(run.beVerbose>=2) printf(" | Original sampling rate: %d Hz\n", ifo[ifonr]->samplerate);
   
   // Inject the signal into the noise:
   if(run.injectSignal >= 1) {
-    if(run.intScrOut==1) printf(" :  injecting signal:\n");
+    if(run.beVerbose>=2) printf(" :  injecting signal:\n");
     
     
     // Define injection parameters:
@@ -485,7 +485,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
     double eta = injectpar.par[run.injRevID[62]];
     McEta2masses(Mc, eta, &m1, &m2);
     
-    if(run.intScrOut==1) {
+    if(run.beVerbose>=2) {
       printf(" :   m1 = %.1f Mo,  m2 = %.1f Mo  (Mc = %.3f Mo,  eta = %.4f)\n", m1, m2, Mc, eta);
       printf(" :   tc = %.4f s,  dist = %.1f Mpc\n", injectpar.par[run.injRevID[11]], exp(injectpar.par[run.injRevID[22]]));
       printf(" :   ra = %.2f h,  dec = %.2f deg  (GMST = %.2f h)\n",injectpar.par[run.injRevID[31]]/pi*12.0, asin(injectpar.par[run.injRevID[32]])/pi*180.0, 
@@ -497,7 +497,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
     int injectionWF = 1;                  //Call waveformTemplate with the injection template
     localPar(&injectpar, ifo, networkSize, injectionWF, run);
     
-    if(run.intScrOut==1) {
+    if(run.beVerbose>=2) {
       printf(" :   local parameters:\n");
       printf(" :   tc           = %.5f s\n",injectpar.loctc[ifonr]+from);
       printf(" :   altitude     = %.2f deg\n",injectpar.localti[ifonr]/pi*180.0);
@@ -541,7 +541,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
     // Open file:
     iFile = FrFileINew(filenames);
     if(iFile == NULL) {
-      printf("\n\n   ERROR opening data file: %s (channel 2), aborting.\n\n\n",filenames);
+      fprintf(stderr, "\n\n   ERROR opening data file: %s (channel 2), aborting.\n\n\n",filenames);
       exit(1);
     }
     
@@ -551,7 +551,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
       svect = FrFileIGetVectF(iFile, ifo[ifonr]->ch2name, from, delta);
     }
     if(svect == NULL) {
-      printf("\n\n   ERROR reading data file: %s (channel 2), aborting.\n\n\n",filenames);
+      fprintf(stderr, "\n\n   ERROR reading data file: %s (channel 2), aborting.\n\n\n",filenames);
       exit(1);
     }
     FrFileIEnd(iFile);
@@ -587,7 +587,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
  
   // Downsample (by factor downsampleFactor):    *** changes value of N ***
   if(run.downsampleFactor!=1){
-    if(run.intScrOut==1) printf(" | downsampling... \n");
+    if(run.beVerbose>=2) printf(" | Downsampling... \n");
     filtercoef = filter(&ncoef, ifo[ifonr]->samplerate, ifo[ifonr]->highCut, run);
     
     /*
@@ -636,13 +636,13 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
   //ifo[ifonr]->FTplan = fftw_plan_dft_r2c_1d(N, ifo[ifonr]->FTin, ifo[ifonr]->FTout, FFTW_MEASURE);  //This must be done before initialisation of FTin and could optimise the FFT
   
   // Compute the FFT:
-  if(run.intScrOut==1) printf(" | performing data Fourier transform (%.1f s at %d Hz)... ",delta, ifo[ifonr]->samplerate);
+  if(run.beVerbose>=2) printf(" | Performing data Fourier transform (%.1f s at %d Hz)... ",delta, ifo[ifonr]->samplerate);
   fftw_execute(ifo[ifonr]->FTplan);
   if(ifo[ifonr]->FTout == NULL){
-    printf("\n\n   ERROR performing Fourier transform: %s, aborting.\n\n\n",filenames);
+    fprintf(stderr, "\n\n   ERROR performing Fourier transform: %s, aborting.\n\n\n",filenames);
     exit(1);
   }
-  else if(run.intScrOut==1) printf("ok.\n");
+  else if(run.beVerbose>=2) printf("ok.\n");
   
   
   // Normalise transform (divide by sampling rate, see Mark's code, line 184):
@@ -686,8 +686,8 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
   int K = run.PSDsegmentNumber;            // Number of data segments
   double Mseconds = run.PSDsegmentLength;  // Number of seconds in each data segment
   double Nseconds = Mseconds * (double)K;  // Total number of seconds to estimate the PSD for.  Default is 256 seconds
-  if(Nseconds < 127.0) printf(" ***  Warning: you're using only %5.1f seconds of data for the PSD estimation;  ~256s is recommended  *** \n",Nseconds);
-  if(Nseconds > 1025.0) printf(" ***  Warning: you're using %6.1f seconds of data for the PSD estimation;  ~256s is recommended  *** \n",Nseconds);
+  if(Nseconds < 127.0) fprintf(stderr, "\n ***  Warning: you're using only %5.1f seconds of data for the PSD estimation;  ~256s is recommended  ***\n\n",Nseconds);
+  if(Nseconds > 1025.0) fprintf(stderr, "\n ***  Warning: you're using %6.1f seconds of data for the PSD estimation;  ~256s is recommended  ***\n\n",Nseconds);
   
   
   double wss=0.0,log2=log(2.0);  // squared & summed window coefficients  etc.
@@ -719,15 +719,15 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
   }
   
   // Open Frame file:
-  if(run.intScrOut==1) printf(" | opening %d noise data file(s)... \n",filecount);
-  if(run.intScrOut==1) printf(" | %s\n",filenames);
+  if(run.beVerbose>=2) printf(" | Opening %d noise data file(s)... \n",filecount);
+  if(run.beVerbose>=2) printf(" | %s\n",filenames);
   iFile = FrFileINew(filenames);
   if(iFile == NULL) {
-    printf("\n\n   ERROR opening noise data file: %s, aborting.\n\n\n",filenames);
+    fprintf(stderr, "\n\n   ERROR opening noise data file: %s, aborting.\n\n\n",filenames);
     exit(1);
   }
-  //else if(run.intScrOut==1) printf("ok.\n");
-  if(run.intScrOut==1) printf(" | estimating noise PSD... ");
+  //else if(run.beVerbose>=2) printf("ok.\n");
+  if(run.beVerbose>=2) printf(" | Estimating noise PSD... ");
   // Read first two bits (2M seconds)
   // Access (noise) channel:
   if(ifo->noisedoubleprecision)
@@ -735,7 +735,7 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
   else
     vect = FrFileIGetVectF(iFile, ifo->noisechannel, ((double)ifo->noiseGPSstart), Mseconds*2);
   if(vect == NULL) {
-    printf("\n\n   ERROR reading noise data file: %s, aborting.\n\n\n",filenames);
+    fprintf(stderr, "\n\n   ERROR reading noise data file: %s, aborting.\n\n\n",filenames);
     exit(1);
   }
   
@@ -811,7 +811,7 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
   // Execute Fourier transform:
   fftw_execute(FTplan);
   if(out == NULL){
-    printf("\n\n   ERROR performing noise Fourier transform: %s, aborting.\n\n\n",filenames);
+    fprintf(stderr, "\n\n   ERROR performing noise Fourier transform: %s, aborting.\n\n\n",filenames);
     exit(1);
   }
   fftw_free(in); 
@@ -835,7 +835,7 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
     } else {
       vect = FrFileIGetVectF(iFile, ifo->noisechannel, ((double)ifo->noiseGPSstart)+((double)(j-1))*Mseconds, Mseconds);
     }
-    if(vect == NULL) printf("\n : error accessing noise channel!\n");
+    if(vect == NULL) fprintf(stderr, "\n\n   ERROR accessing noise channel!\n");
     
     // Copy 2nd half of data:
     for(i=0; i<M; ++i) 
@@ -864,7 +864,7 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
     FTplan = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE);
     fftw_execute(FTplan);
     if(out == NULL){
-      printf("\n : error performing (noise) Fourier transform!\n");
+      fprintf(stderr,"\n\n   ERROR performing (noise) Fourier transform!\n");
     }
     fftw_free(in); 
     
@@ -886,12 +886,10 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
   for(i=0; i<PSDrange; ++i)
     PSD[i] = log(PSD[i]) + log2;
   
-  if(run.intScrOut==1) printf("ok.\n");
-  //if(run.intScrOut==1) printf(" | averaged over %d overlapping segments of %1.0fs each (%.0f s total).\n", K-1, Mseconds*2, Nseconds);
-  if(screwcount>0){
-    printf(" : %d missing data points in NOISE file(s) !!\n",screwcount);
-    printf(" : (maybe the precision is incorrect)\n");
-  }
+  if(run.beVerbose>=2) printf("ok.\n");
+  if(run.beVerbose>=2) printf(" | Averaged over %d overlapping segments of %1.0fs each (%.0f s total).\n", K-1, Mseconds*2, Nseconds);
+  if(screwcount>0) fprintf(stderr, "\n ***  Warning:  %d missing data points in NOISE file(s).  Maybe the precision is incorrect. ***\n\n",screwcount);
+  
   
   // Smooth PSD:
   //sPSD = (double*) malloc((ifo->PSDsize)*sizeof(double));
@@ -904,7 +902,7 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
       sum += PSD[i+j];
     sPSD[i-smoothrange] = sum / (2.0*smoothrange+1.0);
   }
-  if(smoothrange>0 && run.intScrOut==1) printf(" | and a range of +/- %0.2f Hz.\n", (((double)smoothrange)/((double)FTsize))*nyquist);
+  if(smoothrange>0 && run.beVerbose>=2) printf(" | and a range of +/- %0.2f Hz.\n", (((double)smoothrange)/((double)FTsize))*nyquist);
 
   
   // PSD estimation finished
@@ -967,7 +965,7 @@ void writeDataToFiles(struct interferometer *ifo[], int networkSize, struct runP
 	      ifo[i]->FTstart+(((double)j)/((double) (ifo[i]->samplerate))), 
 	      ifo[i]->rawDownsampledWindowedData[j]);
     fclose(dump);
-    if(run.intScrOut) printf(" : (data written to file)\n");
+    if(run.beVerbose>=2) printf(" : (data written to file)\n");
     
     // Write data FFT to disc (i.e., FFT or amplitude spectrum of signal+noise)
     double f;
@@ -989,7 +987,7 @@ void writeDataToFiles(struct interferometer *ifo[], int networkSize, struct runP
       //Note that data FFT is already properly normalized in dataFT()
     }
     fclose(dump1);
-    if(run.intScrOut) printf(" : (data FFT written to file)\n");
+    if(run.beVerbose>=2) printf(" : (data FFT written to file)\n");
   }
 } // End of writeDataToFiles()
 // ****************************************************************************************************************************************************  
@@ -1024,7 +1022,7 @@ void writeNoiseToFiles(struct interferometer *ifo[], int networkSize, struct run
       fprintf(dump, "%13.6f %13.6e %13.6e\n",f, sqrt(ifo[i]->noisePSD[j]), 0.0);
     }
     fclose(dump);
-    if(run.intScrOut) printf(" : (noise ASD written to file)\n");
+    if(run.beVerbose>=2) printf(" : (noise ASD written to file)\n");
   }
 } // End of writeNoiseToFiles()
 // ****************************************************************************************************************************************************  
@@ -1074,7 +1072,7 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networkSize, struct r
 	      ifo[i]->FTstart+((double)j)/((double)ifo[i]->samplerate),
 	      ifo[i]->FTin[j]);
     fclose(dump);             
-    if(run.intScrOut) printf(" : (signal written to file)\n");
+    if(run.beVerbose>=2) printf(" : (signal written to file)\n");
     
     // Write signal FFT to disc (i.e., amplitude spectrum of signal w/o noise):
     sprintf(filename, "%s-signalFFT.dat.%6.6d", ifo[i]->name, run.MCMCseed);  // Write in current dir
@@ -1091,7 +1089,7 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networkSize, struct r
       fprintf(dump2, "%13.6e %13.6e %13.6e\n",f, creal(FFTout), cimag(FFTout) ); //Save the real and imaginary parts of the signal FFT
     }
     fclose(dump2);
-    if(run.intScrOut) printf(" : (signal FFT written to file)\n");
+    if(run.beVerbose>=2) printf(" : (signal FFT written to file)\n");
     freeParset(&par);
     
   }

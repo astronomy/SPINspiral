@@ -6,9 +6,8 @@
   1                                        doSNR                    Calculate the SNR: 0-no, 1-yes.
   1                                        doMCMC                   Do MCMC: 0-no, 1-yes.
   0                                        doMatch                  Calculate matches: 0-no, 1-yes.
-  0                                        intscrout                Print initialisation output to screen: 0-no, 1-yes.
   0                                        writeSignal              Write signal, noise, PSDs to file: 0-no, 1-yes.
-  0                                        printMuch                Print long stretches of output (1) or not (0).
+  1                                        beVerbose                Be verbose: 0-quiet: print progress only; 1-default: add basic details; 2-verbose: add a lot of details
   
     
   #Secondary input files:

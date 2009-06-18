@@ -178,13 +178,15 @@ int main(int argc, char* argv[])
   
   
   //Write some data parameters to screen:
-  printf("\n\n");
-  printf("%10s  %11s  %10s  %10s  %9s  %17s  %14s  %12s  %12s  %12s  %12s\n",
-	 "Detector","f_low","f_high","before tc","after tc","Sample start (GPS)","Sample length","Downsample","Sample rate","Sample size","FT size");
-  for(ifonr=0;ifonr<run.networkSize;ifonr++) {
-    printf("%10s  %8.2lf Hz  %7.2lf Hz  %8.2lf s  %7.2lf s  %16.5lf s  %12.4lf s  %10d x  %9d Hz  %9d pt  %9d pt\n",
-	   network[ifonr]->name,network[ifonr]->lowCut,network[ifonr]->highCut,network[ifonr]->before_tc,network[ifonr]->after_tc,
-	   network[ifonr]->FTstart,network[ifonr]->deltaFT,run.downsampleFactor,network[ifonr]->samplerate,network[ifonr]->samplesize,network[ifonr]->FTsize);
+  if(run.beVerbose >= 1) {
+    printf("\n\n");
+    printf("%10s  %11s  %10s  %10s  %9s  %17s  %14s  %12s  %12s  %12s  %12s\n",
+	   "Detector","f_low","f_high","before tc","after tc","Sample start (GPS)","Sample length","Downsample","Sample rate","Sample size","FT size");
+    for(ifonr=0;ifonr<run.networkSize;ifonr++) {
+      printf("%10s  %8.2lf Hz  %7.2lf Hz  %8.2lf s  %7.2lf s  %16.5lf s  %12.4lf s  %10d x  %9d Hz  %9d pt  %9d pt\n",
+	     network[ifonr]->name,network[ifonr]->lowCut,network[ifonr]->highCut,network[ifonr]->before_tc,network[ifonr]->after_tc,
+	     network[ifonr]->FTstart,network[ifonr]->deltaFT,run.downsampleFactor,network[ifonr]->samplerate,network[ifonr]->samplesize,network[ifonr]->FTsize);
+    }
   }
   
   
@@ -201,16 +203,17 @@ int main(int argc, char* argv[])
   //printf("   Global     :    Source position:  RA: %5.2lfh, dec: %6.2lfd\n",  dummypar.par[run.parRevID[31]]*r2h, asin(dummypar.par[run.parRevID[32]])*r2d);
   //for(ifonr=0;ifonr<networkSize;ifonr++) printf("   %-11s:    theta: %5.1lfd,  phi: %5.1lfd;   azimuth: %5.1lfd,  altitude: %5.1lfd\n",network[ifonr]->name,dummypar.localti[ifonr]*r2d,dummypar.locazi[ifonr]*r2d,fmod(pi-(dummypar.locazi[ifonr]+network[ifonr]->rightArm)+mtpi,tpi)*r2d,(pi/2.0-dummypar.localti[ifonr])*r2d);
   
-  printf("\n  %10s  %10s  %6s  %6s  ","niter","nburn","seed","ndet");
-  for(ifonr=0;ifonr<networkSize;ifonr++) printf("%16s%4s  ",network[ifonr]->name,"SNR");
-  printf("%20s  ","Network SNR");
-  printf("\n  %10d  %10d  %6d  %6d  ",run.nIter,run.annealNburn,run.MCMCseed,networkSize);
-  for(ifonr=0;ifonr<networkSize;ifonr++) printf("%20.10lf  ",network[ifonr]->snr);
-  printf("%20.10lf\n\n",run.netsnr);
-  
+  if(run.beVerbose >= 1) {
+    printf("\n  %10s  %10s  %6s  %6s  ","nIter","nBurn","seed","nDet");
+    for(ifonr=0;ifonr<networkSize;ifonr++) printf("%16s%4s  ",network[ifonr]->name,"SNR");
+    printf("%20s  ","Network SNR");
+    printf("\n  %10d  %10d  %6d  %6d  ",run.nIter,run.annealNburn,run.MCMCseed,networkSize);
+    for(ifonr=0;ifonr<networkSize;ifonr++) printf("%20.10lf  ",network[ifonr]->snr);
+    printf("%20.10lf\n\n",run.netsnr);
+  }
   
   //Print actual injection parameters to screen:
-  if(run.doMCMC==0) {
+  if(run.doMCMC==0 && run.beVerbose>=1) {
     printf("   Injection param:");
     for(i=0;i<run.nMCMCpar;i++) {
       if(run.parID[i]>=11 && run.parID[i]<=19) {  //GPS time
@@ -236,9 +239,7 @@ int main(int argc, char* argv[])
   //Do MCMC
   clock_t time1 = clock();
   if(run.doMCMC==1) {
-    //run.printMuch=1;
     MCMC(run, network);
-    //run.printMuch=0;
   }
   clock_t time2 = clock();
   
@@ -341,7 +342,7 @@ int main(int argc, char* argv[])
   
   
   clock_t time3 = clock();
-  if(run.printMuch>=1) { 
+  if(run.beVerbose>=2) { 
     printf("   Timing:\n");
     if(run.doMCMC>=1) {
       printf("     initialisation:%10.2lfs\n", ((double)time1 - (double)time0)*1.e-6 );

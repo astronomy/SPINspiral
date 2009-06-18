@@ -209,9 +209,8 @@ struct runPar{
   int doSNR;                      // Calculate the injection SNR
   int doMCMC;                     // Do MCMC
   int doMatch;                    // Compute matches
-  int intScrOut;                  // Print initialisation output to screen
   int writeSignal;                // Write signal, noise, PSDs to file
-  int printMuch;                  // Print long stretches of output
+  int beVerbose;                  // Be verbose: 0-print progress only; 1-add basic details (default), 2-add a lot of details
   
   char mainFilename[99];          // Run input file name
   char outfilename[99];           // Copy of input file name
@@ -300,7 +299,7 @@ struct MCMCvariables{
   int parRevID[200];              // Reverse MCMC parameter identifier
   int injRevID[200];              // Reverse injection parameter identifier
   
-  int printMuch;                  // Print long stretches of output
+  int beVerbose;                  // Be verbose: 0-print progress only; 1-add basic details (default), 2-add a lot of details
   
   
   double *histMean;               // Mean of hist block of iterations, used to get the covariance matrix

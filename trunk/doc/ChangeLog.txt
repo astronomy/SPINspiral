@@ -2,6 +2,11 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   185: sluys, 18/06/2009
+     - Merged intScrOut and printMuch to parameter beVerbose
+     - Main input file changed!
+     - All warnings and errors are written to stderr now
+     
    184: sluys, 18/06/2009
      - Renamed I/O files as well
      

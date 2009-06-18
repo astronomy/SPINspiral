@@ -62,8 +62,10 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   
   
   
-  printf("\n");
-  printf("   GPS base time:%12d,    target acceptance rate:%7.3f\n\n",(int)mcmc.baseTime,mcmc.acceptRateTarget);
+  if(mcmc.beVerbose >= 1) {
+    printf("\n");
+    printf("   GPS base time:%12d,    target acceptance rate:%7.3f\n\n",(int)mcmc.baseTime,mcmc.acceptRateTarget);
+  }
   
   if(mcmc.parallelTempering==0) mcmc.nTemps=1;
   mcmc.ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
@@ -80,7 +82,7 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   }
   
   if(mcmc.annealNburn0>=mcmc.annealNburn) {
-    //printf("\n   *** Warning: mcmc.annealNburn0 > mcmc.annealNburn, setting mcmc.annealNburn0 = mcmc.annealNburn*0.9 ***\n\n");
+    //fprintf(stderr, "\n ***  Warning: mcmc.annealNburn0 > mcmc.annealNburn, setting mcmc.annealNburn0 = mcmc.annealNburn*0.9 ***\n\n");
     mcmc.annealNburn0 = (int)(0.9*(double)mcmc.annealNburn);
   }
   
@@ -161,7 +163,7 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   
   // Safety check:
   if(mcmc.mcmcWaveform == mcmc.injectionWaveform && nDiffPar != 0) 
-    fprintf(stderr,"   MCMC:  WARNING:  The injection and MCMC waveform are identical, but %i parameters were found to be different !!!\n",nDiffPar);
+    fprintf(stderr, "\n ***  Warning:  The injection and MCMC waveform are identical, but %i parameters were found to be different ***\n\n",nDiffPar);
   
   // Print/save injection parameters as MCMC output, line -1:
   mcmc.iIter = -1;
@@ -1439,7 +1441,7 @@ void copyRun2MCMC(struct runPar run, struct MCMCvariables *mcmc)
 {
   int i=0,j=0;
   
-  mcmc->printMuch = run.printMuch;                      // Print long stretches of output
+  mcmc->beVerbose = run.beVerbose;                      // Print long stretches of output
   
   mcmc->maxnPar = run.maxnPar;                          // Absolute maximum number of mcmc/template parameters allowed
   mcmc->parDBn = run.parDBn;                            // Number of elements in hardcoded parameter database
@@ -1566,7 +1568,7 @@ void startMCMCOffset(struct parSet *par, struct MCMCvariables *mcmc, struct inte
   
   // Safety check:
   if(mcmc->mcmcWaveform == mcmc->injectionWaveform && nDiffPar != 0) 
-    fprintf(stderr,"   startMCMCoffset:  WARNING:  The injection and MCMC waveform are identical, but %i parameters were found to be different !!!\n",nDiffPar);
+    fprintf(stderr, "\n ***  Warning:  The injection and MCMC waveform are identical, but %i parameters were found to be different ***\n\n",nDiffPar);
   
   
   
@@ -1600,7 +1602,7 @@ void startMCMCOffset(struct parSet *par, struct MCMCvariables *mcmc, struct inte
       
       
       // Print each trial starting value:
-      if(mcmc->printMuch>=1 && (nstart % mcmc->thinOutput)==0) {
+      if(mcmc->beVerbose>=1 && (nstart % mcmc->thinOutput)==0) {
 	printf("%9d%10.3lf",nstart,mcmc->logL[mcmc->iTemp]);
 	for(i=0;i<mcmc->nMCMCpar;i++) {
 	  if(mcmc->parID[i]>=11 && mcmc->parID[i]<=19) {  //GPS time
@@ -1665,7 +1667,7 @@ void setTemperatureLadder(struct MCMCvariables *mcmc)
     tempratio = exp(log(mcmc->maxTemp)/(double)(mcmc->nTemps-2));
   }
   
-  if(mcmc->prParTempInfo>0) {
+  if(mcmc->prParTempInfo>0 && mcmc->beVerbose>=1) {
     printf("   Temperature ladder:\n     Number of chains:%3d,  Tmax:%7.2lf, Ti/Ti-1:%7.3lf, Overlap:%5.2lf\n",mcmc->nTemps,mcmc->maxTemp,tempratio,mcmc->tempOverlap);
     if(mcmc->parallelTempering==1) printf("     Using fixed temperatures for the chains\n");
     if(mcmc->parallelTempering==2) printf("     Using sinusoid temperatures for the chains\n");
@@ -1722,7 +1724,7 @@ void setTemperatureLadder(struct MCMCvariables *mcmc)
     }
   }
   
-  if(mcmc->prParTempInfo>0) {
+  if(mcmc->prParTempInfo>0 && mcmc->beVerbose>=1) {
     for(tempi=0;tempi<mcmc->nTemps;tempi++) {
       if(mcmc->temps[tempi]-mcmc->tempAmpl[tempi] < 1.0) {
 	printf("     %3d  %7.2lf  %7.2lf  %7.2lf* %7.2lf    * I will use max( T, 1.0 )",tempi,mcmc->temps[tempi],mcmc->tempAmpl[tempi],mcmc->temps[tempi]-mcmc->tempAmpl[tempi],mcmc->temps[tempi]+mcmc->tempAmpl[tempi]);
@@ -1749,7 +1751,7 @@ void setTemperatureLadderOld(struct MCMCvariables *mcmc)
 {
   int tempi=0;
   double tempratio = exp(log(mcmc->maxTemp)/(double)(mcmc->nTemps-1));
-  if(mcmc->prParTempInfo>0) {
+  if(mcmc->prParTempInfo>0 && mcmc->beVerbose>=1) {
     printf("   Temperature ladder:  (old routine)\n     Number of chains:%3d,  Tmax:%7.2lf, Ti/Ti-1:%7.3lf\n",mcmc->nTemps,mcmc->maxTemp,tempratio);
     if(mcmc->parallelTempering==1) printf("     Using fixed temperatures for the chains\n");
     if(mcmc->parallelTempering==2) printf("     Using sinusoid temperatures for the chains\n");
@@ -1770,8 +1772,8 @@ void setTemperatureLadderOld(struct MCMCvariables *mcmc)
       //if(mcmc->nTemps>10)  mcmc->tempAmpl[tempi] = min(3.0*(mcmc->temps[tempi] - mcmc->temps[tempi-1])/(tempratio+1.0)*tempratio , fabs(mcmc->temps[tempi]-mcmc->temps[tempi-2]));  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
       //mcmc->tempAmpl[tempi] = fabs(mcmc->temps[tempi]-mcmc->temps[tempi-1]);  //Temperatures of adjacent chains overlap: Amplitude = (T(i) - T(i-1))  (may be a bit smallish for large nTemps)
     }
-    if(mcmc->prParTempInfo>0) printf("     %3d  %7.2lf  %7.2lf  %7.2lf  %7.2lf\n",tempi,mcmc->temps[tempi],mcmc->tempAmpl[tempi],mcmc->temps[tempi]-mcmc->tempAmpl[tempi],mcmc->temps[tempi]+mcmc->tempAmpl[tempi]);
+    if(mcmc->prParTempInfo>0 && mcmc->beVerbose>=1) printf("     %3d  %7.2lf  %7.2lf  %7.2lf  %7.2lf\n",tempi,mcmc->temps[tempi],mcmc->tempAmpl[tempi],mcmc->temps[tempi]-mcmc->tempAmpl[tempi],mcmc->temps[tempi]+mcmc->tempAmpl[tempi]);
   }
-  if(mcmc->prParTempInfo>0) printf("\n\n");
+  if(mcmc->prParTempInfo>0 && mcmc->beVerbose>=1) printf("\n\n");
 } // End of setTemperatureLadderOld
 // ****************************************************************************************************************************************************  
