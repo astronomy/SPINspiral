@@ -64,11 +64,11 @@
  * \brief Compute a 12-parameter (one spin) LAL waveform
  * 
  * \todo Merge this routine with LALHpHc12() ?
- * Can this routine be merged with LALHpHc12() ?
+ * 
+ * Use the LAL <=3.5 PN spinning waveform, with 1 spinning object (12 parameters)
  */
 // ****************************************************************************************************************************************************  
 void templateLAL12(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
-//Use the LAL 3.5/2.5 PN spinning waveform, with 2 spinning objects (15 parameters)
 {
   int i=0;
   double samplerate=0.0,inversesamplerate=0.0;
@@ -159,14 +159,15 @@ void templateLAL12(struct parSet *par, struct interferometer *ifo[], int ifonr, 
 
 // ****************************************************************************************************************************************************  
 /**
- * \brief Compute detector response for a 12-parameter (one spin) LAL waveform
+ * \brief Compute waveform for a 12-parameter (one spin) LAL waveform
  * 
  * \todo Merge this routine with templateLAL12() ?
- * Can this routine be merged with templateLAL12() ?
+ * 
+ * Compute h_+ and h_x from the parameters in par and interferometer information in ifo. 
+ * l is a pointer to get the lenght of the waveform computed, this length is also available as waveform->phi->data->length.
  */
 // ****************************************************************************************************************************************************  
 void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, int *l, struct parSet *par, struct interferometer *ifo, int injectionWF, struct runPar run) {
-  // Compute h_+ and h_x form the parameters in par and interferometer information in ifo. l is a pointer to get the lenght of the waveform computed. this length is also available in waveform->phi->data->length
   
   //  static LALStatus    mystatus;
   
@@ -442,14 +443,14 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
 
 // ****************************************************************************************************************************************************  
 /**
- * \brief Compute detector response for a 12-parameter (one spin) LAL waveform
+ * \brief Compute waveform for a 15-parameter (two spins) LAL waveform
  * 
- * \todo Merge this routine with templateLAL12() ?
- * Can this routine be merged with templateLAL12() ?
+ * \todo Merge this routine with templateLAL15() ?
+ *
+ * Use the LAL 3.5/2.5 PN spinning waveform, with 2 spinning objects (15 parameters) 
  */
 // ****************************************************************************************************************************************************  
 void templateLAL15(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
-//Use the LAL 3.5/2.5 PN spinning waveform, with 2 spinning objects (15 parameters)
 {
   int i=0;
   double samplerate=0.0,inversesamplerate=0.0;
@@ -541,14 +542,16 @@ void templateLAL15(struct parSet *par, struct interferometer *ifo[], int ifonr, 
 
 // ****************************************************************************************************************************************************  
 /**
- * \brief Compute detector response for a 12-parameter (one spin) LAL waveform
+ * \brief Compute a waveform for a 15-parameter (two spins) LAL waveform
  * 
- * \todo Merge this routine with templateLAL12() ?
- * Can this routine be merged with templateLAL12() ?
+ * \todo Merge this routine with templateLAL15() ?
+ * 
+ * Compute h_+ and h_x form the parameters in par and interferometer information in ifo. 
+ * l is a pointer to get the lenght of the waveform computed, this length is also available in waveform->phi->data->length.
  */
 // ****************************************************************************************************************************************************  
-void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, int *l, struct parSet *par, struct interferometer *ifo, int injectionWF, struct runPar run) {
-  // Compute h_+ and h_x form the parameters in par and interferometer information in ifo. l is a pointer to get the lenght of the waveform computed. this length is also available in waveform->phi->data->length
+void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, int *l, struct parSet *par, struct interferometer *ifo, int injectionWF, struct runPar run) 
+{
   
   // static LALStatus    mystatus;
   
@@ -691,6 +694,188 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   
 } // End of LALHpHc15()
 // ****************************************************************************************************************************************************  
+
+
+
+
+
+
+
+
+// ****************************************************************************************************************************************************  
+/**
+ * \brief Compute waveform template for a LAL non-spinning inspiral waveform
+ * 
+ * Uses GeneratePPN approximant.
+ */
+// ****************************************************************************************************************************************************  
+void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
+{
+  int i=0;
+  double samplerate=0.0,inversesamplerate=0.0;
+  int length=0;
+  
+  samplerate = (double)ifo[ifonr]->samplerate;
+  inversesamplerate = 1.0/samplerate;
+  length     = ifo[ifonr]->samplesize;
+  double *wave = (double*)calloc(length+2,sizeof(double));  //MvdS: should this make a difference? Vivien: no it shouldn't.
+  int lengthLAL = 0;
+  
+  
+  // LAL structs needed. Have to be freed later
+  static LALStatus    status;
+  CoherentGW          waveform;  // i.e. output
+  SimInspiralTable    injParams;  // Physical input parameters
+  PPNParamStruc       ppnParams;  // 'non-physical' input parameters, e.g. f cuts, Delta-t, etc.
+  
+  memset( &status, 0, sizeof(LALStatus) );
+  memset( &waveform, 0, sizeof(CoherentGW) );
+  memset( &injParams, 0, sizeof(SimInspiralTable) );
+  memset( &ppnParams, 0, sizeof(PPNParamStruc) );
+  
+  ppnParams.deltaT   = inversesamplerate;
+  ppnParams.lengthIn = 0;
+  ppnParams.ppn      = NULL;
+  
+  
+  
+  // Compute h_+ and h_x
+  LALHpHcNonSpinning(&status, &waveform, &injParams, &ppnParams, &lengthLAL, par, ifo[ifonr], injectionWF, run);  //ifonr is for debugging purposes
+  
+  
+  
+  // Compute the detector response - this should be done by LALGenerateInspiral for the non-spinning case
+  //double delay = LALFpFc(&thewaveform, wave, &lengthLAL, length, par, ifonr);
+  double delay = LALFpFc(&status, &waveform, &injParams, &ppnParams, wave, length, par, ifo[ifonr], ifonr); //Vivien: lentghLAL is set in LALinteface.c But is is also availble in the structure thewaveform (which holds h+,x) and the structure wave (which holds F+,x)
+  delay = delay; //MvdS: remove 'declared but never referenced' warnings
+  
+  
+  LALfreedom(&waveform);
+  
+  for (i=0; i<length; ++i){
+    ifo[ifonr]->FTin[i] = wave[i];
+  }
+  
+  free(wave);
+  
+} // End of templateLALnonSpinning()
+// ****************************************************************************************************************************************************  
+
+
+
+
+
+
+
+// ****************************************************************************************************************************************************  
+/**
+ * \brief Compute waveform for a LAL non-spinning inspiral waveform
+ */
+// ****************************************************************************************************************************************************  
+void LALHpHcNonSpinning(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, int *l, struct parSet *par, struct interferometer *ifo, int injectionWF, struct runPar run) {
+  // Compute h_+ and h_x form the parameters in par and interferometer information in ifo. l is a pointer to get the lenght of the waveform computed. this length is also available in waveform->phi->data->length
+  
+  int			lengthLAL;
+  pi=M_PI;
+  
+  
+  
+  
+  double f_lower=ifo->lowCut;
+  double samplerate = (double)ifo->samplerate;
+  double inversesamplerate = 1.0/samplerate;
+  
+  // Get the 9 waveform parameters from their array:
+  double pMc=0,pEta=0,pTc=0,pLogDl=0,pLongi=0,pSinDec=0,pPhase=0,pCosI=0,pPsi=0;
+  
+  if(injectionWF==1) {                                               // Then this is an injection waveform template
+    pTc       = par->par[run.injRevID[11]];                                            // 11: t_c
+    pLogDl    = par->par[run.injRevID[22]];                                            // 22: log(d_L)
+    pMc       = par->par[run.injRevID[61]];                                            // 61: Mc
+    pEta      = par->par[run.injRevID[62]];                                            // 62: eta
+    
+    //pLongi    = fmod(longitude(par->par[run.injRevID[31]], GMST(pTc)) + mtpi, tpi);    // 31: RA; RA -> 'lon'
+    pLongi    = par->par[run.injRevID[31]];                                            // 31: 'longi' := RA (?)
+    pSinDec   = par->par[run.injRevID[32]];                                            // 32: sin(Dec)
+    pPhase    = par->par[run.injRevID[41]];                                            // 41: phi_c - GW phase at coalescence
+    pCosI     = par->par[run.injRevID[51]];                                            // 51: cos(inclination)
+    pPsi      = par->par[run.injRevID[52]];                                            // 52: psi: polarisation angle
+  } else {                                                           // Then this is an MCMC waveform template
+    pTc       = par->par[run.parRevID[11]];                                            // 11: t_c
+    pLogDl    = par->par[run.parRevID[22]];                                            // 22: log(d_L)
+    pMc       = par->par[run.parRevID[61]];                                            // 61: Mc
+    pEta      = par->par[run.parRevID[62]];                                            // 62: eta
+    
+    //pLongi    = fmod(longitude(par->par[run.parRevID[31]], GMST(pTc)) + mtpi, tpi);    // 31: RA; RA -> 'lon'
+    pLongi    = par->par[run.parRevID[31]];                                            // 31: longi := RA (?)
+    pSinDec   = par->par[run.parRevID[32]];                                            // 32: sin(Dec)
+    pPhase    = par->par[run.parRevID[41]];                                            // 41: phi_c - GW phase at coalescence
+    pCosI     = par->par[run.parRevID[51]];                                            // 51: cos(inclination) of the binary
+    pPsi      = par->par[run.parRevID[52]];                                            // 52: psi: polarisation angle of the binary
+  }
+  
+  
+  
+  // Get masses from Mch and eta:
+  double m1,m2;
+  McEta2masses(pMc,pEta,&m1,&m2);
+  
+  
+  // Fill injParam with the waveform parameters:
+  injParams->mass1 = (float)m1;
+  injParams->mass2 = (float)m2;
+  
+  injParams->f_final = (float)ifo->highCut;  // It seems injParams->f_final gets overwritten by LALGenerateInspiral; it's an output parameter rather than input. This will also somewhat affect SNR comparisons with the Apostolatos waveform.
+  injParams->f_lower = (float)f_lower;
+  ppnParams->fStartIn = (float)f_lower;  //May be needed here as well...(?)
+  
+  //LALSnprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"GeneratePPNtwoPN");  // Set waveform family and pN order
+  LALSnprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTaylortwoPN");  // Set waveform family and pN order
+  Approximant injapprox;
+  LALGetApproximantFromString(status,injParams->waveform,&injapprox);
+  if(injapprox!=GeneratePPN) fprintf(stderr,"\n *** Warning:  not using GeneratePPN approximant causes incoherent injections ***\n");
+  
+  injParams->distance = (float)exp(pLogDl);                                  // Distance in Mpc
+  injParams->inclination = (float)acos(pCosI);                               // Inclination of the binary
+  
+  
+  // 4 parameters used after the computation of h+,x ********************//
+  injParams->coa_phase = (float)pPhase;                                      // GW phase at coalescence
+  injParams->longitude = (float)pLongi;                                      // 'Longitude'  CHECK: is this actually RA?!?!?
+  injParams->latitude = (float)asin(pSinDec);                                // Declination
+  injParams->polarization = (float)pPsi;                                     // Polarisation angle
+  
+  
+  REAL8 geocent_end_time = pTc;
+  
+  LALFloatToGPS( status, &(injParams->geocent_end_time), &geocent_end_time);
+  
+  ppnParams->deltaT = inversesamplerate;
+  
+  
+  // Call the injection function:
+  LALGenerateInspiral( status, waveform, injParams, ppnParams );
+  if ( status->statusCode )
+    {
+      fprintf(stderr, "\n\n   LALHpHcNonSpinning:  ERROR generating waveform\n\n" );
+      fprintf(stderr, "\n\n   %f,  %f,  %f,  %f  %f  %f  %f  %f  %f\n\n",
+	      injParams->mass1, injParams->mass2, geocent_end_time, injParams->distance, injParams->coa_phase, injParams->longitude, injParams->latitude,
+	      injParams->inclination, injParams->polarization);
+      exit( 1 );
+    }
+  
+  lengthLAL  = waveform->phi->data->length;
+  *l = lengthLAL;
+  
+  
+} // End of LALHpHcNonSpinning()
+// ****************************************************************************************************************************************************  
+
+
+
+
+
+
 
 
 
@@ -880,6 +1065,28 @@ double LALFpFc(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   
 } // End of LALFpFc()
 // ****************************************************************************************************************************************************  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

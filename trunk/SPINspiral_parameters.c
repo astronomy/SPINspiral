@@ -216,11 +216,15 @@ void readMCMCinputfile(struct runPar *run)
   } else if(run->mcmcWaveform==3) {
     if(run->beVerbose>=1) printf("   Using LAL, 3.5PN, 15-parameter waveform as the MCMC template.\n");
     run->nMCMCpar=15;
+  } else if(run->mcmcWaveform==4) {
+    if(run->beVerbose>=1) printf("   Using LAL non-spinning waveform as the MCMC template.\n");
+    run->nMCMCpar=9;
   } else {
     fprintf(stderr,"   Unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->mcmcWaveform);
     fprintf(stderr,"     1: Apostolatos, simple precession, 12 parameters\n");
     fprintf(stderr,"     2: LAL, single spin, 12 parameters\n");
     fprintf(stderr,"     3: LAL, double spin, 15 parameters\n");
+    fprintf(stderr,"     4: LAL, non-spinnig, 9 parameters\n");
     fprintf(stderr,"   Please set mcmcWaveform in %s to one of these values.\n\n",run->mcmcFilename);
     exit(1);
   }
@@ -392,6 +396,7 @@ void readInjectionInputfile(struct runPar *run)
   char bla[500];
   FILE *fin;
   
+  // Open injection input file:
   if((fin = fopen(run->injectionFilename,"r")) == NULL) {
     fprintf(stderr, "\n\n   ERROR reading injection input file: %s, aborting.\n\n\n",run->injectionFilename);
     exit(1);
@@ -400,11 +405,12 @@ void readInjectionInputfile(struct runPar *run)
   }
   
   
-  //Use and l for floats: %lf, %lg, etc, rather than %f, %g
+  // Read injection input file:
+  // use and l for floats: %lf, %lg, etc, rather than %f, %g
   
   for(i=1;i<=2;i++) fgets(bla,500,fin);  //Read first 2 lines
   
-  //General:
+  // Read general injection data:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->injectSignal);
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->injectionWaveform);
@@ -422,17 +428,23 @@ void readInjectionInputfile(struct runPar *run)
     } else if(run->injectionWaveform==3) {
       if(run->beVerbose>=1) printf("   Using LAL, 3.5PN, 15-parameter waveform for the software injection.\n");
       run->nInjectPar=15;
+    } else if(run->injectionWaveform==4) {
+      if(run->beVerbose>=1) printf("   Using LAL non-spinning waveform for the software injection.\n");
+      run->nInjectPar=9;
     } else {
       fprintf(stderr,"   Unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->injectionWaveform);
       fprintf(stderr,"     1: Apostolatos, simple precession, 12 parameters\n");
       fprintf(stderr,"     2: LAL, single spin, 12 parameters\n");
       fprintf(stderr,"     3: LAL, double spin, 15 parameters\n");
+      fprintf(stderr,"     4: LAL, non-spinning, 9 parameters\n");
       fprintf(stderr,"   Please set injectionWaveform in %s to one of these values.\n\n",run->injectionFilename);
       exit(1);
     }
   }
   
-  //Parameters:
+  
+  
+  // Read injection parameters:
   for(i=1;i<=5;i++) fgets(bla,500,fin);  //Read empty and comment lines
   
   for(i=0;i<run->nInjectPar;i++) {
@@ -442,6 +454,7 @@ void readInjectionInputfile(struct runPar *run)
     //printf("%d %d %lf %d %lf %d %lf %lf\n",run->injNumber[i],run->injID[i],run->injParValOrig[i],run->injRanPar[i],run->injSigma[i],run->injBoundType[i],run->injBoundLow[i],run->injBoundUp[i]);
     
     
+    // Some sanity checks:
     if(run->injNumber[i] != i+1) {
       fprintf(stderr, "\n\n   ERROR reading injection input file %s:  parameter %d has number %d.\n   Aborting...\n\n",run->injectionFilename,i+1,run->injNumber[i]);
       exit(1);
@@ -449,18 +462,20 @@ void readInjectionInputfile(struct runPar *run)
     
     if(run->parDef[run->injID[i]] != 1) {
       fprintf(stderr, "\n\n   ERROR reading injection input file %s, parameter %d:\n     parameter ID %d is not defined.\n   Aborting...\n\n",
-	     run->injectionFilename,run->injNumber[i],run->injID[i]);
+	      run->injectionFilename,run->injNumber[i],run->injID[i]);
       exit(1);
     }
     
-    run->injRevID[run->injID[i]] = i;  //Reverse parameter ID
+    // Get reverse parameter ID:
+    run->injRevID[run->injID[i]] = i;
     
     
     // Get the desired injection boundaries:
     switch (run->injBoundType[i]) {
-    case 1 :
-      break;
-    case 2 :
+    case 1 :  // Keep as is: boundLow-boundUp
+      break; 
+      
+    case 2 :  // InjectionValue + BoundLow - InjectionValue + BoundUp
       if(run->injBoundLow[i] > 0.0 || run->injBoundUp[i] < 0.0) {
 	fprintf(stderr, "\n\n   ERROR reading injection input file %s, parameter %d (%s):\n     for injBoundType = 2, injBoundLow and injBoundUp must be <= 0 and >= 0 respectively.\n   Aborting...\n\n",
 	       run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]]);
@@ -469,48 +484,52 @@ void readInjectionInputfile(struct runPar *run)
       run->injBoundLow[i] = run->injParValOrig[i] + run->injBoundLow[i];
       run->injBoundUp[i]  = run->injParValOrig[i] + run->injBoundUp[i];
       break;
-    case 3 :
+      
+    case 3 :  // InjectionValue * BoundLow - InjectionValue * BoundUp
       if(run->injBoundLow[i] > 1.0 || run->injBoundUp[i] < 1.0) {
 	fprintf(stderr, "\n\n   ERROR reading injection input file %s, parameter %d (%s):\n     for injBoundType = 3, injBoundLow and injBoundUp must be <= 1 and >= 1 respectively.\n   Aborting...\n\n",
-	       run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]]);
+		run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]]);
 	exit(1);
       }
       run->injBoundLow[i] = run->injParValOrig[i] * run->injBoundLow[i];
       run->injBoundUp[i]  = run->injParValOrig[i] * run->injBoundUp[i];
       break;
+      
     default :
       fprintf(stderr, "\n\n   ERROR reading injection input file %s, parameter %d (%s):\n     %d is not a valid option for injBoundType.\n   Aborting...\n\n",
-	     run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]],run->injBoundType[i]);
+	      run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]],run->injBoundType[i]);
       exit(1);
-    } //End switch
+    } //End switch (run->injBoundType[i])
     
     
+    
+    // More sanity checks:
     
     // Check whether value for injRanPar is valid
     if(run->injRanPar[i] < 0 || run->injRanPar[i] > 2) {
       fprintf(stderr, "\n\n   ERROR reading injection input file %s, parameter %d (%s):\n     %d is not a valid option for injRanPar.\n   Aborting...\n\n",
-	     run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]],run->injRanPar[i]);
-	exit(1);
+	      run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]],run->injRanPar[i]);
+      exit(1);
     }      
     
     //Check whether the lower boundary < the upper
     if(run->injBoundLow[i] >= run->injBoundUp[i]) {
       fprintf(stderr, "\n\n   ERROR reading injection input file %s, parameter %d (%s):\n     the lower boundary of the prior is larger than or equal to the upper boundary (%lf vs. %lf).\n   Aborting...\n\n",
-	     run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]],run->injBoundLow[i],run->injBoundUp[i]);
+	      run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]],run->injBoundLow[i],run->injBoundUp[i]);
       exit(1);
     }
     
     //Check whether  lower boundary <= injection value <= upper boundary
     if(run->injParValOrig[i] < run->injBoundLow[i] || run->injParValOrig[i] > run->injBoundUp[i]) {
       fprintf(stderr, "\n\n   ERROR reading injection input file %s, parameter %d (%s):\n     the injection value (%lf) lies outside the prior range (%lf - %lf).\n   Aborting...\n\n",
-	     run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]], run->injParValOrig[i], run->injBoundLow[i], run->injBoundUp[i]);
+	      run->injectionFilename,run->injNumber[i],run->parAbrev[run->injID[i]], run->injParValOrig[i], run->injBoundLow[i], run->injBoundUp[i]);
       exit(1);
     }
     
-  } //End for
+  } //End for (i): injection parameter
   
   
-  
+  // Pick random injection values:
   setRandomInjectionParameters(run);    //Copy the injection parameters from injParValOrig to injParVal, and randomise where wanted
   run->geocentricTc = run->injParVal[run->injRevID[11]];    // This value must be overwritten by the 'best' value in readParameterInputfile() which is called next, in the case of no SW injection
   
@@ -518,12 +537,7 @@ void readInjectionInputfile(struct runPar *run)
   
   
   
-  //Print injection parameters and prior ranges to screen:
-  char StartStr[3][99];
-  strcpy(StartStr[0],"Injection value");
-  strcpy(StartStr[1],"Random value near injection value");
-  strcpy(StartStr[2],"Random value from prior");
-  
+  // Print injection parameters and prior ranges to screen:
   if(run->beVerbose>=1) {
     printf("\n   Software-injection parameters:\n      Nr: Name:           Injection value:     Obtained:\n");
     for(i=0;i<run->nInjectPar;i++) {

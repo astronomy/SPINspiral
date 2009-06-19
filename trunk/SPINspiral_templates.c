@@ -64,6 +64,8 @@ void waveformTemplate(struct parSet *par, struct interferometer *ifo[], int ifon
     templateLAL12(par, ifo, ifonr, injectionWF, run);  // LAL 12-parameter template
   } else if(waveformVersion==3) {
     templateLAL15(par, ifo, ifonr, injectionWF, run);  // LAL 15-parameter template
+  } else if(waveformVersion==4) {
+    templateLALnonSpinning(par, ifo, ifonr, injectionWF, run);  // LAL non-spinning template
   } else {
     fprintf(stderr,"\n\n   ERROR:  waveformTemplate(): waveformVersion %i not defined!\n\n",waveformVersion);
     exit(1);

@@ -57,8 +57,8 @@
 \item Check whether a proper \texttt{Makefile} is in your trunk.  There's an example file in \texttt{doc/}, 
   make sure it is configured for your compiler and type \texttt{make clean all} for the first compilation
   and \texttt{make all} for subsequent ones.  The executable files \texttt{mcmc\_nolal} and \texttt{mcmc\_lal} should be produced.
-\item Make sure you have the configuration files \texttt{mcmc.input*} in your trunk.  There are example
-  files in \texttt{doc/input\_*}.  Set \texttt{iter} in \texttt{mcmc.input.mcmc} to 10 or 100 for a first test run.
+\item Make sure you have the configuration files \texttt{SPINspiral.input*} in your trunk.  There are example
+  files in \texttt{doc/input\_*}.  Set \texttt{iter} in \texttt{SPINspiral.input.mcmc} to 10 or 100 for a first test run.
   Example input files are available for both \texttt{mcmc\_nolal} and \texttt{mcmc\_lal}.
 \item Type \texttt{./mcmc\_nolal} or \texttt{./mcmc\_lal} and \textsc{SPINspiral} should run with the parameters specified
   in the input files.
@@ -93,16 +93,16 @@ An example Makefile that should compile your code is included in the \texttt{SVN
 The routines are grouped into six source files:
 
 \begin{description}
-\item[mcmc\_main.c] Main routine. The idea is to keep this routine as small as possible and use it to call other routines.
-\item[mcmc\_parameters.c] Contains routines that deal with reading input files and choosing and setting (starting or injection) parameters.
-\item[mcmc\_data.c] Contains routines for data and noise reading and handling.
-\item[mcmc\_templates.c] Contains routines to generate templates or obtain them from LAL.
-\item[mcmc\_signal.c] Contains routines to compute things like overlaps and likelihoods.
-\item[mcmc\_mcmc.c] Contains the MCMC core.
-\item[mcmc\_lal.c] Contains interfaces to LAL routines.
-\item[mcmc\_nolal.c] Contains dummy interfaces to LAL routines, used when not linking against LAL.
-\item[mcmc\_routines.c] Contains more general supporting functions.
-\item[mcmc\_3rdparty.c] Contains third-party routines.
+\item[SPINspiral\_main.c] Main routine. The idea is to keep this routine as small as possible and use it to call other routines.
+\item[SPINspiral\_parameters.c] Contains routines that deal with reading input files and choosing and setting (starting or injection) parameters.
+\item[SPINspiral\_data.c] Contains routines for data and noise reading and handling.
+\item[SPINspiral\_templates.c] Contains routines to generate templates or obtain them from LAL.
+\item[SPINspiral\_signal.c] Contains routines to compute things like overlaps and likelihoods.
+\item[SPINspiral\_mcmc.c] Contains the MCMC core.
+\item[SPINspiral\_lal.c] Contains interfaces to LAL routines.
+\item[SPINspiral\_nolal.c] Contains dummy interfaces to LAL routines, used when not linking against LAL.
+\item[SPINspiral\_routines.c] Contains more general supporting functions.
+\item[SPINspiral\_3rdparty.c] Contains third-party routines.
 \end{description}
 
 
@@ -117,7 +117,7 @@ However, a small --- but possibly growing --- number of options can be passed to
 using command-line options:
 
 \begin{description}
-  \item[\texttt{-i <main input file name>}] override the name of the main input file (Section~\ref{sec:mcmc.input})
+  \item[\texttt{-i <main input file name>}] override the name of the main input file (Section~\ref{sec:SPINspiral.input})
   \item[\texttt{--injXMLfilename <file name>}] specify an XML file to read injection data from
   \item[\texttt{--injXMLnr <0-\ldots>}] specify the injection number in the injection XML file
 \end{description}
@@ -143,15 +143,15 @@ using command-line options:
 \label{sec:input_files}
 
 \textsc{SPINspiral} has six different ASCII input files.  The main input file is assumed to be called
-\texttt{mcmc.input}, but can be specified differently using the command-line option \texttt{-i 
+\texttt{SPINspiral.input}, but can be specified differently using the command-line option \texttt{-i 
   <main input file name>}.  The names of the other five input files are specified in the main
 input file.
 
 
-\subsection{mcmc.input}
-\label{sec:mcmc.input}
+\subsection{SPINspiral.input}
+\label{sec:SPINspiral.input}
 
-The file \texttt{mcmc.input} is the main input file and specifies the main mode of operation 
+The file \texttt{SPINspiral.input} is the main input file and specifies the main mode of operation 
 and the names of the other input files.
 
 \subsubsection{Operation and output}
@@ -167,11 +167,11 @@ and the names of the other input files.
 
 \subsubsection{Secondary input files}
 \begin{description}
-\item[mcmcFilename] Name of the MCMC input file.  Default: mcmc.input.mcmc.
-\item[dataFilename] Name of the data/noise input file.  Default: mcmc.input.data.
-\item[injectionFilename] Name of the software injection input file.  Default: mcmc.input.injection.
-\item[parameterFilename] Name of the MCMC parameter input file.  Default: mcmc.input.parameters.
-\item[systemFilename] Name of the file with system-dependent parameters.  Default: mcmc.input.system.
+\item[mcmcFilename] Name of the MCMC input file.  Default: SPINspiral.input.mcmc.
+\item[dataFilename] Name of the data/noise input file.  Default: SPINspiral.input.data.
+\item[injectionFilename] Name of the software injection input file.  Default: SPINspiral.input.injection.
+\item[parameterFilename] Name of the MCMC parameter input file.  Default: SPINspiral.input.parameters.
+\item[systemFilename] Name of the file with system-dependent parameters.  Default: SPINspiral.input.system.
 \end{description}
 
 
@@ -188,7 +188,7 @@ and the names of the other input files.
 
 
 \pagebreak
-\subsection{mcmc.input.mcmc}                                                                                                                                               
+\subsection{SPINspiral.input.mcmc}                                                                                                                                               
 The MCMC input file                                                                                                                                                 
                                                                                                                                                                     
 
@@ -238,7 +238,7 @@ At least \texttt{ntemps} increasing temperature values, starting with 1.0, \text
 
 
 \pagebreak
-\subsection{mcmc.input.data}
+\subsection{SPINspiral.input.data}
 The data/noise input file
 
 
@@ -283,7 +283,7 @@ Parameters for the location, orientation and data file for each detector used:
 \item[leftarm] Orientation of the 'left' arm (degrees), \textit{e.g.} 126.80.
                                                                                                                                                                                                                
 \item[ch$1$name] Name of the data channel in the Frame file, \textit{e.g.} \texttt{H1:STRAIN}.
-\item[ch$1$filepath] Subdirectory of the path in mcmc.local where the data sits.  Use ``.'' for no subdirectory.  Default: ``.''.
+\item[ch$1$filepath] Subdirectory of the path in \texttt{SPINspiral.input.system} where the data sits.  Use ``.'' for no subdirectory.  Default: ``.''.
 \item[ch$1$fileprefix] Prefix of the Frame data file name, \textit{e.g.} \texttt{H-H1\_NINJA\_NOISE}.
 \item[ch$1$filesuffix] Suffix of the Frame file name, \textit{e.g.} \texttt{-1024.gwf}.
 \item[ch$1$filesize] `Size' (in seconds) of the data in each data Frame file, \textit{e.g.} 1024.
@@ -293,7 +293,7 @@ Parameters for the location, orientation and data file for each detector used:
 
 \item[noiseGPSstart] GPS time to start reading data to generate a noise PSD,  \textit{e.g.} 894377200.
 \item[noisechannel] Name of the data channel in the Frame file, \textit{e.g.} \texttt{H1:STRAIN}.
-\item[noisefilepath] Directory of the path in mcmc.local where the noise files sit.  Use ``.'' for no subdirectory.  Default: ``.''.
+\item[noisefilepath] Directory of the path in \texttt{SPINspiral.input.system} where the noise files sit.  Use ``.'' for no subdirectory.  Default: ``.''.
 \item[noisefileprefix] Prefix of the Frame data file name, \textit{e.g.} \texttt{H-H1\_NINJA\_NOISE}.
 \item[noisefilesuffix] Suffix of the Frame data file name, \textit{e.g.} \texttt{-1024.gwf}.
 \item[noisefilesize] `Size' (in seconds) of the data in each noise Frame file,  \textit{e.g.} 1024.
@@ -307,7 +307,7 @@ Parameters for the location, orientation and data file for each detector used:
 
 
 \pagebreak
-\subsection{mcmc.input.injection}
+\subsection{SPINspiral.input.injection}
 The software injection input file
 
 
@@ -358,7 +358,7 @@ Following the ``General'' section is a table with nine columns containing the fo
 
 \pagebreak
 
-\subsection{mcmc.input.parameters}
+\subsection{SPINspiral.input.parameters}
 
 
 \subsubsection{General}
@@ -412,11 +412,11 @@ Following the ``General'' section is a table with nine columns containing the fo
 
 
 \pagebreak
-\subsection{mcmc.input.system}
+\subsection{SPINspiral.input.system}
 A file with system-dependent parameters (well, currently one).
 
 \begin{description}
-\item[datadir] Data directory (actual data files may be in a subdirectory of this, see \texttt{mcmc.data}), \textit{e.g.} \texttt{/home/user/MCMC/data}
+\item[datadir] Data directory (actual data files may be in a subdirectory of this, see \texttt{SPINspiral.input.data}), \textit{e.g.} \texttt{/home/user/MCMC/data}
 \end{description}
 
 
@@ -428,7 +428,7 @@ A file with system-dependent parameters (well, currently one).
 \pagebreak
 \section{Output files}
 
-\subsection{mcmc.output.abcdef.xy}
+\subsection{SPINspiral.output.abcdef.xy}
 
 
 
