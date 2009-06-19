@@ -415,11 +415,11 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   /* --- now we can call the injection function --- */
   
   LALGenerateInspiral( status, waveform, injParams, ppnParams );
-  if ( status->statusCode )
-    {
-      fprintf(stderr, "\n\n   LALSTPNWaveformTest:  ERROR generating waveform\n" );
-      exit( 1 );
-    }
+  if(status->statusCode) {
+    fprintf(stderr, "\n\n   LALHpHc12:  ERROR generating waveform\n" );
+    REPORTSTATUS(&status);
+    exit(1);
+  }
   
   lengthLAL  = waveform->phi->data->length;
   *l = lengthLAL;
@@ -673,11 +673,11 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   /* --- now we can call the injection function --- */
   
   LALGenerateInspiral( status, waveform, injParams, ppnParams );
-  if ( status->statusCode )
-    {
-      fprintf(stderr, "\n\n   LALSTPNWaveformTest:  ERROR generating waveform\n" );
-      exit( 1 );
-    }
+  if(status->statusCode) {
+    fprintf(stderr, "\n\n   LALHpHc15:  ERROR generating waveform\n" );
+    REPORTSTATUS(&status);
+    exit(1);
+  }
   // printf("ppnParams->tc = %f\n",ppnParams->tc);
   // LALInfo( status, ppnParams.termDescription );
   
@@ -809,10 +809,7 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
   if(status.statusCode) {
     fprintf(stderr, "\n\n   LALHpHcNonSpinning:  ERROR generating waveform\n\n" );
     REPORTSTATUS(&status);
-    fprintf(stderr, "\n\n   %f,  %f,  %f,  %f  %f  %f  %f  %f  %f\n\n",
-	    injParams.mass1, injParams.mass2, geocent_end_time, injParams.distance, injParams.coa_phase, injParams.longitude, injParams.latitude,
-	    injParams.inclination, injParams.polarization);
-    exit( 1 );
+    exit(1);
   }
   
   

@@ -2,6 +2,15 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   188: sluys, 18/06/2009
+     - Added Doxygen comments in SPINspiral_routines.c
+
+   187: sluys, 18/06/2009
+     - Merged two non-spinning LAL-interface routines
+   
+   186: sluys, 18/06/2009
+     - Started adding interface routines to generate non-spinning LAL waveforms
+   
    185: sluys, 18/06/2009
      - Merged intScrOut and printMuch to parameter beVerbose
      - Main input file changed!
@@ -24,6 +33,9 @@
    181: sluys, 16/06/2009
      - Removed last MCMC-parameter elements from struct parSet
      - Properly fixed intScrOut output
+     
+   180: sluys, 16/06/2009
+     - Commenting and cleaning in mcmc_signal.c
      
    179: sluys, 16/06/2009
      - Treat MCMC parameters properly in localPar()
