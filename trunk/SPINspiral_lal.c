@@ -119,7 +119,7 @@ void templateLAL12(struct parSet *par, struct interferometer *ifo[], int ifonr, 
   
   // printf("LALdelay = %10.10f\n", delay);
   
-  LALfreedom(&waveform);
+  LALfreedomSpin(&waveform);
   
   // printf("localtc = %f\n", localtc);
   
@@ -430,7 +430,7 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   //	 injParams->spin2x,injParams->spin2y,injParams->spin2z,injParams->coa_phase,injParams->longitude,injParams->latitude,injParams->polarization);
   
   
-  ///////////////////////////////////////////////////////at this point the structure waveform is still allocated in memory and will have to be freed. See LALfreedom below//////////
+  ///////////////////////////////////////////////////////at this point the structure waveform is still allocated in memory and will have to be freed. See LALfreedomSpin below//////////
   
 } // End of LALHpHc12()
 // ****************************************************************************************************************************************************  
@@ -502,7 +502,7 @@ void templateLAL15(struct parSet *par, struct interferometer *ifo[], int ifonr, 
   
   // printf("LALdelay = %10.10f\n", delay);
   
-  LALfreedom(&waveform);
+  LALfreedomSpin(&waveform);
   
   // printf("localtc = %f\n", localtc);
   
@@ -690,7 +690,7 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   //	 injParams->spin2x,injParams->spin2y,injParams->spin2z,injParams->coa_phase,injParams->longitude,injParams->latitude,injParams->polarization);
   
   
-  ///////////////////////////////////////////////////////at this point the structure waveform is still allocated in memory and will have to be freed. See LALfreedom below//////////
+  ///////////////////////////////////////////////////////at this point the structure waveform is still allocated in memory and will have to be freed. See LALfreedomSpin below//////////
   
 } // End of LALHpHc15()
 // ****************************************************************************************************************************************************  
@@ -818,7 +818,7 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
   delay = delay; //MvdS: remove 'declared but never referenced' warnings
   
   
-  LALfreedom(&waveform);
+  LALfreedomNoSpin(&waveform);
   
   for(i=0; i<length; ++i) {ifo[ifonr]->FTin[i] = wave[i];}
   
@@ -1055,10 +1055,10 @@ double LALFpFc(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
 
 // ****************************************************************************************************************************************************  
 /**
- * \brief Free LAL variables
+ * \brief Free spinning LAL variables
  */
 // ****************************************************************************************************************************************************  
-void LALfreedom(CoherentGW *waveform) {
+void LALfreedomSpin(CoherentGW *waveform) {
   // Free LAL stuff  
   static LALStatus stat;     // status structure
   
@@ -1074,5 +1074,32 @@ void LALfreedom(CoherentGW *waveform) {
   LALFree( waveform->phi) ;
   LALFree( waveform->shift );
   
-} // End of LALfreedom
+} // End of LALfreedomSpin
 // ****************************************************************************************************************************************************  
+
+
+// ****************************************************************************************************************************************************  
+/**
+ * \brief Free non-spinning LAL variables
+ */
+// ****************************************************************************************************************************************************  
+void LALfreedomNoSpin(CoherentGW *waveform) {
+  // Free LAL stuff  
+  static LALStatus stat;     // status structure
+  
+  memset( &stat, 0, sizeof(LALStatus) );
+  
+  LALSDestroyVectorSequence(&stat, &( waveform->a->data ));
+  LALSDestroyVector(&stat, &( waveform->f->data ));
+  LALDDestroyVector(&stat, &( waveform->phi->data ));
+  //LALSDestroyVector(&stat, &( waveform->shift->data ));
+  
+  LALFree( waveform->a );
+  LALFree( waveform->f ); 
+  LALFree( waveform->phi) ;
+  LALFree( waveform->shift );
+  
+} // End of LALfreedomNoSpin
+// ****************************************************************************************************************************************************  
+
+

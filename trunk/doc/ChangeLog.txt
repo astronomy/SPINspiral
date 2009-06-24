@@ -2,6 +2,9 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   190: sluys, 24/06/2009
+     - Free non-spinning LAL variables
+     
    188: sluys, 18/06/2009
      - Added Doxygen comments in SPINspiral_routines.c
 
