@@ -10,18 +10,18 @@ CC = pathcc
 DEF_CFLAGS = -static -O3 -ipa   \
 	-I/usr/include \
 	-I ./include \
-	-I/export/apps/metaio/include \
-	-I/export/apps/lal/include \
-	-I/export/apps/libframe/include \
+	-I/export/apps/lsc/metaio/include \
+	-I/export/apps/lsc/lal/include \
+	-I/export/apps/lsc/libframe/include \
 	-I/export/apps/fftw/include/ \
 	-I/export/apps/gsl/include
 
 
 #Link flags:
 DEF_LFLAGS = -ipa -static \
-	-L/export/apps/lal/lib -llalmetaio -llal \
-	-L/export/apps/metaio/lib -lmetaio \
-	-L/export/apps/libframe/lib -lFrame \
+	-L/export/apps/lsc/lal/lib -llalmetaio -llal \
+	-L/export/apps/lsc/metaio/lib -lmetaio \
+	-L/export/apps/lsc/libframe/lib -lFrame \
 	-L/export/apps/fftw/lib -lfftw3 -lfftw3f \
 	-L/export/apps/gsl/lib -lgsl -lgslcblas \
 	-lz -lm
