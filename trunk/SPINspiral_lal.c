@@ -714,15 +714,14 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
   int i=0;
   
   // Get the 9 waveform parameters from their array:
-  double pMc=0,pEta=0,pTc=0,pLogDl=0,pLongi=0,pSinDec=0,pPhase=0,pCosI=0,pPsi=0;
+  double pMc=0.0,pEta=0.0,pTc=0.0,pLogDl=0.0,pRA=0.0,pLongi=0.0,pSinDec=0.0,pPhase=0.0,pCosI=0,pPsi=0.0;
   if(injectionWF==1) {                                               // Then this is an injection waveform template
     pTc       = par->par[run.injRevID[11]];                                            // 11: t_c
     pLogDl    = par->par[run.injRevID[22]];                                            // 22: log(d_L)
     pMc       = par->par[run.injRevID[61]];                                            // 61: Mc
     pEta      = par->par[run.injRevID[62]];                                            // 62: eta
     
-    //pLongi    = fmod(longitude(par->par[run.injRevID[31]], GMST(pTc)) + mtpi, tpi);    // 31: RA; RA -> 'lon'
-    pLongi    = par->par[run.injRevID[31]];                                            // 31: 'longi' := RA (?)
+    pRA       = par->par[run.injRevID[31]];                                            // 31: 'longi' := RA (?)
     pSinDec   = par->par[run.injRevID[32]];                                            // 32: sin(Dec)
     pPhase    = par->par[run.injRevID[41]];                                            // 41: phi_c - GW phase at coalescence
     pCosI     = par->par[run.injRevID[51]];                                            // 51: cos(inclination)
@@ -733,14 +732,21 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
     pMc       = par->par[run.parRevID[61]];                                            // 61: Mc
     pEta      = par->par[run.parRevID[62]];                                            // 62: eta
     
-    //pLongi    = fmod(longitude(par->par[run.parRevID[31]], GMST(pTc)) + mtpi, tpi);    // 31: RA; RA -> 'lon'
-    pLongi    = par->par[run.parRevID[31]];                                            // 31: longi := RA (?)
+    pRA       = par->par[run.parRevID[31]];                                            // 31: longi := RA (?)
     pSinDec   = par->par[run.parRevID[32]];                                            // 32: sin(Dec)
     pPhase    = par->par[run.parRevID[41]];                                            // 41: phi_c - GW phase at coalescence
     pCosI     = par->par[run.parRevID[51]];                                            // 51: cos(inclination) of the binary
     pPsi      = par->par[run.parRevID[52]];                                            // 52: psi: polarisation angle of the binary
   }
   
+  //pLongi = fmod(longitude(pRA, GMST(pTc)) + mtpi, tpi);    // RA -> 'lon'
+  pLongi = pRA;                                              // For non-spinning LAL waveforms 'longi' = RA (?)
+  
+  
+  //printf(" LAL nS WF pars:  injWF: %i, Mc: %f, eta: %f, tc: %f, logD: %f, RA: %f, dec: %f, phi: %f, cos(i): %f, psi: %f\n",
+  //injectionWF,pMc, pEta, pTc, pLogDl, pRA, pSinDec, pPhase, pCosI, pPsi);
+  
+
   // LAL structs needed. Have to be freed later
   static LALStatus    status;
   CoherentGW          waveform;  // i.e. output

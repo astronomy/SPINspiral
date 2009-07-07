@@ -161,18 +161,33 @@ double signalToNoiseRatio(struct parSet *par, struct interferometer *ifo[], int 
  * \brief Compute match between waveforms with parameter sets par1 and par2
  */
 // ****************************************************************************************************************************************************  
-double parMatch(struct parSet * par1,struct parSet * par2, struct interferometer *ifo[], int networkSize, int waveformVersion, int injectionWF, struct runPar run)
+double parMatch(struct parSet* par1, int waveformVersion1, int injectionWF1, struct parSet* par2, int waveformVersion2, int injectionWF2, struct interferometer *ifo[], int networkSize, struct runPar run)
 {
   double overlap11=0.0, overlap12=0.0, overlap22=0.0;
   int ifonr;
   fftw_complex *FFT1, *FFT2; 
-     
+  
+  
+  /*
+  printf("  parMatch:   %i  %i    %i  %i    %i\n", waveformVersion1, injectionWF1, waveformVersion2, injectionWF2, networkSize);
+  int i=0;
+  for(i=0;i<12;i++) {
+    printf("  %i %f",i,par1->par[i]);
+  }
+  printf("\n");
+  for(i=0;i<12;i++) {
+    printf("  %i %f",i,par2->par[i]);
+  }
+  printf("\n");
+  */
+  
+  
   for(ifonr=0; ifonr<networkSize; ifonr++){
     FFT1 = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
     FFT2 = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
     
-    signalFFT(FFT1, par1, ifo, ifonr, waveformVersion, injectionWF, run);
-    signalFFT(FFT2, par2, ifo, ifonr, waveformVersion, injectionWF, run);
+    signalFFT(FFT1, par1, ifo, ifonr, waveformVersion1, injectionWF1, run);
+    signalFFT(FFT2, par2, ifo, ifonr, waveformVersion2, injectionWF2, run);
     
     overlap11 += vecOverlap(FFT1, FFT1, ifo[ifonr]->noisePSD, ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
     overlap12 += vecOverlap(FFT1, FFT2, ifo[ifonr]->noisePSD, ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
@@ -221,19 +236,18 @@ double overlapWithData(struct parSet *par, struct interferometer *ifo[], int ifo
  * \brief Compute the overlap in the frequency domain between two waveforms with parameter sets par1 and par2
  */
 // ****************************************************************************************************************************************************  
-double parOverlap(struct parSet * par1, struct parSet * par2, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run)
+double parOverlap(struct parSet* par1, int waveformVersion1, int injectionWF1, struct parSet* par2, int waveformVersion2, int injectionWF2, struct interferometer* ifo[], int ifonr, struct runPar run)
 {
   double overlap = 0.0;
   fftw_complex *FFT1 = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
   fftw_complex *FFT2 = fftw_malloc(sizeof(fftw_complex) * (ifo[ifonr]->FTsize));
   
   // Get waveforms, FFT them and store them in FFT1,2
-  signalFFT(FFT1, par1, ifo, ifonr, waveformVersion, injectionWF, run);
-  signalFFT(FFT2, par2, ifo, ifonr, waveformVersion, injectionWF, run);
+  signalFFT(FFT1, par1, ifo, ifonr, waveformVersion1, injectionWF1, run);
+  signalFFT(FFT2, par2, ifo, ifonr, waveformVersion2, injectionWF2, run);
   
   // Compute the overlap between the vectors FFT1,2, between index i1 and i2:
-  overlap = vecOverlap(FFT1, FFT2, ifo[ifonr]->noisePSD, 
-	ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
+  overlap = vecOverlap(FFT1, FFT2, ifo[ifonr]->noisePSD, ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
   
   fftw_free(FFT1);
   fftw_free(FFT2);
@@ -276,13 +290,15 @@ double vecOverlap(fftw_complex *vec1, fftw_complex *vec2, double * noise, int j1
  * \brief Compute the FFT of a waveform with given parameter set
  */
 // ****************************************************************************************************************************************************  
-void signalFFT(fftw_complex * FFTout, struct parSet *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run)
+void signalFFT(fftw_complex* FFTout, struct parSet* par, struct interferometer* ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run)
 {
   int j=0;
   if(FFTout==NULL) {
-    printf("Memory should be allocated for FFTout vector before call to signalFFT()\n");
+    fprintf(stderr,"\n\n   ERROR: memory should be allocated for FFTout vector before call to signalFFT()\n   Aborting...\n\n");
     exit(1);
   }
+  
+  //printf("  signalFFT:  %i  %i\n", waveformVersion, injectionWF);
   
   // Fill ifo[i]->FTin with time-domain template:
   waveformTemplate(par, ifo, ifonr, waveformVersion, injectionWF, run);
@@ -310,28 +326,23 @@ double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct int
 {
   struct parSet par, injectPar;
   int i=0;
+  int injectionWF = 1;                                     // Call localPar or parMatch with the injection template
+  int mcmcWF = 0;                                          // Call localPar or parMatch with the MCMC template
   for(i=0;i<mcmc.nMCMCpar;i++) {
     par.par[i] = pararray[i];
   }
-  //par.loctc    = (double*)calloc(mcmc.networkSize,sizeof(double));
-  //par.localti  = (double*)calloc(mcmc.networkSize,sizeof(double));
-  //par.locazi   = (double*)calloc(mcmc.networkSize,sizeof(double));
-  //par.locpolar = (double*)calloc(mcmc.networkSize,sizeof(double));
   allocParset(&par,mcmc.networkSize);
-  int injectionWF = 0;                                     // Call localPar for an MCMC template
-  localPar(&par, ifo, mcmc.networkSize, injectionWF, run);
-
+  localPar(&par, ifo, mcmc.networkSize, mcmcWF, run);  // Call localPar for an MCMC template
+  
   //Get the injection parameters:
   getInjectionParameters(&injectPar, mcmc.nInjectPar, mcmc.injParVal);
   allocParset(&injectPar,mcmc.networkSize);
-  injectionWF = 1;                                     // Call localPar for an injection template
-  localPar(&injectPar, ifo, mcmc.networkSize, injectionWF, run);
+  localPar(&injectPar, ifo, mcmc.networkSize, injectionWF, run);  // Call localPar for an injection template
   
   freeParset(&par);
   freeParset(&injectPar);
   
-  injectionWF = 0;
-  return parMatch(&injectPar, &par, ifo, mcmc.networkSize, mcmc.mcmcWaveform, injectionWF, run);
+  return parMatch(&injectPar, mcmc.injectionWaveform, injectionWF, &par, mcmc.mcmcWaveform, mcmcWF, ifo, mcmc.networkSize, run);
 } // End of matchBetweenParameterArrayAndTrueParameters()
 // ****************************************************************************************************************************************************  
 

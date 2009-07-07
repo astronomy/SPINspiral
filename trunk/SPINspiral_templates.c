@@ -48,8 +48,8 @@
 void waveformTemplate(struct parSet *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run)
 {
   
-  /*
   //CHECK: test - remove this
+  /*
   int i=0;
   printf("\n\n\n*** waveformTemplate(): %i %i  ", waveformVersion, injectionWF);
   for(i=0;i<par->nPar;i++) {
@@ -57,7 +57,6 @@ void waveformTemplate(struct parSet *par, struct interferometer *ifo[], int ifon
   }
   printf("\n");
   */
-  
   if(waveformVersion==1) {
     templateApostolatos(par, ifo, ifonr, injectionWF, run);  // Apostolatos 12-parameter template
   } else if(waveformVersion==2) {
@@ -91,7 +90,7 @@ void waveformTemplate(struct parSet *par, struct interferometer *ifo[], int ifon
 void templateApostolatos(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
 {
   
-  double pMc=0.0,pEta=0.0,pTc=0.0,pLogDl=0.0,pSpin1=0.0,pSpCosTh1=0.0,pLongi=0.0,pSinDec=0.0,pPhase=0.0,pSinThJ0=0.0,pPhiJ0=0.0,pSpPhi1=0.0;
+  double pMc=0.0,pEta=0.0,pTc=0.0,pLogDl=0.0,pSpin1=0.0,pSpCosTh1=0.0,pRA=0.0,pLongi=0.0,pSinDec=0.0,pPhase=0.0,pSinThJ0=0.0,pPhiJ0=0.0,pSpPhi1=0.0;
   
   if(injectionWF==1) {                                               // Then this is an injection waveform template:
     pMc       = par->par[run.injRevID[61]];                                           // 61: Mc
@@ -100,7 +99,7 @@ void templateApostolatos(struct parSet *par, struct interferometer *ifo[], int i
     pLogDl    = par->par[run.injRevID[22]];                                           // 22: log(d_L)
     pSpin1    = par->par[run.injRevID[71]];                                           // 71: a_spin1
     pSpCosTh1 = par->par[run.injRevID[72]];                                           // 72: cos(theta_spin1)
-    pLongi    = fmod(longitude(par->par[run.injRevID[31]], GMST(pTc)) + mtpi, tpi);   // 31: RA; RA -> 'lon'
+    pRA       = par->par[run.injRevID[31]];                                           // 31: RA
     pSinDec   = par->par[run.injRevID[32]];                                           // 32: sin(Dec)
     pPhase    = par->par[run.injRevID[41]];                                           // 41: phi_c
     pSinThJ0  = par->par[run.injRevID[53]];                                           // 53: sin(theta_J0)
@@ -114,13 +113,19 @@ void templateApostolatos(struct parSet *par, struct interferometer *ifo[], int i
     pLogDl    = par->par[run.parRevID[22]];                                           // 22: log(d_L)	
     pSpin1    = par->par[run.parRevID[71]];                                           // 71: a_spin1		
     pSpCosTh1 = par->par[run.parRevID[72]];                                           // 72: cos(theta_spin1)
-    pLongi    = fmod(longitude(par->par[run.parRevID[31]], GMST(pTc)) + mtpi,tpi);    // 31: RA; RA -> 'lon'
+    pRA       = par->par[run.parRevID[31]];                                           // 31: RA
     pSinDec   = par->par[run.parRevID[32]];                                           // 32: sin(Dec)     
     pPhase    = par->par[run.parRevID[41]];                                           // 41: phi_c	     
     pSinThJ0  = par->par[run.parRevID[53]];                                           // 53: sin(theta_J0)
     pPhiJ0    = par->par[run.parRevID[54]];                                           // 54: phi_J0	     
     pSpPhi1   = par->par[run.parRevID[73]];                                           // 73: phi_spin1    
   }
+  
+  pLongi    = fmod(longitude(pRA, GMST(pTc)) + mtpi, tpi);   // RA -> 'lon'
+  
+  
+  //printf(" Apo WF pars:  injWF: %i, Mc: %f, eta: %f, tc: %f, logD: %f, RA: %f, dec: %f, phi: %f, sin(th_J0): %f, phi_J0: %f, spin1: %f, spcos(th): %f, sp_phi1: %f  \n",
+  //injectionWF,pMc, pEta, pTc, pLogDl, pRA, pSinDec, pPhase, pSinThJ0, pPhiJ0, pSpin1, pSpCosTh1, pSpPhi1);
   
   double x=0.0;
   double Mc=0.0,m1=0.0,m2=0.0,Mtot=0.0,mu=0.0;
@@ -150,30 +155,33 @@ void templateApostolatos(struct parSet *par, struct interferometer *ifo[], int i
   length     = ifo[ifonr]->samplesize;
   
   
-  double n_z[3] = {0.0,0.0,1.0};                                                                                        //North in global coordinates
+  double n_z[3] = {0.0,0.0,1.0};                                                                                         // North in global coordinates
   double normalvec[3];                                                                                                  
-  for(i=0;i<3;i++) normalvec[i] = ifo[ifonr]->normalvec[i];                                                             //Detector position normal vector = local zenith vector z'
-  double D_L = exp(pLogDl)*Mpcs;                                                                                    //Source luminosity distance, in seconds
+  for(i=0;i<3;i++) normalvec[i] = ifo[ifonr]->normalvec[i];                                                              // Detector position normal vector = local zenith vector z'
+  double D_L = exp(pLogDl)*Mpcs;                                                                                         // Source luminosity distance, in seconds
   double coslati = sqrt(1.0-pSinDec*pSinDec);
-  double n_N[3] = { cos(pLongi)*coslati , sin(pLongi)*coslati , pSinDec };                                 //n_N: Position unit vector = N^
+  double n_N[3] = { cos(pLongi)*coslati , sin(pLongi)*coslati , pSinDec };                                               // n_N: Position unit vector = N^
   
-  double sthJ0   = pSinThJ0;                                                                                        //n_J0: 'total' AM unit vector, J0^  (almost equal to the real J, see Eq.15)
+  double sthJ0   = pSinThJ0;                                                                                             // n_J0: 'total' AM unit vector, J0^  (almost equal to the real J, see Eq.15)
   double cthJ0   = sqrt(1.0 - sthJ0*sthJ0);
-  double n_J0[3] = { cos(pPhiJ0)*cthJ0 , sin(pPhiJ0)*cthJ0 , sthJ0 };                                           //Here, theta_Jo is a latitude-like angle like Dec (-pi/2-pi/2).
+  double n_J0[3] = { cos(pPhiJ0)*cthJ0 , sin(pPhiJ0)*cthJ0 , sthJ0 };                                                    // Here, theta_Jo is a latitude-like angle like Dec (-pi/2-pi/2).
   
-  par->NdJ = dotProduct(n_N,n_J0);                                                                                      //Inclination of J_0; only for printing purposes, should be removed from this routine
-
+  par->NdJ = dotProduct(n_N,n_J0);                                                                                       // Inclination of J_0; only for printing purposes, should be removed from this routine
+  //printf("  N.J: %lf,  acos(N.J):  %lf\n",par->NdJ,acos(par->NdJ));
+  
   //Get individual masses from Mch and eta:
-  Mc = pMc*M0;                                                                                                      //Chirp mass in seconds
-  McEta2masses(Mc, pEta, &m1, &m2);                                                                                    //Mc,eta->M1,M2; accepts 0.25<eta<0.50
+  Mc = pMc*M0;                                                                                                           // Chirp mass in seconds
+  McEta2masses(Mc, pEta, &m1, &m2);                                                                                      //Mc,eta->M1,M2; accepts 0.25<eta<0.50
   Mtot = m1+m2;
   if(pEta>0.25) pEta = 0.5 - pEta;
-  mu = m1*m2/Mtot;                                                                                                         // Eq.16b
+  mu = m1*m2/Mtot;                                                                                                       // Eq.16b
   spin = pSpin1*m1*m1;
   
   
-  //if(beVerbose>=1) {printf("Ms: eta: %g  Mc: %g  m1: %g  m2: %g  Mtot: %g  mu: %g  Mo: %g\n",pEta,Mc/M0,m1/M0,m2/M0,Mtot/M0,mu/M0,M0);}
-  //printf("  %d  %lf  %lf  %lf  %lf  %d\n",ifonr,localtc,altitude,azimuth,samplerate,length);
+  //if(beVerbose>=1) {
+  //printf("Ms: eta: %g  Mc: %g  m1: %g  m2: %g  Mtot: %g  mu: %g  Mo: %g\n",pEta,Mc/M0,m1/M0,m2/M0,Mtot/M0,mu/M0,M0);
+  //}
+  //printf("  Apo, local parameters:  %d  %lf  %lf  %lf  %lf  %d\n",ifonr,localtc,altitude,azimuth,samplerate,length);
   
   double beta = 1.0/12.0*(113.0*(m1*m1)/(Mtot*Mtot) + 75.0*pEta)*pSpCosTh1*spin/(m1*m1);                                 // Eq.20, for S2=0 or m1=m2,S1=S2:  kappa*spin/(m1*m1) = L^.S/m1^2, see Blanchet et al., PRL 74, 3515, 1995
   
@@ -240,10 +248,8 @@ void templateApostolatos(struct parSet *par, struct interferometer *ifo[], int i
     // Determine time left until coalescence, "(t_c-t)" in (4.17)/(11):
     t = localtc - ((double)i)*inversesamplerate;  // (time to t_c) = "(t_c-t)" in (4.17)
     if(t<0.0) { 
-      //terminate = 1;
       if(terminate==0) terminate = 1;  //Set to 1 only if it was 0
-    }
-    else {
+    } else {
       tau    = pEta/(5.0*Mtot)*t;   //t = localtc-t already
       tau18  = exp(0.125*log(tau));  //tau^(1/8)
       tau28  = tau18*tau18;
@@ -268,9 +274,9 @@ void templateApostolatos(struct parSet *par, struct interferometer *ifo[], int i
         if(omega_orb < oldomega) terminate = 2;
         if(omega_orb >= omega_high) terminate = 3;
 	//if(taperx[i]>0.09) terminate = 4;
-      }
       
-      else {             // Frequency still increasing --> keep on computing...
+      } else {             // Frequency still increasing --> keep on computing...
+	
 	if(i1==0) i1=i;  //Save initial i for tapering the beginning of the signal
 	i2 = i;          //Save final i for tapering the end of the signal
         oldomega = omega_orb;
@@ -332,6 +338,7 @@ void templateApostolatos(struct parSet *par, struct interferometer *ifo[], int i
 	
 	
 	//Print some stuff for diagnostics:
+	//printf("i: %8d   t: %10g   f: %10g   h: %10g\n",i,t,omega_orb/pi,ifo[ifonr]->FTin[i]);
 	//if((omega_orb/pi<40.002 || fabs(t)<0.2) && beVerbose>=1) {
 	//if(beVerbose>=1) {
 	//printf("i: %8d   t: %10g   f: %10g   x: %10g\n",i,t,omega_orb/pi,taperx[i]);
@@ -429,7 +436,7 @@ void localPar(struct parSet *par, struct interferometer *ifo[], int networkSize,
     par->locazi[ifonr] = angle(dummyvec, ifo[ifonr]->rightvec);                          // The 'true' azimuth (N=0,E=90deg) of the source at the location of the detector is:  pi - (par->locazi[ifonr] + ifo[ifonr]->rightArm) 
     if(!rightHanded(ifo[ifonr]->rightvec, dummyvec, ifo[ifonr]->normalvec)) par->locazi[ifonr] = 2.0*pi - par->locazi[ifonr];
     
-    //printf("  %d  %lf  %lf  %s\n",ifonr,ifo[ifonr]->lati/pi*180.0,ifo[ifonr]->longi/pi*180.0,ifo[ifonr]->name);
+    //printf("  localPar:  %d  %lf  %lf  %s\n",ifonr,ifo[ifonr]->lati/pi*180.0,ifo[ifonr]->longi/pi*180.0,ifo[ifonr]->name);
   }
   
 } // End of localPar()

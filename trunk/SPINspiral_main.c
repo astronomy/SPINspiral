@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
   printf("   Compiled from source code version $Id$ \n");
   
   clock_t time0 = clock();
-  int ifonr=0,i=0,injectionWF=0;
+  int ifonr=0,i=0,injectionWF=0,mcmcWF=0;
   double snr=0.0;
   
   
@@ -272,34 +272,43 @@ int main(int argc, char* argv[])
     }
     */
     
-    //Compute match between waveforms with parameter sets par1 and par2
-    if(1==2) {
+    
+    //Compute match between waveforms with parameter sets injctPar and startPar
+    if(1==1) {
       printf("\n\n");
-      struct parSet par1;
-      allocParset(&par1, networkSize);
-      struct parSet par2;
-      allocParset(&par2, networkSize);
       
-      double eta=0.0;
-      //for(eta=0.01;eta<0.25001;eta+=0.001) {
-      //for(eta=0.1;eta<0.12001;eta+=0.001) {
-      for(eta=0.111;eta<0.1111;eta+=0.001) {
-	//getparameterset(&par1, 3.0,0.11,700009012.346140,3.0, 0.5,0.9,3.0,0.5, 1.0,0.1,2.0,3.0);
-	
-	//getparameterset(&par2, 3.0,eta,700009012.346140,3.0, 0.5,0.9,3.0,0.5, 1.0,0.1,2.0,3.0);
-	
-	injectionWF = 1;                    // Call parMatch and parOverlap with the injection waveform
-	double matchres = parMatch(&par1,&par2,network, networkSize, run.injectionWaveform, injectionWF, run);
-	double overlap = parOverlap(&par1,&par2,network,0, run.injectionWaveform, injectionWF, run);
-	
-	printf("   Eta: %6.4f,  match: %10.5lf,  overlap: %g \n",eta,matchres,overlap);
-      }
+      injectionWF = 1;  // When calling localPar, parMatch and parOverlap with the injection waveform (1)
+      mcmcWF = 0;       // When calling localPar, parMatch and parOverlap with the MCMC waveform (0)
+      
+      struct parSet injctPar;
+      allocParset(&injctPar, networkSize);
+      
+      struct parSet startPar;
+      allocParset(&startPar, networkSize);
+      
+      getInjectionParameters(&injctPar, run.nInjectPar, run.injParVal);  // injctPar contains injection parameters
+      //getStartParameters(&injctPar, run);                                // injctPar contains MCMC starting parameters
+      //getInjectionParameters(&startPar, run.nInjectPar, run.injParVal);  // startPar contains injection parameters
+      getStartParameters(&startPar, run);                                // startPar contains MCMC starting parameters
+      
+      localPar(&injctPar, network, networkSize, injectionWF, run);
+      localPar(&startPar, network, networkSize, mcmcWF, run);
+      
+      //run.injectionWaveform = 1;
+      double matchres=0.0, overlap=0.0;
+      printf("\n\n  Match:\n");
+      matchres = parMatch(&injctPar, run.injectionWaveform, injectionWF, &startPar, run.mcmcWaveform, mcmcWF, network, networkSize, run);
+      printf("\n\n  Overlap:\n");
+      overlap = parOverlap(&injctPar, run.injectionWaveform, injectionWF, &startPar, run.mcmcWaveform, mcmcWF, network, 0, run); //For IFO 0
+      
+      printf("\n\n   Match: %10.5lf,  overlap IFO 0: %g \n",matchres,overlap);
       printf("\n");
       
-      freeParset(&par1);
-      freeParset(&par2);
+      freeParset(&injctPar);
+      freeParset(&startPar);
     }
-  
+    
+    
     //Compute Fisher matrix for parameter set par
     if(1==2) {
       printf("\n\n  Computing Fisher matrix...\n\n");

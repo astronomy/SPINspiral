@@ -13,7 +13,7 @@
 								                                               
   1            61      2.9943              0              0.0233     1              1.000               6.000                           Mc             chirp mass (Mo)
   2            62      0.1077              0              0.0252     1              0.03                0.25                            eta            symmetric mass ratio (-)
-  3            11      894377300.00        0              0.0080     2              -0.0500             0.05000                         t_c            GPS time of coalescence (s)
+  3            11      894377000.00        0              0.0080     2              -0.0500             0.05000                         t_c            GPS time of coalescence (s)
   4            22      1.7628              0              0.2600     1              -6.9                4.6                             log(d_L)       log of luminosity distance (Mpc)
   5            31      4.5500              0              0.5700     1              0.0                 6.28                            alpha          right ascension (rad)
   6            32      -0.088              0              0.1390     1              -0.999999           0.999999                        sin(delta)     sin declination (-)

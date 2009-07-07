@@ -2,6 +2,14 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   192: sluys, 07/07/2009
+     - Updated match, overlap and related routines to work with two different waveforms
+     - Removed FrVect.h, FrFilter.h and FrIO.h from include/  
+       They're part of libframe, see fugu:/export/apps/libframe/include/ for a recent version
+   
+   191: sluys, 06/07/2009
+     - Added Makefile_Fugu to allow static compilation on Fugu
+   
    190: sluys, 24/06/2009
      - Free non-spinning LAL variables
      
