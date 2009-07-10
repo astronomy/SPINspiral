@@ -2,6 +2,12 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   194: sluys, 10/07/2009
+     - Cleaning and commenting in SPINspiral_lal
+     
+   193: sluys, 07/07/2009
+     - Updated Fugu Makefile
+     
    192: sluys, 07/07/2009
      - Updated match, overlap and related routines to work with two different waveforms
      - Removed FrVect.h, FrFilter.h and FrIO.h from include/  

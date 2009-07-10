@@ -191,7 +191,7 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   ////////////////////////////////////////////////////////////conversion between the parameter set of the Apostolatos waveform (parameter stored in par) to the parameter set used in LAL//////////////
   
   
-  double pMc=0,pEta=0,pTc=0,pLogDl=0,pSpin1=0,pSpCosTh1=0,pLongi=0,pSinDec=0,pPhase=0,pSinThJ0=0,pPhiJ0=0,pSpPhi1=0;
+  double pMc=0.0,pEta=0.0,pTc=0.0,pLogDl=0.0,pSpin1=0.0,pSpCosTh1=0.0,pRA=0.0,pLongi=0.0,pSinDec=0.0,pPhase=0.0,pSinThJ0=0.0,pPhiJ0=0.0,pSpPhi1=0.0;
   
   if(injectionWF==1) {                                               // Then this is an injection waveform template
     pMc       = par->par[run.injRevID[61]];                                            // 61: Mc
@@ -200,7 +200,7 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
     pLogDl    = par->par[run.injRevID[22]];                                            // 22: log(d_L)
     pSpin1    = par->par[run.injRevID[71]];                                            // 71: a_spin1
     pSpCosTh1 = par->par[run.injRevID[72]];                                            // 72: cos(theta_spin1)
-    pLongi    = fmod(longitude(par->par[run.injRevID[31]], GMST(pTc)) + mtpi, tpi);    // 31: RA; RA -> 'lon'
+    pRA       = par->par[run.injRevID[31]];                                            // 31: RA
     pSinDec   = par->par[run.injRevID[32]];                                            // 32: sin(Dec)
     pPhase    = par->par[run.injRevID[41]];                                            // 41: phi_c - GW phase at coalescence
     pSinThJ0  = par->par[run.injRevID[53]];                                            // 53: sin(theta_J0)
@@ -213,14 +213,18 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
     pLogDl    = par->par[run.parRevID[22]];                                            // 22: log(d_L)	
     pSpin1    = par->par[run.parRevID[71]];                                            // 71: a_spin1		
     pSpCosTh1 = par->par[run.parRevID[72]];                                            // 72: cos(theta_spin1)
-    pLongi    = fmod(longitude(par->par[run.parRevID[31]], GMST(pTc)) + mtpi, tpi);    // 31: RA; RA -> 'lon'
+    pRA       = par->par[run.parRevID[31]];                                            // 31: RA
     pSinDec   = par->par[run.parRevID[32]];                                            // 32: sin(Dec)     
     pPhase    = par->par[run.parRevID[41]];                                            // 41: phi_c - GW phase at coalescence
     pSinThJ0  = par->par[run.parRevID[53]];                                            // 53: sin(theta_J0)
     pPhiJ0    = par->par[run.parRevID[54]];                                            // 54: phi_J0	     
     pSpPhi1   = par->par[run.parRevID[73]];                                            // 73: phi_spin1    
   }
-
+  
+  pLongi = fmod(longitude(pRA, GMST(pTc)) + mtpi, tpi);    // RA -> 'lon'
+  
+  //printf(" LAL one-spin WF pars:  injWF: %i, Mc: %f, eta: %f, tc: %f, logD: %f, RA: %f, dec: %f, phi: %f, sthJo: %f, phiJo: %f,  a1: %f, cth1: %f, phi1: %f\n",
+  //injectionWF,pMc, pEta, pTc, pLogDl, pRA, pSinDec, pPhase, pSinThJ0, pPhiJ0,  pSpin1, pSpCosTh1, pSpPhi1);
   
   double x;
   double m1=0.0,m2=0.0,M=0.0,mu=0.0;
@@ -382,7 +386,9 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   injParams->f_final = (float)ifo->highCut;  //It seems injParams->f_final gets overwritten by LALGenerateInspiral; it's an output parameter rather than input. This will also somewhat affect SNR comparisons with the Apostolatos waveform.
   injParams->f_lower = (float)f_lower;
   
-  LALSnprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTaylorthreePointFivePN");//"SpinTaylortwoPN");
+  //Remember we're in the 12-par routine here
+  LALSnprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTayloronePointFivePN");
+  //LALSnprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTaylortwoPN");
   
   /* this is given in Mpc */    
   injParams->distance = (float)exp(pLogDl);//d_L;
@@ -579,7 +585,7 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   double inversesamplerate = 1.0/samplerate;
   
   // Get the 15 waveform parameters from their array:
-  double pMc=0,pEta=0,pTc=0,pLogDl=0,pLongi=0,pSinDec=0,pPhase=0,pCosI=0,pPsi=0,pSpin1=0,pSpCosTh1=0,pSpPhi1=0,pSpin2=0,pSpCosTh2=0,pSpPhi2=0;
+  double pMc=0.0,pEta=0.0,pTc=0.0,pLogDl=0.0,pRA=0.0,pLongi=0.0,pSinDec=0.0,pPhase=0.0,pCosI=0.0,pPsi=0.0,pSpin1=0.0,pSpCosTh1=0.0,pSpPhi1=0.0,pSpin2=0.0,pSpCosTh2=0.0,pSpPhi2=0.0;
   
   if(injectionWF==1) {                                               // Then this is an injection waveform template
     pTc       = par->par[run.injRevID[11]];                                            // 11: t_c
@@ -587,7 +593,7 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
     pMc       = par->par[run.injRevID[61]];                                            // 61: Mc
     pEta      = par->par[run.injRevID[62]];                                            // 62: eta
     
-    pLongi    = fmod(longitude(par->par[run.injRevID[31]], GMST(pTc)) + mtpi, tpi);    // 31: RA; RA -> 'lon'
+    pRA       = par->par[run.injRevID[31]];                                            // 31: RA
     pSinDec   = par->par[run.injRevID[32]];                                            // 32: sin(Dec)
     pPhase    = par->par[run.injRevID[41]];                                            // 41: phi_c - GW phase at coalescence
     pCosI     = par->par[run.injRevID[51]];                                            // 51: cos(inclination)
@@ -605,7 +611,7 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
     pMc       = par->par[run.parRevID[61]];                                            // 61: Mc
     pEta      = par->par[run.parRevID[62]];                                            // 62: eta
     
-    pLongi    = fmod(longitude(par->par[run.parRevID[31]], GMST(pTc)) + mtpi, tpi);    // 31: RA; RA -> 'lon'
+    pRA       = par->par[run.parRevID[31]];                                            // 31: RA
     pSinDec   = par->par[run.parRevID[32]];                                            // 32: sin(Dec)
     pPhase    = par->par[run.parRevID[41]];                                            // 41: phi_c - GW phase at coalescence
     pCosI     = par->par[run.parRevID[51]];                                            // 51: cos(inclination) of the binary
@@ -619,6 +625,10 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
     pSpPhi2   = par->par[run.parRevID[83]];                                            // 83: phi_spin2    
   }
   
+  pLongi = fmod(longitude(pRA, GMST(pTc)) + mtpi, tpi);    // RA -> 'lon'
+
+  //printf(" LAL two-spin WF pars:  injWF: %i, Mc: %f, eta: %f, tc: %f, logD: %f, RA: %f, dec: %f, phi: %f, cos(i): %f, psi: %f,  a1: %f, cth1: %f, phi1: %f,  a2: %f, cth2: %f, phi2: %f\n",
+  //injectionWF,pMc, pEta, pTc, pLogDl, pRA, pSinDec, pPhase, pCosI, pPsi,  pSpin1, pSpCosTh1, pSpPhi1,  pSpin2, pSpCosTh2, pSpPhi2);
   
   
   // Get masses from Mch and eta:
@@ -634,7 +644,10 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   injParams->f_final = (float)ifo->highCut;  // It seems injParams->f_final gets overwritten by LALGenerateInspiral; it's an output parameter rather than input. This will also somewhat affect SNR comparisons with the Apostolatos waveform.
   injParams->f_lower = (float)f_lower;
   
-  LALSnprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTayloronePointFivePN");  //"SpinTaylortwoPN");
+  //Remember we're in the 15-par routine here
+  //LALSnprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTayloronePointFivePN");
+  LALSnprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTaylortwoPN");
+  //LALSnprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTaylorthreePointFivePN");
   
   // This is given in Mpc:
   injParams->distance = (float)exp(pLogDl); // d_L;
@@ -714,7 +727,7 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
   int i=0;
   
   // Get the 9 waveform parameters from their array:
-  double pMc=0.0,pEta=0.0,pTc=0.0,pLogDl=0.0,pRA=0.0,pLongi=0.0,pSinDec=0.0,pPhase=0.0,pCosI=0,pPsi=0.0;
+  double pMc=0.0,pEta=0.0,pTc=0.0,pLogDl=0.0,pRA=0.0,pLongi=0.0,pSinDec=0.0,pPhase=0.0,pCosI=0.0,pPsi=0.0;
   if(injectionWF==1) {                                               // Then this is an injection waveform template
     pTc       = par->par[run.injRevID[11]];                                            // 11: t_c
     pLogDl    = par->par[run.injRevID[22]];                                            // 22: log(d_L)
@@ -768,6 +781,7 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
   
   
   // Store waveform family and pN order in injParams.waveform
+  // Remember we're in the non-spinning LAL routine here
   LALSnprintf(injParams.waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"GeneratePPNtwoPN");  // Non-spinning
   //LALSnprintf(injParams.waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTaylortwoPN");  // Spinning
   Approximant injapprox;
