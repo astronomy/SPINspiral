@@ -2,6 +2,11 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   195: sluys, 10/07/2009
+     - Changed input files:
+       - moved mcmcWaveform from input.mcmc to input.parameters
+       - added mcmcPNorder and injectionPNorder to input.parameters and input.injection
+       
    194: sluys, 10/07/2009
      - Cleaning and commenting in SPINspiral_lal
      

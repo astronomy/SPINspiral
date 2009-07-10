@@ -1449,7 +1449,9 @@ void copyRun2MCMC(struct runPar run, struct MCMCvariables *mcmc)
   mcmc->nInjectPar = run.nInjectPar;                    // Number of mcmc/template parameters
   
   mcmc->mcmcWaveform = run.mcmcWaveform;                // Waveform used as MCMC template
+  mcmc->mcmcPNorder = run.mcmcPNorder;                  // pN order used for MCMC template
   mcmc->injectionWaveform = run.injectionWaveform;      // Waveform used as injection template
+  mcmc->injectionPNorder = run.injectionPNorder;        // pN order used for injection template
   mcmc->networkSize = run.networkSize;                  // Network size
   mcmc->seed = run.MCMCseed;                            // MCMC seed
   mcmc->blockFrac = run.blockFrac;                      // Fraction of non-correlated updates that is a block update

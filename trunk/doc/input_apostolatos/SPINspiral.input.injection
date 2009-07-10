@@ -4,6 +4,7 @@
   #Value:                                                 Variable:                Description:
   1                                                       injectSignal             Inject a signal into the data (1) or not (0).
   1                                                       injectionWaveform        Waveform version used for the software injection:  1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL, 3 for 3.5PN 15-parameter LAL
+  1.5                                                     injectionPNorder         Post-Newtonian order to use for the software injection, e.g. 1.5, 2.0, 3.5.  Will be rounded off to the nearest 0.5.
   0.0                                                     injectionSNR             If > 0: scale the distance such that the injection network SNR becomes injectionSNR
   12345                                                   injRanSeed               Random number seed for random injection parameters. Don't change between serial chains of the same run!
   

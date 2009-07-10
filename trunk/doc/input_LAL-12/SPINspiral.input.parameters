@@ -2,6 +2,8 @@
   
   #General:
   #Value:                                  Variable:                Description:
+  2                                        mcmcWaveform             Waveform version used as MCMC template:  1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL, 3 for 3.5PN 15-parameter LAL
+  1.5                                      mcmcPNorder              Post-Newtonian order to use for the MCMC template, e.g. 1.5, 2.0, 3.5.  Will be rounded off to the nearest 0.5.
   1                                        priorSet                 Set of priors to use
   1                                        offsetMCMC               Start the MCMC with offset initial parameters: 0-no: use injection parameters, 1-yes: randomly around the injected parameters, 2-yes: at the starting parameters, 3-yes: randomly around the starting parameters.
   10.0                                     offsetX                  Start the MCMC with an offset of offsetX times the Sigma below

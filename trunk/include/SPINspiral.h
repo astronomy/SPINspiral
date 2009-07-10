@@ -117,6 +117,7 @@ struct runPar{
   int nMCMCpar;                   // Number of parameters in the MCMC template
   int nInjectPar;                 // Number of parameters in the injection template
   int mcmcWaveform;               // Waveform used as the MCMC template
+  double mcmcPNorder;             // pN order of the MCMC waveform
   int nTemps;		          // Size of temperature ladder
   int MCMCseed;                   // Seed for MCMC
   int selectdata;                 // Select which data set to run on
@@ -167,6 +168,7 @@ struct runPar{
   //Software injection:
   int injectSignal;               // Inject a signal in the data or not
   int injectionWaveform;          // Waveform used to do software injections
+  double injectionPNorder;        // pN order of the injection waveform
   int injRanSeed;                 // Seed to randomise injection parameters
   double injectionSNR;            // Network SNR of the software injection, scale the distance to obtain this value
   
@@ -238,7 +240,9 @@ struct MCMCvariables{
   int iTemp;                      // The current temperature index
   int networkSize;                // Number of IFOs in the detector network
   int mcmcWaveform;               // Waveform used as the MCMC template
+  double mcmcPNorder;             // pN order of the MCMC waveform
   int injectionWaveform;          // Waveform used to do software injections
+  double injectionPNorder;        // pN order of the injection waveform
   
   int nIter;                      // Number of MCMC iterations to compute
   int thinOutput;                 // Save every thiOutput-th MCMC iteration to file

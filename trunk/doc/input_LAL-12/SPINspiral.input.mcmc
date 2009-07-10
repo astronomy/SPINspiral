@@ -3,7 +3,6 @@
   #Value:                                  Variable:           Description:
   
   #Basic settings:
-  2                                        mcmcWaveform        Waveform version used as MCMC template:  1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL, 3 for 3.5PN 15-parameter LAL
   10                                       iter                Total number of iterations to be computed (e.g. 1e7).
   1                                        thinOutput          Number of iterations to be skipped between stored steps (100 for 1d).
   1                                        thinScreenOutput    Number of iterations between screen outputs im the MCMC (1000 for 1d).

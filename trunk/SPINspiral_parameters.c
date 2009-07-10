@@ -203,34 +203,6 @@ void readMCMCinputfile(struct runPar *run)
   //Basic settings
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
   
-  fgets(bla,500,fin);  sscanf(bla,"%d",&run->mcmcWaveform);
-  //run->injectionWaveform = run->mcmcWaveform;  //For now
-  
-  
-  if(run->mcmcWaveform==1) {
-    if(run->beVerbose>=1) printf("   Using Apostolatos, 1.5PN, 12-parameter waveform as the MCMC template.\n");
-    run->nMCMCpar=12;
-  } else if(run->mcmcWaveform==2) {
-    if(run->beVerbose>=1) printf("   Using LAL, 3.5PN, 12-parameter waveform as the MCMC template.\n");
-    run->nMCMCpar=12;
-  } else if(run->mcmcWaveform==3) {
-    if(run->beVerbose>=1) printf("   Using LAL, 3.5PN, 15-parameter waveform as the MCMC template.\n");
-    run->nMCMCpar=15;
-  } else if(run->mcmcWaveform==4) {
-    if(run->beVerbose>=1) printf("   Using LAL non-spinning waveform as the MCMC template.\n");
-    run->nMCMCpar=9;
-  } else {
-    fprintf(stderr,"   Unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->mcmcWaveform);
-    fprintf(stderr,"     1: Apostolatos, simple precession, 12 parameters\n");
-    fprintf(stderr,"     2: LAL, single spin, 12 parameters\n");
-    fprintf(stderr,"     3: LAL, double spin, 15 parameters\n");
-    fprintf(stderr,"     4: LAL, non-spinnig, 9 parameters\n");
-    fprintf(stderr,"   Please set mcmcWaveform in %s to one of these values.\n\n",run->mcmcFilename);
-    exit(1);
-  }
-  //run->nInjectPar = run->nMCMCpar;  //For now
-  
-  
   fgets(bla,500,fin);  sscanf(bla,"%lg",&tmpdbl);    
   run->nIter = (int)tmpdbl;
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->thinOutput);
@@ -414,6 +386,7 @@ void readInjectionInputfile(struct runPar *run)
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->injectSignal);
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->injectionWaveform);
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->injectionPNorder);
   fgets(bla,500,fin);  sscanf(bla,"%lf",&run->injectionSNR);
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->injRanSeed);
   
@@ -598,9 +571,34 @@ void readParameterInputfile(struct runPar *run)
   
   //Priors:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
+  fgets(bla,500,fin);  sscanf(bla,"%d",&run->mcmcWaveform);
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->mcmcPNorder);
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->priorSet);
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->offsetMCMC);
   fgets(bla,500,fin);  sscanf(bla,"%lf",&run->offsetX);
+  
+  if(run->mcmcWaveform==1) {
+    if(run->beVerbose>=1) printf("   Using Apostolatos, 1.5PN, 12-parameter waveform as the MCMC template.\n");
+    run->nMCMCpar=12;
+  } else if(run->mcmcWaveform==2) {
+    if(run->beVerbose>=1) printf("   Using LAL, 3.5PN, 12-parameter waveform as the MCMC template.\n");
+    run->nMCMCpar=12;
+  } else if(run->mcmcWaveform==3) {
+    if(run->beVerbose>=1) printf("   Using LAL, 3.5PN, 15-parameter waveform as the MCMC template.\n");
+    run->nMCMCpar=15;
+  } else if(run->mcmcWaveform==4) {
+    if(run->beVerbose>=1) printf("   Using LAL non-spinning waveform as the MCMC template.\n");
+    run->nMCMCpar=9;
+  } else {
+    fprintf(stderr,"   Unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->mcmcWaveform);
+    fprintf(stderr,"     1: Apostolatos, simple precession, 12 parameters\n");
+    fprintf(stderr,"     2: LAL, single spin, 12 parameters\n");
+    fprintf(stderr,"     3: LAL, double spin, 15 parameters\n");
+    fprintf(stderr,"     4: LAL, non-spinnig, 9 parameters\n");
+    fprintf(stderr,"   Please set mcmcWaveform in %s to one of these values.\n\n",run->mcmcFilename);
+    exit(1);
+  }
+  
   
   
   
