@@ -191,7 +191,7 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   ////////////////////////////////////////////////////////////conversion between the parameter set of the Apostolatos waveform (parameter stored in par) to the parameter set used in LAL//////////////
   
   
-  double pMc=0.0,pEta=0.0,pTc=0.0,pLogDl=0.0,pSpin1=0.0,pSpCosTh1=0.0,pRA=0.0,pLongi=0.0,pSinDec=0.0,pPhase=0.0,pSinThJ0=0.0,pPhiJ0=0.0,pSpPhi1=0.0;
+  double pMc=0.0,pEta=0.0,pTc=0.0,pLogDl=0.0,pSpin1=0.0,pSpCosTh1=0.0,pRA=0.0,pLongi=0.0,pSinDec=0.0,pPhase=0.0,pSinThJ0=0.0,pPhiJ0=0.0,pSpPhi1=0.0,PNorder=0.0;
   
   if(injectionWF==1) {                                               // Then this is an injection waveform template
     pMc       = par->par[run.injRevID[61]];                                            // 61: Mc
@@ -206,6 +206,8 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
     pSinThJ0  = par->par[run.injRevID[53]];                                            // 53: sin(theta_J0)
     pPhiJ0    = par->par[run.injRevID[54]];                                            // 54: phi_J0
     pSpPhi1   = par->par[run.injRevID[73]];                                            // 73: phi_spin1    
+    
+    PNorder   = run.injectionPNorder;                                                  // Post-Newtonian order
   } else {                                                           // Then this is an MCMC waveform template
     pMc       = par->par[run.parRevID[61]];                                            // 61: Mc
     pEta      = par->par[run.parRevID[62]];                                            // 62: eta
@@ -219,6 +221,8 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
     pSinThJ0  = par->par[run.parRevID[53]];                                            // 53: sin(theta_J0)
     pPhiJ0    = par->par[run.parRevID[54]];                                            // 54: phi_J0	     
     pSpPhi1   = par->par[run.parRevID[73]];                                            // 73: phi_spin1    
+
+    PNorder   = run.mcmcPNorder;                                                       // Post-Newtonian order
   }
   
   pLongi = fmod(longitude(pRA, GMST(pTc)) + mtpi, tpi);    // RA -> 'lon'
@@ -387,7 +391,13 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   injParams->f_lower = (float)f_lower;
   
   //Remember we're in the 12-par routine here
-  LALSnprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTayloronePointFivePN");
+  char* waveformApproximant = (char*)calloc(128,sizeof(char));
+  getWaveformApproximant("SpinTaylor",128,PNorder,waveformApproximant);  //Spinning
+  //snprintf(waveformApproximant,128,"SpinTayloronePointFivePN"); //Set it manually
+  //printf("\n  %s\n\n",waveformApproximant);
+  
+  LALSnprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),waveformApproximant);
+  //LALSnprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTayloronePointFivePN");
   //LALSnprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTaylortwoPN");
   
   /* this is given in Mpc */    
@@ -585,7 +595,8 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   double inversesamplerate = 1.0/samplerate;
   
   // Get the 15 waveform parameters from their array:
-  double pMc=0.0,pEta=0.0,pTc=0.0,pLogDl=0.0,pRA=0.0,pLongi=0.0,pSinDec=0.0,pPhase=0.0,pCosI=0.0,pPsi=0.0,pSpin1=0.0,pSpCosTh1=0.0,pSpPhi1=0.0,pSpin2=0.0,pSpCosTh2=0.0,pSpPhi2=0.0;
+  double pMc=0.0,pEta=0.0,pTc=0.0,pLogDl=0.0,pRA=0.0,pLongi=0.0,pSinDec=0.0,pPhase=0.0,pCosI=0.0,pPsi=0.0;
+  double pSpin1=0.0,pSpCosTh1=0.0,pSpPhi1=0.0,pSpin2=0.0,pSpCosTh2=0.0,pSpPhi2=0.0,PNorder=0.0;
   
   if(injectionWF==1) {                                               // Then this is an injection waveform template
     pTc       = par->par[run.injRevID[11]];                                            // 11: t_c
@@ -605,6 +616,8 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
     pSpin2    = par->par[run.injRevID[81]];                                            // 81: a_spin2
     pSpCosTh2 = par->par[run.injRevID[82]];                                            // 82: cos(theta_spin2)
     pSpPhi2   = par->par[run.injRevID[83]];                                            // 83: phi_spin2    
+    
+    PNorder   = run.injectionPNorder;                                                  // Post-Newtonian order
   } else {                                                           // Then this is an MCMC waveform template
     pTc       = par->par[run.parRevID[11]];                                            // 11: t_c
     pLogDl    = par->par[run.parRevID[22]];                                            // 22: log(d_L)
@@ -623,6 +636,8 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
     pSpin2    = par->par[run.parRevID[81]];                                            // 81: a_spin2
     pSpCosTh2 = par->par[run.parRevID[82]];                                            // 82: cos(theta_spin2)
     pSpPhi2   = par->par[run.parRevID[83]];                                            // 83: phi_spin2    
+    
+    PNorder   = run.mcmcPNorder;                                                       // Post-Newtonian order
   }
   
   pLongi = fmod(longitude(pRA, GMST(pTc)) + mtpi, tpi);    // RA -> 'lon'
@@ -645,9 +660,15 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   injParams->f_lower = (float)f_lower;
   
   //Remember we're in the 15-par routine here
+  char* waveformApproximant = (char*)calloc(128,sizeof(char));
+  getWaveformApproximant("SpinTaylor",128,PNorder,waveformApproximant);  //Spinning
+  //snprintf(waveformApproximant,128,"SpinTaylorthreePointFivePN"); //Set it manually
+  //printf("\n  %s\n\n",waveformApproximant);
+  
+  LALSnprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),waveformApproximant);
   //LALSnprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTayloronePointFivePN");
   //LALSnprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTaylortwoPN");
-  LALSnprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTaylorthreePointFivePN");
+  //LALSnprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTaylorthreePointFivePN");
   
   // This is given in Mpc:
   injParams->distance = (float)exp(pLogDl); // d_L;
@@ -727,7 +748,7 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
   int i=0;
   
   // Get the 9 waveform parameters from their array:
-  double pMc=0.0,pEta=0.0,pTc=0.0,pLogDl=0.0,pRA=0.0,pLongi=0.0,pSinDec=0.0,pPhase=0.0,pCosI=0.0,pPsi=0.0;
+  double pMc=0.0,pEta=0.0,pTc=0.0,pLogDl=0.0,pRA=0.0,pLongi=0.0,pSinDec=0.0,pPhase=0.0,pCosI=0.0,pPsi=0.0,PNorder=0.0;
   if(injectionWF==1) {                                               // Then this is an injection waveform template
     pTc       = par->par[run.injRevID[11]];                                            // 11: t_c
     pLogDl    = par->par[run.injRevID[22]];                                            // 22: log(d_L)
@@ -739,6 +760,8 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
     pPhase    = par->par[run.injRevID[41]];                                            // 41: phi_c - GW phase at coalescence
     pCosI     = par->par[run.injRevID[51]];                                            // 51: cos(inclination)
     pPsi      = par->par[run.injRevID[52]];                                            // 52: psi: polarisation angle
+    
+    PNorder   = run.injectionPNorder;                                                  // Post-Newtonian order
   } else {                                                           // Then this is an MCMC waveform template
     pTc       = par->par[run.parRevID[11]];                                            // 11: t_c
     pLogDl    = par->par[run.parRevID[22]];                                            // 22: log(d_L)
@@ -750,6 +773,8 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
     pPhase    = par->par[run.parRevID[41]];                                            // 41: phi_c - GW phase at coalescence
     pCosI     = par->par[run.parRevID[51]];                                            // 51: cos(inclination) of the binary
     pPsi      = par->par[run.parRevID[52]];                                            // 52: psi: polarisation angle of the binary
+    
+    PNorder   = run.mcmcPNorder;                                                       // Post-Newtonian order
   }
   
   //pLongi = fmod(longitude(pRA, GMST(pTc)) + mtpi, tpi);    // RA -> 'lon'
@@ -776,18 +801,21 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
   double inversesamplerate = 1.0/samplerate;
   int length = ifo[ifonr]->samplesize;
   double *wave = (double*)calloc(length+2,sizeof(double));
-
+  
   
   
   
   // Store waveform family and pN order in injParams.waveform
   // Remember we're in the non-spinning LAL routine here
-  LALSnprintf(injParams.waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"GeneratePPNtwoPN");  // Non-spinning
-  //LALSnprintf(injParams.waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTaylortwoPN");  // Spinning
+  char* waveformApproximant = (char*)calloc(128,sizeof(char));
+  getWaveformApproximant("GeneratePPN",128,PNorder,waveformApproximant);  //Non-spinning
+  //getWaveformApproximant("SpinTaylor",128,PNorder,waveformApproximant);  //Spinning
+  //printf("\n  %s\n\n",waveformApproximant);
+  
+  LALSnprintf(injParams.waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),waveformApproximant);
   Approximant injapprox;
   LALGetApproximantFromString(&status,injParams.waveform,&injapprox);
   if(injapprox!=GeneratePPN) fprintf(stderr,"\n *** Warning:  not using GeneratePPN approximant causes incoherent injections ***\n");
-  
   
   // Get masses from Mch and eta:
   double m1=0.0,m2=0.0;
@@ -827,7 +855,7 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
   // Call the injection function; compute h_+ and h_x:
   LALGenerateInspiral(&status, &waveform, &injParams, &ppnParams );
   if(status.statusCode) {
-    fprintf(stderr, "\n\n   LALHpHcNonSpinning:  ERROR generating waveform\n\n" );
+    fprintf(stderr, "\n\n   LALHpHcNonSpinning:  ERROR generating waveform %s\n\n", waveformApproximant);
     REPORTSTATUS(&status);
     exit(1);
   }
@@ -843,6 +871,7 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
   for(i=0; i<length; ++i) {ifo[ifonr]->FTin[i] = wave[i];}
   
   free(wave);
+  free(waveformApproximant);
   
 } // End of templateLALnonSpinning()
 // ****************************************************************************************************************************************************  
@@ -1071,6 +1100,49 @@ double LALFpFc(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
 
 
 
+// ****************************************************************************************************************************************************  
+/**
+ * \brief Compose the waveform approximant from the family name and pN order
+ */
+// ****************************************************************************************************************************************************  
+void getWaveformApproximant(char* familyName, int length, double PNorder, char* waveformApproximant) {
+  int PNorderTimesTwo = (int)rint(PNorder*2.0);
+  switch(PNorderTimesTwo) {
+  case 2:
+    snprintf(waveformApproximant,length,"%s%s",familyName,"onePN");
+    break;
+    
+  case 3:
+    snprintf(waveformApproximant,length,"%s%s",familyName,"onePointFivePN");
+    break;
+    
+  case 4:
+    snprintf(waveformApproximant,length,"%s%s",familyName,"twoPN");
+    break;
+    
+  case 5:
+    snprintf(waveformApproximant,length,"%s%s",familyName,"twoPointFivePN");
+    break;
+     
+  case 6:
+    snprintf(waveformApproximant,length,"%s%s",familyName,"threePN");
+    break;
+    
+  case 7:
+    snprintf(waveformApproximant,length,"%s%s",familyName,"threePointFivePN");
+    break;
+    
+  case 8:
+    snprintf(waveformApproximant,length,"%s%s",familyName,"fourPN");
+    break;
+    
+ default:
+    fprintf(stderr, "\n\n   ERROR:  pN order%4.1f is not (yet) supported, aborting.\n\n\n",PNorder);
+    exit(1);
+  }
+}
+// ****************************************************************************************************************************************************  
+
 
 
 // ****************************************************************************************************************************************************  
@@ -1121,5 +1193,6 @@ void LALfreedomNoSpin(CoherentGW *waveform) {
   
 } // End of LALfreedomNoSpin
 // ****************************************************************************************************************************************************  
+
 
 

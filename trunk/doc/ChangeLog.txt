@@ -2,6 +2,12 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   197: sluys, 10/07/2009
+     - Set use the pN order as specified in the input files
+     
+   196: sluys, 10/07/2009
+     - Corrected typo from rev.194
+     
    195: sluys, 10/07/2009
      - Changed input files:
        - moved mcmcWaveform from input.mcmc to input.parameters

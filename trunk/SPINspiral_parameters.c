@@ -393,16 +393,16 @@ void readInjectionInputfile(struct runPar *run)
   //Get the number of injection parameters from the injectionWaveform
   if(run->injectSignal >= 1) {
     if(run->injectionWaveform==1) {
-      if(run->beVerbose>=1) printf("   Using Apostolatos, 1.5PN, 12-parameter waveform for the software injection.\n");
+      if(run->beVerbose>=1) printf("   Using Apostolatos, 1.5-pN, 12-parameter waveform for the software injection.\n"); // Only the 1.5-pN order is available
       run->nInjectPar=12;
     } else if(run->injectionWaveform==2) {
-      if(run->beVerbose>=1) printf("   Using LAL, 3.5PN, 12-parameter waveform for the software injection.\n");
+      if(run->beVerbose>=1) printf("   Using LAL,%4.1f-pN, 12-parameter waveform for the software injection.\n",run->injectionPNorder);
       run->nInjectPar=12;
     } else if(run->injectionWaveform==3) {
-      if(run->beVerbose>=1) printf("   Using LAL, 3.5PN, 15-parameter waveform for the software injection.\n");
+      if(run->beVerbose>=1) printf("   Using LAL,%4.1f-pN, 15-parameter waveform for the software injection.\n",run->injectionPNorder);
       run->nInjectPar=15;
     } else if(run->injectionWaveform==4) {
-      if(run->beVerbose>=1) printf("   Using LAL non-spinning waveform for the software injection.\n");
+      if(run->beVerbose>=1) printf("   Using LAL,%4.1f-pN, non-spinning waveform for the software injection.\n",run->injectionPNorder);
       run->nInjectPar=9;
     } else {
       fprintf(stderr,"   Unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->injectionWaveform);
@@ -578,16 +578,16 @@ void readParameterInputfile(struct runPar *run)
   fgets(bla,500,fin);  sscanf(bla,"%lf",&run->offsetX);
   
   if(run->mcmcWaveform==1) {
-    if(run->beVerbose>=1) printf("   Using Apostolatos, 1.5PN, 12-parameter waveform as the MCMC template.\n");
+    if(run->beVerbose>=1) printf("   Using Apostolatos, 1.5-pN, 12-parameter waveform as the MCMC template.\n");  //Only 1.5-pN order is available
     run->nMCMCpar=12;
   } else if(run->mcmcWaveform==2) {
-    if(run->beVerbose>=1) printf("   Using LAL, 3.5PN, 12-parameter waveform as the MCMC template.\n");
+    if(run->beVerbose>=1) printf("   Using LAL,%4.1f-pN, 12-parameter waveform as the MCMC template.\n",run->mcmcPNorder);
     run->nMCMCpar=12;
   } else if(run->mcmcWaveform==3) {
-    if(run->beVerbose>=1) printf("   Using LAL, 3.5PN, 15-parameter waveform as the MCMC template.\n");
+    if(run->beVerbose>=1) printf("   Using LAL,%4.1f-pN, 15-parameter waveform as the MCMC template.\n",run->mcmcPNorder);
     run->nMCMCpar=15;
   } else if(run->mcmcWaveform==4) {
-    if(run->beVerbose>=1) printf("   Using LAL non-spinning waveform as the MCMC template.\n");
+    if(run->beVerbose>=1) printf("   Using LAL,%4.1f-pN, non-spinning waveform as the MCMC template.\n",run->mcmcPNorder);
     run->nMCMCpar=9;
   } else {
     fprintf(stderr,"   Unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->mcmcWaveform);
