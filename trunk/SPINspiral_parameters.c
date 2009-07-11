@@ -512,7 +512,7 @@ void readInjectionInputfile(struct runPar *run)
   
   // Print injection parameters and prior ranges to screen:
   if(run->beVerbose>=1) {
-    printf("\n   Software-injection parameters:\n      Nr: Name:           Injection value:     Obtained:\n");
+    printf("\n   %i software-injection parameters:\n      Nr: Name:           Injection value:     Obtained:\n",run->nInjectPar);
     for(i=0;i<run->nInjectPar;i++) {
       if(run->injRanPar[i]==0) {
 	printf("      %2d  %-11s     %15.4lf      Taken from the value set in %s\n",run->injNumber[i],run->parAbrev[run->injID[i]],run->injParVal[i],

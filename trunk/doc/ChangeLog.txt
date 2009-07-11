@@ -2,8 +2,13 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   198: sluys, 10/07/2009
+     - Changed output format: 
+       - added waveform and parameter info to header
+       - added posterior and prior to body
+     
    197: sluys, 10/07/2009
-     - Set use the pN order as specified in the input files
+     - Use the pN order as specified in the input files
      
    196: sluys, 10/07/2009
      - Corrected typo from rev.194

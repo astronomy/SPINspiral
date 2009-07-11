@@ -53,7 +53,7 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   copyRun2MCMC(run, &mcmc);                   // Copy elements from run struct to mcmc struct
   
   //mcmc.minlogL = 0.0;                       // We've used this a long time
-  mcmc.minlogL = -1.e10;                      // See what happens...
+  mcmc.minlogL = -1.e3;                       // See what happens...
   
   mcmc.tempOverlap = 1.1;                     // Set the overlap factor for the overlap between adjacent sinusoidal temperatures, e.g. 1.1.  1.0 means extremes touch. Keep <~ 1.3
   mcmc.acceptRateTarget = 0.25;               // Target acceptance rate for MCMC; between 0.0 and 1.0 - we've used ~0.25 for a long time
@@ -823,9 +823,8 @@ void writeMCMCheader(struct interferometer *ifo[], struct MCMCvariables mcmc, st
   // *** Open the output file and write run parameters in the header ***
   for(tempi=0;tempi<mcmc.nTemps;tempi++) {
     if(tempi==0 || mcmc.saveHotChains>0) {
-      fprintf(mcmc.fouts[tempi], "%10s  %10s  %6s  %20s  %6s %8s   %6s  %8s  %10s  %12s\n","nIter","Nburn","seed","null likelihood","Ndet","nCorr","nTemps","Tmax","Tchain","Network SNR");
-      
-      fprintf(mcmc.fouts[tempi], "%10d  %10d  %6d  %20.10lf  %6d %8d   %6d%10d%12.1f%14.6f\n",mcmc.nIter,mcmc.annealNburn,mcmc.seed, 0.0 ,run.networkSize,mcmc.nCorr,mcmc.nTemps,(int)mcmc.maxTemp,mcmc.temps[tempi],run.netsnr);
+      fprintf(mcmc.fouts[tempi], "%10s  %10s  %6s  %20s  %6s %8s   %6s  %8s  %10s  %12s  %9s  %9s  %8s\n","nIter","Nburn","seed","null likelihood","Ndet","nCorr","nTemps","Tmax","Tchain","Network SNR","Waveform","pN order","Npar");
+      fprintf(mcmc.fouts[tempi], "%10d  %10d  %6d  %20.10lf  %6d %8d   %6d%10d%12.1f%14.6f  %9i  %9.1f  %8i\n",mcmc.nIter,mcmc.annealNburn,mcmc.seed, 0.0 ,run.networkSize,mcmc.nCorr,mcmc.nTemps,(int)mcmc.maxTemp,mcmc.temps[tempi],run.netsnr,run.mcmcWaveform,run.mcmcPNorder,run.nMCMCpar);
       fprintf(mcmc.fouts[tempi], "\n%16s  %16s  %10s  %10s  %10s  %10s  %20s  %15s  %12s  %12s  %12s\n",
 	      "Detector","SNR","f_low","f_high","before tc","after tc","Sample start (GPS)","Sample length","Sample rate","Sample size","FT size");
       for(i=0;i<run.networkSize;i++) {
@@ -834,12 +833,24 @@ void writeMCMCheader(struct interferometer *ifo[], struct MCMCvariables mcmc, st
 		ifo[i]->FTstart,ifo[i]->deltaFT,ifo[i]->samplerate,ifo[i]->samplesize,ifo[i]->FTsize);
       }
       
-      fprintf(mcmc.fouts[tempi], "\n\n%10s %13s","cycle","logL");
+      //Parameter numbers:
+      fprintf(mcmc.fouts[tempi], "\n\n%47s","");
+      for(i=0;i<mcmc.nMCMCpar;i++) {
+	if(mcmc.parID[i]>=11 && mcmc.parID[i]<=19) {  //GPS time
+	  fprintf(mcmc.fouts[tempi], " %17i",mcmc.parID[i]);
+	} else {
+	  fprintf(mcmc.fouts[tempi], " %9i",mcmc.parID[i]);
+	}
+      }
+      fprintf(mcmc.fouts[tempi],"\n");
+      
+      //Parameter symbols:
+      fprintf(mcmc.fouts[tempi], "%8s %12s %12s %12s","Cycle","log Post.","Prior","logL");
       for(i=0;i<mcmc.nMCMCpar;i++) {
 	if(mcmc.parID[i]>=11 && mcmc.parID[i]<=19) {  //GPS time
 	  fprintf(mcmc.fouts[tempi], " %17s",mcmc.parAbrev[mcmc.parID[i]]);
 	} else {
-	  fprintf(mcmc.fouts[tempi], " %10s",mcmc.parAbrev[mcmc.parID[i]]);
+	  fprintf(mcmc.fouts[tempi], " %9s",mcmc.parAbrev[mcmc.parID[i]]);
 	}
       }
       fprintf(mcmc.fouts[tempi],"\n");
@@ -877,7 +888,7 @@ void writeMCMCoutput(struct MCMCvariables mcmc, struct interferometer *ifo[])
     ifo[0]->index = ifo[0]->index;
     
     if((iIter % (50*mcmc.thinScreenOutput))==0 || iIter<0) {
-      printf("\n%9s%10s","cycle","logL");
+      printf("\n%9s%10s","Cycle","logL");
       for(i=0;i<mcmc.nMCMCpar;i++) {
 	if(mcmc.parID[i]>=11 && mcmc.parID[i]<=19) {  //GPS time
 	  printf(" %18s",mcmc.parAbrev[mcmc.parID[i]]);
@@ -914,12 +925,12 @@ void writeMCMCoutput(struct MCMCvariables mcmc, struct interferometer *ifo[])
   if(tempi==0 || mcmc.saveHotChains>0) { //For all T-chains if desired, otherwise the T=1 chain only
     if((iIter % mcmc.thinOutput)==0 || iIter<=0){
       if(iIter<=0 || tempi==0 || (iIter % (mcmc.thinOutput*mcmc.saveHotChains))==0) { //Save every mcmc.thinOutput-th line for the T=1 chain, but every (mcmc.thinOutput*mcmc.saveHotChains)-th line for the T>1 ones
-	fprintf(mcmc.fouts[tempi], "%10d %13.6lf", iIter,mcmc.logL[tempi]);
+	fprintf(mcmc.fouts[tempi], "%8d %12.5lf %12.9lf %12.5lf", iIter,mcmc.logL[tempi],1.0,mcmc.logL[tempi]);
 	for(i=0;i<mcmc.nMCMCpar;i++) {
 	  if(mcmc.parID[i]>=11 && mcmc.parID[i]<=19) {  //GPS time
 	    fprintf(mcmc.fouts[tempi]," %17.6f",mcmc.param[tempi][i]);
 	  } else {
-	    fprintf(mcmc.fouts[tempi]," %10.6f",mcmc.param[tempi][i]);
+	    fprintf(mcmc.fouts[tempi]," %9.5f",mcmc.param[tempi][i]);
 	  }
 	}
 	fprintf(mcmc.fouts[tempi],"\n");
