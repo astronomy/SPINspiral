@@ -442,6 +442,8 @@ void readInjectionInputfile(struct runPar *run)
     // Get reverse parameter ID:
     run->injRevID[run->injID[i]] = i;
     
+    // Set this parameter as being used for the injection:
+    run->injParUse[run->injID[i]] = 1;
     
     // Get the desired injection boundaries:
     switch (run->injBoundType[i]) {
@@ -625,8 +627,12 @@ void readParameterInputfile(struct runPar *run)
       exit(1);
     }
     
-    run->parRevID[run->parID[i]] = i;  //Reverse parameter ID
-    
+    // Set the reverse parameter ID:
+    run->parRevID[run->parID[i]] = i;
+        
+    // Set this parameter as being used for MCMC:
+    run->mcmcParUse[run->parID[i]] = 1;
+
     
     
     // Get the desired boundary conditions:
@@ -972,6 +978,7 @@ void setRandomInjectionParameters(struct runPar *run)
 // ****************************************************************************************************************************************************  
 void setParameterNames(struct runPar * run)
 {
+  
   //Set 01: time
   strcpy(run->parAbrev[11], "t_c");
   strcpy(run->parAbrv[11], "t_c");
@@ -1082,6 +1089,116 @@ void setParameterNames(struct runPar * run)
   
 } // End setParameterNames()
 // ****************************************************************************************************************************************************  
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ****************************************************************************************************************************************************  
+/**
+ * \brief Copy some of the elements of the struct runPar to the struct MCMCvariables
+ */
+// ****************************************************************************************************************************************************  
+void copyRun2MCMC(struct runPar run, struct MCMCvariables *mcmc)
+{
+  int i=0,j=0;
+  
+  mcmc->beVerbose = run.beVerbose;                      // Print long stretches of output
+  
+  mcmc->maxnPar = run.maxnPar;                          // Absolute maximum number of mcmc/template parameters allowed
+  mcmc->parDBn = run.parDBn;                            // Number of elements in hardcoded parameter database
+  mcmc->nMCMCpar = run.nMCMCpar;                        // Number of mcmc/template parameters
+  mcmc->nInjectPar = run.nInjectPar;                    // Number of mcmc/template parameters
+  
+  mcmc->mcmcWaveform = run.mcmcWaveform;                // Waveform used as MCMC template
+  mcmc->mcmcPNorder = run.mcmcPNorder;                  // pN order used for MCMC template
+  mcmc->injectionWaveform = run.injectionWaveform;      // Waveform used as injection template
+  mcmc->injectionPNorder = run.injectionPNorder;        // pN order used for injection template
+  mcmc->networkSize = run.networkSize;                  // Network size
+  mcmc->seed = run.MCMCseed;                            // MCMC seed
+  mcmc->blockFrac = run.blockFrac;                      // Fraction of non-correlated updates that is a block update
+  mcmc->corrFrac = run.corrFrac;                        // Fraction of MCMC updates that used the correlation matrix
+  mcmc->matAccFr = run.matAccFr;                        // Fraction of elements on the diagonal that must 'improve' in order to accept a new covariance matrix
+  mcmc->offsetMCMC = run.offsetMCMC;                    // Start MCMC offset (i.e., not from injection values) or not
+  mcmc->offsetX = run.offsetX;                          // Start offset chains from a Gaussian distribution offsetX times wider than parSigma
+  
+  mcmc->nIter = run.nIter;                              // Number of MCMC iterations to compute
+  mcmc->thinOutput = run.thinOutput;                    // Save every thiOutput-th MCMC iteration to file
+  mcmc->thinScreenOutput = run.thinScreenOutput;        // Save every thiOutput-th MCMC iteration to screen
+  mcmc->adaptiveMCMC = run.adaptiveMCMC;                // Use adaptive MCMC
+  
+  mcmc->correlatedUpdates = run.correlatedUpdates;      // Switch to do correlated update proposals
+  mcmc->nCorr = run.nCorr;                              // Number of iterations for which the covariance matrix is calculated
+  mcmc->prMatrixInfo = run.prMatrixInfo;                // Print information to screen on proposed matrix updates
+  
+  mcmc->annealTemp0 = run.annealTemp0;                  // Starting temperature of the annealed chain
+  mcmc->annealNburn = run.annealNburn;                  // Number of iterations for the annealing burn-in phase
+  mcmc->annealNburn0 = run.annealNburn0;                // Number of iterations during which temp=annealTemp0
+  
+  mcmc->parallelTempering = run.parallelTempering;      // Switch to use parallel tempering
+  mcmc->maxTemp = run.maxTemp;                          // Maximum temperature in automatic parallel-tempering ladder
+  mcmc->saveHotChains = run.saveHotChains;              // Save hot (T>1) parallel-tempering chains
+  mcmc->prParTempInfo = run.prParTempInfo;              // Print information on the temperature chains
+  
+  
+  mcmc->chTemp = max(mcmc->annealTemp0,1.0);            // Current temperature
+  
+  mcmc->geocentricTc = run.geocentricTc;                // Geocentric Tc
+  mcmc->baseTime = (double)((floor)(mcmc->geocentricTc/100.0)*100);  //'Base' time, gets rid of the first 6-7 digits of GPS time
+  
+  
+  for(i=0;i<mcmc->maxnPar;i++) {
+    mcmc->injParVal[i] = run.injParVal[i];
+    mcmc->injID[i] = run.injID[i];
+    
+    mcmc->parNumber[i] = run.parNumber[i];
+    mcmc->parID[i] = run.parID[i];
+    mcmc->parBestVal[i] = run.parBestVal[i];
+    mcmc->parFix[i] = run.parFix[i];
+    mcmc->parStartMCMC[i] = run.parStartMCMC[i];
+    mcmc->parSigma[i] = run.parSigma[i];
+    
+    mcmc->priorBoundLow[i] = run.priorBoundLow[i];
+    mcmc->priorBoundUp[i] = run.priorBoundUp[i];
+    mcmc->priorType[i] = run.priorType[i];
+    
+    //mcmc->[i] = run.[i];
+  }
+  
+  //Parameter database:
+  for(i=0;i<mcmc->parDBn;i++) {
+    mcmc->injRevID[i] = run.injRevID[i];
+    mcmc->parRevID[i] = run.parRevID[i];
+    mcmc->mcmcParUse[i] = run.mcmcParUse[i];
+    mcmc->injParUse[i]  = run.injParUse[i];
+    
+    
+    for(j=0;j<99;j++) {
+      mcmc->parName[i][j] = run.parName[i][j];
+      mcmc->parAbrev[i][j] = run.parAbrev[i][j];
+      mcmc->parAbrv[i][j] = run.parAbrv[i][j];
+    }
+  }
+  
+  mcmc->nTemps = run.nTemps;                            // Size of temperature ladder
+  for(i=0;i<mcmc->nTemps;i++) mcmc->temps[i] = run.temps[i];
+
+} // End copyRun2MCMC()
+// ****************************************************************************************************************************************************  
+
+
+
+
+
+  
 
 
 

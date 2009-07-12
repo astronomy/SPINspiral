@@ -206,6 +206,8 @@ struct runPar{
   char parAbrev[200][99];         // Abbreviations of the parameter names
   char parAbrv[200][29];          // Really short abbreviations of the parameter names
   int parDef[200];                // Indicates whether a parameter is defined (1) or not (0)
+  int mcmcParUse[200];            // Indicates whether a parameter is being used (1) or not (0) for MCMC
+  int injParUse[200];             // Indicates whether a parameter is being used (1) or not (0) for the injection
   int parRevID[200];              // Reverse parameter identifier
   
   int doSNR;                      // Calculate the injection SNR
@@ -300,6 +302,8 @@ struct MCMCvariables{
   char parAbrev[200][99];         // Abbreviations of the parameter names
   char parAbrv[200][99];          // Really short abbreviations of the parameter names
   int  parDef[200];               // Indicates whether a parameter is defined (1) or not (0)
+  int mcmcParUse[200];            // Indicates whether a parameter is being used (1) or not (0) for MCMC
+  int injParUse[200];             // Indicates whether a parameter is being used (1) or not (0) for the injection
   int parRevID[200];              // Reverse MCMC parameter identifier
   int injRevID[200];              // Reverse injection parameter identifier
   

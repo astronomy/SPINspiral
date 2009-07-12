@@ -194,7 +194,6 @@ The MCMC input file
 
 \subsubsection{Basic settings}
 \begin{description}
-\item[mcmcWaveform] Waveform version used as MCMC template:  1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL, 3 for 3.5PN 15-parameter LAL.
 \item[iter] Total number of iterations to be computed, \textit{e.g.} $10^7$.
 \item[thinOutput] Number of iterations to be skipped between stored steps (100 for 1d).
 \item[thinScreenOutput] Number of iterations between screen outputs in the MCMC (1000 for 1d).
@@ -315,6 +314,7 @@ The software injection input file
 \begin{description}
 \item[injectSignal] Inject a signal into the data (1) or not (0).
 \item[injectionWaveform] Waveform version used for the software injection:  1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL, 3 for 3.5PN 15-parameter LAL.
+\item[injectionPNorder] Post-Newtonian order at which the injection signal should be generated, \textit{e.g.} 1.5, 2.0, 3.5.
 \item[injectionSNR] If $>0$: scale the distance such that the injection network SNR becomes injectionSNR.
 \item[injRanSeed] Random number seed for random injection parameters. Don't change between serial chains of the same run!  Default: 12345.
 \end{description}
@@ -363,6 +363,8 @@ Following the ``General'' section is a table with nine columns containing the fo
 
 \subsubsection{General}
 \begin{description}                
+\item[mcmcWaveform] Waveform version used as MCMC template:  1 for 1.5PN 12-parameter Apostolatos, 2 for 3.5PN 12-parameter LAL, 3 for 3.5PN 15-parameter LAL, 4 for non-spinning LAL.
+\item[mcmcPNorder] Post-Newtonian order at which the MCMC template should be used, \textit{e.g.} 1.5, 2.0, 3.5.
 \item[priorSet] Set of priors to use, currently: 1.
 \item[offsetMCMC] Start the MCMC with offset initial parameters: 0-no: use injection parameters, overrules Start below; 1-yes: use Start below.  Default: 1.
 \item[offsetX] Start the MCMC from a Gaussian distribution with a width of (offsetX times Sigma), if Start==2,4 below.  Default: 10.0.
@@ -441,8 +443,10 @@ Goal: assign a unique identifier to each possible variable that has been used in
 The identifier is stored in the variable \texttt{parID[]} and \texttt{injID[]} in the \texttt{runPar} and 
 \texttt{mcmcvariables} structs.  The reverse identification is stored in \texttt{parRevID[]} and 
 \texttt{injRevID[]}.  Thus, if the first parameter is $t_\mathrm{c}$, then \texttt{parID[0]}=11 and
-\texttt{parRevID[11]}=0.  The variable \texttt{parDef[i]} signifies whether the parameter with ID
-$i$ is defined (1) or not (0).
+\texttt{parRevID[11]}=0.  Whether a parameter is used (1) or not (0) for the software injection or MCMC 
+is stored in \texttt{injParUse[]} and \texttt{mcmcParUse[]}.  The arrays \texttt{parAbrev[]} and 
+\texttt{parAbrv[]} contain short and ultrashort parameter names respectively. The variable \texttt{parDef[i]} 
+signifies whether the parameter with ID $i$ is defined (1) or not (0).
 
 \subsection{Time}
 \begin{tabular}{lllll}

@@ -60,8 +60,11 @@ int main(int argc, char* argv[])
   run.maxnPar = 20;                        //The maximum number of allowed MCMC/injection parameters (this number is hardcoded in many places in SPINspiral.h)
   run.parDBn = 200;                        //The size of the hardcoded parameter database (this number is hardcoded in many places in SPINspiral.h)
   for(i=0;i<run.parDBn;i++) {
-    run.parRevID[i] = -1;
-    run.injRevID[i] = -1;
+    run.parDef[i]     = 0;
+    run.parRevID[i]   = -1;
+    run.injRevID[i]   = -1;
+    run.mcmcParUse[i] = 0;
+    run.injParUse[i]  = 0;
   }
   sprintf(run.executable,argv[0]);
   run.lowFrequencyCut = 0.0;

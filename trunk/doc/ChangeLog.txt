@@ -2,6 +2,10 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   199: sluys, 11/07/2009
+     - mcmcParUse[], injParUse[] show whether parameters are used
+     - require logL>1 when picking starting values, unless none is found after 10^4 trials
+   
    198: sluys, 10/07/2009
      - Changed output format: 
        - added waveform and parameter info to header
