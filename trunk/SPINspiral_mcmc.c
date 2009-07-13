@@ -187,7 +187,8 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
     mcmc.corrUpdate[0] = 1; //Use the matrix above and don't change it
     if(mcmc.correlatedUpdates==2) mcmc.corrUpdate[0] = 2; //Use the matrix above and update it every nCorr iterations
   }
-  
+  freeParset(&state);
+
   
   
   
@@ -409,7 +410,6 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   
   printf("\n");
   freeMCMCvariables(&mcmc);
-  freeParset(&state);
 
   
   for(i=0;i<mcmc.nMCMCpar;i++) free(tempcovar[i]);

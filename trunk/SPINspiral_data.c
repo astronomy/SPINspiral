@@ -195,10 +195,11 @@ void IFOinit(struct interferometer **ifo, int networkSize, struct runPar run)
     
     
     // Read 'detector' noise and estimate PSD
-    if(run.beVerbose>=1) printf("   Reading noise for the detector in %s...\n",ifo[ifonr]->name);
+    if(run.beVerbose>=1) printf("   Reading noise for the detector in %s...",ifo[ifonr]->name);
     noisePSDestimate(ifo[ifonr],run);
-  
-  
+    if(run.beVerbose>=1) printf("%8.1fs used.\n",(double)run.PSDsegmentNumber*run.PSDsegmentLength);
+    
+    
     // Read 'detector' data for injection
     if(run.beVerbose>=1) printf("   Reading data for the detector in %s...\n",ifo[ifonr]->name);
     dataFT(ifo,ifonr,networkSize,run);
@@ -686,8 +687,8 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
   int K = run.PSDsegmentNumber;            // Number of data segments
   double Mseconds = run.PSDsegmentLength;  // Number of seconds in each data segment
   double Nseconds = Mseconds * (double)K;  // Total number of seconds to estimate the PSD for.  Default is 256 seconds
-  if(Nseconds < 127.0) fprintf(stderr, "\n ***  Warning: you're using only %5.1f seconds of data for the PSD estimation;  ~256s is recommended  ***\n\n",Nseconds);
-  if(Nseconds > 1025.0) fprintf(stderr, "\n ***  Warning: you're using %6.1f seconds of data for the PSD estimation;  ~256s is recommended  ***\n\n",Nseconds);
+  if(Nseconds < 127.0) fprintf(stderr, "\n\n ***  Warning: you're using only %5.1f seconds of data for the PSD estimation;  ~256s is recommended  ***\n\n",Nseconds);
+  if(Nseconds > 1025.0) fprintf(stderr, "\n\n ***  Warning: you're using %6.1f seconds of data for the PSD estimation;  ~256s is recommended  ***\n\n",Nseconds);
   
   
   double wss=0.0,log2=log(2.0);  // squared & summed window coefficients  etc.
