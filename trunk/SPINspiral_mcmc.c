@@ -1518,7 +1518,7 @@ void startMCMCOffset(struct parSet *par, struct MCMCvariables *mcmc, struct inte
       
       
       // Print each trial starting value:
-      if(mcmc->beVerbose>=2 && (nStart % mcmc->thinOutput)==0) {
+      if(mcmc->beVerbose>=1 && (nStart % mcmc->thinOutput)==0) {
 	printf("%9d%10.3lf",nStart,mcmc->logL[mcmc->iTemp]);
 	for(i=0;i<mcmc->nMCMCpar;i++) {
 	  if(mcmc->parID[i]>=11 && mcmc->parID[i]<=19) {  //GPS time
