@@ -2,6 +2,9 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   203:  sluys, 13/07/2009
+     - Changed output somewhat
+     
    201-202: sluys, 13/07/2009
      - fix memory leaks
      
