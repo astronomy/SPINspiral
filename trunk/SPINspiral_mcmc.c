@@ -409,7 +409,8 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   
   printf("\n");
   freeMCMCvariables(&mcmc);
-  
+  freeParset(&state);
+
   
   for(i=0;i<mcmc.nMCMCpar;i++) free(tempcovar[i]);
   free(tempcovar);

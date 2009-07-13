@@ -2,6 +2,9 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   201: sluys, 13/07/2009
+     - fix memory leaks
+     
    200: sluys, 12/07/2009
      - trying to order example input files in doc/: doc/input_all contains WF-independent files
      

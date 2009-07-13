@@ -448,6 +448,9 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   
   ///////////////////////////////////////////////////////at this point the structure waveform is still allocated in memory and will have to be freed. See LALfreedomSpin below//////////
   
+  free(waveformApproximant);
+  
+  
 } // End of LALHpHc12()
 // ****************************************************************************************************************************************************  
 
@@ -725,6 +728,9 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   
   
   ///////////////////////////////////////////////////////at this point the structure waveform is still allocated in memory and will have to be freed. See LALfreedomSpin below//////////
+  
+  free(waveformApproximant);
+  
   
 } // End of LALHpHc15()
 // ****************************************************************************************************************************************************  
