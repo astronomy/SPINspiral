@@ -2,6 +2,10 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   205:  sluys, 14/07/2009
+     - Added d^3 prior for testing with Apostolatos waveform; log(d) works like before
+     - Minor cosmetics
+     
    204:  sluys, 13/07/2009
      - Changed doc/input_all/SPINspiral.input.mcmc.  Added:
        - acceptRateTarget: target acceptance rate for MCMC (0.0-1.0)

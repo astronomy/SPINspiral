@@ -516,16 +516,17 @@ void readInjectionInputfile(struct runPar *run)
   
   // Print injection parameters and prior ranges to screen:
   if(run->beVerbose>=1) {
-    printf("\n   %i software-injection parameters:\n      Nr: Name:           Injection value:     Obtained:\n",run->nInjectPar);
+    printf("\n   %i software-injection parameters:\n      Nr:  ID: Name:           Injection value:     Obtained:\n",run->nInjectPar);
     for(i=0;i<run->nInjectPar;i++) {
       if(run->injRanPar[i]==0) {
-	printf("      %2d  %-11s     %15.4lf      Taken from the value set in %s\n",run->injNumber[i],run->parAbrev[run->injID[i]],run->injParVal[i],
+	//printf("      %2d  %3i  %-11s     %15.4lf      Taken from the value set in %s\n",run->injNumber[i],run->injID[i],run->parAbrev[run->injID[i]],run->injParVal[i],
+	printf("      %2d  %3i  %-11s     %15.4lf      Taken from the value set in %s\n",i,run->injID[i],run->parAbrev[run->injID[i]],run->injParVal[i],
 	       run->injectionFilename);
       } else if(run->injRanPar[i]==1) {
-	printf("      %2d  %-11s     %15.4lf      Drawn randomly from a Gaussian distribution with centre  %lf  and width  %lf\n",run->injNumber[i],
+	printf("      %2d  %3i  %-11s     %15.4lf      Drawn randomly from a Gaussian distribution with centre  %lf  and width  %lf\n",i,run->injID[i],
 	       run->parAbrev[run->injID[i]],run->injParVal[i],run->injParValOrig[i],run->injSigma[i]);
       } else if(run->injRanPar[i]==2) {
-	printf("      %2d  %-11s     %15.4lf      Drawn randomly from a uniform distribution  %14.4lf - %-14.4lf\n",run->injNumber[i],run->parAbrev[run->injID[i]]
+	printf("      %2d  %3i  %-11s     %15.4lf      Drawn randomly from a uniform distribution  %14.4lf - %-14.4lf\n",i,run->injID[i],run->parAbrev[run->injID[i]]
 	       ,run->injParVal[i],run->injBoundLow[i],run->injBoundUp[i]);
       }
     }
@@ -747,9 +748,10 @@ void readParameterInputfile(struct runPar *run)
   
   //Write parameter choice to screen:
   if(run->beVerbose>=1) {
-    printf("\n   MCMC parameters:\n      Nr: Name:                Best value:     Prior:     min:            max:    Fix parameter?        Start chain:\n");
+    printf("\n   MCMC parameters:\n      Nr:  ID: Name:                Best value:     Prior:     min:            max:    Fix parameter?        Start chain:\n");
     for(i=0;i<run->nMCMCpar;i++) {
-      printf("      %2d  %-11s     %15.4lf     %15.4lf %15.4lf     %-20s  %-45s\n",run->parNumber[i],run->parAbrev[run->parID[i]],run->parBestVal[i],
+      //printf("      %2d  %3i  %-11s     %15.4lf     %15.4lf %15.4lf     %-20s  %-45s\n",run->parNumber[i],run->parID[i],run->parAbrev[run->parID[i]],run->parBestVal[i],
+      printf("      %2d  %3i  %-11s     %15.4lf     %15.4lf %15.4lf     %-20s  %-45s\n",i,run->parID[i],run->parAbrev[run->parID[i]],run->parBestVal[i],
 	     run->priorBoundLow[i],run->priorBoundUp[i],  FixStr[run->parFix[i]],StartStr[run->parStartMCMC[i]]);
     }
     printf("\n");

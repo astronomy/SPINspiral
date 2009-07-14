@@ -90,16 +90,16 @@ void waveformTemplate(struct parSet *par, struct interferometer *ifo[], int ifon
 void templateApostolatos(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
 {
   
-  double pMc=0.0,pEta=0.0,pTc=0.0,pLogDl=0.0,pSpin1=0.0,pSpCosTh1=0.0,pRA=0.0,pSinDec=0.0,pPhase=0.0,pSinThJ0=0.0,pPhiJ0=0.0,pSpPhi1=0.0;
-  double pLongi=0.0; //,pDl=0.0;
+  double pMc=0.0,pEta=0.0,pTc=0.0,pSpin1=0.0,pSpCosTh1=0.0,pRA=0.0,pSinDec=0.0,pPhase=0.0,pSinThJ0=0.0,pPhiJ0=0.0,pSpPhi1=0.0;
+  double pLongi=0.0,pDl=0.0; //,pLogDl=0.0;
   
   if(injectionWF==1) {                                               // Then this is an injection waveform template:
     pMc       = par->par[run.injRevID[61]];                                           // 61: Mc
     pEta      = par->par[run.injRevID[62]];                                           // 62: eta
     pTc       = par->par[run.injRevID[11]];                                           // 11: t_c
-    //if(run.injParUse[21]) pDl = exp(log(par->par[run.injRevID[21]]/3.0));             // 21: (d_L)^3 -> d_L
-    //if(run.injParUse[22]) pDl = exp(par->par[run.injRevID[22]]);                      // 22: log(d_L) -> d_L
-    pLogDl    = par->par[run.injRevID[22]];                                           // 22: log(d_L)	
+    if(run.injParUse[21]) pDl = exp(log(par->par[run.injRevID[21]])/3.0);             // 21: (d_L)^3 -> d_L
+    if(run.injParUse[22]) pDl = exp(par->par[run.injRevID[22]]);                      // 22: log(d_L) -> d_L
+    //pLogDl    = par->par[run.injRevID[22]];                                           // 22: log(d_L)	
     pSpin1    = par->par[run.injRevID[71]];                                           // 71: a_spin1
     pSpCosTh1 = par->par[run.injRevID[72]];                                           // 72: cos(theta_spin1)
     pRA       = par->par[run.injRevID[31]];                                           // 31: RA
@@ -113,9 +113,9 @@ void templateApostolatos(struct parSet *par, struct interferometer *ifo[], int i
     pMc       = par->par[run.parRevID[61]];                                           // 61: Mc
     pEta      = par->par[run.parRevID[62]];                                           // 62: eta
     pTc       = par->par[run.parRevID[11]];                                           // 11: t_c
-    //if(run.mcmcParUse[21]) pDl = exp(log(par->par[run.parRevID[21]]/3.0));             // 21: (d_L)^3 -> d_L
-    //if(run.mcmcParUse[22]) pDl = exp(par->par[run.parRevID[22]]);                      // 22: log(d_L) -> d_L
-    pLogDl    = par->par[run.parRevID[22]];                                           // 22: log(d_L)	
+    if(run.mcmcParUse[21]) pDl = exp(log(par->par[run.parRevID[21]]/3.0));             // 21: (d_L)^3 -> d_L
+    if(run.mcmcParUse[22]) pDl = exp(par->par[run.parRevID[22]]);                      // 22: log(d_L) -> d_L
+    //pLogDl    = par->par[run.parRevID[22]];                                           // 22: log(d_L)	
     pSpin1    = par->par[run.parRevID[71]];                                           // 71: a_spin1		
     pSpCosTh1 = par->par[run.parRevID[72]];                                           // 72: cos(theta_spin1)
     pRA       = par->par[run.parRevID[31]];                                           // 31: RA
@@ -168,8 +168,8 @@ void templateApostolatos(struct parSet *par, struct interferometer *ifo[], int i
   double n_z[3] = {0.0,0.0,1.0};                                                                                         // North in global coordinates
   double normalvec[3];                                                                                                  
   for(i=0;i<3;i++) normalvec[i] = ifo[ifonr]->normalvec[i];                                                              // Detector position normal vector = local zenith vector z'
-  //double D_L = pDl*Mpcs;                                                                                                 // Source luminosity distance, in seconds
-  double D_L = exp(pLogDl)*Mpcs;                                                                                                 // Source luminosity distance, in seconds
+  double D_L = pDl*Mpcs;                                                                                                 // Source luminosity distance, in seconds
+  //double D_L = exp(pLogDl)*Mpcs;                                                                                                 // Source luminosity distance, in seconds
   double coslati = sqrt(1.0-pSinDec*pSinDec);
   double n_N[3] = { cos(pLongi)*coslati , sin(pLongi)*coslati , pSinDec };                                               // n_N: Position unit vector = N^
   
