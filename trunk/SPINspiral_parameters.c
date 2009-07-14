@@ -209,6 +209,8 @@ void readMCMCinputfile(struct runPar *run)
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->thinScreenOutput);
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->MCMCseed);
   fgets(bla,500,fin);  sscanf(bla,"%d",&run->adaptiveMCMC);
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->acceptRateTarget);
+  fgets(bla,500,fin);  sscanf(bla,"%lf",&run->minlogL);
   fgets(bla,500,fin);  sscanf(bla,"%lf",&run->blockFrac);
   
   
@@ -241,7 +243,7 @@ void readMCMCinputfile(struct runPar *run)
   
   //Manual temperature ladder for parallel tempering:
   fgets(bla,500,fin); fgets(bla,500,fin); //Read the empty and comment line
-  for(i=0;i<run->nTemps;i++) fscanf(fin,"%lf",&run->temps[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  for(i=0;i<run->nTemps;i++) fscanf(fin,"%lf",&run->tempLadder[i]);  //Read the array directly, because sscanf cannot be in a loop...
   
   fclose(fin);
 } //End of void readMCMCinputfile(struct runPar *run)
@@ -1134,6 +1136,9 @@ void copyRun2MCMC(struct runPar run, struct MCMCvariables *mcmc)
   mcmc->thinOutput = run.thinOutput;                    // Save every thiOutput-th MCMC iteration to file
   mcmc->thinScreenOutput = run.thinScreenOutput;        // Save every thiOutput-th MCMC iteration to screen
   mcmc->adaptiveMCMC = run.adaptiveMCMC;                // Use adaptive MCMC
+  mcmc->acceptRateTarget = run.acceptRateTarget;        // Target acceptance rate for MCMC
+  mcmc->minlogL = run.minlogL;                          // Minimum value for the log Likelihood to accept a jump. We used 0 for a long time, this number shouldn't be positive!
+  
   
   mcmc->correlatedUpdates = run.correlatedUpdates;      // Switch to do correlated update proposals
   mcmc->nCorr = run.nCorr;                              // Number of iterations for which the covariance matrix is calculated
@@ -1189,7 +1194,7 @@ void copyRun2MCMC(struct runPar run, struct MCMCvariables *mcmc)
   }
   
   mcmc->nTemps = run.nTemps;                            // Size of temperature ladder
-  for(i=0;i<mcmc->nTemps;i++) mcmc->temps[i] = run.temps[i];
+  for(i=0;i<mcmc->nTemps;i++) mcmc->tempLadder[i] = run.tempLadder[i];
 
 } // End copyRun2MCMC()
 // ****************************************************************************************************************************************************  

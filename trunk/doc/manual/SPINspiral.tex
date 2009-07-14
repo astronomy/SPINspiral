@@ -58,7 +58,7 @@
   make sure it is configured for your compiler and type \texttt{make clean all} for the first compilation
   and \texttt{make all} for subsequent ones.  The executable files \texttt{mcmc\_nolal} and \texttt{mcmc\_lal} should be produced.
 \item Make sure you have the configuration files \texttt{SPINspiral.input*} in your trunk.  There are example
-  files in \texttt{doc/input\_*}.  Set \texttt{iter} in \texttt{SPINspiral.input.mcmc} to 10 or 100 for a first test run.
+  files in \texttt{doc/input\_*}.  Set \texttt{nIter} in \texttt{SPINspiral.input.mcmc} to 10 or 100 for a first test run.
   Example input files are available for both \texttt{mcmc\_nolal} and \texttt{mcmc\_lal}.
 \item Type \texttt{./mcmc\_nolal} or \texttt{./mcmc\_lal} and \textsc{SPINspiral} should run with the parameters specified
   in the input files.
@@ -197,42 +197,44 @@ The MCMC input file
 
 \subsubsection{Basic settings}
 \begin{description}
-\item[iter] Total number of iterations to be computed, \textit{e.g.} $10^7$.
+\item[nIter] Total number of iterations to be computed, \textit{e.g.} $10^7$.
 \item[thinOutput] Number of iterations to be skipped between stored steps (100 for 1d).
 \item[thinScreenOutput] Number of iterations between screen outputs in the MCMC (1000 for 1d).
 \item[MCMCseed] Random number seed to start the MCMC: 0-let system clock determine seed, $>0$: use the specified seed.  Default: 0.
-\item[adapt] Use adaptation: 0-no, 1-yes.  Default: 1.
-\item[blockfrac] Fraction of uncorrelated updates that is updated as a block of all parameters ($\leq 0.0$: none, $\geq 1.0$: all).  Default: 0.1.
+\item[adaptiveMCMC] Use adaptation: 0-no, 1-yes.  Default: 1.
+\item[acceptRateTarget] Target acceptance rate for MCMC (0.0-1.0).  We used 0.25 for a long time.
+\item[minlogL] Minimum value for the log Likelihood to accept a jump. We used 0 for a long time, this number shouldn't be positive! Try -1.e3.
+\item[blockFrac] Fraction of uncorrelated updates that is updated as a block of all parameters ($\leq 0.0$: none, $\geq 1.0$: all).  Default: 0.1.
 \end{description}
 
 
 \subsubsection{Correlated update proposals}
 \begin{description}
-\item[corrupd] Do correlated update proposals: 0-no, 1-yes but update the matrix only once, 2-yes and update the matrix every \texttt{ncorr} iterations.  Default: 2.
-\item[corrfrac] Fraction of update proposals that is correlated (0.0-1.0, ~0.7 seems OK). corrupd must be 2. Should this replace corrupd?  Default: 0.7.
-\item[ncorr] Number of iterations for which the covariance matrix is calculated.  Default: $10^3-10^4$.
-\item[mataccfr] Fraction of elements on the diagonal that must `improve' in order to accept a new covariance matrix. ???~0.6-0.8 for unimodal, 0.0-0.2 for multimodal???  Default: 0.5.
-\item[prmatrixinfo] Print information to screen on proposed matrix updates: 0-none, 1-some (default), 2-add the old and new matrices.  Default: 1.
+\item[correlatedUpdates] Do correlated update proposals: 0-no, 1-yes but update the matrix only once, 2-yes and update the matrix every \texttt{ncorr} iterations.  Default: 2.
+\item[corrFrac] Fraction of update proposals that is correlated (0.0-1.0, ~0.7 seems OK). corrupd must be 2. Should this replace corrupd?  Default: 0.7.
+\item[nCorr] Number of iterations for which the covariance matrix is calculated.  Default: $10^3-10^4$.
+\item[matAccFr] Fraction of elements on the diagonal that must `improve' in order to accept a new covariance matrix. ???~0.6-0.8 for unimodal, 0.0-0.2 for multimodal???  Default: 0.5.
+\item[prMatrixInfo] Print information to screen on proposed matrix updates: 0-none, 1-some (default), 2-add the old and new matrices.  Default: 1.
 \end{description}
 
 \subsubsection{Annealing}
 \begin{description}
-\item[temp0] Starting temperature of the chain, \textit{e.g.} 100.0. Set 1.0 for no temperature effect.  Default: 1.0.
-\item[nburn] Number of iterations for the burn-in phase (1e4) at this number, the temperature drops to 1.0.  Default: $10^5$.
-\item[nburn0] Number of iterations during which temp=temp0 (e.g. 0.1*nburn, should be lower than ~0.9*nburn).  Default: $10^5$.
+\item[annealTemp0] Starting temperature of the chain, \textit{e.g.} 100.0. Set 1.0 for no temperature effect.  Default: 1.0.
+\item[annealNburn] Number of iterations for the burn-in phase (1e4) at this number, the temperature drops to 1.0.  Default: $10^5$.
+\item[annealNburn0] Number of iterations during which temp=temp0 (e.g. 0.1*annealNburn, should be lower than ~0.9*annealNburn).  Default: $10^5$.
 \end{description}
 
 \subsubsection{Parallel tempering}
 \begin{description}
-\item[partemp] Use parallel tempering:  0-no,  1-auto, fixed $T$ ladder,  2-auto, sinusoid $T$ ladder,  3-manual, fixed $T$ ladder,  4-manual, sinusoid $T$ ladder.  For a manual ladder, see near the bottom of the file.  Default: 2.
-\item[ntemps] Number of steps in the temperature ladder for parallel tempering, typically 5-10.  Default: 5.
-\item[tempmax] Maximum temperature in automatic parallel-tempering ladder (equidistant in $\log(T)$), typically 20-100.  Default: 40.
-\item[savehotchains] Save hot ($T>1$) parallel-tempering chains: 0-no (just the $T=1$ chain), $>0$-yes; for every saved $T=1$ point, save every savehotchains-th hot point.  Default: 100.
-\item[prpartempinfo] Print information to screen on the temperature chains: 0-none, 1-some ladder info (default), 2-add chain-swap matrix.  Default: 2.
+\item[parallelTempering] Use parallel tempering:  0-no,  1-auto, fixed $T$ ladder,  2-auto, sinusoid $T$ ladder,  3-manual, fixed $T$ ladder,  4-manual, sinusoid $T$ ladder.  For a manual ladder, see near the bottom of the file.  Default: 2.
+\item[nTemps] Number of steps in the temperature ladder for parallel tempering, typically 5-10.  Default: 5.
+\item[maxTemp] Maximum temperature in automatic parallel-tempering ladder (equidistant in $\log(T)$), typically 20-100.  Default: 40.
+\item[saveHotChains] Save hot ($T>1$) parallel-tempering chains: 0-no (just the $T=1$ chain), $>0$-yes; for every saved $T=1$ point, save every savehotchains-th hot point.  Default: 100.
+\item[prParTempInfo] Print information to screen on the temperature chains: 0-none, 1-some ladder info (default), 2-add chain-swap matrix.  Default: 2.
 \end{description}
 
-\subsubsection{Manual temperature ladder for parallel tempering}
-At least \texttt{ntemps} increasing temperature values, starting with 1.0, \textit{e.g.} \texttt{1.00     2.00     4.00     8.00     16.00}
+\subsubsection{Manual temperature ladder for parallel tempering (tempLadder[])}
+At least \texttt{nTemps} increasing temperature values, starting with 1.0, \textit{e.g.} \texttt{1.00     2.00     4.00     8.00     16.00}
     
 
 

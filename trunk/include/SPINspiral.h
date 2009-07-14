@@ -129,6 +129,8 @@ struct runPar{
   int thinOutput;                 // Save every thiOutput-th MCMC iteration to file
   int thinScreenOutput;           // Save every thiOutput-th MCMC iteration to screen
   int adaptiveMCMC;               // Use adaptive MCMC
+  double acceptRateTarget;        // Target acceptance rate for MCMC
+  double minlogL;                 // Minimum value for the log Likelihood to accept a jump. We used 0 for a long time, this number shouldn't be positive!
   
   int correlatedUpdates;          // Switch to do correlated update proposals
   int nCorr;                      // Number of iterations for which the covariance matrix is calculated
@@ -148,7 +150,7 @@ struct runPar{
   double matAccFr;                // The fraction of diagonal elements that must improve in order to accept a new covariance matrix
   
   double netsnr;                  // Total SNR of the network
-  double temps[99];               // Temperature ladder for manual parallel tempering
+  double tempLadder[99];          // Temperature ladder for manual parallel tempering
   
   //Data:
   char datasetName[80];           // Name of the data set used (for printing purposes)
@@ -250,8 +252,9 @@ struct MCMCvariables{
   int thinOutput;                 // Save every thiOutput-th MCMC iteration to file
   int thinScreenOutput;           // Save every thiOutput-th MCMC iteration to screen
   int adaptiveMCMC;               // Use adaptive MCMC
-  
   double acceptRateTarget;        // Target acceptance rate for MCMC
+  double minlogL;                 // Minimum value for the log Likelihood to accept a jump. We used 0 for a long time, this number shouldn't be positive!
+  
   double decreaseSigma;           // Factor with which to decrease the jump-size sigma when a proposal is rejected
   double increaseSigma;           // Factor with which to increase the jump-size sigma when a proposal is rejected
   
@@ -315,23 +318,21 @@ struct MCMCvariables{
   
   int *corrUpdate;                // Switch (per chain) to do correlated (1) or uncorrelated (0) updates
   int *acceptElems;               // Count 'improved' elements of diagonal of new corr matrix, to determine whether to accept it
-
-  double temps[99];               // Array of temperatures in the temperature ladder
-  double *newTemps;               // New temperature ladder, was used in adaptive parallel tempering
+  
+  double tempLadder[99];          // Array of temperatures in the temperature ladder
   double *tempAmpl;               // Temperature amplitudes for sinusoid T in parallel tempering
   double *logL;                   // Current log(L)
   double *nlogL;                  // New log(L)
   double *dlogL;                  // log(L)-log(Lo)
   double *maxdlogL;               // Remember the maximum dlog(L)
-  double minlogL;                 // Minimum value of logL to accept
   
-
+  
   double *corrSig;                // Sigma for correlated update proposals
   int *swapTs1;                   // Totals for the columns in the chain-swap matrix
   int *swapTs2;                   // Totals for the rows in the chain-swap matrix                                               
   int *acceptPrior;               // Check boundary conditions and choose to accept (1) or not(0)
   int *iHist;                     // Count the iteration number in the current history block to calculate the covar matrix from
-
+  
   int **accepted;                 // Count accepted proposals
   int **swapTss;                  // Count swaps between chains
   double **param;                 // The current parameters for all chains
@@ -387,7 +388,7 @@ struct interferometer{
          int ch1filesize; 
          int ch1fileoffset; 
          int ch1doubleprecision;
-
+  
          int add2channels;            // flag: add 2nd channel to 1st ?                           
 
         char ch2name[128];            // specifications for channel 2                             

@@ -2,6 +2,12 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   204:  sluys, 13/07/2009
+     - Changed doc/input_all/SPINspiral.input.mcmc.  Added:
+       - acceptRateTarget: target acceptance rate for MCMC (0.0-1.0)
+       - minlogL: inimum value for the log Likelihood to accept a jump
+     - Some minor cosmetic changes and cleaning
+     
    203:  sluys, 13/07/2009
      - Changed output somewhat
      

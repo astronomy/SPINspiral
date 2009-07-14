@@ -52,11 +52,7 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   struct MCMCvariables mcmc;                  // MCMC variables struct
   copyRun2MCMC(run, &mcmc);                   // Copy elements from run struct to mcmc struct
   
-  //mcmc.minlogL = 0.0;                       // We've used this a long time
-  mcmc.minlogL = -1.e3;                       // See what happens...
-  
   mcmc.tempOverlap = 1.1;                     // Set the overlap factor for the overlap between adjacent sinusoidal temperatures, e.g. 1.1.  1.0 means extremes touch. Keep <~ 1.3
-  mcmc.acceptRateTarget = 0.25;               // Target acceptance rate for MCMC; between 0.0 and 1.0 - we've used ~0.25 for a long time
   mcmc.decreaseSigma = 0.5;                   // Factor with which to decrease the jump-size sigma when a proposal is rejected
   mcmc.increaseSigma = exp(log(mcmc.decreaseSigma)* -(1.0/mcmc.acceptRateTarget - 1.0));  // (0.5)^(-(1/0.25 -1)) gives 8 -> jump up 1x needs 3 jumps down (0.5^3=1/8), so ~every 1:4 jumps gets accepted
   
@@ -114,7 +110,7 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   
   // *** Set up temperature ladder ***
   if(mcmc.nTemps == 1) {
-    mcmc.temps[0] = 1.0;
+    mcmc.tempLadder[0] = 1.0;
   } else {
     setTemperatureLadderOld(&mcmc);
     //setTemperatureLadder(&mcmc);
@@ -280,13 +276,13 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
       
       //Set temperature
       if(mcmc.parallelTempering==1 || mcmc.parallelTempering==3) { //Chains at fixed T
-	mcmc.chTemp = mcmc.temps[mcmc.iTemp];
+	mcmc.chTemp = mcmc.tempLadder[mcmc.iTemp];
       }
       if(mcmc.parallelTempering==2 || mcmc.parallelTempering==4) { //Chains with sinusoid T
 	if(mcmc.iTemp==0) {
 	  mcmc.chTemp = 1.0;
 	} else {
-	  mcmc.chTemp = mcmc.temps[mcmc.iTemp]  +  mcmc.tempAmpl[mcmc.iTemp] * pow((-1.0),mcmc.iTemp) * sin(tpi*(double)mcmc.iIter/(5.0*(double)mcmc.nCorr));  //Sinusoid around the temperature T_i with amplitude tempAmpl and period 5.0 * nCorr
+	  mcmc.chTemp = mcmc.tempLadder[mcmc.iTemp]  +  mcmc.tempAmpl[mcmc.iTemp] * pow((-1.0),mcmc.iTemp) * sin(tpi*(double)mcmc.iIter/(5.0*(double)mcmc.nCorr));  //Sinusoid around the temperature T_i with amplitude tempAmpl and period 5.0 * nCorr
 	  mcmc.chTemp = max(mcmc.chTemp, 1.0);  // Make sure T>=1
 	}
       }
@@ -828,7 +824,7 @@ void writeMCMCheader(struct interferometer *ifo[], struct MCMCvariables mcmc, st
       fprintf(mcmc.fouts[tempi], "%10s  %10s  %6s  %20s  %6s %8s   %6s  %8s  %10s  %12s  %9s  %9s  %8s\n",
 	      "nIter","Nburn","seed","null likelihood","Ndet","nCorr","nTemps","Tmax","Tchain","Network SNR","Waveform","pN order","Npar");
       fprintf(mcmc.fouts[tempi], "%10d  %10d  %6d  %20.10lf  %6d %8d   %6d%10d%12.1f%14.6f  %9i  %9.1f  %8i\n",
-	      mcmc.nIter,mcmc.annealNburn,mcmc.seed,0.0,run.networkSize,mcmc.nCorr,mcmc.nTemps,(int)mcmc.maxTemp,mcmc.temps[tempi],run.netsnr,run.mcmcWaveform,run.mcmcPNorder,run.nMCMCpar);
+	      mcmc.nIter,mcmc.annealNburn,mcmc.seed,0.0,run.networkSize,mcmc.nCorr,mcmc.nTemps,(int)mcmc.maxTemp,mcmc.tempLadder[tempi],run.netsnr,run.mcmcWaveform,run.mcmcPNorder,run.nMCMCpar);
       fprintf(mcmc.fouts[tempi], "\n%16s  %16s  %10s  %10s  %10s  %10s  %20s  %15s  %12s  %12s  %12s\n",
 	      "Detector","SNR","f_low","f_high","before tc","after tc","Sample start (GPS)","Sample length","Sample rate","Sample size","FT size");
       for(i=0;i<run.networkSize;i++) {
@@ -988,16 +984,12 @@ void allocateMCMCvariables(struct MCMCvariables *mcmc)
     mcmc->acceptElems[i] = 0;
   }
   
-  //mcmc->temps = (double*)calloc(mcmc->nTemps,sizeof(double));        // Array of temperatures in the temperature ladder								
-  mcmc->newTemps = (double*)calloc(mcmc->nTemps,sizeof(double));     // New temperature ladder, was used in adaptive parallel tempering						
   mcmc->tempAmpl = (double*)calloc(mcmc->nTemps,sizeof(double));     // Temperature amplitudes for sinusoid T in parallel tempering							
   mcmc->logL = (double*)calloc(mcmc->nTemps,sizeof(double));         // Current log(L)												
   mcmc->nlogL = (double*)calloc(mcmc->nTemps,sizeof(double));        // New log(L)													
   mcmc->dlogL = (double*)calloc(mcmc->nTemps,sizeof(double));        // log(L)-log(Lo)												
   mcmc->maxdlogL = (double*)calloc(mcmc->nTemps,sizeof(double));     // Remember the maximum dlog(L)											
   for(i=0;i<mcmc->nTemps;i++) {
-    //mcmc->temps[i] = 0.0;
-    mcmc->newTemps[i] = 0.0;
     mcmc->tempAmpl[i] = 0.0;
     mcmc->logL[i] = 0.0;
     mcmc->nlogL[i] = 0.0;
@@ -1071,8 +1063,6 @@ void freeMCMCvariables(struct MCMCvariables *mcmc)
   free(mcmc->corrUpdate);
   free(mcmc->acceptElems);
   
-  //free(mcmc->temps);
-  free(mcmc->newTemps);
   free(mcmc->tempAmpl);
   free(mcmc->logL);
   free(mcmc->nlogL);
@@ -1363,7 +1353,7 @@ void swapChains(struct MCMCvariables *mcmc)
   for(tempi=0;tempi<mcmc->nTemps-1;tempi++) {
     for(tempj=tempi+1;tempj<mcmc->nTemps;tempj++) {
       
-      if(exp(max(-30.0,min(0.0, (1.0/mcmc->temps[tempi]-1.0/mcmc->temps[tempj]) * (mcmc->logL[tempj]-mcmc->logL[tempi]) ))) > gsl_rng_uniform(mcmc->ran)) { //Then swap...
+      if(exp(max(-30.0,min(0.0, (1.0/mcmc->tempLadder[tempi]-1.0/mcmc->tempLadder[tempj]) * (mcmc->logL[tempj]-mcmc->logL[tempi]) ))) > gsl_rng_uniform(mcmc->ran)) { //Then swap...
 	for(i=0;i<mcmc->nMCMCpar;i++) {
 	  tmpdbl = mcmc->param[tempj][i]; //Temp var
 	  mcmc->param[tempj][i] = mcmc->param[tempi][i];
@@ -1482,7 +1472,6 @@ void startMCMCOffset(struct parSet *par, struct MCMCvariables *mcmc, struct inte
     
     mcmc->param[mcmc->iTemp][i] = mcmc->nParam[mcmc->iTemp][i];
   }
-  printf("\n");
   
   
   // Safety check:
@@ -1494,7 +1483,7 @@ void startMCMCOffset(struct parSet *par, struct MCMCvariables *mcmc, struct inte
   // *** Add a random offset to the MCMC starting parameters:
   if(mcmc->offsetMCMC != 0) {
     //while(mcmc->logL[mcmc->iTemp] < mcmc->minlogL+1.0) { // Accept only good starting values *** don't do this for starting values - only for updates later on ***
-    while(mcmc->logL[mcmc->iTemp] < 1.0) { // Accept only good starting values
+    while(mcmc->logL[mcmc->iTemp] < 0.1) {   // Accept only good starting values
       mcmc->acceptPrior[mcmc->iTemp] = 1;
       
       for(i=0;i<mcmc->nMCMCpar;i++) {  //For each MCMC parameter
@@ -1520,10 +1509,9 @@ void startMCMCOffset(struct parSet *par, struct MCMCvariables *mcmc, struct inte
       nStart = nStart + 1;
       
       
-      
-      // Print each trial starting value:
-      if(mcmc->beVerbose>=1 && (nStart % mcmc->thinOutput)==0) {
-	printf("%9d%10.3lf",nStart,mcmc->logL[mcmc->iTemp]);
+      // Print trial starting values to screen:
+      if(mcmc->beVerbose>=1 && (nStart % mcmc->thinScreenOutput)==0) {
+	printf("%9d%10.3lf",nStart,max(mcmc->logL[mcmc->iTemp],-99999.999));
 	for(i=0;i<mcmc->nMCMCpar;i++) {
 	  if(mcmc->parID[i]>=11 && mcmc->parID[i]<=19) {  //GPS time
 	    printf(" %18.4f",mcmc->param[mcmc->iTemp][i]);
@@ -1543,7 +1531,7 @@ void startMCMCOffset(struct parSet *par, struct MCMCvariables *mcmc, struct inte
   
   // *** Print selected starting parameters to screen:
   //Print parameter names:
-  printf("%9s%10s", "nDraws","logL");
+  printf("\n%9s%10s", "nDraws","logL");
   for(i=0;i<mcmc->nMCMCpar;i++) {
     if(mcmc->parID[i]>=11 && mcmc->parID[i]<=19) {  //GPS time
       printf(" %18s",mcmc->parAbrev[mcmc->parID[i]]);
@@ -1599,20 +1587,20 @@ void setTemperatureLadder(struct MCMCvariables *mcmc)
   for(tempi=0;tempi<mcmc->nTemps;tempi++) {
     // Set (zero-amplitude) temperatures:
     if(mcmc->nTemps < 3) {
-      mcmc->temps[tempi] = exp(log(mcmc->maxTemp)/(double)(mcmc->nTemps-1)*(double)tempi);
+      mcmc->tempLadder[tempi] = exp(log(mcmc->maxTemp)/(double)(mcmc->nTemps-1)*(double)tempi);
     } else {
       
       if(tempi == 0) {
-	mcmc->temps[tempi] = 1.0;
+	mcmc->tempLadder[tempi] = 1.0;
       } else if(tempi == 1) {
-	mcmc->temps[tempi+1] = exp(log(mcmc->maxTemp)/(double)(mcmc->nTemps-2)*(double)tempi);
-	mcmc->temps[tempi] = exp(log((mcmc->temps[tempi-1]) + log(mcmc->temps[tempi+1]))/2.0);
+	mcmc->tempLadder[tempi+1] = exp(log(mcmc->maxTemp)/(double)(mcmc->nTemps-2)*(double)tempi);
+	mcmc->tempLadder[tempi] = exp(log((mcmc->tempLadder[tempi-1]) + log(mcmc->tempLadder[tempi+1]))/2.0);
       } else if(tempi < mcmc->nTemps-1) {
-	mcmc->temps[tempi+1] = exp(log(mcmc->maxTemp)/(double)(mcmc->nTemps-2)*(double)tempi);
+	mcmc->tempLadder[tempi+1] = exp(log(mcmc->maxTemp)/(double)(mcmc->nTemps-2)*(double)tempi);
       }
 	
     }
-    if(mcmc->parallelTempering==3 || mcmc->parallelTempering==4) mcmc->temps[tempi] = mcmc->temps[tempi];  //Set manual ladder
+    if(mcmc->parallelTempering==3 || mcmc->parallelTempering==4) mcmc->tempLadder[tempi] = mcmc->tempLadder[tempi];  //Set manual ladder
   } //  for(tempi=0;tempi<mcmc->nTemps;tempi++) {
   
   for(tempi=mcmc->nTemps-1;tempi>=0;tempi--) {
@@ -1620,23 +1608,23 @@ void setTemperatureLadder(struct MCMCvariables *mcmc)
       mcmc->tempAmpl[tempi] = 0.0;
     } else {
       if(mcmc->nTemps < 3) {
-	mcmc->tempAmpl[tempi] = mcmc->tempOverlap*(mcmc->temps[tempi] - mcmc->temps[tempi-1])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
+	mcmc->tempAmpl[tempi] = mcmc->tempOverlap*(mcmc->tempLadder[tempi] - mcmc->tempLadder[tempi-1])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
       } else {
 	
 	if(tempi == 1) {
 	  if(mcmc->tempOverlap < 1.01) {
-	    mcmc->temps[tempi] = (mcmc->temps[tempi-1] + (mcmc->temps[tempi+1] - mcmc->tempAmpl[tempi+1]))/2.0;
-	    mcmc->tempAmpl[tempi] = fabs(mcmc->temps[tempi-1] - (mcmc->temps[tempi+1] - mcmc->tempAmpl[tempi+1]))/2.0;  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
+	    mcmc->tempLadder[tempi] = (mcmc->tempLadder[tempi-1] + (mcmc->tempLadder[tempi+1] - mcmc->tempAmpl[tempi+1]))/2.0;
+	    mcmc->tempAmpl[tempi] = fabs(mcmc->tempLadder[tempi-1] - (mcmc->tempLadder[tempi+1] - mcmc->tempAmpl[tempi+1]))/2.0;  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
 	  } else {
-	    //mcmc->temps[tempi] = (mcmc->temps[tempi-1] + (mcmc->temps[tempi+1] - mcmc->tempAmpl[tempi+1]/mcmc->tempOverlap))/2.0;
-	    //mcmc->tempAmpl[tempi] = mcmc->tempOverlap * fabs(mcmc->temps[tempi-1] - (mcmc->temps[tempi+1] - mcmc->tempAmpl[tempi+1]/mcmc->tempOverlap))/2.0;  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
+	    //mcmc->tempLadder[tempi] = (mcmc->tempLadder[tempi-1] + (mcmc->tempLadder[tempi+1] - mcmc->tempAmpl[tempi+1]/mcmc->tempOverlap))/2.0;
+	    //mcmc->tempAmpl[tempi] = mcmc->tempOverlap * fabs(mcmc->tempLadder[tempi-1] - (mcmc->tempLadder[tempi+1] - mcmc->tempAmpl[tempi+1]/mcmc->tempOverlap))/2.0;  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
 	    mcmc->tempAmpl[tempi] = mcmc->tempAmpl[tempi+1]/tempratio;
-	    mcmc->temps[tempi] = exp((log(mcmc->temps[tempi-1]) + log(mcmc->temps[tempi+1] - mcmc->tempAmpl[tempi+1]/mcmc->tempOverlap))/2.0);
+	    mcmc->tempLadder[tempi] = exp((log(mcmc->tempLadder[tempi-1]) + log(mcmc->tempLadder[tempi+1] - mcmc->tempAmpl[tempi+1]/mcmc->tempOverlap))/2.0);
 	  }
 	} else if(tempi == 2) {
-	  mcmc->tempAmpl[tempi] = mcmc->tempOverlap*(mcmc->temps[tempi] - mcmc->temps[tempi-2])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
+	  mcmc->tempAmpl[tempi] = mcmc->tempOverlap*(mcmc->tempLadder[tempi] - mcmc->tempLadder[tempi-2])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
 	} else {
-	  mcmc->tempAmpl[tempi] = mcmc->tempOverlap*(mcmc->temps[tempi] - mcmc->temps[tempi-1])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
+	  mcmc->tempAmpl[tempi] = mcmc->tempOverlap*(mcmc->tempLadder[tempi] - mcmc->tempLadder[tempi-1])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
 	}
 	
       }
@@ -1646,10 +1634,10 @@ void setTemperatureLadder(struct MCMCvariables *mcmc)
   
   if(mcmc->prParTempInfo>0 && mcmc->beVerbose>=1) {
     for(tempi=0;tempi<mcmc->nTemps;tempi++) {
-      if(mcmc->temps[tempi]-mcmc->tempAmpl[tempi] < 1.0) {
-	printf("     %3d  %7.2lf  %7.2lf  %7.2lf* %7.2lf    * I will use max( T, 1.0 )",tempi,mcmc->temps[tempi],mcmc->tempAmpl[tempi],mcmc->temps[tempi]-mcmc->tempAmpl[tempi],mcmc->temps[tempi]+mcmc->tempAmpl[tempi]);
+      if(mcmc->tempLadder[tempi]-mcmc->tempAmpl[tempi] < 1.0) {
+	printf("     %3d  %7.2lf  %7.2lf  %7.2lf* %7.2lf    * I will use max( T, 1.0 )",tempi,mcmc->tempLadder[tempi],mcmc->tempAmpl[tempi],mcmc->tempLadder[tempi]-mcmc->tempAmpl[tempi],mcmc->tempLadder[tempi]+mcmc->tempAmpl[tempi]);
       } else {
-	printf("     %3d  %7.2lf  %7.2lf  %7.2lf  %7.2lf",tempi,mcmc->temps[tempi],mcmc->tempAmpl[tempi],mcmc->temps[tempi]-mcmc->tempAmpl[tempi],mcmc->temps[tempi]+mcmc->tempAmpl[tempi]);
+	printf("     %3d  %7.2lf  %7.2lf  %7.2lf  %7.2lf",tempi,mcmc->tempLadder[tempi],mcmc->tempAmpl[tempi],mcmc->tempLadder[tempi]-mcmc->tempAmpl[tempi],mcmc->tempLadder[tempi]+mcmc->tempAmpl[tempi]);
       }
       printf("\n");
     }
@@ -1680,19 +1668,19 @@ void setTemperatureLadderOld(struct MCMCvariables *mcmc)
     printf("     Chain     To     Ampl.    Tmin     Tmax\n");
   }
   for(tempi=0;tempi<mcmc->nTemps;tempi++) {
-    mcmc->temps[tempi] = pow(10.0,log10(mcmc->maxTemp)/(double)(mcmc->nTemps-1)*(double)tempi);
-    if(mcmc->parallelTempering==3 || mcmc->parallelTempering==4) mcmc->temps[tempi] = mcmc->temps[tempi];  //Set manual ladder
+    mcmc->tempLadder[tempi] = pow(10.0,log10(mcmc->maxTemp)/(double)(mcmc->nTemps-1)*(double)tempi);
+    if(mcmc->parallelTempering==3 || mcmc->parallelTempering==4) mcmc->tempLadder[tempi] = mcmc->tempLadder[tempi];  //Set manual ladder
     
     if(tempi==0 || mcmc->parallelTempering<=1 || mcmc->parallelTempering==3) {
       mcmc->tempAmpl[tempi] = 0.0;
     } else {
-      //mcmc->tempAmpl[tempi] = (mcmc->temps[tempi] - mcmc->temps[tempi-1])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains just touch at extrema (since in antiphase)
-      //mcmc->tempAmpl[tempi] = 1.5*(mcmc->temps[tempi] - mcmc->temps[tempi-1])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains overlap somewhat at extrema (since in antiphase)
-      mcmc->tempAmpl[tempi] = min(3.0*(mcmc->temps[tempi] - mcmc->temps[tempi-1])/(tempratio+1.0)*tempratio , fabs(mcmc->temps[tempi]-mcmc->temps[tempi-1]));  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
-      //if(mcmc->nTemps>10)  mcmc->tempAmpl[tempi] = min(3.0*(mcmc->temps[tempi] - mcmc->temps[tempi-1])/(tempratio+1.0)*tempratio , fabs(mcmc->temps[tempi]-mcmc->temps[tempi-2]));  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
-      //mcmc->tempAmpl[tempi] = fabs(mcmc->temps[tempi]-mcmc->temps[tempi-1]);  //Temperatures of adjacent chains overlap: Amplitude = (T(i) - T(i-1))  (may be a bit smallish for large nTemps)
+      //mcmc->tempAmpl[tempi] = (mcmc->tempLadder[tempi] - mcmc->tempLadder[tempi-1])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains just touch at extrema (since in antiphase)
+      //mcmc->tempAmpl[tempi] = 1.5*(mcmc->tempLadder[tempi] - mcmc->tempLadder[tempi-1])/(tempratio+1.0)*tempratio;  //Temperatures of adjacent chains overlap somewhat at extrema (since in antiphase)
+      mcmc->tempAmpl[tempi] = min(3.0*(mcmc->tempLadder[tempi] - mcmc->tempLadder[tempi-1])/(tempratio+1.0)*tempratio , fabs(mcmc->tempLadder[tempi]-mcmc->tempLadder[tempi-1]));  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
+      //if(mcmc->nTemps>10)  mcmc->tempAmpl[tempi] = min(3.0*(mcmc->tempLadder[tempi] - mcmc->tempLadder[tempi-1])/(tempratio+1.0)*tempratio , fabs(mcmc->tempLadder[tempi]-mcmc->tempLadder[tempi-2]));  //Temperatures of adjacent chains overlap a lot at extrema (since in antiphase), make sure Ti,min>=T-i1,0
+      //mcmc->tempAmpl[tempi] = fabs(mcmc->tempLadder[tempi]-mcmc->tempLadder[tempi-1]);  //Temperatures of adjacent chains overlap: Amplitude = (T(i) - T(i-1))  (may be a bit smallish for large nTemps)
     }
-    if(mcmc->prParTempInfo>0 && mcmc->beVerbose>=1) printf("     %3d  %7.2lf  %7.2lf  %7.2lf  %7.2lf\n",tempi,mcmc->temps[tempi],mcmc->tempAmpl[tempi],mcmc->temps[tempi]-mcmc->tempAmpl[tempi],mcmc->temps[tempi]+mcmc->tempAmpl[tempi]);
+    if(mcmc->prParTempInfo>0 && mcmc->beVerbose>=1) printf("     %3d  %7.2lf  %7.2lf  %7.2lf  %7.2lf\n",tempi,mcmc->tempLadder[tempi],mcmc->tempAmpl[tempi],mcmc->tempLadder[tempi]-mcmc->tempAmpl[tempi],mcmc->tempLadder[tempi]+mcmc->tempAmpl[tempi]);
   }
   if(mcmc->prParTempInfo>0 && mcmc->beVerbose>=1) printf("\n\n");
 } // End of setTemperatureLadderOld
