@@ -73,11 +73,11 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
       if(strcmp(long_options[option_index].name,"injXMLfile")==0) {
 	run->injXMLfilename=(char*)malloc(strlen(optarg)+1);
 	strcpy(run->injXMLfilename,optarg);
-	printf("     Reading injection parameters from the XML file %s\n",run->injXMLfilename);
+	printf("    - reading injection parameters from the XML file %s\n",run->injXMLfilename);
       }
       if(strcmp(long_options[option_index].name,"injXMLnr")==0) {
 	run->injXMLnr = atoi(optarg);
-	printf("     Using injection %d from the injection XML file\n",run->injXMLnr);
+	printf("    - using injection %d from the injection XML file\n",run->injXMLnr);
       }
       
       break; //For case 0: long options
@@ -86,7 +86,7 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
       // *** Treat the short and translated long options:
     case 'i':
       strcpy(run->mainFilename,optarg);
-      printf("     Using main input file %s\n",run->mainFilename);
+      printf("    - using main input file %s\n",run->mainFilename);
       break;
       
     default:
@@ -131,7 +131,7 @@ void readMainInputfile(struct runPar *run)
   FILE *fin;
   
   if((fin = fopen(run->mainFilename,"r")) == NULL) {
-    fprintf(stderr, "\n\n   ERROR reading main input file: %s, aborting.\n\n\n",run->mainFilename);
+    fprintf(stderr, "\n\n   ERROR opening main input file: %s, aborting.\n\n\n",run->mainFilename);
     exit(1);
   } else {
     printf("   Using main input file: %s.\n",run->mainFilename);
@@ -187,7 +187,7 @@ void readMCMCinputfile(struct runPar *run)
   FILE *fin;
   
   if((fin = fopen(run->mcmcFilename,"r")) == NULL) {
-    fprintf(stderr, "\n\n   ERROR reading MCMC input file: %s, aborting.\n\n\n",run->mcmcFilename);
+    fprintf(stderr, "\n\n   ERROR opening MCMC input file: %s, aborting.\n\n\n",run->mcmcFilename);
     exit(1);
   } else {
     printf("   Using MCMC input file: %s.\n",run->mcmcFilename);
@@ -273,8 +273,10 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
   FILE *fin;
   
   if((fin = fopen(run->dataFilename,"r")) == NULL) {
-    fprintf(stderr, "\n\n   ERROR reading data file: %s, aborting.\n\n\n",run->dataFilename);
+    fprintf(stderr, "\n\n   ERROR opening data file: %s, aborting.\n\n\n",run->dataFilename);
     exit(1);
+  } else {
+    printf("   Using data input file: %s.\n",run->dataFilename);
   }
   
   
@@ -372,7 +374,7 @@ void readInjectionInputfile(struct runPar *run)
   
   // Open injection input file:
   if((fin = fopen(run->injectionFilename,"r")) == NULL) {
-    fprintf(stderr, "\n\n   ERROR reading injection input file: %s, aborting.\n\n\n",run->injectionFilename);
+    fprintf(stderr, "\n\n   ERROR opening injection input file: %s, aborting.\n\n\n",run->injectionFilename);
     exit(1);
   } else {
     printf("   Using injection input file: %s.\n",run->injectionFilename);
@@ -395,24 +397,24 @@ void readInjectionInputfile(struct runPar *run)
   //Get the number of injection parameters from the injectionWaveform
   if(run->injectSignal >= 1) {
     if(run->injectionWaveform==1) {
-      if(run->beVerbose>=1) printf("   Using Apostolatos, 1.5-pN, 12-parameter waveform for the software injection.\n"); // Only the 1.5-pN order is available
+      if(run->beVerbose>=1) printf("    - using Apostolatos, 1.5-pN, 12-parameter waveform for the software injection.\n"); // Only the 1.5-pN order is available
       run->nInjectPar=12;
     } else if(run->injectionWaveform==2) {
-      if(run->beVerbose>=1) printf("   Using LAL,%4.1f-pN, 12-parameter waveform for the software injection.\n",run->injectionPNorder);
+      if(run->beVerbose>=1) printf("    - using LAL,%4.1f-pN, 12-parameter waveform for the software injection.\n",run->injectionPNorder);
       run->nInjectPar=12;
     } else if(run->injectionWaveform==3) {
-      if(run->beVerbose>=1) printf("   Using LAL,%4.1f-pN, 15-parameter waveform for the software injection.\n",run->injectionPNorder);
+      if(run->beVerbose>=1) printf("    - using LAL,%4.1f-pN, 15-parameter waveform for the software injection.\n",run->injectionPNorder);
       run->nInjectPar=15;
     } else if(run->injectionWaveform==4) {
-      if(run->beVerbose>=1) printf("   Using LAL,%4.1f-pN, non-spinning waveform for the software injection.\n",run->injectionPNorder);
+      if(run->beVerbose>=1) printf("    - using LAL,%4.1f-pN, non-spinning waveform for the software injection.\n",run->injectionPNorder);
       run->nInjectPar=9;
     } else {
-      fprintf(stderr,"   Unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->injectionWaveform);
-      fprintf(stderr,"     1: Apostolatos, simple precession, 12 parameters\n");
-      fprintf(stderr,"     2: LAL, single spin, 12 parameters\n");
-      fprintf(stderr,"     3: LAL, double spin, 15 parameters\n");
-      fprintf(stderr,"     4: LAL, non-spinning, 9 parameters\n");
-      fprintf(stderr,"   Please set injectionWaveform in %s to one of these values.\n\n",run->injectionFilename);
+      fprintf(stderr,"    - unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->injectionWaveform);
+      fprintf(stderr,"        1: Apostolatos, simple precession, 12 parameters\n");
+      fprintf(stderr,"        2: LAL, single spin, 12 parameters\n");
+      fprintf(stderr,"        3: LAL, double spin, 15 parameters\n");
+      fprintf(stderr,"        4: LAL, non-spinning, 9 parameters\n");
+      fprintf(stderr,"      Please set injectionWaveform in %s to one of these values.\n\n",run->injectionFilename);
       exit(1);
     }
   }
@@ -516,21 +518,24 @@ void readInjectionInputfile(struct runPar *run)
   
   // Print injection parameters and prior ranges to screen:
   if(run->beVerbose>=1) {
-    printf("\n   %i software-injection parameters:\n      Nr:  ID: Name:           Injection value:     Obtained:\n",run->nInjectPar);
-    for(i=0;i<run->nInjectPar;i++) {
-      if(run->injRanPar[i]==0) {
-	//printf("      %2d  %3i  %-11s     %15.4lf      Taken from the value set in %s\n",run->injNumber[i],run->injID[i],run->parAbrev[run->injID[i]],run->injParVal[i],
-	printf("      %2d  %3i  %-11s     %15.4lf      Taken from the value set in %s\n",i,run->injID[i],run->parAbrev[run->injID[i]],run->injParVal[i],
-	       run->injectionFilename);
-      } else if(run->injRanPar[i]==1) {
-	printf("      %2d  %3i  %-11s     %15.4lf      Drawn randomly from a Gaussian distribution with centre  %lf  and width  %lf\n",i,run->injID[i],
-	       run->parAbrev[run->injID[i]],run->injParVal[i],run->injParValOrig[i],run->injSigma[i]);
-      } else if(run->injRanPar[i]==2) {
-	printf("      %2d  %3i  %-11s     %15.4lf      Drawn randomly from a uniform distribution  %14.4lf - %-14.4lf\n",i,run->injID[i],run->parAbrev[run->injID[i]]
-	       ,run->injParVal[i],run->injBoundLow[i],run->injBoundUp[i]);
+    if(run->injectSignal >= 1) {
+      printf("\n      %2i software-injection parameters:\n        Nr:  ID: Name:           Injection value:     Obtained:\n",run->nInjectPar);
+      for(i=0;i<run->nInjectPar;i++) {
+	if(run->injRanPar[i]==0) {
+	  printf("        %2d  %3i  %-11s     %15.4lf      Taken from the value set in %s\n",i,run->injID[i],run->parAbrev[run->injID[i]],run->injParVal[i],
+		 run->injectionFilename);
+	} else if(run->injRanPar[i]==1) {
+	  printf("        %2d  %3i  %-11s     %15.4lf      Drawn randomly from a Gaussian distribution with centre  %lf  and width  %lf\n",i,run->injID[i],
+		 run->parAbrev[run->injID[i]],run->injParVal[i],run->injParValOrig[i],run->injSigma[i]);
+	} else if(run->injRanPar[i]==2) {
+	  printf("        %2d  %3i  %-11s     %15.4lf      Drawn randomly from a uniform distribution  %14.4lf - %-14.4lf\n",i,run->injID[i],run->parAbrev[run->injID[i]]
+		 ,run->injParVal[i],run->injBoundLow[i],run->injBoundUp[i]);
+	}
       }
+      printf("\n");
+    } else {
+      printf("    - not injecting a signal\n");
     }
-    printf("\n");
   }
   
   
@@ -563,7 +568,7 @@ void readParameterInputfile(struct runPar *run)
   FILE *fin;
   
   if((fin = fopen(run->parameterFilename,"r")) == NULL) {
-    fprintf(stderr, "\n\n   ERROR reading parameter input file: %s, aborting.\n\n\n",run->parameterFilename);
+    fprintf(stderr, "\n\n   ERROR opening parameter input file: %s, aborting.\n\n\n",run->parameterFilename);
     exit(1);
   } else {
     printf("   Using parameter input file: %s.\n",run->parameterFilename);
@@ -583,24 +588,24 @@ void readParameterInputfile(struct runPar *run)
   fgets(bla,500,fin);  sscanf(bla,"%lf",&run->offsetX);
   
   if(run->mcmcWaveform==1) {
-    if(run->beVerbose>=1) printf("   Using Apostolatos, 1.5-pN, 12-parameter waveform as the MCMC template.\n");  //Only 1.5-pN order is available
+    if(run->beVerbose>=1) printf("    - using Apostolatos, 1.5-pN, 12-parameter waveform as the MCMC template.\n");  //Only 1.5-pN order is available
     run->nMCMCpar=12;
   } else if(run->mcmcWaveform==2) {
-    if(run->beVerbose>=1) printf("   Using LAL,%4.1f-pN, 12-parameter waveform as the MCMC template.\n",run->mcmcPNorder);
+    if(run->beVerbose>=1) printf("    - using LAL,%4.1f-pN, 12-parameter waveform as the MCMC template.\n",run->mcmcPNorder);
     run->nMCMCpar=12;
   } else if(run->mcmcWaveform==3) {
-    if(run->beVerbose>=1) printf("   Using LAL,%4.1f-pN, 15-parameter waveform as the MCMC template.\n",run->mcmcPNorder);
+    if(run->beVerbose>=1) printf("    - using LAL,%4.1f-pN, 15-parameter waveform as the MCMC template.\n",run->mcmcPNorder);
     run->nMCMCpar=15;
   } else if(run->mcmcWaveform==4) {
-    if(run->beVerbose>=1) printf("   Using LAL,%4.1f-pN, non-spinning waveform as the MCMC template.\n",run->mcmcPNorder);
+    if(run->beVerbose>=1) printf("    - using LAL,%4.1f-pN, non-spinning waveform as the MCMC template.\n",run->mcmcPNorder);
     run->nMCMCpar=9;
   } else {
-    fprintf(stderr,"   Unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->mcmcWaveform);
-    fprintf(stderr,"     1: Apostolatos, simple precession, 12 parameters\n");
-    fprintf(stderr,"     2: LAL, single spin, 12 parameters\n");
-    fprintf(stderr,"     3: LAL, double spin, 15 parameters\n");
-    fprintf(stderr,"     4: LAL, non-spinnig, 9 parameters\n");
-    fprintf(stderr,"   Please set mcmcWaveform in %s to one of these values.\n\n",run->mcmcFilename);
+    fprintf(stderr,"    - unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->mcmcWaveform);
+    fprintf(stderr,"        1: Apostolatos, simple precession, 12 parameters\n");
+    fprintf(stderr,"        2: LAL, single spin, 12 parameters\n");
+    fprintf(stderr,"        3: LAL, double spin, 15 parameters\n");
+    fprintf(stderr,"        4: LAL, non-spinnig, 9 parameters\n");
+    fprintf(stderr,"      Please set mcmcWaveform in %s to one of these values.\n\n",run->mcmcFilename);
     exit(1);
   }
   
@@ -685,9 +690,14 @@ void readParameterInputfile(struct runPar *run)
     // Check whether value for start is valid
     if(run->parStartMCMC[i] < 1 || run->parStartMCMC[i] > 5) {
       fprintf(stderr, "\n\n   ERROR reading parameter input file %s, parameter %d (%s):\n     %d is not a valid option for parStartMCMC.\n   Aborting...\n\n",
-	     run->parameterFilename,run->parNumber[i],run->parAbrev[run->parID[i]],run->parStartMCMC[i]);
-	exit(1);
-    }      
+	      run->parameterFilename,run->parNumber[i],run->parAbrev[run->parID[i]],run->parStartMCMC[i]);
+      exit(1);
+    }
+    if((run->parStartMCMC[i] == 3 || run->parStartMCMC[i] == 4) && run->injectSignal <= 0) {
+      fprintf(stdout, "    - no software injection was performed, so I'll use bestValue rather than injectionValue for %s.\n",run->parAbrev[run->parID[i]]);
+      run->parStartMCMC[i] -= 2;
+    }
+
     
     //Check whether the lower prior boundary < the upper
     if(run->priorBoundLow[i] >= run->priorBoundUp[i]) {
@@ -714,13 +724,13 @@ void readParameterInputfile(struct runPar *run)
     } else {
       if(run->injectSignal != 0) {
 	if(warnings==0) fprintf(stderr, "\n");
-	fprintf(stderr, " ***  Warning:  MCMC parameter %i (%s) does not occur in the injection template;  I cannot verify whether the injection value lies within the prior range ***\n",
+	printf("    * Warning:  MCMC parameter %i (%s) does not occur in the injection template;  I cannot verify whether the injection value lies within the prior range *\n",
 		run->parNumber[i],run->parAbrev[run->parID[i]]);
 	warnings += 1;
       }
     } 
   } //End for (i)
-  if(warnings >0) fprintf(stderr, "\n");
+  //if(warnings >0) printf("\n");
   
   
   if(run->injectSignal<=0) {
@@ -739,19 +749,18 @@ void readParameterInputfile(struct runPar *run)
   strcpy(FixStr[2],"Yes, to injection");
   
   char StartStr[6][99];
-  strcpy(StartStr[1],"From best value");
-  strcpy(StartStr[2],"Randomly from Gaussian around best value");
-  strcpy(StartStr[3],"From injection value");
-  strcpy(StartStr[4],"Randomly from Gaussian around injection");
-  strcpy(StartStr[5],"Randomly from prior");
+  strcpy(StartStr[1],"From the best value");
+  strcpy(StartStr[2],"Randomly from a Gaussian around the best value");
+  strcpy(StartStr[3],"From the injection value");
+  strcpy(StartStr[4],"Randomly from a Gaussian around the injection");
+  strcpy(StartStr[5],"Randomly from the prior");
   
   
   //Write parameter choice to screen:
   if(run->beVerbose>=1) {
-    printf("\n   MCMC parameters:\n      Nr:  ID: Name:                Best value:     Prior:     min:            max:    Fix parameter?        Start chain:\n");
+    printf("\n      %2i MCMC parameters:\n        Nr:  ID: Name:                Best value:     Prior:     min:            max:    Fix parameter?        Start chain:\n",run->nMCMCpar);
     for(i=0;i<run->nMCMCpar;i++) {
-      //printf("      %2d  %3i  %-11s     %15.4lf     %15.4lf %15.4lf     %-20s  %-45s\n",run->parNumber[i],run->parID[i],run->parAbrev[run->parID[i]],run->parBestVal[i],
-      printf("      %2d  %3i  %-11s     %15.4lf     %15.4lf %15.4lf     %-20s  %-45s\n",i,run->parID[i],run->parAbrev[run->parID[i]],run->parBestVal[i],
+      printf("        %2d  %3i  %-11s     %15.4lf     %15.4lf %15.4lf     %-20s  %-45s\n",i,run->parID[i],run->parAbrev[run->parID[i]],run->parBestVal[i],
 	     run->priorBoundLow[i],run->priorBoundUp[i],  FixStr[run->parFix[i]],StartStr[run->parStartMCMC[i]]);
     }
     printf("\n");
@@ -779,7 +788,7 @@ void readSystemInputfile(struct runPar *run)
   FILE *fin;
   
   if((fin = fopen(run->systemFilename,"r")) == NULL) {
-    fprintf(stderr, "\n\n   ERROR reading system file: %s, aborting.\n\n\n",run->systemFilename);
+    fprintf(stderr, "\n\n   ERROR opening system file: %s, aborting.\n\n\n",run->systemFilename);
     exit(1);
   } else {
     printf("   Using system input file: %s.\n",run->parameterFilename);
@@ -815,7 +824,7 @@ void readInjectionXML(struct runPar *run)
   printf("  Reading injection XML file %s, injection %d.\n",run->injXMLfilename,run->injXMLnr);
   NumInj = SimInspiralTableFromLIGOLw(&injTable,run->injXMLfilename,0,0);
   if(NumInj <= 0) {
-    fprintf(stderr,"\n\n   ERROR reading XML file %s.\n   Aborting.\n\n",run->injXMLfilename);
+    fprintf(stderr,"\n\n   ERROR opening XML file %s.\n   Aborting.\n\n",run->injXMLfilename);
     exit(1);
   }
   if(run->injXMLnr >= NumInj) {
@@ -851,13 +860,11 @@ void readInjectionXML(struct runPar *run)
     if(run->injID[i] == 51) run->injParVal[i] = cos(injTable->inclination);   // cos(i)
     if(run->injID[i] == 52) run->injParVal[i] = injTable->polarization;       // \psi
     if(run->injID[i] == 53) {
-      fprintf(stderr,"\n  *** You're reading injection data from an XML file, while using the Apostolatos J_0.  This may lead to unexpected and unwanted results ***\n");
-      //exit(1);
+      printf("\n    * You're reading injection data from an XML file, while using the Apostolatos J_0.  This may lead to unexpected and unwanted results *\n");
       run->injParVal[i] = sin(injTable->inclination);   // sin(\theta_J0), should probably not be used
     }
     if(run->injID[i] == 54) {
-      fprintf(stderr,"\n  *** You're reading injection data from an XML file, while using the Apostolatos J_0.  This may lead to unexpected and unwanted results ***\n");
-      //exit(1);
+      printf("\n    * You're reading injection data from an XML file, while using the Apostolatos J_0.  This may lead to unexpected and unwanted results *\n");
       run->injParVal[i] = injTable->polarization;       // \phi_J0, should probably not be used
     }
     
@@ -908,7 +915,7 @@ void readInjectionXML(struct runPar *run)
     //Merger, ringdown, ...:
     //if(run->injID[i] == 91) run->injParVal[i] = injTable->;                   // 
     
-    printf("      %2d  %-11s     %15.4lf\n",run->injNumber[i],run->parAbrev[run->injID[i]],run->injParVal[i]);
+    printf("    - %2d  %-11s     %15.4lf\n",run->injNumber[i],run->parAbrev[run->injID[i]],run->injParVal[i]);
     
   } // i (injectPar)
   
@@ -947,7 +954,7 @@ void setRandomInjectionParameters(struct runPar *run)
     printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setRandomInjectionParameters() \n\n");
     run->injRanSeed = 0;
     setSeed(&run->injRanSeed);
-    printf("  Seed: %d\n", run->injRanSeed);
+    printf("   Seed: %d\n", run->injRanSeed);
   }
   
   gsl_rng_set(ran, run->injRanSeed);     // Set seed
@@ -1124,6 +1131,7 @@ void copyRun2MCMC(struct runPar run, struct MCMCvariables *mcmc)
   
   mcmc->mcmcWaveform = run.mcmcWaveform;                // Waveform used as MCMC template
   mcmc->mcmcPNorder = run.mcmcPNorder;                  // pN order used for MCMC template
+  mcmc->injectSignal = run.injectSignal;                // Inject a signal in the data or not
   mcmc->injectionWaveform = run.injectionWaveform;      // Waveform used as injection template
   mcmc->injectionPNorder = run.injectionPNorder;        // pN order used for injection template
   mcmc->networkSize = run.networkSize;                  // Network size

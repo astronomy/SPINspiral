@@ -1,4 +1,4 @@
-  #SPINspiral:  MCMC-parameter input file.  The LINE NUMBER for each parameter should not change!!!  For injection parameters, see mcmc.input
+  #SPINspiral:  MCMC-parameter input file.  The LINE NUMBER for each parameter should not change!!!  For injection parameters, see SPINspiral.input.input
   
   #General:
   #Value:                                  Variable:                Description:

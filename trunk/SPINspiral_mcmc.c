@@ -133,46 +133,55 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   // *** INITIALISE MARKOV CHAIN **************************************************************************************************************************************************
   
   // *** Get the injection/best-guess values for signal ***
-  getInjectionParameters(&state, mcmc.nInjectPar, mcmc.injParVal);
-  allocParset(&state, mcmc.networkSize);
-  
-  // *** Write injection/best-guess values to screen and file ***
-  par2arr(state, mcmc.param, mcmc);  //Put the variables in their array
-  injectionWF = 1;                                                 // Call netLogLikelihood with an injection waveform
-  localPar(&state, ifo, mcmc.networkSize, injectionWF, run);
-  mcmc.logL[mcmc.iTemp] = netLogLikelihood(&state, mcmc.networkSize, ifo, mcmc.injectionWaveform, injectionWF, run);  //Calculate the likelihood using the injection waveform
-  
-  // Store Injection parameters in temp array:
-  for(i=0;i<mcmc.nInjectPar;i++) mcmc.nParam[mcmc.iTemp][i] = mcmc.param[mcmc.iTemp][i];
-  
-  // Copy Injection to MCMC parameters, as far as possible; otherwise use MCMC BestValue
-  int iInj=0, nDiffPar=0;
-  for(i=0;i<mcmc.nMCMCpar;i++) {
-    iInj = mcmc.injRevID[mcmc.parID[i]];  //Get the index of this parameter in the injection set.  -1 if not available.
-    if(mcmc.injParUse[mcmc.parID[i]] == 1) {
-      mcmc.param[mcmc.iTemp][i] = mcmc.nParam[mcmc.iTemp][iInj];  // Set the MCMC parameter to the corresponding injection parameter
-    } else {
-      if(mcmc.parID[i]==21 && mcmc.injID[i]==22) {
-	mcmc.param[mcmc.iTemp][i] = exp(3.0*mcmc.nParam[mcmc.iTemp][i]);  // Injection uses log(d), MCMC uses d^3
-	if(mcmc.beVerbose>=1) printf("   I translated  log(d_L/Mpc) = %lf  to  d_L^3 = %lf Mpc^3\n",mcmc.nParam[mcmc.iTemp][i],mcmc.param[mcmc.iTemp][i]);
-      } else if(mcmc.parID[i]==22 && mcmc.injID[i]==21) {
-	mcmc.param[mcmc.iTemp][i] = log(mcmc.nParam[mcmc.iTemp][i])/3.0;  // Injection uses d^3, MCMC uses log(d)
-	if(mcmc.beVerbose>=1) printf("   I translated  d_L^3 = %lf  to  log(d_L/Mpc) = %lf Mpc^3\n",mcmc.nParam[mcmc.iTemp][i],mcmc.param[mcmc.iTemp][i]);
+  if(mcmc.injectSignal >= 1) { // If a software injection was done:
+    getInjectionParameters(&state, mcmc.nInjectPar, mcmc.injParVal);
+    allocParset(&state, mcmc.networkSize);
+    
+    // *** Write injection/best-guess values to screen and file ***
+    par2arr(state, mcmc.param, mcmc);  //Put the variables in their array
+    injectionWF = 1;                                                 // Call localPar, netLogLikelihood with an injection waveform
+    localPar(&state, ifo, mcmc.networkSize, injectionWF, run);
+    mcmc.logL[mcmc.iTemp] = netLogLikelihood(&state, mcmc.networkSize, ifo, mcmc.injectionWaveform, injectionWF, run);  //Calculate the likelihood using the injection waveform
+    freeParset(&state);
+    
+    // Store Injection parameters in temp array nParam[][]:
+    for(i=0;i<mcmc.nInjectPar;i++) mcmc.nParam[mcmc.iTemp][i] = mcmc.param[mcmc.iTemp][i];
+    
+    // Copy Injection to MCMC parameters, as far as possible; otherwise use MCMC BestValue
+    int iInj=0, nDiffPar=0;
+    for(i=0;i<mcmc.nMCMCpar;i++) {
+      iInj = mcmc.injRevID[mcmc.parID[i]];  //Get the index of this parameter in the injection set.  -1 if not available.
+      if(mcmc.injParUse[mcmc.parID[i]] == 1) { // If an MCMC parameter was used for the injection
+	mcmc.param[mcmc.iTemp][i] = mcmc.nParam[mcmc.iTemp][iInj];  // Set the MCMC parameter to the corresponding injection parameter
+	
+      } else { // If an MCMC parameter was not used for the injection, try to translate:
+	if(mcmc.parID[i]==21 && mcmc.injID[i]==22) {
+	  mcmc.param[mcmc.iTemp][i] = exp(3.0*mcmc.nParam[mcmc.iTemp][i]);  // Injection uses log(d), MCMC uses d^3
+	  if(mcmc.beVerbose>=1) printf("   I translated  log(d_L/Mpc) = %lf  to  d_L^3 = %lf Mpc^3\n",mcmc.nParam[mcmc.iTemp][i],mcmc.param[mcmc.iTemp][i]);
+	} else if(mcmc.parID[i]==22 && mcmc.injID[i]==21) {
+	  mcmc.param[mcmc.iTemp][i] = log(mcmc.nParam[mcmc.iTemp][i])/3.0;  // Injection uses d^3, MCMC uses log(d)
+	  if(mcmc.beVerbose>=1) printf("   I translated  d_L^3 = %lf  to  log(d_L/Mpc) = %lf Mpc^3\n",mcmc.nParam[mcmc.iTemp][i],mcmc.param[mcmc.iTemp][i]);
+	} else {
+	  mcmc.param[mcmc.iTemp][i] = mcmc.parBestVal[i];        // Set the MCMC parameter to BestValue - this should only happen if the injection waveform has different parameters than the MCMC waveform
+	  nDiffPar += 1;
+	}
+	
+      }
+    } //for(i...)
+    
+    // Safety check:
+    if(mcmc.mcmcWaveform == mcmc.injectionWaveform && nDiffPar != 0) {
+      if(nDiffPar==1) {
+	fprintf(stderr, "\n ***  Warning:  The injection and MCMC waveform are identical, but 1 parameter was found to be different ***\n\n");
       } else {
-	mcmc.param[mcmc.iTemp][i] = mcmc.parBestVal[i];        // Set the MCMC parameter to BestValue - this should only happen if the injection waveform has different parameters than the MCMC waveform
-	nDiffPar += 1;
+	fprintf(stderr, "\n ***  Warning:  The injection and MCMC waveform are identical, but %i parameters were found to be different ***\n\n",nDiffPar);
       }
     }
+    
+  } else { // If no software injection was done (injectSignal<=0):
+    for(i=0;i<mcmc.nMCMCpar;i++) mcmc.param[mcmc.iTemp][i] = mcmc.parBestVal[i];  // Set the MCMC parameter to BestValue
   }
   
-  // Safety check:
-  if(mcmc.mcmcWaveform == mcmc.injectionWaveform && nDiffPar != 0) {
-    if(nDiffPar==1) {
-      fprintf(stderr, "\n ***  Warning:  The injection and MCMC waveform are identical, but 1 parameter was found to be different ***\n\n");
-    } else {
-      fprintf(stderr, "\n ***  Warning:  The injection and MCMC waveform are identical, but %i parameters were found to be different ***\n\n",nDiffPar);
-    }
-  }
   
   // Print/save injection parameters as MCMC output, line -1:
   mcmc.iIter = -1;
@@ -196,7 +205,6 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
     mcmc.corrUpdate[0] = 1; //Use the matrix above and don't change it
     if(mcmc.correlatedUpdates==2) mcmc.corrUpdate[0] = 2; //Use the matrix above and update it every nCorr iterations
   }
-  freeParset(&state);
 
   
   
@@ -825,7 +833,6 @@ void writeMCMCheader(struct interferometer *ifo[], struct MCMCvariables mcmc, st
 // ****************************************************************************************************************************************************  
 {
   int i=0, tempi=0;
-  
   // *** Print run parameters to screen ***
   if(mcmc.offsetMCMC==0) printf("   Starting MCMC from the true initial parameters\n\n");
   if(mcmc.offsetMCMC>=1) printf("   Starting MCMC from offset initial parameters\n\n");
@@ -1467,43 +1474,48 @@ void startMCMCOffset(struct parSet *par, struct MCMCvariables *mcmc, struct inte
   
   
   // *** Set each MCMC parameter to either the best-guess value or the injection value, depending on the per-parameter settings - nothing random about this bit
-  for(i=0;i<mcmc->nMCMCpar;i++) {
-    
-    //Start at or around BestValue:
-    if(mcmc->parStartMCMC[i]==1 || mcmc->parStartMCMC[i]==2) mcmc->nParam[mcmc->iTemp][i] = mcmc->parBestVal[i];
-    
-    //Start at or around the injection value where possible:
-    if(mcmc->offsetMCMC == 0 || mcmc->parStartMCMC[i]==3 || mcmc->parStartMCMC[i]==4) {
-      iInj = mcmc->injRevID[mcmc->parID[i]];  //Get the index of this parameter in the injection set.  -1 if not available.
-      if(mcmc->injParUse[mcmc->parID[i]] == 1) {
-	mcmc->nParam[mcmc->iTemp][i] = mcmc->injParVal[iInj];  //Start at or around the injection value
-      } else {
-	if(mcmc->parID[i]==21 && mcmc->injID[i]==22) {
-	  mcmc->param[mcmc->iTemp][i] = exp(3.0*mcmc->nParam[mcmc->iTemp][i]);  // Injection uses log(d), MCMC uses d^3
-	  if(mcmc->beVerbose>=1) printf("   I translated  log(d_L/Mpc) = %lf  to  d_L^3 = %lf Mpc^3\n",mcmc->nParam[mcmc->iTemp][i],mcmc->param[mcmc->iTemp][i]);
-	} else if(mcmc->parID[i]==22 && mcmc->injID[i]==21) {
-	  mcmc->param[mcmc->iTemp][i] = log(mcmc->nParam[mcmc->iTemp][i])/3.0;  // Injection uses d^3, MCMC uses log(d)
-	  if(mcmc->beVerbose>=1) printf("   I translated  d_L^3 = %lf  to  log(d_L/Mpc) = %lf Mpc^3\n",mcmc->nParam[mcmc->iTemp][i],mcmc->param[mcmc->iTemp][i]);
+  if(mcmc->injectSignal >= 1) {
+    for(i=0;i<mcmc->nMCMCpar;i++) {
+      
+      //Start at or around BestValue:
+      if(mcmc->parStartMCMC[i]==1 || mcmc->parStartMCMC[i]==2) mcmc->nParam[mcmc->iTemp][i] = mcmc->parBestVal[i];
+      
+      //Start at or around the injection value where possible:
+      if(mcmc->offsetMCMC == 0 || mcmc->parStartMCMC[i]==3 || mcmc->parStartMCMC[i]==4) {
+	iInj = mcmc->injRevID[mcmc->parID[i]];  //Get the index of this parameter in the injection set.  -1 if not available.
+	if(mcmc->injParUse[mcmc->parID[i]] == 1) {
+	  mcmc->nParam[mcmc->iTemp][i] = mcmc->injParVal[iInj];  //Start at or around the injection value
 	} else {
-	  mcmc->param[mcmc->iTemp][i] = mcmc->parBestVal[i];        // Set the MCMC parameter to BestValue - this should only happen if the injection waveform has different parameters than the MCMC waveform
-	  nDiffPar += 1;
+	  if(mcmc->parID[i]==21 && mcmc->injID[i]==22) {
+	    mcmc->param[mcmc->iTemp][i] = exp(3.0*mcmc->nParam[mcmc->iTemp][i]);  // Injection uses log(d), MCMC uses d^3
+	    if(mcmc->beVerbose>=1) printf("   I translated  log(d_L/Mpc) = %lf  to  d_L^3 = %lf Mpc^3\n",mcmc->nParam[mcmc->iTemp][i],mcmc->param[mcmc->iTemp][i]);
+	  } else if(mcmc->parID[i]==22 && mcmc->injID[i]==21) {
+	    mcmc->param[mcmc->iTemp][i] = log(mcmc->nParam[mcmc->iTemp][i])/3.0;  // Injection uses d^3, MCMC uses log(d)
+	    if(mcmc->beVerbose>=1) printf("   I translated  d_L^3 = %lf  to  log(d_L/Mpc) = %lf Mpc^3\n",mcmc->nParam[mcmc->iTemp][i],mcmc->param[mcmc->iTemp][i]);
+	  } else {
+	    mcmc->param[mcmc->iTemp][i] = mcmc->parBestVal[i];        // Set the MCMC parameter to BestValue - this should only happen if the injection waveform has different parameters than the MCMC waveform
+	    nDiffPar += 1;
+	  }
 	}
+      }
+      mcmc->param[mcmc->iTemp][i] = mcmc->nParam[mcmc->iTemp][i];
+    }
+    
+    // Safety check:
+    if(mcmc->mcmcWaveform == mcmc->injectionWaveform && nDiffPar != 0) {
+      if(nDiffPar==1) {
+	fprintf(stderr, "\n ***  Warning:  The injection and MCMC waveform are identical, but 1 parameter was found to be different ***\n\n");
+      } else {
+	fprintf(stderr, "\n ***  Warning:  The injection and MCMC waveform are identical, but %i parameters were found to be different ***\n\n",nDiffPar);
       }
     }
     
-    mcmc->param[mcmc->iTemp][i] = mcmc->nParam[mcmc->iTemp][i];
-  }
-  
-  
-  // Safety check:
-  if(mcmc->mcmcWaveform == mcmc->injectionWaveform && nDiffPar != 0) {
-    if(nDiffPar==1) {
-      fprintf(stderr, "\n ***  Warning:  The injection and MCMC waveform are identical, but 1 parameter was found to be different ***\n\n");
-    } else {
-      fprintf(stderr, "\n ***  Warning:  The injection and MCMC waveform are identical, but %i parameters were found to be different ***\n\n",nDiffPar);
+  } else {  // if(mcmc->injectSignal <= 0), i.e., not injection done; always use bestValue
+    for(i=0;i<mcmc->nMCMCpar;i++) {
+      mcmc->nParam[mcmc->iTemp][i] = mcmc->parBestVal[i];
+      mcmc->param[mcmc->iTemp][i] = mcmc->nParam[mcmc->iTemp][i];
     }
   }
-  
   
   
   // *** Add a random offset to the MCMC starting parameters:

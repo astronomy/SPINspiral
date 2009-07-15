@@ -1,7 +1,7 @@
 \documentclass[10pt]{article}
 \usepackage[english]{babel}
 \usepackage[letterpaper, top=2.0cm, bottom=2.0cm, left=2.0cm, right=2.0cm]{geometry}
-\usepackage[square,sort&compress]{natbib}
+%\usepackage[square,sort&compress]{natbib}
 
 \title{Documentation \textsc{SPINspiral}:\\
   Parameter estimation on gravitational-wave signals\\
@@ -243,6 +243,7 @@ At least \texttt{nTemps} increasing temperature values, starting with 1.0, \text
 
 \pagebreak
 \subsection{SPINspiral.input.data}
+\label{sec:input.data}
 The data/noise input file
 
 
@@ -269,15 +270,18 @@ The data/noise input file
 
 \subsubsection{Noise PSD estimation}
 \begin{description}
-\item[PSDsegmentNumber] Number of data segments used for the PSD estimation.  Default: 32, quick test runs: 8.
-\item[PSDsegmentLength] Length of each data segment used for PSD estimation.  Default: 8.0 -> 32x8.0s = 256s, quick test runs: 4.0 (8x4.0 = 32s).
+\item[PSDsegmentNumber] Number of data segments used for the PSD estimation.  Default: 32, quick test runs: 8 or 4.
+\item[PSDsegmentLength] Length of each data segment used for PSD estimation.  Default: 8.0 $\rightarrow$ 32x8.0s = 256s, quick test runs: 4.0 or 2.0 (8x2.0 = 16s; 4x1.0s = 4s).
 \end{description}
 
 
 
 
 \subsubsection{IFO i}
-Parameters for the location, orientation and data file for each detector used:
+\label{sec:input.data.ifo}
+Parameters for the location, orientation and data file for each detector used
+(see also Sect.\,\ref{sec:frame}):
+
 
 \begin{description}
 \item[name] Detector name, \textit{e.g.} Hanford.
@@ -286,12 +290,12 @@ Parameters for the location, orientation and data file for each detector used:
 \item[rightarm] Orientation of the 'right' arm (degrees), \textit{e.g.} 36.80.
 \item[leftarm] Orientation of the 'left' arm (degrees), \textit{e.g.} 126.80.
                                                                                                                                                                                                                
-\item[ch$1$name] Name of the data channel in the Frame file, \textit{e.g.} \texttt{H1:STRAIN}.
+\item[ch$1$name] Name of the data channel in the Frame file, \textit{e.g.} \texttt{H1:STRAIN} (see Sect.\,\ref{sec:frame}).
 \item[ch$1$filepath] Subdirectory of the path in \texttt{SPINspiral.input.system} where the data sits.  Use ``.'' for no subdirectory.  Default: ``.''.
-\item[ch$1$fileprefix] Prefix of the Frame data file name, \textit{e.g.} \texttt{H-H1\_NINJA\_NOISE}.
-\item[ch$1$filesuffix] Suffix of the Frame file name, \textit{e.g.} \texttt{-1024.gwf}.
+\item[ch$1$fileprefix] Prefix of the Frame data file name, \textit{e.g.} \texttt{H-H1\_NINJA\_NOISE} (see Sect.\,\ref{sec:frame}).
+\item[ch$1$filesuffix] Suffix of the Frame file name, \textit{e.g.} \texttt{-1024.gwf} (see Sect.\,\ref{sec:frame}).
 \item[ch$1$filesize] `Size' (in seconds) of the data in each data Frame file, \textit{e.g.} 1024.
-\item[ch$1$fileoffset] If the Frame file name ends in: -839366009-128.gwf (where 128 is the length of the data stream), \texttt{fileoffset} = \texttt{mod(839366009,128)}, \textit{e.g.} 743.
+\item[ch$1$fileoffset] If the Frame file name ends in: -839366009-128.gwf (where 128 is the length of the data stream), \texttt{fileoffset} = \texttt{mod(839366009,128)}, \textit{e.g.} 743 (see Sect.\,\ref{sec:frame}).
 \item[ch$1$doubleprecision] Data in data Frame file is double precision (1) or not (0).  Default: 0.
 \item[add2channels] Keep 0, unless you want to read a signal from file.  Default: 0.
 
@@ -535,10 +539,43 @@ signifies whether the parameter with ID $i$ is defined (1) or not (0).
 
 
 
+
 \pagebreak
-%\section*{References}
-%bibliographystyle{iopart-num}
-\bibliographystyle{unsrt}  %Includes titles as well, messes up my et al solutions...
+\section{Reading Frame files}
+\label{sec:frame}
+
+Frame files are designed to store detector data and are also used to store synthetic noise.
+They can be read using \texttt{libframe} \cite{FrameLibrary}, see \textit{e.g.}
+\texttt{/export/apps/lsc/libframe/} on Fugu.  
+
+\textsc{SPINspiral} can read Frame files.  The parameters in \texttt{SPINspiral.input.data}
+(Sect.\,\ref{sec:input.data.ifo}) determine how this is done.
+
+The name of a Frame file typically looks like \texttt{H-H1\_SOME\_TEXT-123456789-123.gwf}
+(using a file with detector data from H1 as an example).  The first part (\texttt{H-H1\_SOME\_TEXT-})
+goes into the parameter \texttt{ch1fileprefix}, while the last part (\texttt{-123.gwf}) 
+is stored in \texttt{ch1filesuffix}.
+
+The example number \texttt{123456789} indicates the starting GPS time (in seconds) of the 
+data in the file, while \texttt{123} is the length of the data strech in the file, again 
+in seconds (and again an example). In order for the code to know at which GPS time Frame
+files start and stop, we need to feed the modulus of the two numbers (\texttt{mod(123456789,123) = 90}
+here) to the parameter \texttt{ch1fileoffset}.  At the moment, we cannot read subsequent files
+of different length (using \texttt{FrCopy}, which can copy multiple files into one, is a 
+quick-and-dirty solution. The ability to read cache files would be a better one).
+
+One of the more obscure parameters is the channel name \texttt{ch1name}.  It can be found 
+using the program \texttt{FrDump}, which comes with \texttt{libframe}: \\
+\texttt{FrDump -i H-H1\_SOME\_TEXT-123456789-123.gwf |grep ProcData}\\
+The channel name is probably going to look like \texttt{H1:STRAIN} (for the case of
+the H1 detector).
+
+
+
+\pagebreak
+\section*{References}
+\bibliographystyle{iopart-num}  %Nicer...
+%\bibliographystyle{unsrt}  %Includes titles as well, messes up my et al solutions, forgets URLs.  Needed for online PDF generation at IOP
 \bibliography{SPINspiral}
 
 

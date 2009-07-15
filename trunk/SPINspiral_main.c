@@ -113,69 +113,70 @@ int main(int argc, char* argv[])
     printf(" reading noise and data files...\n");
   }
   IFOinit(network, networkSize, run); //Do the actual initialisation
-  if(run.injectSignal>=1) {
-    if(run.injectionSNR < 0.001) printf("   A signal with the injection parameter values was injected into the data.\n");
-  } else {
-    printf("   No signal was injected.\n");
-  }
-  
   
   
   // Get a injection parameter set to calculate SNR or write the wavefrom to disc:
-  struct parSet dummypar;
-  getInjectionParameters(&dummypar, run.nInjectPar, run.injParVal);
-  allocParset(&dummypar, networkSize);
-  injectionWF = 1;
-  localPar(&dummypar, network, networkSize, injectionWF, run);
-  
-  
-  
-  // Calculate SNR:
-  run.netsnr = 0.0;
-  if(run.doSNR==1) {
-    for(ifonr=0; ifonr<networkSize; ++ifonr) {
-      injectionWF = 1;                           //Call signalToNoiseRatio with the injection waveform
-      snr = signalToNoiseRatio(&dummypar, network, ifonr, run.injectionWaveform, injectionWF, run);
-      network[ifonr]->snr = snr;
-      run.netsnr += snr*snr;
-    }
-    run.netsnr = sqrt(run.netsnr);
-  }
-  
-  
-  
-  // Get the desired SNR by scaling the distance:
-  if(run.injectionSNR > 0.001 && run.injectSignal>=1) {
-    run.injParVal[3] += log(run.netsnr/run.injectionSNR);  //Use total network SNR
-    printf("   Setting distance to %lf Mpc (log(d/Mpc)=%lf) to get a network SNR of %lf.\n",exp(run.injParVal[3]),run.injParVal[3],run.injectionSNR);
-    getInjectionParameters(&dummypar, run.nMCMCpar, run.injParVal);
-    allocParset(&dummypar, networkSize);
-    injectionWF = 1;
-    localPar(&dummypar, network, networkSize, injectionWF, run);
+  struct parSet injParSet;
+  if(run.injectSignal >= 1) {
+    if(run.injectionSNR < 0.001) printf("   A signal with the injection parameter values was injected into the data.\n");
     
-    // Recalculate SNR:
+    getInjectionParameters(&injParSet, run.nInjectPar, run.injParVal);
+    allocParset(&injParSet, networkSize);
+    injectionWF = 1;
+    localPar(&injParSet, network, networkSize, injectionWF, run);
+    
+    
+    // Calculate SNR:
     run.netsnr = 0.0;
     if(run.doSNR==1) {
       for(ifonr=0; ifonr<networkSize; ++ifonr) {
 	injectionWF = 1;                           //Call signalToNoiseRatio with the injection waveform
-	snr = signalToNoiseRatio(&dummypar, network, ifonr, run.injectionWaveform, injectionWF, run);
+	snr = signalToNoiseRatio(&injParSet, network, ifonr, run.injectionWaveform, injectionWF, run);
 	network[ifonr]->snr = snr;
 	run.netsnr += snr*snr;
       }
       run.netsnr = sqrt(run.netsnr);
     }
     
-    for(ifonr=0; ifonr<networkSize; ++ifonr) IFOdispose(network[ifonr], run);
-    //Reinitialise interferometers, read and prepare data, inject signal (takes some time)
-    if(networkSize == 1) {
-      printf("   Reinitialising 1 IFO, reading data...\n");
-    } else {
-      printf("   Reinitialising %d IFOs, reading datafiles...\n",networkSize);
+    
+    // Get the desired SNR by scaling the distance:
+    if(run.injectionSNR > 0.001 && run.injectSignal>=1) {
+      run.injParVal[3] += log(run.netsnr/run.injectionSNR);  //Use total network SNR
+      printf("   Setting distance to %lf Mpc (log(d/Mpc)=%lf) to get a network SNR of %lf.\n",exp(run.injParVal[3]),run.injParVal[3],run.injectionSNR);
+      freeParset(&injParSet);
+      getInjectionParameters(&injParSet, run.nMCMCpar, run.injParVal);
+      allocParset(&injParSet, networkSize);
+      injectionWF = 1;
+      localPar(&injParSet, network, networkSize, injectionWF, run);
+      
+      // Recalculate SNR:
+      run.netsnr = 0.0;
+      if(run.doSNR==1) {
+	for(ifonr=0; ifonr<networkSize; ++ifonr) {
+	  injectionWF = 1;                           //Call signalToNoiseRatio with the injection waveform
+	  snr = signalToNoiseRatio(&injParSet, network, ifonr, run.injectionWaveform, injectionWF, run);
+	  network[ifonr]->snr = snr;
+	  run.netsnr += snr*snr;
+	}
+	run.netsnr = sqrt(run.netsnr);
+      }
+      
+      for(ifonr=0; ifonr<networkSize; ++ifonr) IFOdispose(network[ifonr], run);
+      //Reinitialise interferometers, read and prepare data, inject signal (takes some time)
+      if(networkSize == 1) {
+	printf("   Reinitialising 1 IFO, reading data...\n");
+      } else {
+	printf("   Reinitialising %d IFOs, reading datafiles...\n",networkSize);
+      }
+      IFOinit(network, networkSize, run);
+      printf("   A signal with the 'true' parameter values was injected.\n");
     }
-    IFOinit(network, networkSize, run);
-    printf("   A signal with the 'true' parameter values was injected.\n");
+    
+  } else { //if(run.injectSignal <= 0)
+    for(ifonr=0; ifonr<networkSize; ++ifonr) network[ifonr]->snr = 0.0;
+    run.netsnr = 0.0;
+    printf("   No signal was injected.\n");
   }
-  
   
   
   
@@ -202,9 +203,9 @@ int main(int argc, char* argv[])
   
   //Write some injection parameters to screen:  CHECK: needs fix
   //printf("\n");
-  //printf("   Global     :    Source position:  RA: %5.2lfh, dec: %6.2lfd;  J0 points to:  RA: %5.2lfh, dec: %6.2lfd;   inclination J0: %5.2lfd  \n",  dummypar.par[run.parRevID[31]]*r2h, asin(dummypar.par[run.parRevID[32]])*r2d,  dummypar.par[run.parRevID[54]]*r2h,  asin(dummypar.par[run.parRevID[53]])*r2d, (pi/2.0-acos(dummypar.NdJ))*r2d );
-  //printf("   Global     :    Source position:  RA: %5.2lfh, dec: %6.2lfd\n",  dummypar.par[run.parRevID[31]]*r2h, asin(dummypar.par[run.parRevID[32]])*r2d);
-  //for(ifonr=0;ifonr<networkSize;ifonr++) printf("   %-11s:    theta: %5.1lfd,  phi: %5.1lfd;   azimuth: %5.1lfd,  altitude: %5.1lfd\n",network[ifonr]->name,dummypar.localti[ifonr]*r2d,dummypar.locazi[ifonr]*r2d,fmod(pi-(dummypar.locazi[ifonr]+network[ifonr]->rightArm)+mtpi,tpi)*r2d,(pi/2.0-dummypar.localti[ifonr])*r2d);
+  //printf("   Global     :    Source position:  RA: %5.2lfh, dec: %6.2lfd;  J0 points to:  RA: %5.2lfh, dec: %6.2lfd;   inclination J0: %5.2lfd  \n",  injParSet.par[run.parRevID[31]]*r2h, asin(injParSet.par[run.parRevID[32]])*r2d,  injParSet.par[run.parRevID[54]]*r2h,  asin(injParSet.par[run.parRevID[53]])*r2d, (pi/2.0-acos(injParSet.NdJ))*r2d );
+  //printf("   Global     :    Source position:  RA: %5.2lfh, dec: %6.2lfd\n",  injParSet.par[run.parRevID[31]]*r2h, asin(injParSet.par[run.parRevID[32]])*r2d);
+  //for(ifonr=0;ifonr<networkSize;ifonr++) printf("   %-11s:    theta: %5.1lfd,  phi: %5.1lfd;   azimuth: %5.1lfd,  altitude: %5.1lfd\n",network[ifonr]->name,injParSet.localti[ifonr]*r2d,injParSet.locazi[ifonr]*r2d,fmod(pi-(injParSet.locazi[ifonr]+network[ifonr]->rightArm)+mtpi,tpi)*r2d,(pi/2.0-injParSet.localti[ifonr])*r2d);
   
   if(run.beVerbose >= 1) {
     printf("\n  %10s  %10s  %6s  %6s  ","nIter","nBurn","seed","nDet");
@@ -216,7 +217,7 @@ int main(int argc, char* argv[])
   }
   
   //Print actual injection parameters to screen:
-  if(run.doMCMC==0 && run.beVerbose>=1) {
+  if(run.injectSignal >= 1 && run.doMCMC==0 && run.beVerbose>=1) {
     printf("   Injection param:");
     for(i=0;i<run.nMCMCpar;i++) {
       if(run.parID[i]>=11 && run.parID[i]<=19) {  //GPS time
@@ -230,9 +231,9 @@ int main(int argc, char* argv[])
     printf("                   ");
     for(i=0;i<run.nMCMCpar;i++) {
       if(run.parID[i]>=11 && run.parID[i]<=19) {  //GPS time
-	printf(" %18.4f",dummypar.par[i]);
+	printf(" %18.4f",injParSet.par[i]);
       } else {
-	printf(" %9.4f",dummypar.par[i]);
+	printf(" %9.4f",injParSet.par[i]);
       }
     }
     printf("\n\n");
@@ -255,18 +256,18 @@ int main(int argc, char* argv[])
     /*
     if(1==2) {
       printf("\n\n");
-      getInjectionParameters(&dummypar, run.nMCMCpar, run.injParVal);
-      allocParset(&dummypar, networkSize);
+      getInjectionParameters(&injParSet, run.nMCMCpar, run.injParVal);
+      allocParset(&injParSet, networkSize);
       
       FILE *fout;
       fout = fopen("tc.dat","w");
       double fac=0.0;
-      double matchpar = dummypar.tc,matchres=0.0;
+      double matchpar = injParSet.tc,matchres=0.0;
       for(fac=-0.002;fac<0.002;fac+=0.00005) {
-	dummypar.tc = matchpar+fac;
+	injParSet.tc = matchpar+fac;
 	for(ifonr=0;ifonr<networkSize;ifonr++) {
-	  localPar(&dummypar, network, networkSize, injectionWF, run);
-	  matchres = match(&dummypar,network,ifonr,networkSize);
+	  localPar(&injParSet, network, networkSize, injectionWF, run);
+	  matchres = match(&injParSet,network,ifonr,networkSize);
 	  printf("%10.6f  %10.6f\n",fac,matchres);
 	  fprintf(fout,"%10.6f  %10.6f\n",fac,matchres);
 	}
@@ -350,7 +351,7 @@ int main(int argc, char* argv[])
   
   //Get rid of allocated memory and quit
   for(ifonr=0; ifonr<networkSize; ++ifonr) IFOdispose(network[ifonr], run);
-  freeParset(&dummypar);
+  if(run.injectSignal >= 1) freeParset(&injParSet);
   
   
   clock_t time3 = clock();

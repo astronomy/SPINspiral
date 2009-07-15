@@ -79,7 +79,7 @@ void setIFOdata(struct runPar *run, struct interferometer ifo[])
   if(run->selectdata == 0) readDataInputfile(run,ifo);        //Read data on the noise files to use
   
   // Print selected type of data/noise:
-  if(run->beVerbose>=1) printf("   Data set used: %s\n",run->datasetName);
+  if(run->beVerbose>=1) printf("    - data set used: %s\n",run->datasetName);
   
   // WGS-84 data:
   for(i=0;i<run->maxIFOdbaseSize;i++) {
@@ -733,9 +733,9 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
   // Read first two bits (2M seconds)
   // Access (noise) channel:
   if(ifo->noisedoubleprecision)
-    vect = FrFileIGetVectD(iFile, ifo->noisechannel, ((double)ifo->noiseGPSstart), Mseconds*2);
+    vect = FrFileIGetVectD(iFile, ifo->noisechannel, ((double)ifo->noiseGPSstart), Mseconds*2.0);
   else
-    vect = FrFileIGetVectF(iFile, ifo->noisechannel, ((double)ifo->noiseGPSstart), Mseconds*2);
+    vect = FrFileIGetVectF(iFile, ifo->noisechannel, ((double)ifo->noiseGPSstart), Mseconds*2.0);
   if(vect == NULL) {
     fprintf(stderr, "\n\n   ERROR reading noise data file: %s, aborting.\n\n\n",filenames);
     exit(1);

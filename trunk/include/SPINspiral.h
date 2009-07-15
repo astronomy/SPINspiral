@@ -245,6 +245,7 @@ struct MCMCvariables{
   int networkSize;                // Number of IFOs in the detector network
   int mcmcWaveform;               // Waveform used as the MCMC template
   double mcmcPNorder;             // pN order of the MCMC waveform
+  int injectSignal;               // Inject a signal in the data or not
   int injectionWaveform;          // Waveform used to do software injections
   double injectionPNorder;        // pN order of the injection waveform
   
