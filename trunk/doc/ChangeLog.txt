@@ -2,17 +2,25 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
-   205:  sluys, 14/07/2009
+   207: sluys, 15/07/2009
+     - GeneratePPNtwoPN produces an error when called for Mtot>100Mo. Catch it off and
+       return zeroes for the waveform instead.
+     
+   206: sluys, 15/07/2009
+     - Added safety check: don't use injection values as starting values if no injection was done
+     - Some cosmetic changes
+     
+   205: sluys, 14/07/2009
      - Added d^3 prior for testing with Apostolatos waveform; log(d) works like before
      - Minor cosmetics
      
-   204:  sluys, 13/07/2009
+   204: sluys, 13/07/2009
      - Changed doc/input_all/SPINspiral.input.mcmc.  Added:
        - acceptRateTarget: target acceptance rate for MCMC (0.0-1.0)
        - minlogL: inimum value for the log Likelihood to accept a jump
      - Some minor cosmetic changes and cleaning
      
-   203:  sluys, 13/07/2009
+   203: sluys, 13/07/2009
      - Changed output somewhat
      
    201-202: sluys, 13/07/2009

@@ -789,6 +789,20 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
   
   //printf(" LAL nS WF pars:  injWF: %i, Mc: %f, eta: %f, tc: %f, logD: %f, RA: %f, dec: %f, phi: %f, cos(i): %f, psi: %f\n",
   //injectionWF,pMc, pEta, pTc, pLogDl, pRA, pSinDec, pPhase, pCosI, pPsi);
+
+
+  // Get masses from Mch and eta:
+  double m1=0.0,m2=0.0;
+  McEta2masses(pMc,pEta,&m1,&m2);
+  
+  //printf(" LAL nS WF pars:  injWF: %i, Mc: %f, eta: %f, M1: %f, M2: %f, Mtot: %f\n",injectionWF,pMc, pEta, m1, m2, m1+m2);
+  
+  // Cannot compute templates for Mtot > 100Mo (?)
+  int length = ifo[ifonr]->samplesize;
+  if(m1+m2 >= 100.0) {
+    for(i=0; i<length; ++i) ifo[ifonr]->FTin[i] = 0.0;
+    return;
+  }
   
 
   // LAL structs needed. Have to be freed later
@@ -805,7 +819,6 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
   double f_lower=ifo[ifonr]->lowCut;
   double samplerate = (double)ifo[ifonr]->samplerate;
   double inversesamplerate = 1.0/samplerate;
-  int length = ifo[ifonr]->samplesize;
   double *wave = (double*)calloc(length+2,sizeof(double));
   
   
@@ -822,10 +835,6 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
   Approximant injapprox;
   LALGetApproximantFromString(&status,injParams.waveform,&injapprox);
   if(injapprox!=GeneratePPN) fprintf(stderr,"\n *** Warning:  not using GeneratePPN approximant causes incoherent injections ***\n");
-  
-  // Get masses from Mch and eta:
-  double m1=0.0,m2=0.0;
-  McEta2masses(pMc,pEta,&m1,&m2);
   
   // Fill injParam with the waveform parameters:
   injParams.mass1 = (float)m1;
@@ -874,7 +883,7 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
   
   LALfreedomNoSpin(&waveform);
   
-  for(i=0; i<length; ++i) {ifo[ifonr]->FTin[i] = wave[i];}
+  for(i=0; i<length; ++i) ifo[ifonr]->FTin[i] = wave[i];
   
   free(wave);
   free(waveformApproximant);

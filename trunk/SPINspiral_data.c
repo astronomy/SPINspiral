@@ -294,15 +294,14 @@ double* filter(int *order, int samplerate, double upperlimit, struct runPar run)
   // if there's not enough room for a transition band, we have a problem!
   
   if(0.5/(double)run.downsampleFactor - upperlimit/((double)samplerate) < transitionbandwidth){
-    printf(" Problem in filter() function while downsampling!\n");
-    printf(" New Nyquist frequency after downsampling by %d is %g\n",
-	   run.downsampleFactor, ((double)samplerate)/(double)run.downsampleFactor/2.0);
-    printf(" Desired upper limit is %g\n", upperlimit);
-    printf(" This doesn't leave enough room for a transition band of relative width %g\n",
-	   transitionbandwidth);
-    printf(" Maximum upper limit: %g Hz.\n", (double)samplerate * 
-	   (0.5/(double)run.downsampleFactor - transitionbandwidth));
-    printf(" Aborting!\n");
+    fprintf(stderr," *** ERROR in filter() function while downsampling ***\n");
+    fprintf(stderr,"     The original sampling rate is %i Hz and the new Nyquist frequency after downsampling %dx is %g Hz.\n",
+	    samplerate,run.downsampleFactor, ((double)samplerate)/(double)run.downsampleFactor/2.0);
+    fprintf(stderr,"     The desired upper limit is %g Hz, and this doesn't leave enough room for a transition band of relative width %g.\n", 
+	    upperlimit,transitionbandwidth);
+    fprintf(stderr,"     The maximum upper frequency cut that can be used is: %g Hz.\n", (double)samplerate * 
+	    (0.5/(double)run.downsampleFactor - transitionbandwidth));
+    fprintf(stderr,"     Aborting!\n\n");
     exit(1);
   }
   
