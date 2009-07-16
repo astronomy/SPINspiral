@@ -695,9 +695,9 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   injParams->polarization = (float)pPsi;                                     // Polarisation angle
   
   REAL8 geocent_end_time = pTc;
-  
-  LALFloatToGPS( status, &(injParams->geocent_end_time), &geocent_end_time);
-  
+
+  XLALGPSSetREAL8( &(injParams->geocent_end_time), geocent_end_time );
+	
   ppnParams->deltaT = inversesamplerate;
   
   
@@ -864,8 +864,7 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
   
   
   REAL8 geocent_end_time = pTc;
-  LALFloatToGPS(&status, &injParams.geocent_end_time, &geocent_end_time);
-  
+  XLALGPSSetREAL8( &injParams.geocent_end_time, geocent_end_time );
   
   // Call the injection function; compute h_+ and h_x:
   LALGenerateInspiral(&status, &waveform, &injParams, &ppnParams );
@@ -996,15 +995,14 @@ double LALFpFc(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   //LALINT8toGPS( &stat, &(waveform->a->epoch), &waveformStartTime );
   //  LALFloatToGPS( &stat, &(waveform->a->epoch), &waveformStartTime);
   
-  LALGPStoINT8( status, &waveformStartTime, &(injParams->geocent_end_time) );
   
+  waveformStartTime = XLALGPSToINT8NS( &(injParams->geocent_end_time) );
   
   
   waveformStartTime -= (INT8) ( 1000000000.0 * ppnParams->tc );
   
-  
-  
-  LALINT8toGPS( status, &(waveform->a->epoch), &waveformStartTime );
+  XLALINT8NSToGPS(&(waveform->a->epoch), waveformStartTime );
+
   
   memcpy( &(waveform->f->epoch), &(waveform->a->epoch), sizeof(LIGOTimeGPS) );
   memcpy( &(waveform->phi->epoch), &(waveform->a->epoch), sizeof(LIGOTimeGPS) );
@@ -1024,7 +1022,8 @@ double LALFpFc(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   signal.data = NULL;
   /* simulate the detectors response to the inspiral */
   LALSCreateVector( status, &(signal.data), (UINT4)length );
-  LALFloatToGPS( status, &(signal.epoch), &(ifo->FTstart));
+  XLALGPSSetREAL8( &(signal.epoch), ifo->FTstart);
+
   
   /* set the parameters for the signal time series */
   //   chan.deltaT = waveform->phi->deltaT;
