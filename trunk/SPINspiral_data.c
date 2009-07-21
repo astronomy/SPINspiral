@@ -739,12 +739,10 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
     fprintf(stderr, "\n\n   ERROR reading noise data file: %s, aborting.\n\n\n",filenames);
     exit(1);
   }
-  
   N = vect->nData; // Length of filtered & downsampled data (not yet!)
   M = (int)(N/2.0);
   samplerate = (int)(1.0 / (vect->dx[0]) + 0.5);
   // Add 0.5 for correct truncation/rounding
-  
   
   // Copy data to vector `raw'
   raw = (double*)malloc(sizeof(double)*N);

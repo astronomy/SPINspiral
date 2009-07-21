@@ -73,7 +73,21 @@
 #define USAGE "\n\n\
    Usage:  SPINspiral \n\
                 -i <main input file> \n\
-                --injXMLfile <injection XML file name> --injXMLnr <injection number in XML file (0-...)> \n \
+                --injXMLfile <injection XML file name> --injXMLnr <injection number in XML file (0-...)> \n\
+                --mChirp <chirp mass in solar mass> \n\
+                --eta <eta between 0.03 and 0.25> \n\
+                --tc <t_c in GPS time, e.g. : 873731234.00000> \n\
+                --dist <log_10 of the distance in Mpc> \n\
+                --nIter <number of iterations> \n\
+                --nSkip <number of skipped steps between stored steps> \n\
+                --nDet <number of detectors> \n\
+                --downsample <downsample factor> \n\
+                --beforetc <data before t_c being analized in seconds> \n\
+                --aftertc <data after t_c being analized in seconds> \n\
+                --Flow <low frequency cutoff in Hz> \n\
+                --Fhigh <high frequency cutoff in Hz> \n\
+                --nPSDsegment <number of segments to estimate the PSD> \n\
+                --lPSDsegment <length of each segment to estimate the PSD> \n\
 \n\n"
 
 
@@ -229,6 +243,9 @@ struct runPar{
   
   char* injXMLfilename;           // Name of XML injection file
   int injXMLnr;                   // Number of injection in XML injection file to use
+  int commandflag[20];			  // Command line parameters flags
+  int commandsettingsflag[99];    // Command line mcmc settings flags
+
 };  // End struct runpar
 
 
