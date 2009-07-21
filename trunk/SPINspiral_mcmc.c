@@ -68,16 +68,19 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   gsl_rng_set(mcmc.ran, mcmc.seed);           // Set seed for this run
   
   
-  char outfilename[99];
-  char outfilepath[512];
+  char outfileName[99];
+  char outfilePath[512];
   mcmc.fouts = (FILE**)calloc(mcmc.nTemps,sizeof(FILE*));
   for(mcmc.iTemp=0;mcmc.iTemp<mcmc.nTemps;mcmc.iTemp++) {
     if(mcmc.iTemp==0 || mcmc.saveHotChains>0) {
-	  if(run.outputpath) strcpy(outfilepath,run.outputpath);
-	  else sprintf(outfilepath,"");
-      sprintf(outfilename,"SPINspiral.output.%6.6d.%2.2d",mcmc.seed,mcmc.iTemp);
-	  strcat(outfilepath,outfilename);
-      mcmc.fouts[mcmc.iTemp] = fopen(outfilepath,"w");                       // In current dir, allows for multiple copies to run
+      if(run.outputPath) {
+	strcpy(outfilePath,run.outputPath);
+      } else {
+	sprintf(outfilePath,"./");                       // In current dir, allows for multiple copies to run
+      }
+      sprintf(outfileName,"SPINspiral.output.%6.6d.%2.2d",mcmc.seed,mcmc.iTemp);
+      strcat(outfilePath,outfileName);
+      mcmc.fouts[mcmc.iTemp] = fopen(outfilePath,"w");
     }
   }
   

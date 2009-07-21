@@ -352,9 +352,9 @@ double angle(double x[3], double y[3])
 void coord2vec(double sinlati, double longi, double x[3])
 {
   double coslati = sqrt(1.0-sinlati*sinlati);
-  x[0] = cos(longi) * coslati;  /* `Greenwich'  */
-  x[1] = sin(longi) * coslati;  /* `Ganges'     */
-  x[2] = sinlati;               /* `North Pole' */
+  x[0] = cos(longi) * coslati;  /* 'Greenwich'  */
+  x[1] = sin(longi) * coslati;  /* 'Ganges'     */
+  x[2] = sinlati;               /* 'North Pole' */
 }
 // ****************************************************************************************************************************************************  
 

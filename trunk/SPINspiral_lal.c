@@ -81,8 +81,7 @@ void templateLAL12(struct parSet *par, struct interferometer *ifo[], int ifonr, 
   
   // double hplusLAL[length+2];
   // double hcrossLAL[length+2];
-  //double wave[length+2];
-  double *wave = (double*)calloc(length+2,sizeof(double));  //MvdS: should this make a difference? Vivien: no it shouldn't.
+  double *wave = (double*)calloc(length+2,sizeof(double));
   int lengthLAL = 0;
   
   
@@ -177,7 +176,6 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   INT4        i;
   int			lengthLAL;
   //REAL8       a1, a2, phi, shift;
-  pi=M_PI;
   
   
   ////////////////////////////////////////////////////////////initialisation of memory/////////////////////////////////
@@ -464,12 +462,12 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
 /**
  * \brief Compute waveform for a 15-parameter (two spins) LAL waveform
  * 
- * \todo Merge this routine with templateLAL15() ?
+ * \todo Merge this routine with LALHpHc15() ? - Done: new routine now called templateLAL15()
  *
  * Use the LAL 3.5/2.5 PN spinning waveform, with 2 spinning objects (15 parameters) 
  */
 // ****************************************************************************************************************************************************  
-void templateLAL15(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
+void templateLAL15old(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
 {
   int i=0;
   double samplerate=0.0,inversesamplerate=0.0;
@@ -482,8 +480,7 @@ void templateLAL15(struct parSet *par, struct interferometer *ifo[], int ifonr, 
   
   // double hplusLAL[length+2];
   // double hcrossLAL[length+2];
-  //double wave[length+2];
-  double *wave = (double*)calloc(length+2,sizeof(double));  //MvdS: should this make a difference? Vivien: no it shouldn't.
+  double *wave = (double*)calloc(length+2,sizeof(double));
   int lengthLAL = 0;
   
   
@@ -509,16 +506,16 @@ void templateLAL15(struct parSet *par, struct interferometer *ifo[], int ifonr, 
   
   // Compute h_+ and h_x
   //LALHpHc(&thewaveform, hplusLAL, hcrossLAL, &lengthLAL, length, par, ifo[ifonr], ifonr);
-  LALHpHc15(&status, &waveform, &injParams, &ppnParams, &lengthLAL, par, ifo[ifonr], injectionWF, run);  //ifonr is for debugging purposes
+  LALHpHc15(&status, &waveform, &injParams, &ppnParams, &lengthLAL, par, ifo[ifonr], injectionWF, run);
   
+
   
   
   // Compute the detector response
   //double delay = LALFpFc(&thewaveform, wave, &lengthLAL, length, par, ifonr);
   double delay = LALFpFc(&status, &waveform, &injParams, &ppnParams, wave, length, par, ifo[ifonr], ifonr); //Vivien: lentghLAL is set in LALinteface.c But is is also availble in the structure thewaveform (which holds h+,x) and the structure wave (which holds F+,x)
   delay = delay; //MvdS: remove 'declared but never referenced' warnings
-  
-  
+
   // printf("LALdelay = %10.10f\n", delay);
   
   LALfreedomSpin(&waveform);
@@ -550,7 +547,7 @@ void templateLAL15(struct parSet *par, struct interferometer *ifo[], int ifonr, 
   
   free(wave);
   
-} // End of templateLAL15()
+} // End of templateLAL15old()
 // ****************************************************************************************************************************************************  
 
 
@@ -563,13 +560,14 @@ void templateLAL15(struct parSet *par, struct interferometer *ifo[], int ifonr, 
 /**
  * \brief Compute a waveform for a 15-parameter (two spins) LAL waveform
  * 
- * \todo Merge this routine with templateLAL15() ?
+ * \todo Merge this routine with templateLAL15() ?  - Done: new routine is templateLAL15(), old one templateLAL15old()
  * 
  * Compute h_+ and h_x form the parameters in par and interferometer information in ifo. 
  * l is a pointer to get the lenght of the waveform computed, this length is also available in waveform->phi->data->length.
  */
 // ****************************************************************************************************************************************************  
-void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, int *l, struct parSet *par, struct interferometer *ifo, int injectionWF, struct runPar run) 
+void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injParams, PPNParamStruc *ppnParams, int *l, struct parSet *par, 
+	       struct interferometer *ifo, int injectionWF, struct runPar run) 
 {
   
   // static LALStatus    mystatus;
@@ -580,7 +578,6 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   // INT4        i;
   int			lengthLAL;
   //REAL8       a1, a2, phi, shift;
-  pi=M_PI;
   
   
   ////////////////////////////////////////////////////////////initialisation of memory/////////////////////////////////
@@ -644,7 +641,7 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   }
   
   pLongi = fmod(longitude(pRA, GMST(pTc)) + mtpi, tpi);    // RA -> 'lon'
-
+  
   //printf(" LAL two-spin WF pars:  injWF: %i, Mc: %f, eta: %f, tc: %f, logD: %f, RA: %f, dec: %f, phi: %f, cos(i): %f, psi: %f,  a1: %f, cth1: %f, phi1: %f,  a2: %f, cth2: %f, phi2: %f\n",
   //injectionWF,pMc, pEta, pTc, pLogDl, pRA, pSinDec, pPhase, pCosI, pPsi,  pSpin1, pSpCosTh1, pSpPhi1,  pSpin2, pSpCosTh2, pSpPhi2);
   
@@ -652,6 +649,8 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   // Get masses from Mch and eta:
   double m1,m2;
   McEta2masses(pMc,pEta,&m1,&m2);
+  
+  printf(" Mc: %f,  M1: %f,  M2: %f,  Mtot: %f\n",pMc,m1,m2,m1+m2);
   
   
   ////////////////////////////////////////////////////////////now we fill the injParam structure with the parameters//////////////
@@ -742,6 +741,197 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
 
 
 
+
+
+
+
+// ****************************************************************************************************************************************************  
+/**
+ * \brief Compute waveform for a 15-parameter (two spins) LAL waveform
+ * 
+ * Use the LAL 3.5/2.5 PN spinning waveform, with 2 spinning objects (15 parameters) 
+ */
+// ****************************************************************************************************************************************************  
+void templateLAL15(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run)
+{
+  
+  // Get the 15 waveform parameters from their array:
+  double pMc=0.0,pEta=0.0,pTc=0.0,pLogDl=0.0,pRA=0.0,pLongi=0.0,pSinDec=0.0,pPhase=0.0,pCosI=0.0,pPsi=0.0;
+  double pSpin1=0.0,pSpCosTh1=0.0,pSpPhi1=0.0,pSpin2=0.0,pSpCosTh2=0.0,pSpPhi2=0.0,PNorder=0.0;
+  
+  if(injectionWF==1) {                                               // Then this is an injection waveform template
+    pTc       = par->par[run.injRevID[11]];                                            // 11: t_c
+    pLogDl    = par->par[run.injRevID[22]];                                            // 22: log(d_L)
+    pMc       = par->par[run.injRevID[61]];                                            // 61: Mc
+    pEta      = par->par[run.injRevID[62]];                                            // 62: eta
+    
+    pRA       = par->par[run.injRevID[31]];                                            // 31: RA
+    pSinDec   = par->par[run.injRevID[32]];                                            // 32: sin(Dec)
+    pPhase    = par->par[run.injRevID[41]];                                            // 41: phi_c - GW phase at coalescence
+    pCosI     = par->par[run.injRevID[51]];                                            // 51: cos(inclination)
+    pPsi      = par->par[run.injRevID[52]];                                            // 52: psi: polarisation angle
+    
+    pSpin1    = par->par[run.injRevID[71]];                                            // 71: a_spin1
+    pSpCosTh1 = par->par[run.injRevID[72]];                                            // 72: cos(theta_spin1)
+    pSpPhi1   = par->par[run.injRevID[73]];                                            // 73: phi_spin1    
+    pSpin2    = par->par[run.injRevID[81]];                                            // 81: a_spin2
+    pSpCosTh2 = par->par[run.injRevID[82]];                                            // 82: cos(theta_spin2)
+    pSpPhi2   = par->par[run.injRevID[83]];                                            // 83: phi_spin2    
+    
+    PNorder   = run.injectionPNorder;                                                  // Post-Newtonian order
+  } else {                                                           // Then this is an MCMC waveform template
+    pTc       = par->par[run.parRevID[11]];                                            // 11: t_c
+    pLogDl    = par->par[run.parRevID[22]];                                            // 22: log(d_L)
+    pMc       = par->par[run.parRevID[61]];                                            // 61: Mc
+    pEta      = par->par[run.parRevID[62]];                                            // 62: eta
+    
+    pRA       = par->par[run.parRevID[31]];                                            // 31: RA
+    pSinDec   = par->par[run.parRevID[32]];                                            // 32: sin(Dec)
+    pPhase    = par->par[run.parRevID[41]];                                            // 41: phi_c - GW phase at coalescence
+    pCosI     = par->par[run.parRevID[51]];                                            // 51: cos(inclination) of the binary
+    pPsi      = par->par[run.parRevID[52]];                                            // 52: psi: polarisation angle of the binary
+    
+    pSpin1    = par->par[run.parRevID[71]];                                            // 71: a_spin1
+    pSpCosTh1 = par->par[run.parRevID[72]];                                            // 72: cos(theta_spin1)
+    pSpPhi1   = par->par[run.parRevID[73]];                                            // 73: phi_spin1    
+    pSpin2    = par->par[run.parRevID[81]];                                            // 81: a_spin2
+    pSpCosTh2 = par->par[run.parRevID[82]];                                            // 82: cos(theta_spin2)
+    pSpPhi2   = par->par[run.parRevID[83]];                                            // 83: phi_spin2    
+    
+    PNorder   = run.mcmcPNorder;                                                       // Post-Newtonian order
+  }
+  
+  pLongi = fmod(longitude(pRA, GMST(pTc)) + mtpi, tpi);    // RA -> 'lon'
+  
+  // Get masses from Mch and eta:
+  double m1,m2;
+  McEta2masses(pMc,pEta,&m1,&m2);
+  
+  //printf(" LAL two-spin WF pars:  injWF: %i, Mc: %f, eta: %f, tc: %f, logD: %f, RA: %f, dec: %f, phi: %f, cos(i): %f, psi: %f,  a1: %f, cth1: %f, phi1: %f,  a2: %f, cth2: %f, phi2: %f\n",
+  //injectionWF,pMc, pEta, pTc, pLogDl, pRA, pSinDec, pPhase, pCosI, pPsi,  pSpin1, pSpCosTh1, pSpPhi1,  pSpin2, pSpCosTh2, pSpPhi2);
+  //printf(" Mc: %f,  M1: %f,  M2: %f,  Mtot: %f\n",pMc,m1,m2,m1+m2);
+  
+  
+  // Cannot compute templates for Mtot >~ 146Mo (?).  Use 140Mo.
+  int length = ifo[ifonr]->samplesize;
+  int i=0;
+  if(m1+m2 >= 140.0) {
+    if(injectionWF==1) {
+      fprintf(stderr, "\n\n   ERROR:  templateLAL15() was called for a software injection with a binary mass of%6.1fMo, which exceeds the upper limit of 140Mo.\n   Aborting...\n\n",m1+m2);
+      exit(1);
+    }
+    for(i=0; i<length; ++i) ifo[ifonr]->FTin[i] = 0.0;
+    return;
+  }
+  
+  
+  double samplerate = (double)ifo[ifonr]->samplerate;
+  double inversesamplerate = 1.0/samplerate;
+  double *wave = (double*)calloc(length+2,sizeof(double));
+  
+  // LAL thingies needed. Have to be freed later:
+  static LALStatus    status;
+  CoherentGW          waveform;
+  SimInspiralTable    injParams;
+  PPNParamStruc       ppnParams;
+  
+  memset( &status, 0, sizeof(LALStatus) );
+  memset( &waveform, 0, sizeof(CoherentGW) );
+  memset( &injParams, 0, sizeof(SimInspiralTable) );
+  memset( &ppnParams, 0, sizeof(PPNParamStruc) );
+  
+  ppnParams.deltaT   = inversesamplerate;
+  ppnParams.lengthIn = 0;
+  ppnParams.ppn      = NULL;
+  
+  
+  ////////////////////////////////////////////////////////////now we fill the injParam structure with the parameters//////////////
+  
+  injParams.mass1 = (float)m1;
+  injParams.mass2 = (float)m2;
+  
+  injParams.f_final = (float)ifo[ifonr]->highCut;  // It seems injParams.f_final gets overwritten by LALGenerateInspiral; it's an output parameter rather than input. This will also somewhat affect SNR comparisons with the Apostolatos waveform.
+  injParams.f_lower = (float)ifo[ifonr]->lowCut;
+  
+  // Remember we're in the 15-par routine here:
+  char* waveformApproximant = (char*)calloc(128,sizeof(char));
+  getWaveformApproximant("SpinTaylor",128,PNorder,waveformApproximant);  //Spinning
+  //snprintf(waveformApproximant,128,"SpinTaylorthreePointFivePN"); //Set it manually
+  
+  LALSnprintf(injParams.waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),waveformApproximant);
+  
+  // This is given in Mpc:
+  injParams.distance = (float)exp(pLogDl); // d_L;
+  
+  injParams.inclination = (float)acos(pCosI);                      // Inclination of the binary
+  
+  double pSpsinth1 = sqrt(1.0 - pSpCosTh1*pSpCosTh1);
+  injParams.spin1x = (float)(pSpin1 * pSpsinth1 * cos(pSpPhi1));
+  injParams.spin1y = (float)(pSpin1 * pSpsinth1 * sin(pSpPhi1));
+  injParams.spin1z = (float)(pSpin1 * pSpCosTh1);
+  
+  double pSpsinth2 = sqrt(1.0 - pSpCosTh2*pSpCosTh2);
+  injParams.spin2x = (float)(pSpin2 * pSpsinth2 * cos(pSpPhi2));
+  injParams.spin2y = (float)(pSpin2 * pSpsinth2 * sin(pSpPhi2));
+  injParams.spin2z = (float)(pSpin2 * pSpCosTh2);
+  
+  // 4 parameters used after the computation of h+,x ********************//
+  injParams.coa_phase = (float)pPhase;                                      // GW phase at coalescence
+  injParams.longitude = (float)pLongi;                                      // 'Longitude'
+  injParams.latitude = (float)asin(pSinDec);                                // Declination
+  injParams.polarization = (float)pPsi;                                     // Polarisation angle
+  
+  REAL8 geocent_end_time = pTc;
+  
+  XLALGPSSetREAL8( &(injParams.geocent_end_time), geocent_end_time );
+  
+  ppnParams.deltaT = inversesamplerate;
+  
+  
+  //Print output:
+  //  printf("  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf\n",
+  //	 injParams.mass1,injParams.mass2,injParams.f_final,injParams.f_lower,injParams.distance,injParams.inclination,injParams.spin1x,injParams.spin1y,injParams.spin1z,
+  //	 injParams.spin2x,injParams.spin2y,injParams.spin2z,injParams.coa_phase,injParams.longitude,injParams.latitude,injParams.polarization);
+  
+  
+  // Call the injection function:
+  LALGenerateInspiral( &status, &waveform, &injParams, &ppnParams );
+  if(status.statusCode) {
+    fprintf(stderr, "\n\n   LALHpHc15:  ERROR generating waveform\n" );
+    REPORTSTATUS(&status);
+    exit(1);
+  }
+  // LALInfo( status, ppnParams.termDescription );
+  
+  free(waveformApproximant);
+  
+  
+  // Compute the detector response:
+  double delay = LALFpFc(&status, &waveform, &injParams, &ppnParams, wave, length, par, ifo[ifonr], ifonr); //Vivien: lentghLAL is set in LALinteface.c But is is also availble in the structure thewaveform (which holds h+,x) and the structure wave (which holds F+,x)
+  delay = delay; //MvdS: remove 'declared but never referenced' warnings
+  
+  LALfreedomSpin(&waveform);
+  
+  for (i=0; i<length; ++i) ifo[ifonr]->FTin[i] = wave[i];
+  
+  free(wave);
+  
+} // End of templateLAL15()
+// ****************************************************************************************************************************************************  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ****************************************************************************************************************************************************  
 /**
  * \brief Compute waveform template for a LAL non-spinning inspiral waveform
@@ -789,8 +979,8 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
   
   //printf(" LAL nS WF pars:  injWF: %i, Mc: %f, eta: %f, tc: %f, logD: %f, RA: %f, dec: %f, phi: %f, cos(i): %f, psi: %f\n",
   //injectionWF,pMc, pEta, pTc, pLogDl, pRA, pSinDec, pPhase, pCosI, pPsi);
-
-
+  
+  
   // Get masses from Mch and eta:
   double m1=0.0,m2=0.0;
   McEta2masses(pMc,pEta,&m1,&m2);
@@ -800,11 +990,15 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
   // Cannot compute templates for Mtot > 100Mo (?)
   int length = ifo[ifonr]->samplesize;
   if(m1+m2 >= 100.0) {
+    if(injectionWF==1) {
+      fprintf(stderr, "\n\n   ERROR:  templateLALnonSpinning() was called for a software injection with a binary mass of%6.1fMo, which exceeds the upper limit of 100Mo.\n   Aborting...\n\n",m1+m2);
+      exit(1);
+    }
     for(i=0; i<length; ++i) ifo[ifonr]->FTin[i] = 0.0;
     return;
   }
   
-
+  
   // LAL structs needed. Have to be freed later
   static LALStatus    status;
   CoherentGW          waveform;  // i.e. output

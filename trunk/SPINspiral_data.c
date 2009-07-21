@@ -80,6 +80,7 @@ void setIFOdata(struct runPar *run, struct interferometer ifo[])
   
   // Print selected type of data/noise:
   if(run->beVerbose>=1) printf("    - data set used: %s\n",run->datasetName);
+  //if(run->beVerbose>=1) printf("    - data set used: %s (%s)\n",run->datasetName,ifo[0].ch1filepath);
   
   // WGS-84 data:
   for(i=0;i<run->maxIFOdbaseSize;i++) {
@@ -284,7 +285,7 @@ double* filter(int *order, int samplerate, double upperlimit, struct runPar run)
   int ncoef      = 129;  // number of filter coefficients... 129 should be sufficient
   int totalcoef  = ncoef+ncoef-1;   // total number of coefficients                  
   double desired[2] = {1.0, 0.0};      // desired gain                               
-  double weights[2] = {1.0, 1.0};      // weight for `loss' in pass- & stopband      
+  double weights[2] = {1.0, 1.0};      // weight for 'loss' in pass- & stopband      
   //double transitionbandwidth=0.0125;    //0.0125 was suggested by Christian Roever via 07/30/08 e-mail
   double transitionbandwidth=0.025;    
   // Place transition bandwidth half-way between upper edge of pass band, which is
@@ -326,7 +327,7 @@ double* filter(int *order, int samplerate, double upperlimit, struct runPar run)
  * \brief Downsample a time series by a factor downsampleFactor
  * 
  * Downsamples a time series by factor downsampleFactor by first low-pass filtering it using a finite-impulse-response (FIR) filter and then thinning the data.
- * Filter coefficients are determined using the `Parks-McClellan' or `Remez exchange' algorithm.
+ * Filter coefficients are determined using the 'Parks-McClellan' or 'Remez exchange' algorithm.
  * The resulting data vector is shorter than original.
  * Returned vector is allocated using fftw_malloc() and thus must be freed again using fftw_free().
  */
@@ -422,7 +423,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
   double        *injection;
   
   
-  // `from' and `to' are determined so that the range specified by `before_tc' and `after_tc'
+  // 'from' and 'to' are determined so that the range specified by 'before_tc' and 'after_tc'
   // falls into the flat part of the (Tukey-) window:                                        
   from  = floor(run.geocentricTc - ifo[ifonr]->before_tc - (ifo[ifonr]->before_tc+ifo[ifonr]->after_tc) * 0.5 * (run.tukeyWin/(1.0-run.tukeyWin)));
   to    =  ceil(run.geocentricTc + ifo[ifonr]->after_tc  + (ifo[ifonr]->before_tc+ifo[ifonr]->after_tc) * 0.5 * (run.tukeyWin/(1.0-run.tukeyWin)));
@@ -448,7 +449,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
   
   
   // Open frame file(s):
-  if(run.beVerbose>=2) printf(" | Opening %d chirp data file(s)... \n", filecount);
+  if(run.beVerbose>=2) printf(" | Opening %d signal data file(s)... \n", filecount);
   iFile = FrFileINew(filenames);
   if(iFile == NULL) {
     fprintf(stderr, "\n\n   ERROR opening data file: %s (channel 1), aborting.\n\n\n",filenames);
@@ -744,7 +745,7 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
   samplerate = (int)(1.0 / (vect->dx[0]) + 0.5);
   // Add 0.5 for correct truncation/rounding
   
-  // Copy data to vector `raw'
+  // Copy data to vector 'raw'
   raw = (double*)malloc(sizeof(double)*N);
   for(i=0; i<N; ++i) 
     raw[i] = vect->dataF[i];
@@ -753,7 +754,7 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
     if(!(raw[i]<HUGE_VAL))
       ++screwcount;
   
-  // Downsample (by factor downsampleFactor)  !! changes value of `N' as well !!
+  // Downsample (by factor downsampleFactor)  !! changes value of 'N' as well !!
   // NINJA:
   if(run.downsampleFactor!=1){
     filtercoef = filter(&ncoef, samplerate, ifo->highCut, run);
@@ -859,7 +860,7 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
       in[i] *= win[i];
     
     // Execute FT:
-    fftw_destroy_plan(FTplan); // Previous `in'-vector was freed in the meantime
+    fftw_destroy_plan(FTplan); // Previous 'in'-vector was freed in the meantime
     FTplan = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE);
     fftw_execute(FTplan);
     if(out == NULL){

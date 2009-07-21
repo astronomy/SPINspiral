@@ -244,10 +244,10 @@ struct runPar{
   
   char* injXMLfilename;           // Name of XML injection file
   int injXMLnr;                   // Number of injection in XML injection file to use
-  int commandflag[20];			  // Command line parameters flags
-  int commandsettingsflag[99];    // Command line mcmc settings flags
+  int commandFlag[20];		  // Command line parameters flags
+  int commandSettingsFlag[99];    // Command line mcmc settings flags
 	
-  char* outputpath;              // where the output is stored	
+  char* outputPath;              // where the output is stored	
 
 };  // End struct runpar
 
@@ -562,6 +562,7 @@ void localPar(struct parSet *par, struct interferometer *ifo[], int networkSize,
 //************************************************************************************************************************************************
 
 void templateLAL12(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run);
+void templateLAL15old(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run);
 void templateLAL15(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run);
 void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run);
 

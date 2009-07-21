@@ -2,8 +2,16 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   212: sluys, 21/07/2009
+     - Merged templateLAL15() and LALHpHc15() into templateLAL15() (old routine is now
+       called templateLAL15old(), please see if it and LALHpHc15() can be removed)
+     - TemplateLAL15() now returns zeroes when called with Mtot>140Mo, instead of crashing
+     - Exit with error when calling waveforms for injections with too high mass
+     - Added options 14 and 15 for priorType, as was already documented
+     - Some commenting, cleaning and debugging
+     
    207: sluys, 15/07/2009
-     - GeneratePPNtwoPN produces an error when called for Mtot>100Mo. Catch it off and
+     - GeneratePPNtwoPN produces an error when called for Mtot>100Mo. Catch it and
        return zeroes for the waveform instead.
      
    206: sluys, 15/07/2009

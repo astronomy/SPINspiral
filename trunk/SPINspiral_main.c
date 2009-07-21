@@ -70,6 +70,7 @@ int main(int argc, char* argv[])
   run.lowFrequencyCut = 0.0;
   run.injXMLfilename = NULL;
   run.injXMLnr = -1;
+  for(i=0;i<99;i++) run.commandSettingsFlag[i] = 0;
   setConstants();                          //Set the global constants (which are variable in C)
   setParameterNames(&run);                 //Set the names of the parameters in the hardcoded parameter database
   
