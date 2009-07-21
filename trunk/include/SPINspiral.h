@@ -247,7 +247,7 @@ struct runPar{
   int commandflag[20];			  // Command line parameters flags
   int commandsettingsflag[99];    // Command line mcmc settings flags
 	
-	
+  char* outputpath;              // where the output is stored	
 
 };  // End struct runpar
 

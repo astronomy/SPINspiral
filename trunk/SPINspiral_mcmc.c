@@ -69,11 +69,15 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   
   
   char outfilename[99];
+  char outfilepath[512];
   mcmc.fouts = (FILE**)calloc(mcmc.nTemps,sizeof(FILE*));
   for(mcmc.iTemp=0;mcmc.iTemp<mcmc.nTemps;mcmc.iTemp++) {
     if(mcmc.iTemp==0 || mcmc.saveHotChains>0) {
+	  if(run.outputpath) strcpy(outfilepath,run.outputpath);
+	  else sprintf(outfilepath,"");
       sprintf(outfilename,"SPINspiral.output.%6.6d.%2.2d",mcmc.seed,mcmc.iTemp);
-      mcmc.fouts[mcmc.iTemp] = fopen(outfilename,"w");                       // In current dir, allows for multiple copies to run
+	  strcat(outfilepath,outfilename);
+      mcmc.fouts[mcmc.iTemp] = fopen(outfilepath,"w");                       // In current dir, allows for multiple copies to run
     }
   }
   

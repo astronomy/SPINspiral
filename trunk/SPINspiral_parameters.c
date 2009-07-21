@@ -54,6 +54,7 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
 
 	int nIFO =0;
 	char **networkseq=NULL;
+	run->outputpath=NULL;
 	
   if(argc > 1) printf("   Parsing %i command-line arguments:\n",argc-1);
   int i = 0;
@@ -80,7 +81,7 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
 	  {"Fhigh",           required_argument, 0,             'a'},
       {"nPSDsegment",     required_argument, 0,             'a'},
       {"lPSDsegment",     required_argument, 0,             'a'},	
-	  {"datapath",        required_argument, 0,             'a'},
+	  {"outputpath",      required_argument, 0,             'o'},
 		
       {0, 0, 0, 0}
     };
@@ -182,10 +183,16 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
 			if(strcmp(long_options[option_index].name,"lPSDsegment")==0) {
 				run->PSDsegmentLength = atof(optarg);
 				run->commandsettingsflag[12] = 1;
-				printf("    - From command line, length of PSD segments\t= %f\n",run->PSDsegmentLength);
+				printf("    - From command line, length of PSD segments\t= %f\n\n",run->PSDsegmentLength);
 			}
 						
 			break; 		
+
+		case 'o':		
+			run->outputpath=(char*)malloc(strlen(optarg)+1);
+			strcpy(run->outputpath,optarg);
+			printf("    - From command line, output path\t= %s\n",run->outputpath);
+			break;
 			
       
       // *** Treat the short and translated long options:
