@@ -51,6 +51,10 @@
 void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
 {
   int c;
+
+	int nIFO =0;
+	char **networkseq=NULL;
+	
   if(argc > 1) printf("   Parsing %i command-line arguments:\n",argc-1);
   int i = 0;
   for (i=0;i<20;i++) {
@@ -68,29 +72,14 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
 	  {"dist",            required_argument, 0,             'd'},
 	  {"nIter",           required_argument, 0,             'n'},
 	  {"nSkip",           required_argument, 0,             's'},
-	  {"nDet",            required_argument, 0,             'a'},
+	  {"network",         required_argument, 0,             'a'},
 	  {"downsample",      required_argument, 0,             'a'},
 	  {"beforetc",        required_argument, 0,             'a'},
 	  {"aftertc",         required_argument, 0,             'a'},
 	  {"Flow",            required_argument, 0,             'a'},
 	  {"Fhigh",           required_argument, 0,             'a'},
       {"nPSDsegment",     required_argument, 0,             'a'},
-      {"lPSDsegment",     required_argument, 0,             'a'},
-		
-		{"H1Strain",        required_argument, 0,             'a'},
-		{"H1size",          required_argument, 0,             'a'},
-		{"H1GPSstart",      required_argument, 0,             'a'},
-		{"H1prefix",        required_argument, 0,             'a'},
-		{"L1Strain",        required_argument, 0,             'a'},
-		{"L1size",          required_argument, 0,             'a'},
-		{"L1GPSstart",      required_argument, 0,             'a'},
-		{"L1prefix",        required_argument, 0,             'a'},
-		{"V1Strain",        required_argument, 0,             'a'},
-		{"V1size",          required_argument, 0,             'a'},
-		{"V1GPSstart",      required_argument, 0,             'a'},
-		{"V1prefix",        required_argument, 0,             'a'},
-		
-	
+      {"lPSDsegment",     required_argument, 0,             'a'},	
 	  {"datapath",        required_argument, 0,             'a'},
 		
       {0, 0, 0, 0}
@@ -148,51 +137,54 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
 			break;
 
 		case 'a': //Detector options
-			if(strcmp(long_options[option_index].name,"nDet")==0) {
-				run->networkSize = atoi(optarg);
+			if(strcmp(long_options[option_index].name,"network")==0) {
+				parseCharacterOptionString(optarg,&networkseq,&nIFO);
+				run->networkSize = nIFO;
 				run->commandsettingsflag[2] = 1;
-				printf("    - From command line, network size\t= %d\n",run->networkSize);
+                printf("    - From command line, network size\t= %d\n",run->networkSize);
+				for(i=0;i<run->networkSize;i++) {
+				run->selectifos[i] = atoi(networkseq[i]);
+				printf("    - From command line, IFO%d\t= %d\n",(i+1),run->selectifos[i]);
+				}
+				run->commandsettingsflag[3] = 1;
 			}
-		//	if(strcmp(long_options[option_index].name,"nDet")==0) {
-		//		run->networkSize = atoi(optarg);
-		//		run->commandsettingsflag[3] = 1;
-		//		printf("    - From command line, network \t= %d\n",run->networkSize);
-		//	}
+			
 			if(strcmp(long_options[option_index].name,"downsample")==0) {
 				run->downsampleFactor = atoi(optarg);
-				run->commandsettingsflag[4] = 1;
+				run->commandsettingsflag[6] = 1;
 				printf("    - From command line, downsample factor\t= %d\n",run->downsampleFactor);
 			}
 			if(strcmp(long_options[option_index].name,"beforetc")==0) {
 				run->dataBeforeTc = atof(optarg);
-				run->commandsettingsflag[5] = 1;
+				run->commandsettingsflag[7] = 1;
 				printf("    - From command line, before tc\t= %f\n",run->dataBeforeTc);
 			}
 			if(strcmp(long_options[option_index].name,"aftertc")==0) {
 				run->dataAfterTc = atof(optarg);
-				run->commandsettingsflag[6] = 1;
+				run->commandsettingsflag[8] = 1;
 				printf("    - From command line, after tc\t= %f\n",run->dataAfterTc);
 			}
 			if(strcmp(long_options[option_index].name,"Flow")==0) {
 				run->lowFrequencyCut = atof(optarg);
-				run->commandsettingsflag[7] = 1;
+				run->commandsettingsflag[9] = 1;
 				printf("    - From command line, low frequency cut\t= %f\n",run->lowFrequencyCut);
 			}
 			if(strcmp(long_options[option_index].name,"Fhigh")==0) {
 				run->highFrequencyCut = atof(optarg);
-				run->commandsettingsflag[8] = 1;
+				run->commandsettingsflag[10] = 1;
 				printf("    - From command line, high frequency cut\t= %f\n",run->highFrequencyCut);
 			}
 			if(strcmp(long_options[option_index].name,"nPSDsegment")==0) {
 				run->PSDsegmentNumber = atoi(optarg);
-				run->commandsettingsflag[9] = 1;
+				run->commandsettingsflag[11] = 1;
 				printf("    - From command line, number of PSD segments\t= %d\n",run->PSDsegmentNumber);
 			}
 			if(strcmp(long_options[option_index].name,"lPSDsegment")==0) {
 				run->PSDsegmentLength = atof(optarg);
-				run->commandsettingsflag[10] = 1;
+				run->commandsettingsflag[12] = 1;
 				printf("    - From command line, length of PSD segments\t= %f\n",run->PSDsegmentLength);
 			}
+						
 			break; 		
 			
       
@@ -222,6 +214,67 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
 } // End void readCommandLineOptions(argc,argv)
 // ****************************************************************************************************************************************************  
 
+
+
+
+// ****************************************************************************************************************************************************  
+/** 
+ * \brief parse strings from "[one,two,three]" to {"one", "two", "three"}
+ * 
+ * 
+ */
+// ****************************************************************************************************************************************************  
+
+void parseCharacterOptionString(char *input, char **strings[], int *n)
+/* parses a character string (passed as one of the options) and decomposes   */
+/* it into individual parameter character strings. Input is of the form      */
+/*   input   :  "[one,two,three]"                                            */
+/* and the resulting output is                                               */
+/*   strings :  {"one", "two", "three"}                                      */
+/* length of parameter names is by now limited to 512 characters.            */
+/* (should 'theoretically' (untested) be able to digest white space as well. */
+/* Irrelevant for command line options, though.)                             */
+{
+	int i,j,k,l;
+	/* perform a very basic well-formedness-check and count number of parameters: */
+	i=0; j=0;
+	*n = 0;
+	while (input[i] != '\0') {
+		if ((j==0) & (input[i]=='[')) j=1;
+		if ((j==1) & (input[i]==',')) ++*n;
+		if ((j==1) & (input[i]==']')) {++*n; j=2;}
+		++i;
+	}
+	if (j!=2) fprintf(stderr, " ERROR: argument vector \"%s\" not well-formed!\n", input);
+	/* now allocate memory for results: */
+	*strings  = (char**)  malloc(sizeof(char*) * (*n));
+	for (i=0; i<(*n); ++i) (*strings)[i] = (char*) malloc(sizeof(char)*512);
+	i=0; j=0; 
+	k=0; /* string counter    */
+	l=0; /* character counter */
+	while ((input[i] != '\0') & (j<3)) {
+		/* state transitions: */
+		if ((j==0) & ((input[i]!='[') & (input[i]!=' '))) j=1;
+		if (((j==1)|(j==2)) & (input[i]==',')) {(*strings)[k][l]='\0'; j=2; ++k; l=0;}
+		if ((j==1) & (input[i]==' ')) j=2;
+		if ((j==1) & (input[i]==']')) {(*strings)[k][l]='\0'; j=3;}
+		if ((j==2) & (input[i]==']')) {(*strings)[k][l]='\0'; j=3;}
+		if ((j==2) & ((input[i]!=']') & (input[i]!=',') & (input[i]!=' '))) j=1;
+		/* actual copying: */
+		if (j==1) {
+			if (l>=511) {
+				fprintf(stderr, " WARNING: character argument too long!\n");
+				fprintf(stderr, " \"%s\"\n",(*strings)[k]);
+			}
+			else {
+				(*strings)[k][l] = input[i];
+				++l;
+			}
+		}
+		++i;
+	} 
+}// End void parseCharacterOptionString(char *input, char **strings[], int *n)
+// ****************************************************************************************************************************************************  
 
 
 
@@ -390,6 +443,7 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
   double lati,longi,leftArm,rightArm;
   char bla[500], subdir[500];
   FILE *fin;
+  int dump = 0;
   
   if((fin = fopen(run->dataFilename,"r")) == NULL) {
     fprintf(stderr, "\n\n   ERROR opening data file: %s, aborting.\n\n\n",run->dataFilename);
@@ -413,31 +467,37 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
 	}
 	
 	
-  for(i=0;i<run->networkSize;i++) fscanf(fin,"%d",&run->selectifos[i]);  //Read the array directly, because sscanf cannot be in a loop...
+  for(i=0;i<run->networkSize;i++)
+	  if(run->commandsettingsflag[3] == 0) {
+	  fscanf(fin,"%d",&run->selectifos[i]);  //Read the array directly, because sscanf cannot be in a loop...
+      }
+	  else{
+	  fscanf(fin,"%d",&dump);
+	  }
   fgets(bla,500,fin);  //Read the rest of the line
   
   
   //Data handling:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment line
   fgets(bla,500,fin); 
-	if(run->commandsettingsflag[4] == 0) sscanf(bla,"%d",&run->downsampleFactor);
+	if(run->commandsettingsflag[6] == 0) sscanf(bla,"%d",&run->downsampleFactor);
   fgets(bla,500,fin); 
-	if(run->commandsettingsflag[5] == 0) sscanf(bla,"%lf",&run->dataBeforeTc);
+	if(run->commandsettingsflag[7] == 0) sscanf(bla,"%lf",&run->dataBeforeTc);
   fgets(bla,500,fin); 
-	if(run->commandsettingsflag[6] == 0) sscanf(bla,"%lf",&run->dataAfterTc);
+	if(run->commandsettingsflag[8] == 0) sscanf(bla,"%lf",&run->dataAfterTc);
   fgets(bla,500,fin); 
-	if(run->commandsettingsflag[7] == 0) sscanf(bla,"%lf",&run->lowFrequencyCut);
+	if(run->commandsettingsflag[9] == 0) sscanf(bla,"%lf",&run->lowFrequencyCut);
   fgets(bla,500,fin); 
-	if(run->commandsettingsflag[8] == 0) sscanf(bla,"%lf",&run->highFrequencyCut);
+	if(run->commandsettingsflag[10] == 0) sscanf(bla,"%lf",&run->highFrequencyCut);
   fgets(bla,500,fin); sscanf(bla,"%lf",&run->tukeyWin);
   
   
   //Read input for PSD estimation:
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines
   fgets(bla,500,fin);  
-	if(run->commandsettingsflag[9] == 0) sscanf(bla,"%d",&run->PSDsegmentNumber);
+	if(run->commandsettingsflag[11] == 0) sscanf(bla,"%d",&run->PSDsegmentNumber);
   fgets(bla,500,fin);  
-	if(run->commandsettingsflag[10] == 0) sscanf(bla,"%lf",&run->PSDsegmentLength);
+	if(run->commandsettingsflag[12] == 0) sscanf(bla,"%lf",&run->PSDsegmentLength);
   
   
   fgets(bla,500,fin); fgets(bla,500,fin);  //Read the empty and comment lines

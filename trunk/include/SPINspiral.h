@@ -80,14 +80,15 @@
                 --dist <log_10 of the distance in Mpc> \n\
                 --nIter <number of iterations> \n\
                 --nSkip <number of skipped steps between stored steps> \n\
-                --nDet <number of detectors> \n\
+                --network <network configuration, e.g. H1=[1], H1L1=[1,2], H1L1V1=[1,2,3], V1H1=[3,1]> \n\
                 --downsample <downsample factor> \n\
                 --beforetc <data before t_c being analized in seconds> \n\
                 --aftertc <data after t_c being analized in seconds> \n\
                 --Flow <low frequency cutoff in Hz> \n\
                 --Fhigh <high frequency cutoff in Hz> \n\
                 --nPSDsegment <number of segments to estimate the PSD> \n\
-                --lPSDsegment <length of each segment to estimate the PSD> \n\
+                --lPSDsegment <length of each segment to estimate the PSD> \n\n\
+example: ./SPINspiral -i ./pipeline/SPINspiral.input --mChirp 1.7 --eta 0.12 --tc 873739311.00000 --dist 1.8 --nIter 5 --nSkip 1 --downsample 1 --beforetc 5 --aftertc 2 --Flow 45 --Fhigh 1600.0 --nPSDsegment 32 --lPSDsegment 4 --network [1]\n\
 \n\n"
 
 
@@ -245,6 +246,8 @@ struct runPar{
   int injXMLnr;                   // Number of injection in XML injection file to use
   int commandflag[20];			  // Command line parameters flags
   int commandsettingsflag[99];    // Command line mcmc settings flags
+	
+	
 
 };  // End struct runpar
 
@@ -588,7 +591,7 @@ double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct int
 //void computeFisherMatrix(struct parSet *par, int npar, struct interferometer *ifo[], int networkSize, double **matrix);
 //double match(struct parSet *par, struct interferometer *ifo[], int i, int networkSize);
 
-
+void parseCharacterOptionString(char *input, char **strings[], int *n);
 
 
 #endif
