@@ -77,15 +77,15 @@
                 --mChirp <chirp mass in solar mass> \n\
                 --eta <eta between 0.03 and 0.25> \n\
                 --tc <t_c in GPS time, e.g. : 873731234.00000> \n\
-                --dist <log_10 of the distance in Mpc> \n\
+                --dist <distance in Mpc> \n\
                 --nIter <number of iterations> \n\
                 --nSkip <number of skipped steps between stored steps> \n\
                 --network <network configuration, e.g. H1=[1], H1L1=[1,2], H1L1V1=[1,2,3], V1H1=[3,1]> \n\
                 --downsample <downsample factor> \n\
-                --beforetc <data before t_c being analized in seconds> \n\
-                --aftertc <data after t_c being analized in seconds> \n\
-                --Flow <low frequency cutoff in Hz> \n\
-                --Fhigh <high frequency cutoff in Hz> \n\
+                --beforetc <data before t_c being analysed in seconds> \n\
+                --aftertc <data after t_c being analysed in seconds> \n\
+                --Flow <low frequency cut off in Hz> \n\
+                --Fhigh <high frequency cut off in Hz> \n\
                 --nPSDsegment <number of segments to estimate the PSD> \n\
                 --lPSDsegment <length of each segment to estimate the PSD> \n\n\
 example: ./SPINspiral -i ./pipeline/SPINspiral.input --mChirp 1.7 --eta 0.12 --tc 873739311.00000 --dist 1.8 --nIter 5 --nSkip 1 --downsample 1 --beforetc 5 --aftertc 2 --Flow 45 --Fhigh 1600.0 --nPSDsegment 32 --lPSDsegment 4 --network [1]\n\
@@ -244,7 +244,10 @@ struct runPar{
   
   char* injXMLfilename;           // Name of XML injection file
   int injXMLnr;                   // Number of injection in XML injection file to use
-  int commandFlag[20];		  // Command line parameters flags
+  double triggerMc;               // Chirp mass from the command line
+  double triggerEta;              // Eta from the command line
+  double triggerTc;               // Time of coalescence from the command line
+  double triggerDist;             // Distance from the command line
   int commandSettingsFlag[99];    // Command line mcmc settings flags
 	
   char* outputPath;              // where the output is stored	

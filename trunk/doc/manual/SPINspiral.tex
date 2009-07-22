@@ -120,6 +120,25 @@ using command-line options:
   \item[\texttt{-i <main input file name>}] override the name of the main input file (Section~\ref{sec:SPINspiral.input})
   \item[\texttt{--injXMLfilename <file name>}] specify an XML file to read injection data from
   \item[\texttt{--injXMLnr <0-\ldots>}] specify the injection number in the injection XML file
+
+  \item[\texttt{--mChirp}] specify a trigger value for the chirp mass ($\cal{M}$) in $M_\odot$
+  \item[\texttt{--eta}] specify a trigger value for the mass ratio ($\eta$)
+  \item[\texttt{--tc}] specify a trigger value for the GPS time of coalescence (s)
+  \item[\texttt{--dist}] specify a trigger value for the distance (Mpc)
+    
+  \item[\texttt{--nIter}] specify the desired number of MCMC iterations
+  \item[\texttt{--nSkip}] specify the number of step of which the output should be skipped between two saved iterations
+  \item[\texttt{--network}] specify the network configuration, \textit{e.g.} H1=[1], H1L1=[1,2], H1L1V1=[1,2,3], V1H1=[3,1]
+  \item[\texttt{--downsample}] specify the downsample factor for the data
+  \item[\texttt{--beforetc}] specify the number of seconds of data before $t_\mathrm{c}$ that should be analysed
+  \item[\texttt{--aftertc}] specify the number of seconds of data after $t_\mathrm{c}$ that should be analysed
+  \item[\texttt{--Flow}] specify the low frequency cut-off (Hz)
+  \item[\texttt{--Fhigh}] specify the high frequency cut-off (Hz)
+  \item[\texttt{--nPSDsegment}] specify number of data segments to estimate the PSD
+  \item[\texttt{--lPSDsegment}] specify length of each data segment to estimate the PSD
+
+%  \item[\texttt{-- }] specify 
+  
 \end{description}
   
   

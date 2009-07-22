@@ -2,6 +2,10 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   213: sluys, 21/07/2009
+     - Pass trigger values from the command line in a waveform-independent way
+       - this means passing the distance in Mpc rather than d^3 or log(d)
+     
    212: sluys, 21/07/2009
      - Merged templateLAL15() and LALHpHc15() into templateLAL15() (old routine is now
        called templateLAL15old(), please see if it and LALHpHc15() can be removed)

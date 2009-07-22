@@ -51,16 +51,16 @@
 void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
 {
   int c;
-
-	int nIFO =0;
-	char **networkseq=NULL;
-	run->outputPath=NULL;
-	
+  int nIFO =0;
+  char **networkseq=NULL;
+  run->outputPath=NULL;
+  run->triggerMc = 0.0;               // Chirp mass from the command line - zero means no value
+  run->triggerEta = 0.0;              // Eta from the command line - zero means no value
+  run->triggerTc = 0.0;               // Time of coalescence from the command line - zero means no value
+  run->triggerDist = 0.0;             // Distance (in Mpc) from the command line - zero means no value
+  
   if(argc > 1) printf("   Parsing %i command-line arguments:\n",argc-1);
   int i = 0;
-  for (i=0;i<20;i++) {
-    run->commandFlag[i] = 0;
-  }
   
   //Set up struct with long (--) options:
   static struct option long_options[] =
@@ -105,6 +105,7 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
       }
       break; //For case 0: long options
       
+      
       // *** Treat the short and translated long options:
     case 'i':
       strcpy(run->mainFilename,optarg);
@@ -112,27 +113,23 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
       break;
       
     case 'm':		
-      run->parBestVal[0] = atof(optarg);
-      run->commandFlag[0] = 1;
-      printf("    - From command line, best guess for mChirp\t\t= %f\n",run->parBestVal[0]);
+      run->triggerMc = atof(optarg);
+      printf("    - From command line, trigger value for mChirp\t\t= %f\n",run->triggerMc);
       break;
       
     case 'e':		
-      run->parBestVal[1] = atof(optarg);
-      run->commandFlag[1] = 1;
-      printf("    - From command line, best guess for eta\t\t= %f\n",run->parBestVal[1]);
+      run->triggerEta = atof(optarg);
+      printf("    - From command line, trigger value for eta\t\t= %f\n",run->triggerEta);
       break;
       
     case 't':		
-      run->parBestVal[2] = atof(optarg);
-      run->commandFlag[2] = 1;
-      printf("    - From command line, best guess for tc\t\t= %f\n",run->parBestVal[2]);
+      run->triggerTc = atof(optarg);
+      printf("    - From command line, trigger value for tc\t\t= %f\n",run->triggerTc);
       break;
       
     case 'd':		
-      run->parBestVal[3] = atof(optarg);
-      run->commandFlag[3] = 1;
-      printf("    - From command line, best guess for log(distance)\t= %f\n",run->parBestVal[3]);
+      run->triggerDist = atof(optarg);
+      printf("    - From command line, trigger value for the distance (Mpc)\t= %f\n",run->triggerDist);
       break;
       
     case 'n':		
@@ -772,8 +769,7 @@ void readParameterInputfile(struct runPar *run)
   int i,iInj;
   char tmpStr[500];
   FILE *fin;
-	double dump = 0.0;
-	
+  
   if((fin = fopen(run->parameterFilename,"r")) == NULL) {
     fprintf(stderr, "\n\n   ERROR opening parameter input file: %s, aborting.\n\n\n",run->parameterFilename);
     exit(1);
@@ -824,16 +820,18 @@ void readParameterInputfile(struct runPar *run)
   
   int warnings = 0;
   for(i=0;i<run->nMCMCpar;i++) {
-    if(run->commandFlag[i] == 0) {
-      fscanf(fin,"%d %d %lf %d %d %lf %d %lf %lf",&run->parNumber[i],&run->parID[i],&run->parBestVal[i],&run->parFix[i],&run->parStartMCMC[i],&run->parSigma[i],&run->priorType[i],&run->priorBoundLow[i],&run->priorBoundUp[i]);
-    }
-    else {	
-      fscanf(fin,"%d %d %lf %d %d %lf %d %lf %lf",&run->parNumber[i],&run->parID[i],&dump,&run->parFix[i],&run->parStartMCMC[i],&run->parSigma[i],&run->priorType[i],&run->priorBoundLow[i],&run->priorBoundUp[i]);	
-    }	
+    fscanf(fin,"%d %d %lf %d %d %lf %d %lf %lf",&run->parNumber[i],&run->parID[i],&run->parBestVal[i],&run->parFix[i],&run->parStartMCMC[i],&run->parSigma[i],&run->priorType[i],&run->priorBoundLow[i],&run->priorBoundUp[i]);
     fgets(tmpStr,500,fin);  //Read rest of the line
     
+    //Check if trigger values from the command line should replace these values:
+    if(run->parID[i] == 11 && fabs(run->triggerTc) > 1.e-10) run->parBestVal[i] = run->triggerTc;               // Tc
+    if(run->parID[i] == 21 && fabs(run->triggerDist) > 1.e-10) run->parBestVal[i] = pow(run->triggerDist,3.0);  // Distance (d^3)
+    if(run->parID[i] == 22 && fabs(run->triggerDist) > 1.e-10) run->parBestVal[i] = log(run->triggerDist);      // Distance log(d)
+    if(run->parID[i] == 61 && fabs(run->triggerMc) > 1.e-10) run->parBestVal[i] = run->triggerMc;               // Chirp mass
+    if(run->parID[i] == 62 && fabs(run->triggerEta) > 1.e-10) run->parBestVal[i] = run->triggerEta;             // Eta
+    
     //printf("%d:  %d %d %lf %d %lf %d %lf %lf\n",i,run->parNumber[i],run->parID[i],run->parBestVal[i],run->parStartMCMC[i],run->parSigma[i],
-    //   run->priorType[i],run->priorBoundLow[i],run->priorBoundUp[i]);
+    //run->priorType[i],run->priorBoundLow[i],run->priorBoundUp[i]);
     
     
     if(run->parNumber[i] != i+1) {
