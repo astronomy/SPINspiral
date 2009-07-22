@@ -82,7 +82,7 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
       {"nPSDsegment",     required_argument, 0,             'a'},
       {"lPSDsegment",     required_argument, 0,             'a'},	
       {"outputPath",      required_argument, 0,             'o'},
-      
+      {"cache",           required_argument, 0,             'c'},      
       {0, 0, 0, 0}
     };
   
@@ -199,7 +199,13 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
       strcpy(run->outputPath,optarg);
       printf("    - From command line, output path\t= %s\n",run->outputPath);
       break;
-      
+	case 'c':		
+	  run->cacheFilename=(char*)malloc(strlen(optarg)+1);
+	  strcpy(run->cacheFilename,optarg);
+	  printf("    - From command line, cache file\t= %s\n",run->cacheFilename);
+	  readCachefile(run);
+	  break;
+			
       
     default:
       //fprintf(stderr,"   Unrecognised option: %d\n",c);  // This notice is already produced by getopt_long()
@@ -1165,6 +1171,53 @@ void readInjectionXML(struct runPar *run)
 // ****************************************************************************************************************************************************  
 
 
+
+// ****************************************************************************************************************************************************  
+/** 
+ * \brief Read a Cache file. Returns an array of what is in the cache file.
+ * 
+ * 
+ */
+// ****************************************************************************************************************************************************  
+void readCachefile(struct runPar *run)
+{
+	int i;
+	int line=0;
+	char tmpStr[2048];
+	FILE *fin;
+	
+	if((fin = fopen(run->cacheFilename,"r")) == NULL) {
+		fprintf(stderr, "\n\n   ERROR opening cache file: %s, aborting.\n\n\n",run->cacheFilename);
+		exit(1);
+	} else {
+		printf("   Using cache file: %s.\n",run->cacheFilename);
+	}
+	
+	while ( ! feof (fin) ) //just to get the number of line. TO CHECK : last line of .cache file always empty ?
+	{
+		fgets (tmpStr , 2048 , fin);
+		line++;
+	}
+	fclose (fin); 
+	
+	run->FrameDetector  = (char**)  malloc(sizeof(char*) * (line));
+	for (i=0; i<(line); ++i) (run->FrameDetector)[i] = (char*) malloc(sizeof(char)*5);
+	run->FramePrefix  = (char**)  malloc(sizeof(char*) * (line));
+	for (i=0; i<(line); ++i) (run->FramePrefix)[i] = (char*) malloc(sizeof(char)*512);
+	run->FrameGPSstart = (int*) malloc(sizeof(int)* (line));
+	run->FrameLength = (int*) malloc(sizeof(int)* (line));
+	run->FrameName  = (char**)  malloc(sizeof(char*) * (line));
+	for (i=0; i<(line); ++i) (run->FrameName)[i] = (char*) malloc(sizeof(char)*512);
+
+	fopen(run->cacheFilename,"r");
+	for(i=0;i<(line-1);i++) {
+	//Read line by line:
+	fgets(tmpStr,2048,fin); sscanf(tmpStr,"%s %s %d %d %s",run->FrameDetector[i],run->FramePrefix[i],&(run->FrameGPSstart[i]),&(run->FrameLength[i]),run->FrameName[i]);
+	}
+	run->nFrame = line - 1;
+	fclose(fin);
+}  //End of readCachefile
+// ****************************************************************************************************************************************************  
 
 
 
