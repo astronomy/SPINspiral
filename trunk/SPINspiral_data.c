@@ -197,7 +197,7 @@ void IFOinit(struct interferometer **ifo, int networkSize, struct runPar run)
     
     // Read 'detector' noise and estimate PSD
     if(run.beVerbose>=1) printf("   Reading noise for the detector in %s and estimating the PSD using%6.1fs of data...\n",ifo[ifonr]->name,(double)run.PSDsegmentNumber*run.PSDsegmentLength);
-    noisePSDestimate(ifo[ifonr],run);
+    noisePSDestimate(ifo,ifonr,networkSize,run);
     
     
     // Read 'detector' data for injection
@@ -421,7 +421,9 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
   int           filecount = 0;
   double        from, to, delta;
   double        *injection;
-  
+	int p = run.nFrame[ifonr] - 1;
+	int index=run.nFrame[ifonr]-1;
+	
   
   // 'from' and 'to' are determined so that the range specified by 'before_tc' and 'after_tc'
   // falls into the flat part of the (Tukey-) window:                                        
@@ -430,7 +432,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
   delta = (to) - (from);
   if(run.beVerbose>=2) printf(" | Investigated time range : from %.1f to %.1f (%.1f seconds)\n", from, to, delta);
   
-  
+	if(run.commandSettingsFlag[15] == 0){  
   // Starting time of first(!) Frame file to be read:
   filestart = (((((long)(from))-ifo[ifonr]->ch1fileoffset) / ifo[ifonr]->ch1filesize) * ifo[ifonr]->ch1filesize) + ifo[ifonr]->ch1fileoffset;
   
@@ -445,8 +447,42 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
     filestart += ifo[ifonr]->ch1filesize;
     filecount += 1;
   }
-  
-  
+	}
+	
+
+	
+	else{
+			filestart = (long) run.FrameGPSstart[ifonr][run.nFrame[ifonr]-1]; 
+			if(to >= (double)(run.FrameGPSstart[ifonr][run.nFrame[ifonr]-1]+run.FrameLength[ifonr][run.nFrame[ifonr]-1])){
+				fprintf(stderr, "\n\n   ERROR after_tc (after window) : %f greater than last GPS time available in cache file %d : %d, aborting.\n\n\n",to,ifonr+1,run.FrameGPSstart[ifonr][run.nFrame[ifonr]-1]+run.FrameLength[ifonr][run.nFrame[ifonr]-1]);
+				exit(1);
+			}
+			while(from < (double) filestart){
+				p--;
+				if(p < 0){
+					fprintf(stderr, "\n\n   ERROR before_tc (after window) : %f smaller than first GPS time in cache file : %d, aborting.\n\n\n",from,run.FrameGPSstart[ifonr][0]);
+					exit(1);
+				}
+				filestart= (long) run.FrameGPSstart[ifonr][p];
+				index = p;
+			}
+		
+		// Assemble the filename character string:
+		while (((double)filestart) < to){
+			if(filecount == 0) // Fill in filename for first file:
+				sprintf(filenames,"%s",run.FrameName[ifonr][index]);
+			else // Append filename for following files:
+				sprintf(filenames,"%s %s",filenames,run.FrameName[ifonr][index]);
+			filestart += run.FrameLength[ifonr][index];
+			filecount += 1;
+			index += 1;
+		}
+	}
+	
+	
+	
+	
+	
   
   // Open frame file(s):
   if(run.beVerbose>=2) printf(" | Opening %d signal data file(s)... \n", filecount);
@@ -672,7 +708,7 @@ void dataFT(struct interferometer *ifo[], int ifonr, int networkSize, struct run
  * Data is split into K segments of M seconds, and K-1 overlapping segments of length 2M are eventually windowed and transformed.
  */
 // ****************************************************************************************************************************************************  
-void noisePSDestimate(struct interferometer *ifo, struct runPar run)  
+void noisePSDestimate(struct interferometer *ifo[], int ifonr, int networkSize, struct runPar run)  
 {
   struct FrFile  *iFile=NULL;  // Frame File
   struct FrVect   *vect=NULL;
@@ -706,19 +742,60 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
   char    filenames[2000];
   long             filestart;
   int            filecount=0;
-  
+    int p = run.nFrame[ifonr] - 1;
+	int index=run.nFrame[ifonr]-1;
   
   // Starting time of first(!) frame file to be read:
-  filestart = (((ifo->noiseGPSstart-ifo->noisefileoffset) / ifo->noisefilesize) * ifo->noisefilesize) + ifo->noisefileoffset;
-  // Assemble the filename character string:
-  while (((double)filestart) < (((double)ifo->noiseGPSstart)+Nseconds)){
-    if(filecount == 0) // Fill in filename for first file:
-      sprintf(filenames,"%s/%s%ld%s",ifo->noisefilepath,ifo->noisefileprefix,(long)filestart,ifo->noisefilesuffix);
-    else // Append filename for following files:
-      sprintf(filenames,"%s %s/%s%ld%s",filenames,ifo->noisefilepath,ifo->noisefileprefix,(long)filestart,ifo->noisefilesuffix);
-    filestart += ifo->noisefilesize;
-    filecount += 1;
+		if(run.commandSettingsFlag[15] == 0){
+  filestart = (((ifo[ifonr]->noiseGPSstart-ifo[ifonr]->noisefileoffset) / ifo[ifonr]->noisefilesize) * ifo[ifonr]->noisefilesize) + ifo[ifonr]->noisefileoffset;
+
+			// Assemble the filename character string:
+			while (((double)filestart) < (((double)ifo[ifonr]->noiseGPSstart)+Nseconds)){
+				if(filecount == 0) // Fill in filename for first file:
+					sprintf(filenames,"%s/%s%ld%s",ifo[ifonr]->noisefilepath,ifo[ifonr]->noisefileprefix,(long)filestart,ifo[ifonr]->noisefilesuffix);
+				else // Append filename for following files:
+					sprintf(filenames,"%s %s/%s%ld%s",filenames,ifo[ifonr]->noisefilepath,ifo[ifonr]->noisefileprefix,(long)filestart,ifo[ifonr]->noisefilesuffix);
+				filestart += ifo[ifonr]->noisefilesize;
+				filecount += 1;
+			}
+		
+		}
+  else{
+	  if (run.commandSettingsFlag[13] == 0){ run.PSDstart = (double) run.FrameGPSstart[ifonr][0]; filestart = (long) run.FrameGPSstart[ifonr][0]; index = 0;}
+	  else {
+		  filestart = (long) run.FrameGPSstart[ifonr][run.nFrame[ifonr]-1]; 
+		  if(run.PSDstart+Nseconds >= (double)(run.FrameGPSstart[ifonr][run.nFrame[ifonr]-1]+run.FrameLength[ifonr][run.nFrame[ifonr]-1])){
+			  fprintf(stderr, "\n\n   ERROR PSD end : %f greater than last GPS time available in cache file %d : %d, aborting.\n\n\n",run.PSDstart+Nseconds,ifonr+1,run.FrameGPSstart[ifonr][run.nFrame[ifonr]-1]+run.FrameLength[ifonr][run.nFrame[ifonr]-1]);
+			  exit(1);
+		  }
+		  while(run.PSDstart < (double) filestart){
+			  p--;
+			  if(p < 0){
+				  fprintf(stderr, "\n\n   ERROR PSD start : %f smaller than first GPS time in cache file : %d, aborting.\n\n\n",run.PSDstart,run.FrameGPSstart[ifonr][0]);
+				  exit(1);
+			  }
+			  filestart= (long) run.FrameGPSstart[ifonr][p];
+			  index = p;
+		  }
+	  }
+
+	  ifo[ifonr]->noiseGPSstart = run.PSDstart;
+	  // Assemble the filename character string:
+	  while (((double)filestart) < (((double)ifo[ifonr]->noiseGPSstart)+Nseconds)){
+		  if(filecount == 0) // Fill in filename for first file:
+			  sprintf(filenames,"%s",run.FrameName[ifonr][index]);
+		  else // Append filename for following files:
+			  sprintf(filenames,"%s %s",filenames,run.FrameName[ifonr][index]);
+		  filestart += run.FrameLength[ifonr][index];
+		  filecount += 1;
+		  index += 1;
+	  }
   }
+	
+	
+	
+	
+
   
   // Open Frame file:
   if(run.beVerbose>=2) printf(" | Opening %d noise data file(s)... \n",filecount);
@@ -732,10 +809,10 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
   if(run.beVerbose>=2) printf(" | Estimating noise PSD... ");
   // Read first two bits (2M seconds)
   // Access (noise) channel:
-  if(ifo->noisedoubleprecision)
-    vect = FrFileIGetVectD(iFile, ifo->noisechannel, ((double)ifo->noiseGPSstart), Mseconds*2.0);
+  if(ifo[ifonr]->noisedoubleprecision)
+    vect = FrFileIGetVectD(iFile, ifo[ifonr]->noisechannel, ((double)ifo[ifonr]->noiseGPSstart), Mseconds*2.0);
   else
-    vect = FrFileIGetVectF(iFile, ifo->noisechannel, ((double)ifo->noiseGPSstart), Mseconds*2.0);
+    vect = FrFileIGetVectF(iFile, ifo[ifonr]->noisechannel, ((double)ifo[ifonr]->noiseGPSstart), Mseconds*2.0);
   if(vect == NULL) {
     fprintf(stderr, "\n\n   ERROR reading noise data file: %s, aborting.\n\n\n",filenames);
     exit(1);
@@ -757,7 +834,7 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
   // Downsample (by factor downsampleFactor)  !! changes value of 'N' as well !!
   // NINJA:
   if(run.downsampleFactor!=1){
-    filtercoef = filter(&ncoef, samplerate, ifo->highCut, run);
+    filtercoef = filter(&ncoef, samplerate, ifo[ifonr]->highCut, run);
     in = downsample(raw, &N, filtercoef, ncoef, run);
     FTsize = (N/2)+1;
     samplerate = (int)((double)samplerate/(double)run.downsampleFactor);
@@ -768,10 +845,10 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
     FTsize = (N/2)+1;    
   }
   nyquist      = ((double)samplerate)/2.0;
-  lower        = (int)(floor((ifo->lowCut/nyquist)*(FTsize-1)));
-  upper        = (int)(ceil((ifo->highCut/nyquist)*(FTsize-1)));
-  ifo->PSDsize = upper-lower;
-  PSDrange     = ifo->PSDsize+2*smoothrange;
+  lower        = (int)(floor((ifo[ifonr]->lowCut/nyquist)*(FTsize-1)));
+  upper        = (int)(ceil((ifo[ifonr]->highCut/nyquist)*(FTsize-1)));
+  ifo[ifonr]->PSDsize = upper-lower;
+  PSDrange     = ifo[ifonr]->PSDsize+2*smoothrange;
   
   
   
@@ -830,10 +907,10 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
       raw[i] = vect->dataF[i];
     // Read 2nd half of data (again, M seconds):
     FrVectFree(vect);
-    if(ifo->noisedoubleprecision) {
-      vect = FrFileIGetVectD(iFile, ifo->noisechannel, ((double)ifo->noiseGPSstart)+((double)(j-1))*Mseconds, Mseconds);
+    if(ifo[ifonr]->noisedoubleprecision) {
+      vect = FrFileIGetVectD(iFile, ifo[ifonr]->noisechannel, ((double)ifo[ifonr]->noiseGPSstart)+((double)(j-1))*Mseconds, Mseconds);
     } else {
-      vect = FrFileIGetVectF(iFile, ifo->noisechannel, ((double)ifo->noiseGPSstart)+((double)(j-1))*Mseconds, Mseconds);
+      vect = FrFileIGetVectF(iFile, ifo[ifonr]->noisechannel, ((double)ifo[ifonr]->noiseGPSstart)+((double)(j-1))*Mseconds, Mseconds);
     }
     if(vect == NULL) fprintf(stderr, "\n\n   ERROR accessing noise channel!\n");
     
@@ -892,10 +969,10 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
   
   
   // Smooth PSD:
-  //sPSD = (double*) malloc((ifo->PSDsize)*sizeof(double));
-  //Since ifo->raw_noisePSD = sPSD, ifo->raw_noisePSD[highindex] goes up to ifo->PSDsize+2 (perhaps more?) in interpolLogNoisePSD()
-  sPSD = (double*) malloc((ifo->PSDsize+10)*sizeof(double));
-  for(i=0;i<ifo->PSDsize+10;i++) sPSD[i] = 0.0;
+  //sPSD = (double*) malloc((ifo[ifonr]->PSDsize)*sizeof(double));
+  //Since ifo[ifonr]->raw_noisePSD = sPSD, ifo[ifonr]->raw_noisePSD[highindex] goes up to ifo[ifonr]->PSDsize+2 (perhaps more?) in interpolLogNoisePSD()
+  sPSD = (double*) malloc((ifo[ifonr]->PSDsize+10)*sizeof(double));
+  for(i=0;i<ifo[ifonr]->PSDsize+10;i++) sPSD[i] = 0.0;
   for(i=smoothrange; i<(PSDrange-smoothrange); ++i) {
     sum = 0.0;
     for(j=-smoothrange; j<=smoothrange; ++j)
@@ -907,7 +984,7 @@ void noisePSDestimate(struct interferometer *ifo, struct runPar run)
   
   // PSD estimation finished
   free(PSD);
-  ifo->raw_noisePSD = sPSD;
+  ifo[ifonr]->raw_noisePSD = sPSD;
   free(raw);
 
 } // End of void noisePSDestimate

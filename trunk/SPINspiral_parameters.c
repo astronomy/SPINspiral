@@ -50,17 +50,23 @@
 // ****************************************************************************************************************************************************  
 void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
 {
+  int i = 0;
   int c;
-  int nIFO =0;
+  int nIFO = 0;
+  int nChannel = 0;
+  int nCache = 0;
   char **networkseq=NULL;
+  char **channelseq=NULL;
   run->outputPath=NULL;
   run->triggerMc = 0.0;               // Chirp mass from the command line - zero means no value
   run->triggerEta = 0.0;              // Eta from the command line - zero means no value
   run->triggerTc = 0.0;               // Time of coalescence from the command line - zero means no value
   run->triggerDist = 0.0;             // Distance (in Mpc) from the command line - zero means no value
+  run->PSDstart = 0.0;                // GPS start of the PSD - zero means no value
+  for(i=0;i<3;i++) strcpy(run->channelname[i],"");
   
   if(argc > 1) printf("   Parsing %i command-line arguments:\n",argc-1);
-  int i = 0;
+
   
   //Set up struct with long (--) options:
   static struct option long_options[] =
@@ -74,13 +80,15 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
       {"nIter",           required_argument, 0,             'n'},
       {"nSkip",           required_argument, 0,             's'},
       {"network",         required_argument, 0,             'a'},
+	  {"channel",         required_argument, 0,             'a'},
       {"downsample",      required_argument, 0,             'a'},
       {"beforetc",        required_argument, 0,             'a'},
       {"aftertc",         required_argument, 0,             'a'},
       {"Flow",            required_argument, 0,             'a'},
       {"Fhigh",           required_argument, 0,             'a'},
       {"nPSDsegment",     required_argument, 0,             'a'},
-      {"lPSDsegment",     required_argument, 0,             'a'},	
+      {"lPSDsegment",     required_argument, 0,             'a'},
+	  {"PSDstart",        required_argument, 0,             'a'},
       {"outputPath",      required_argument, 0,             'o'},
       {"cache",           required_argument, 0,             'c'},      
       {0, 0, 0, 0}
@@ -156,7 +164,20 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
 	}
 	run->commandSettingsFlag[3] = 1;
       }
-      
+
+	  if(strcmp(long_options[option_index].name,"channel")==0) {
+	parseCharacterOptionString(optarg,&channelseq,&nChannel);
+		  if (run->networkSize != nChannel) {printf(" ERROR: number of IFOs %d should be the same as number of channels %d\n",nIFO,nChannel); exit(1);}
+		  else {
+	for(i=0;i<run->networkSize;i++) {
+		strcpy(run->channelname[i],channelseq[i]);
+		printf("    - From command line, channel %d\t= %s\n",(i+1),run->channelname[i]);
+	}
+	run->commandSettingsFlag[4] = 1;
+		  }
+	}
+			
+			
       if(strcmp(long_options[option_index].name,"downsample")==0) {
 	run->downsampleFactor = atoi(optarg);
 	run->commandSettingsFlag[6] = 1;
@@ -192,6 +213,12 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
 	run->commandSettingsFlag[12] = 1;
 	printf("    - From command line, length of PSD segments\t= %f\n\n",run->PSDsegmentLength);
       }
+	  if(strcmp(long_options[option_index].name,"PSDstart")==0) {
+	run->PSDstart = atof(optarg);
+	run->commandSettingsFlag[13] = 1;
+	printf("    - From command line, start of PSD segments\t= %f\n\n",run->PSDstart);
+	  }
+			
       break; 		
       
     case 'o':		
@@ -199,11 +226,26 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
       strcpy(run->outputPath,optarg);
       printf("    - From command line, output path\t= %s\n",run->outputPath);
       break;
-	case 'c':		
-	  run->cacheFilename=(char*)malloc(strlen(optarg)+1);
-	  strcpy(run->cacheFilename,optarg);
-	  printf("    - From command line, cache file\t= %s\n",run->cacheFilename);
-	  readCachefile(run);
+	case 'c':
+
+		parseCharacterOptionString(optarg,&(run->cacheFilename),&nCache);
+				if (run->networkSize != nCache) {printf(" ERROR: number of IFOs %d should be the same as number of cache files %d\n",nIFO,nCache); exit(1);}
+				else {
+					for(i=0;i<run->networkSize;i++) {
+						printf("    - From command line, cache file %d\t= %s\n",(i+1),run->cacheFilename[i]);
+					readCachefile(run,i);
+					}
+					run->commandSettingsFlag[15] = 1;
+				}
+					break;
+
+			
+			
+//	  run->cacheFilename=(char*)malloc(strlen(optarg)+1);
+//	  strcpy(run->cacheFilename,optarg);
+//	  printf("    - From command line, cache file\t= %s\n",run->cacheFilename);
+//	  readCachefile(run);
+//			run->commandSettingsFlag[15] = 1;
 	  break;
 			
       
@@ -265,7 +307,7 @@ void parseCharacterOptionString(char *input, char **strings[], int *n)
     if ((j==1) & (input[i]==']')) {++*n; j=2;}
     ++i;
   }
-  if (j!=2) fprintf(stderr, " ERROR: argument vector \"%s\" not well-formed!\n", input);
+	if (j!=2) {fprintf(stderr, " ERROR: argument vector \"%s\" not well-formed!\n", input); exit(1);}
   /* now allocate memory for results: */
   *strings  = (char**)  malloc(sizeof(char*) * (*n));
   for (i=0; i<(*n); ++i) (*strings)[i] = (char*) malloc(sizeof(char)*512);
@@ -534,7 +576,9 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
     
     fgets(tmpStr,500,fin);  //Read the empty line
     
-    fgets(tmpStr,500,fin);  sscanf(tmpStr,"%s",ifo[i].ch1name);
+    fgets(tmpStr,500,fin);
+	  if(run->commandSettingsFlag[4] ==0){ sscanf(tmpStr,"%s",ifo[i].ch1name);}
+	  else{ strcpy(ifo[i].ch1name,run->channelname[i]);}
     //fgets(tmpStr,500,fin);  sscanf(tmpStr,"%s",&ifo[i].ch1filepath);
     fgets(tmpStr,500,fin);  sscanf(tmpStr,"%s",subdir);
     sprintf(ifo[i].ch1filepath,"%s%s%s",run->dataDir,"/",subdir);
@@ -548,7 +592,9 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
     fgets(tmpStr,500,fin);  //Read the empty line
     
     fgets(tmpStr,500,fin);  sscanf(tmpStr,"%ld",&ifo[i].noiseGPSstart);
-    fgets(tmpStr,500,fin);  sscanf(tmpStr,"%s",ifo[i].noisechannel);
+	fgets(tmpStr,500,fin);
+	  if(run->commandSettingsFlag[4] ==0){ sscanf(tmpStr,"%s",ifo[i].noisechannel);}
+	  else{ strcpy(ifo[i].noisechannel,run->channelname[i]);}  
     //fgets(tmpStr,500,fin);  sscanf(tmpStr,"%s",&ifo[i].noisefilepath);
     fgets(tmpStr,500,fin);  sscanf(tmpStr,"%s",subdir);
     sprintf(ifo[i].noisefilepath,"%s%s%s",run->dataDir,"/",subdir);
@@ -1179,18 +1225,18 @@ void readInjectionXML(struct runPar *run)
  * 
  */
 // ****************************************************************************************************************************************************  
-void readCachefile(struct runPar *run)
+void readCachefile(struct runPar *run, int ifonr)
 {
 	int i;
 	int line=0;
 	char tmpStr[2048];
 	FILE *fin;
 	
-	if((fin = fopen(run->cacheFilename,"r")) == NULL) {
-		fprintf(stderr, "\n\n   ERROR opening cache file: %s, aborting.\n\n\n",run->cacheFilename);
+	if((fin = fopen(run->cacheFilename[ifonr],"r")) == NULL) {
+		fprintf(stderr, "\n\n   ERROR opening cache file: %s, aborting.\n\n\n",run->cacheFilename[ifonr]);
 		exit(1);
 	} else {
-		printf("   Using cache file: %s.\n",run->cacheFilename);
+		printf("   Using cache file: %s.\n",run->cacheFilename[ifonr]);
 	}
 	
 	while ( ! feof (fin) ) //just to get the number of line. TO CHECK : last line of .cache file always empty ?
@@ -1200,21 +1246,24 @@ void readCachefile(struct runPar *run)
 	}
 	fclose (fin); 
 	
-	run->FrameDetector  = (char**)  malloc(sizeof(char*) * (line));
-	for (i=0; i<(line); ++i) (run->FrameDetector)[i] = (char*) malloc(sizeof(char)*5);
-	run->FramePrefix  = (char**)  malloc(sizeof(char*) * (line));
-	for (i=0; i<(line); ++i) (run->FramePrefix)[i] = (char*) malloc(sizeof(char)*512);
-	run->FrameGPSstart = (int*) malloc(sizeof(int)* (line));
-	run->FrameLength = (int*) malloc(sizeof(int)* (line));
-	run->FrameName  = (char**)  malloc(sizeof(char*) * (line));
-	for (i=0; i<(line); ++i) (run->FrameName)[i] = (char*) malloc(sizeof(char)*512);
+		run->nFrame[ifonr] = line - 1;
+	
+	run->FrameDetector[ifonr]  = (char**)  malloc(sizeof(char*) * (line));
+	for (i=0; i<(line); ++i) (run->FrameDetector[ifonr])[i] = (char*) malloc(sizeof(char)*5);
+	run->FramePrefix[ifonr]  = (char**)  malloc(sizeof(char*) * (line));
+	for (i=0; i<(line); ++i) (run->FramePrefix[ifonr])[i] = (char*) malloc(sizeof(char)*512);
+	run->FrameGPSstart[ifonr] = (int*) malloc(sizeof(int)* (line));
+	run->FrameLength[ifonr] = (int*) malloc(sizeof(int)* (line));
+	run->FrameName[ifonr]  = (char**)  malloc(sizeof(char*) * (line));
+	for (i=0; i<(line); ++i) (run->FrameName[ifonr])[i] = (char*) malloc(sizeof(char)*512);
 
-	fopen(run->cacheFilename,"r");
+	fopen(run->cacheFilename[ifonr],"r");
 	for(i=0;i<(line-1);i++) {
 	//Read line by line:
-	fgets(tmpStr,2048,fin); sscanf(tmpStr,"%s %s %d %d %s",run->FrameDetector[i],run->FramePrefix[i],&(run->FrameGPSstart[i]),&(run->FrameLength[i]),run->FrameName[i]);
+	fgets(tmpStr,2048,fin); sscanf(tmpStr,"%s %s %d %d %s",run->FrameDetector[ifonr][i],run->FramePrefix[ifonr][i],&(run->FrameGPSstart[ifonr][i]),&(run->FrameLength[ifonr][i]),run->FrameName[ifonr][i]);
+		printf("%s %s %d %d %s %d %d\n",run->FrameDetector[ifonr][i],run->FramePrefix[ifonr][i],run->FrameGPSstart[ifonr][i],run->FrameLength[ifonr][i],run->FrameName[ifonr][i],i,run->nFrame[ifonr]);
+
 	}
-	run->nFrame = line - 1;
 	fclose(fin);
 }  //End of readCachefile
 // ****************************************************************************************************************************************************  

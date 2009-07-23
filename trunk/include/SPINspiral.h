@@ -87,10 +87,12 @@
                 --Flow <low frequency cut off in Hz> \n\
                 --Fhigh <high frequency cut off in Hz> \n\
                 --nPSDsegment <number of segments to estimate the PSD> \n\
-                --lPSDsegment <length of each segment to estimate the PSD> \n\n\
-                --outputPath <output path> \n\ 
-                --cache <cache file> \n\
-example: /SPINspiral -i ./pipeline/SPINspiral.input --mChirp 1.7 --eta 0.12 --tc 873739311.00000 --dist 15 --nIter 5 --nSkip 1 --downsample 1 --beforetc 5 --aftertc 2 --Flow 45 --Fhigh 1600.0 --nPSDsegment 32 --lPSDsegment 4 --network [1] --outputPath ./pipeline/ --cache ./pipeline/H-H1_RDS_C03_L2-867627384-867689594.cache\n\
+                --lPSDsegment <length of each segment to estimate the PSD> \n\
+                --outputPath <output path> \n\
+                --cache <list of cache files, e.g. [cache1,cache2]> \n\
+                --channel <list of channels, e.g. [H1:LSC-STRAIN,L1:LSC-STRAIN]> \n\
+                --PSDstart <GPS time for the start of the PSD. default begining of cache file> \n\
+example: ./SPINspiral -i ./pipeline/SPINspiral.input --mChirp 1.7 --eta 0.12 --tc 873739311.00000 --dist 15 --nIter 5 --nSkip 1 --downsample 1 --beforetc 5 --aftertc 2 --Flow 45 --Fhigh 1600.0 --nPSDsegment 32 --lPSDsegment 4 --network [1,2] --outputPath ./pipeline/ --cache [./pipeline/H-H1_RDS_C03_L2-873739103-873740831.cache,./pipeline/L-L1_RDS_C03_L2-873739055-873740847.cache] --channel [H1:LSC-STRAIN,L1:LSC-STRAIN] --PSDstart 873740000\n\
 \n\n"
 
 
@@ -253,14 +255,17 @@ struct runPar{
   int commandSettingsFlag[99];    // Command line mcmc settings flags
 	
   char* outputPath;               // where the output is stored
-  char* cacheFilename;            // Name of the cahce file
-  char** FrameDetector;			  // table of letter code of the detectors in the cache file
-  char** FramePrefix;			  // table of prefix of the frame files in the cache file
-  int* FrameGPSstart;			  // table of GPS time of the frame files in the cache file
-  int* FrameLength;				  // table of lenght of the frame files in the cache file
-  char** FrameName;				  // table of frame file names in the cache file
-  int nFrame;					  // number of frame files in the cache file
-
+  char** cacheFilename;     // Name of the cache files
+  char** FrameDetector[3];			  // table of letter code of the detectors in the cache file
+  char** FramePrefix[3];			  // table of prefix of the frame files in the cache file
+  int* FrameGPSstart[3];			  // table of GPS time of the frame files in the cache file
+  int* FrameLength[3];				  // table of lenght of the frame files in the cache file
+  char** FrameName[3];				  // table of frame file names in the cache file
+  int nFrame[3];					  // number of frame files in the cache file
+  double PSDstart;                // GPS start of the PSD
+	
+  char channelname[3][99];        // Name of the channels from command line
+	
 };  // End struct runpar
 
 
@@ -555,7 +560,7 @@ double *downsample(double data[], int *datalength, double coef[], int ncoef, str
 void dataFT(struct interferometer *ifo[], int i, int networkSize, struct runPar run);
 double hannWindow(int j, int N);
 double tukeyWindow(int j, int N, double r);
-void noisePSDestimate(struct interferometer *ifo, struct runPar run);
+void noisePSDestimate(struct interferometer *ifo[], int ifonr, int networkSize, struct runPar run);
 double logNoisePSD(double f, struct interferometer *ifo);
 double interpolLogNoisePSD(double f, struct interferometer *ifo);
 void writeDataToFiles(struct interferometer *ifo[], int networkSize, struct runPar run);
@@ -605,6 +610,6 @@ double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct int
 //double match(struct parSet *par, struct interferometer *ifo[], int i, int networkSize);
 
 void parseCharacterOptionString(char *input, char **strings[], int *n);
-void readCachefile(struct runPar *run);
+void readCachefile(struct runPar *run, int ifonr);
 
 #endif
