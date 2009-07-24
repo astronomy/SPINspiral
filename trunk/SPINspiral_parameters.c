@@ -1257,7 +1257,7 @@ void readCachefile(struct runPar *run, int ifonr)
 	run->FrameName[ifonr]  = (char**)  malloc(sizeof(char*) * (line));
 	for (i=0; i<(line); ++i) (run->FrameName[ifonr])[i] = (char*) malloc(sizeof(char)*512);
 
-	fopen(run->cacheFilename[ifonr],"r");
+	fin = fopen(run->cacheFilename[ifonr],"r");
 	for(i=0;i<(line-1);i++) {
 	//Read line by line:
 	fgets(tmpStr,2048,fin); sscanf(tmpStr,"%s %s %d %d %s",run->FrameDetector[ifonr][i],run->FramePrefix[ifonr][i],&(run->FrameGPSstart[ifonr][i]),&(run->FrameLength[ifonr][i]),run->FrameName[ifonr][i]);
