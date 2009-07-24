@@ -81,6 +81,7 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
       sprintf(outfileName,"SPINspiral.output.%6.6d.%2.2d",mcmc.seed,mcmc.iTemp);
       strcat(outfilePath,outfileName);
       mcmc.fouts[mcmc.iTemp] = fopen(outfilePath,"w");
+		if (mcmc.fouts[mcmc.iTemp] == NULL) {printf(" ERROR: could not open/create output file %s. Check that output directory %s exists.\n",outfilePath,run.outputPath); exit(1);}
     }
   }
   

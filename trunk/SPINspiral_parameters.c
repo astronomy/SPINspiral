@@ -127,12 +127,12 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
       
     case 'e':		
       run->triggerEta = atof(optarg);
-      printf("    - From command line, trigger value for eta\t\t= %f\n",run->triggerEta);
+      printf("    - From command line, trigger value for eta\t\t\t= %f\n",run->triggerEta);
       break;
       
     case 't':		
       run->triggerTc = atof(optarg);
-      printf("    - From command line, trigger value for tc\t\t= %f\n",run->triggerTc);
+      printf("    - From command line, trigger value for tc\t\t\t= %f\n",run->triggerTc);
       break;
       
     case 'd':		
@@ -143,13 +143,13 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
     case 'n':		
       run->nIter = atoi(optarg);
       run->commandSettingsFlag[0] = 1;
-      printf("\n    - From command line, number of iterations\t= %d\n",run->nIter);
+      printf("    - From command line, number of iterations\t\t\t= %d\n",run->nIter);
       break;
       
     case 's':		
       run->thinOutput = atoi(optarg);
       run->commandSettingsFlag[1] = 1;
-      printf("    - From command line, thin output by\t= %d\n\n",run->thinOutput);
+      printf("    - From command line, thin output by\t\t\t\t= %d\n",run->thinOutput);
       break;
       
     case 'a': //Detector options
@@ -157,10 +157,10 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
 	parseCharacterOptionString(optarg,&networkseq,&nIFO);
 	run->networkSize = nIFO;
 	run->commandSettingsFlag[2] = 1;
-	printf("    - From command line, network size\t= %d\n",run->networkSize);
+	printf("    - From command line, network size\t\t\t\t= %d\n",run->networkSize);
 	for(i=0;i<run->networkSize;i++) {
 	  run->selectifos[i] = atoi(networkseq[i]);
-	  printf("    - From command line, IFO%d\t= %d\n",(i+1),run->selectifos[i]);
+	  printf("    - From command line, IFO%d\t\t\t\t\t= %d\n",(i+1),run->selectifos[i]);
 	}
 	run->commandSettingsFlag[3] = 1;
       }
@@ -171,7 +171,7 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
 		  else {
 	for(i=0;i<run->networkSize;i++) {
 		strcpy(run->channelname[i],channelseq[i]);
-		printf("    - From command line, channel %d\t= %s\n",(i+1),run->channelname[i]);
+		printf("    - From command line, channel %d\t\t\t\t= %s\n",(i+1),run->channelname[i]);
 	}
 	run->commandSettingsFlag[4] = 1;
 		  }
@@ -181,42 +181,42 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
       if(strcmp(long_options[option_index].name,"downsample")==0) {
 	run->downsampleFactor = atoi(optarg);
 	run->commandSettingsFlag[6] = 1;
-	printf("    - From command line, downsample factor\t= %d\n",run->downsampleFactor);
+	printf("    - From command line, downsample factor\t\t\t= %d\n",run->downsampleFactor);
       }
       if(strcmp(long_options[option_index].name,"beforetc")==0) {
 	run->dataBeforeTc = atof(optarg);
 	run->commandSettingsFlag[7] = 1;
-	printf("    - From command line, before tc\t= %f\n",run->dataBeforeTc);
+	printf("    - From command line, before tc\t\t\t\t= %f\n",run->dataBeforeTc);
       }
       if(strcmp(long_options[option_index].name,"aftertc")==0) {
 	run->dataAfterTc = atof(optarg);
 	run->commandSettingsFlag[8] = 1;
-	printf("    - From command line, after tc\t= %f\n",run->dataAfterTc);
+	printf("    - From command line, after tc\t\t\t\t= %f\n",run->dataAfterTc);
       }
       if(strcmp(long_options[option_index].name,"Flow")==0) {
 	run->lowFrequencyCut = atof(optarg);
 	run->commandSettingsFlag[9] = 1;
-	printf("    - From command line, low frequency cut\t= %f\n",run->lowFrequencyCut);
+	printf("    - From command line, low frequency cut\t\t\t= %f\n",run->lowFrequencyCut);
       }
       if(strcmp(long_options[option_index].name,"Fhigh")==0) {
 	run->highFrequencyCut = atof(optarg);
 	run->commandSettingsFlag[10] = 1;
-	printf("    - From command line, high frequency cut\t= %f\n",run->highFrequencyCut);
+	printf("    - From command line, high frequency cut\t\t\t= %f\n",run->highFrequencyCut);
       }
       if(strcmp(long_options[option_index].name,"nPSDsegment")==0) {
 	run->PSDsegmentNumber = atoi(optarg);
 	run->commandSettingsFlag[11] = 1;
-	printf("    - From command line, number of PSD segments\t= %d\n",run->PSDsegmentNumber);
+	printf("    - From command line, number of PSD segments\t\t\t= %d\n",run->PSDsegmentNumber);
       }
       if(strcmp(long_options[option_index].name,"lPSDsegment")==0) {
 	run->PSDsegmentLength = atof(optarg);
 	run->commandSettingsFlag[12] = 1;
-	printf("    - From command line, length of PSD segments\t= %f\n\n",run->PSDsegmentLength);
+	printf("    - From command line, length of PSD segments\t\t\t= %f\n",run->PSDsegmentLength);
       }
 	  if(strcmp(long_options[option_index].name,"PSDstart")==0) {
 	run->PSDstart = atof(optarg);
 	run->commandSettingsFlag[13] = 1;
-	printf("    - From command line, start of PSD segments\t= %f\n\n",run->PSDstart);
+	printf("    - From command line, start of PSD segments\t\t\t= %f\n",run->PSDstart);
 	  }
 			
       break; 		
@@ -224,7 +224,7 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
     case 'o':		
       run->outputPath=(char*)malloc(strlen(optarg)+1);
       strcpy(run->outputPath,optarg);
-      printf("    - From command line, output path\t= %s\n",run->outputPath);
+      printf("    - From command line, output path\t\t\t\t= %s\n",run->outputPath);
       break;
 	case 'c':
 
@@ -232,7 +232,7 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
 				if (run->networkSize != nCache) {printf(" ERROR: number of IFOs %d should be the same as number of cache files %d\n",nIFO,nCache); exit(1);}
 				else {
 					for(i=0;i<run->networkSize;i++) {
-						printf("    - From command line, cache file %d\t= %s\n",(i+1),run->cacheFilename[i]);
+						printf("    - From command line, cache file %d\t\t\t\t= %s\n",(i+1),run->cacheFilename[i]);
 					readCachefile(run,i);
 					}
 					run->commandSettingsFlag[15] = 1;
@@ -240,12 +240,6 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
 					break;
 
 			
-			
-//	  run->cacheFilename=(char*)malloc(strlen(optarg)+1);
-//	  strcpy(run->cacheFilename,optarg);
-//	  printf("    - From command line, cache file\t= %s\n",run->cacheFilename);
-//	  readCachefile(run);
-//			run->commandSettingsFlag[15] = 1;
 	  break;
 			
       
@@ -265,7 +259,7 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
     while(optind < argc) printf ("%s ", argv[optind++]);
     printf("\n");
   }
-  
+	
 } // End void readCommandLineOptions(argc,argv)
 // ****************************************************************************************************************************************************  
 
@@ -1236,7 +1230,7 @@ void readCachefile(struct runPar *run, int ifonr)
 		fprintf(stderr, "\n\n   ERROR opening cache file: %s, aborting.\n\n\n",run->cacheFilename[ifonr]);
 		exit(1);
 	} else {
-		printf("   Using cache file: %s.\n",run->cacheFilename[ifonr]);
+		printf("   Reading cache file: %s.\n",run->cacheFilename[ifonr]);
 	}
 	
 	while ( ! feof (fin) ) //just to get the number of line. TO CHECK : last line of .cache file always empty ?
@@ -1261,7 +1255,7 @@ void readCachefile(struct runPar *run, int ifonr)
 	for(i=0;i<(line-1);i++) {
 	//Read line by line:
 	fgets(tmpStr,2048,fin); sscanf(tmpStr,"%s %s %d %d %s",run->FrameDetector[ifonr][i],run->FramePrefix[ifonr][i],&(run->FrameGPSstart[ifonr][i]),&(run->FrameLength[ifonr][i]),run->FrameName[ifonr][i]);
-		printf("%s %s %d %d %s %d %d\n",run->FrameDetector[ifonr][i],run->FramePrefix[ifonr][i],run->FrameGPSstart[ifonr][i],run->FrameLength[ifonr][i],run->FrameName[ifonr][i],i,run->nFrame[ifonr]);
+	//	printf("%s %s %d %d %s %d %d\n",run->FrameDetector[ifonr][i],run->FramePrefix[ifonr][i],run->FrameGPSstart[ifonr][i],run->FrameLength[ifonr][i],run->FrameName[ifonr][i],i,run->nFrame[ifonr]);
 
 	}
 	fclose(fin);

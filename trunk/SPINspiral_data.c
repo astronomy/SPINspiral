@@ -768,6 +768,7 @@ void noisePSDestimate(struct interferometer *ifo[], int ifonr, int networkSize, 
 			  fprintf(stderr, "\n\n   ERROR PSD end : %f greater than last GPS time available in cache file %d : %d, aborting.\n\n\n",run.PSDstart+Nseconds,ifonr+1,run.FrameGPSstart[ifonr][run.nFrame[ifonr]-1]+run.FrameLength[ifonr][run.nFrame[ifonr]-1]);
 			  exit(1);
 		  }
+		  
 		  while(run.PSDstart < (double) filestart){
 			  p--;
 			  if(p < 0){
@@ -778,7 +779,7 @@ void noisePSDestimate(struct interferometer *ifo[], int ifonr, int networkSize, 
 			  index = p;
 		  }
 	  }
-
+	  
 	  ifo[ifonr]->noiseGPSstart = run.PSDstart;
 	  // Assemble the filename character string:
 	  while (((double)filestart) < (((double)ifo[ifonr]->noiseGPSstart)+Nseconds)){
