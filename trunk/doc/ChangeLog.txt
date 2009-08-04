@@ -2,6 +2,11 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   218: sluys, 04/08/2009
+     - templateLAL15() and templateLALnonSpinning(): return zeroes for the waveform
+       on LAL error rather than exit, except when calling the routine for an injection.
+     - fixed some typos
+       
    213: sluys, 21/07/2009
      - Pass trigger values from the command line in a waveform-independent way
        - this means passing the distance in Mpc rather than d^3 or log(d)
