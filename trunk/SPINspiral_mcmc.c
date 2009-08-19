@@ -178,6 +178,7 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
         }
 	
       }
+      
     } //for(i...)
     
     // Safety check:
@@ -1485,17 +1486,19 @@ void startMCMCOffset(struct parSet *par, struct MCMCvariables *mcmc, struct inte
   
   
   // *** Set each MCMC parameter to either the best-guess value or the injection value, depending on the per-parameter settings - nothing random about this bit
+  // At the start, nParam[][] contains the injection values
   if(mcmc->injectSignal >= 1) {
     for(i=0;i<mcmc->nMCMCpar;i++) {
       
       //Start at or around BestValue:
-      if(mcmc->parStartMCMC[i]==1 || mcmc->parStartMCMC[i]==2) mcmc->nParam[mcmc->iTemp][i] = mcmc->parBestVal[i];
+      if(mcmc->parStartMCMC[i]==1 || mcmc->parStartMCMC[i]==2) mcmc->param[mcmc->iTemp][i] = mcmc->parBestVal[i];
       
       //Start at or around the injection value where possible:
       if(mcmc->offsetMCMC == 0 || mcmc->parStartMCMC[i]==3 || mcmc->parStartMCMC[i]==4) {
         iInj = mcmc->injRevID[mcmc->parID[i]];  //Get the index of this parameter in the injection set.  -1 if not available.
+	
         if(mcmc->injParUse[mcmc->parID[i]] == 1) {
-          mcmc->nParam[mcmc->iTemp][i] = mcmc->injParVal[iInj];  //Start at or around the injection value
+          mcmc->param[mcmc->iTemp][i] = mcmc->injParVal[iInj];  //Start at or around the injection value
         } else {
           if(mcmc->parID[i]==21 && mcmc->injID[i]==22) {
             mcmc->param[mcmc->iTemp][i] = exp(3.0*mcmc->nParam[mcmc->iTemp][i]);  // Injection uses log(d), MCMC uses d^3
@@ -1509,8 +1512,9 @@ void startMCMCOffset(struct parSet *par, struct MCMCvariables *mcmc, struct inte
           }
         }
       }
-      mcmc->param[mcmc->iTemp][i] = mcmc->nParam[mcmc->iTemp][i];
-    }
+      mcmc->nParam[mcmc->iTemp][i] = mcmc->param[mcmc->iTemp][i];
+    } // for i...
+    
     
     // Safety check:
     if(mcmc->mcmcWaveform == mcmc->injectionWaveform && nDiffPar != 0) {
@@ -1521,12 +1525,15 @@ void startMCMCOffset(struct parSet *par, struct MCMCvariables *mcmc, struct inte
       }
     }
     
-  } else {  // if(mcmc->injectSignal <= 0), i.e., not injection done; always use bestValue
+  } else {  // if(mcmc->injectSignal <= 0), i.e., no signal injected; always use bestValue
     for(i=0;i<mcmc->nMCMCpar;i++) {
       mcmc->nParam[mcmc->iTemp][i] = mcmc->parBestVal[i];
       mcmc->param[mcmc->iTemp][i] = mcmc->nParam[mcmc->iTemp][i];
     }
   }
+  
+  
+  // Now, param[][] == nParam[][]
   
   
   // *** Add a random offset to the MCMC starting parameters:

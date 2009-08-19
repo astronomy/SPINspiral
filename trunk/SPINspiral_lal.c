@@ -969,8 +969,8 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
     PNorder   = run.mcmcPNorder;                                                       // Post-Newtonian order
   }
   
-  //pLongi = fmod(longitude(pRA, GMST(pTc)) + mtpi, tpi);    // RA -> 'lon'
-  pLongi = pRA;                                              // For non-spinning LAL waveforms 'longi' = RA (?)
+  pLongi = fmod(longitude(pRA, GMST(pTc)) + mtpi, tpi);    // RA -> 'lon'
+  //pLongi = pRA;                                          // For non-spinning LAL waveforms 'longi' = RA (?)  NO! - It's probably 'longitude'
   
   
   //printf(" LAL nS WF pars:  injWF: %i, Mc: %f, eta: %f, tc: %f, logD: %f, RA: %f, dec: %f, phi: %f, cos(i): %f, psi: %f\n",
