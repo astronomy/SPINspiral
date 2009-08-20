@@ -93,12 +93,10 @@ void templateLAL12(struct parSet *par, struct interferometer *ifo[], int ifonr, 
   PPNParamStruc       ppnParams;
   
   memset( &status, 0, sizeof(LALStatus) );
-  
   memset( &waveform, 0, sizeof(CoherentGW) );
-  
   memset( &injParams, 0, sizeof(SimInspiralTable) );
-  
   memset( &ppnParams, 0, sizeof(PPNParamStruc) );
+  
   ppnParams.deltaT   = inversesamplerate;
   ppnParams.lengthIn = 0;
   ppnParams.ppn      = NULL;
@@ -492,12 +490,10 @@ void templateLAL15old(struct parSet *par, struct interferometer *ifo[], int ifon
   PPNParamStruc       ppnParams;
   
   memset( &status, 0, sizeof(LALStatus) );
-  
   memset( &waveform, 0, sizeof(CoherentGW) );
-  
   memset( &injParams, 0, sizeof(SimInspiralTable) );
-  
   memset( &ppnParams, 0, sizeof(PPNParamStruc) );
+  
   ppnParams.deltaT   = inversesamplerate;
   ppnParams.lengthIn = 0;
   ppnParams.ppn      = NULL;
@@ -895,22 +891,26 @@ void templateLAL15(struct parSet *par, struct interferometer *ifo[], int ifonr, 
       exit(1);
     }
     for(i=0; i<length; ++i) ifo[ifonr]->FTin[i] = 0.0;
+    
+    //LALfreedomNoSpin(&waveform);  //Why does this give a seg.fault here, but not at the end of the routine?
+    free(wave);
+    free(waveformApproximant);
     return;
   }
   // LALInfo( status, ppnParams.termDescription );
   
-  free(waveformApproximant);
   
   
   // Compute the detector response:
   double delay = LALFpFc(&status, &waveform, &injParams, &ppnParams, wave, length, par, ifo[ifonr], ifonr); //Vivien: lentghLAL is set in LALinteface.c But is is also availble in the structure thewaveform (which holds h+,x) and the structure wave (which holds F+,x)
   delay = delay; //MvdS: remove 'declared but never referenced' warnings
   
-  LALfreedomSpin(&waveform);
   
   for (i=0; i<length; ++i) ifo[ifonr]->FTin[i] = wave[i];
   
   free(wave);
+  free(waveformApproximant);
+  LALfreedomSpin(&waveform);
   
 } // End of templateLAL15()
 // ****************************************************************************************************************************************************  
@@ -1057,6 +1057,10 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
       exit(1);
     }
     for(i=0; i<length; ++i) ifo[ifonr]->FTin[i] = 0.0;
+    
+    //LALfreedomNoSpin(&waveform);  //Why does this give a seg.fault here, but not at the end of the routine?
+    free(wave);
+    free(waveformApproximant);
     return;
   }
   
@@ -1066,10 +1070,10 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
   delay = delay; //MvdS: remove 'declared but never referenced' warnings
   
   
-  LALfreedomNoSpin(&waveform);
   
   for(i=0; i<length; ++i) ifo[ifonr]->FTin[i] = wave[i];
   
+  LALfreedomNoSpin(&waveform);
   free(wave);
   free(waveformApproximant);
   

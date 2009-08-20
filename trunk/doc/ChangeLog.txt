@@ -3,6 +3,9 @@
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
    219: sluys, 19/08/2009
+     - Fixed memory leak introduced in r.218
+     
+   219: sluys, 19/08/2009
      - Bugfix: starting parameters were overwritten with injection parameters when
        using different waveforms for the injection and MCMC
      - Bugfix(?): PPN waveform doesn't use RA, probably 'longitude'
