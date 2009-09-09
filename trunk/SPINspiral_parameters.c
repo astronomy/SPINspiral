@@ -1355,7 +1355,7 @@ void setParameterNames(struct runPar * run)
   strcpy(run->parAbrev[52], "psi");
   strcpy(run->parAbrv[52], "psi");
   run->parDef[52] = 1;
-  strcpy(run->parAbrev[53], "sin th_J0");
+  strcpy(run->parAbrev[53], "sin_th_J0");
   strcpy(run->parAbrv[53], "thJ0");
   run->parDef[53] = 1;
   strcpy(run->parAbrev[54], "phi_J0");
@@ -1380,7 +1380,7 @@ void setParameterNames(struct runPar * run)
   strcpy(run->parAbrev[71], "a_spin1");
   strcpy(run->parAbrv[71], "asp1");
   run->parDef[71] = 1;
-  strcpy(run->parAbrev[72], "cs th_sp1");
+  strcpy(run->parAbrev[72], "cs_th_sp1");
   strcpy(run->parAbrv[72], "ths1");
   run->parDef[72] = 1;
   strcpy(run->parAbrev[73], "phi_spin1");
@@ -1401,7 +1401,7 @@ void setParameterNames(struct runPar * run)
   strcpy(run->parAbrev[81], "a_spin2");
   strcpy(run->parAbrv[81], "asp2");
   run->parDef[81] = 1;
-  strcpy(run->parAbrev[82], "cs th_sp2");
+  strcpy(run->parAbrev[82], "cs_th_sp2");
   strcpy(run->parAbrv[82], "ths2");
   run->parDef[82] = 1;
   strcpy(run->parAbrev[83], "phi_spin2");
