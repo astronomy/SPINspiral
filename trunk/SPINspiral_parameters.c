@@ -1198,7 +1198,7 @@ void readInjectionXML(struct runPar *run)
     
   } // i (injectPar)
   
-  
+  run->geocentricTc = run->injParVal[run->injRevID[11]];    // This value must be overwritten by the 'best' value in readParameterInputfile() which is called next, in the case of no SW injection
   run->lowFrequencyCutInj = injTable->f_lower;  // May be 0.0!
   
   printf("\n");
