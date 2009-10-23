@@ -2,6 +2,9 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   225: sluys, 22/10/2009
+     - Fixed small bug in SPINspiral_mcmc.c - can now run without correlated updates
+   
    219: sluys, 19/08/2009
      - Fixed memory leak introduced in r.218
      

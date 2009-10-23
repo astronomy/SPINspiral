@@ -1,0 +1,86 @@
+
+#No text/space after statements below!
+CC=gcc#  Use GNU C compiler
+CC=icc#  Use Intel C compiler
+
+
+DEF_MCMCOBJ = SPINspiral_main.o SPINspiral_mcmc.o SPINspiral_templates.o SPINspiral_routines.o SPINspiral_data.o SPINspiral_parameters.o SPINspiral_signal.o SPINspiral_lal.o SPINspiral_3rdparty.o 
+DEF_CFLAGS = -I./include
+DEF_LFLAGS = -llalmetaio -llal -lmetaio -lFrame -lfftw3 -lfftw3f -lgsl -lgslcblas -lz -lm
+
+
+#For the GNU compiler:
+ifeq ($(CC),gcc)
+   #CFLAGS = -O2 -w
+   CFLAGS = -O3 -w
+   #CFLAGS += -march=prescott        #Check the correct setting for your architecture
+   #CFLAGS += -static
+
+   #Debug:
+   #CFLAGS = -O0 -Wall
+   #CFLAGS = -g -O0
+endif
+
+
+#For the Intel compiler:
+ifeq ($(CC),icc)
+   #CFLAGS = -O2
+   CFLAGS = -O3
+
+   CFLAGS += -ipo
+   DEF_LFLAGS += -ipo -vec-report0
+
+   #CFLAGS += -parallel
+   #DEF_LFLAGS += -parallel
+
+   #CFLAGS += -mtune=pentium4 -xP    #Check the correct setting for your architecture
+   #CFLAGS += -xsse4.1               #Check the correct setting for your architecture
+   #CFLAGS += -xhost                 # !!! Use only if you're compiling on the same machine/node as where you'll be running !!!
+
+   #CFLAGS += -prof-gen -prof-dir./  #Don't use -ipo. Run the code thus compiled (a few times) and use -prof-use below (and -ipo if you like) for the final version
+   #CFLAGS += -prof-use -prof-dir./
+
+   CFLAGS += -traceback -vec-report0
+   #DEF_LFLAGS += -static
+
+   #Debug:
+   #CFLAGS = -O0 -traceback -Wcheck -Wall -wd981   #wd: disable: remark #981: operands are evaluated in unspecified order
+   #CFLAGS = -g -O0
+endif
+
+
+
+
+
+
+#Targets:
+
+%.o: %.c Makefile include/SPINspiral.h
+	$(CC) $(CFLAGS) $(DEF_CFLAGS) -c $<
+
+all: SPINspiral
+
+exit:
+
+
+SPINspiral_3rdparty.o: include/remez.h
+
+
+SPINspiral: $(DEF_MCMCOBJ)
+	$(CC) -o SPINspiral $(DEF_MCMCOBJ) $(DEF_LFLAGS) 
+
+
+clean:
+	rm -f *.o include/*.gch
+
+cleanbin:
+	rm -f SPINspiral
+
+cleanoutput:
+	rm -f mcmc.output.??????.?? *-signal*.dat
+
+cleanoptimisation:
+	rm -f ????????_?????.dyn pgopti.dpi pgopti.dpi.lock  #Intel -prof-gen stuff
+
+cleanall: clean cleanbin cleanoutput cleanoptimisation
+

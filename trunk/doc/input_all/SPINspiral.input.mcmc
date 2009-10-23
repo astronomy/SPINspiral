@@ -9,7 +9,7 @@
   1                                        MCMCseed            Random number seed to start the MCMC: 0-let system clock determine seed.
   1                                        adaptiveMCMC        Use adaptation: 0-no, 1-yes.
   0.25                                     acceptRateTarget    Target acceptance rate for MCMC (0.0-1.0).  We used 0.25 for a long time.
-  -1.e3                                    minlogL             Minimum value for the log Likelihood to accept a jump. We used 0 for a long time, this number shouldn't be positive! Try -1.e3.
+  0.e0                                     minlogL             Minimum value for the log Likelihood to accept a jump. We used 0 for a long time, this number shouldn't be positive! Try 0. or ~ -1.e3.
   0.10                                     blockFrac           Fraction of uncorrelated updates that is updated as a block of all parameters (<=0.0: none, >=1.0: all).
       
   #Correlated update proposals:
