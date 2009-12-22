@@ -770,11 +770,11 @@ void readInjectionInputfile(struct runPar *run)
           printf("        %2d  %3i  %-11s     %15.4lf      Taken from the value set in %s\n",i,run->injID[i],run->parAbrev[run->injID[i]],run->injParVal[i],
                  run->injectionFilename);
         } else if(run->injRanPar[i]==1) {
-          printf("        %2d  %3i  %-11s     %15.4lf      Drawn randomly from a Gaussian distribution with centre  %lf  and width  %lf\n",i,run->injID[i],
-                 run->parAbrev[run->injID[i]],run->injParVal[i],run->injParValOrig[i],run->injSigma[i]);
+          printf("        %2d  %3i  %-11s     %15.4lf      Drawn randomly from a Gaussian distribution with centre  %lf  and width  %lf  (seed=%i)\n",i,run->injID[i],
+                 run->parAbrev[run->injID[i]],run->injParVal[i],run->injParValOrig[i],run->injSigma[i],run->injRanSeed);
         } else if(run->injRanPar[i]==2) {
-          printf("        %2d  %3i  %-11s     %15.4lf      Drawn randomly from a uniform distribution  %14.4lf - %-14.4lf\n",i,run->injID[i],run->parAbrev[run->injID[i]]
-                 ,run->injParVal[i],run->injBoundLow[i],run->injBoundUp[i]);
+          printf("        %2d  %3i  %-11s     %15.4lf      Drawn randomly from a uniform distribution  %lf  -  %lf  (seed=%i)\n",i,run->injID[i],run->parAbrev[run->injID[i]]
+                 ,run->injParVal[i],run->injBoundLow[i],run->injBoundUp[i],run->injRanSeed);
         }
       }
       printf("\n");
@@ -1039,8 +1039,14 @@ void readParameterInputfile(struct runPar *run)
   if(run->beVerbose>=1) {
     printf("\n      %2i MCMC parameters:\n        Nr:  ID: Name:                Best value:     Prior:     min:            max:    Fix parameter?        Start chain:\n",run->nMCMCpar);
     for(i=0;i<run->nMCMCpar;i++) {
-      printf("        %2d  %3i  %-11s     %15.4lf     %15.4lf %15.4lf     %-20s  %-45s\n",i,run->parID[i],run->parAbrev[run->parID[i]],run->parBestVal[i],
+      printf("        %2d  %3i  %-11s     %15.4lf     %15.4lf %15.4lf     %-20s  %-45s",i,run->parID[i],run->parAbrev[run->parID[i]],run->parBestVal[i],
              run->priorBoundLow[i],run->priorBoundUp[i],  FixStr[run->parFix[i]],StartStr[run->parStartMCMC[i]]);
+      if(run->parStartMCMC[i]==2 || run->parStartMCMC[i]==4 || run->parStartMCMC[i]==5) {
+	printf(" (seed=%i)\n",run->MCMCseed);
+      } else {
+	printf("\n");
+      }
+     
     }
     printf("\n");
   }
@@ -1287,11 +1293,11 @@ void setRandomInjectionParameters(struct runPar *run)
   ran = gsl_rng_alloc(gsl_rng_mt19937);  // GSL random-number seed
   
   // Manually select a random seed, *** USE ONLY FOR TESTING ***
-  if(1==2 && run->injRanSeed == 0) {
-    printf("\n  *** SELECTING RANDOM SEED ***  This should only be done while testing!!! setRandomInjectionParameters() \n\n");
+  if(1==1 && run->injRanSeed == 0) {
+    printf("\n  *** SELECTING RANDOM INJECTION SEED ***  This should only be done while testing!!! setRandomInjectionParameters() \n\n");
     run->injRanSeed = 0;
     setSeed(&run->injRanSeed);
-    printf("   Seed: %d\n", run->injRanSeed);
+    printf("   Picking seed from the system clock for random injection parameters: %d\n", run->injRanSeed);
   }
   
   gsl_rng_set(ran, run->injRanSeed);     // Set seed

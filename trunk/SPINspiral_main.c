@@ -80,7 +80,10 @@ int main(int argc, char* argv[])
   
   readMainInputfile(&run);                 //Read main input data file for this run from input.mcmc
   readMCMCinputfile(&run);                 //Read the input data on how to do MCMC 
-  setSeed(&run.MCMCseed);                  //Set MCMCseed if 0, otherwise keep the current value
+  if(run.MCMCseed==0) {
+    setSeed(&run.MCMCseed);                  //Set MCMCseed if 0, otherwise keep the current value
+    if(run.beVerbose>=1) printf("   Picking seed from the system clock to start Markov chains from randomly offset values: %d\n", run.MCMCseed);
+  }
   readInjectionInputfile(&run);            //Read the input data on whether and how to do a software injection
   if(run.injXMLfilename != NULL && run.injXMLnr >= 0) readInjectionXML(&run);    //Read injection XML file if specified:
   readParameterInputfile(&run);            //Read the input data on how to handle MCMC parameters
@@ -208,11 +211,16 @@ int main(int argc, char* argv[])
   
   if(run.beVerbose >= 1) {
     printf("\n  %10s  %10s  %6s  %6s  ","nIter","nBurn","seed","nDet");
-    for(ifonr=0;ifonr<networkSize;ifonr++) printf("%16s%4s  ",network[ifonr]->name,"SNR");
-    printf("%20s  ","Network SNR");
+    for(ifonr=0;ifonr<networkSize;ifonr++) printf("%18s%4s     ",network[ifonr]->name,"SNR");
+    printf("%18s  ","Network SNR");
+    
+    double maxSNR=0.0, relSNR[99];
+    for(ifonr=0;ifonr<networkSize;ifonr++) maxSNR = max(maxSNR,network[ifonr]->snr);
+    for(ifonr=0;ifonr<networkSize;ifonr++) relSNR[ifonr] = network[ifonr]->snr/maxSNR;
+    
     printf("\n  %10d  %10d  %6d  %6d  ",run.nIter,run.annealNburn,run.MCMCseed,networkSize);
-    for(ifonr=0;ifonr<networkSize;ifonr++) printf("%20.10lf  ",network[ifonr]->snr);
-    printf("%20.10lf\n\n",run.netsnr);
+    for(ifonr=0;ifonr<networkSize;ifonr++) printf("%18.8lf (%4.2lf)  ",network[ifonr]->snr,relSNR[ifonr]);
+    printf("%18.8lf\n\n",run.netsnr);
   }
   
   //Print actual injection parameters to screen:
