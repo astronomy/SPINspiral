@@ -6,7 +6,9 @@ CC=icc#  Use Intel C compiler
 
 DEF_MCMCOBJ = SPINspiral_main.o SPINspiral_mcmc.o SPINspiral_templates.o SPINspiral_routines.o SPINspiral_data.o SPINspiral_parameters.o SPINspiral_signal.o SPINspiral_lal.o SPINspiral_3rdparty.o 
 DEF_CFLAGS = -I./include
-DEF_LFLAGS = -llalmetaio -llal -lmetaio -lFrame -lfftw3 -lfftw3f -lgsl -lgslcblas -lz -lm
+#DEF_LFLAGS = -llalmetaio -llal -lmetaio -lFrame -lfftw3 -lfftw3f -lgsl -lgslcblas -lz -lm   #Seems overkill
+DEF_LFLAGS = -llalmetaio -llal -lFrame -lfftw3 -lgsl                                         #Default; ensure libFrame libfftw3 and libgsl support
+#DEF_LFLAGS = #-llalmetaio -llal                                                             #Sufficient when lal compiled with libFrame, linfftw3 and libgsl support
 
 
 #For the GNU compiler:
@@ -17,7 +19,7 @@ ifeq ($(CC),gcc)
    #CFLAGS += -static
 
    #Debug:
-   #CFLAGS = -O0 -Wall
+   CFLAGS = -O0 -Wall
    #CFLAGS = -g -O0
 endif
 
@@ -27,8 +29,8 @@ ifeq ($(CC),icc)
    #CFLAGS = -O2
    CFLAGS = -O3
 
-   CFLAGS += -ipo
-   DEF_LFLAGS += -ipo -vec-report0
+   #CFLAGS += -ipo
+   #DEF_LFLAGS += -ipo -vec-report0
 
    #CFLAGS += -parallel
    #DEF_LFLAGS += -parallel
@@ -41,10 +43,11 @@ ifeq ($(CC),icc)
    #CFLAGS += -prof-use -prof-dir./
 
    CFLAGS += -traceback -vec-report0
+
    #DEF_LFLAGS += -static
 
    #Debug:
-   #CFLAGS = -O0 -traceback -Wcheck -Wall -wd981   #wd: disable: remark #981: operands are evaluated in unspecified order
+   CFLAGS = -O0 -traceback -Wcheck -Wall -wd981   #wd: disable: remark #981: operands are evaluated in unspecified order
    #CFLAGS = -g -O0
 endif
 

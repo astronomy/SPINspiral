@@ -25,6 +25,10 @@
 */
 
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <SPINspiral.h>
 
 double Ms,Mpc,G,c,Mpcs,pi,tpi,mtpi;
@@ -66,7 +70,7 @@ int main(int argc, char* argv[])
     run.mcmcParUse[i] = 0;
     run.injParUse[i]  = 0;
   }
-  sprintf(run.executable,argv[0]);
+  sprintf(run.executable,"%s",argv[0]);
   run.lowFrequencyCut = 0.0;
   run.injXMLfilename = NULL;
   run.injXMLnr = -1;

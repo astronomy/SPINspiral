@@ -2,6 +2,9 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   230: sluys, 02/01/2010
+     - Trying to conform to GNU build rules
+     
    229: sluys, 21/12/2009
      - Changed some screen output
      - Allow injRanSeed==0: produces a warning and draws different injection values 
