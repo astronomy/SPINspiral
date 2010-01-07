@@ -414,6 +414,7 @@ void templateApostolatos(struct parSet *par, struct interferometer *ifo[], int i
 // ****************************************************************************************************************************************************  
 void localPar(struct parSet *par, struct interferometer *ifo[], int networkSize, int injectionWF, struct runPar run)
 {
+	if(networkSize!=0){ 
   int ifonr=0,j=0;
   double lineofsight[3], dummyvec[3], scalprod1=0.0, delay=0.0;
   
@@ -452,7 +453,7 @@ void localPar(struct parSet *par, struct interferometer *ifo[], int networkSize,
     
     //printf("  localPar:  %d  %lf  %lf  %s\n",ifonr,ifo[ifonr]->lati/pi*180.0,ifo[ifonr]->longi/pi*180.0,ifo[ifonr]->name);
   }
-  
+	}
 } // End of localPar()
 // ****************************************************************************************************************************************************  
 

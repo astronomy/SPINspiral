@@ -664,12 +664,16 @@ void readInjectionInputfile(struct runPar *run)
     } else if(run->injectionWaveform==4) {
       if(run->beVerbose>=1) printf("    - using LAL,%4.1f-pN, non-spinning waveform for the software injection.\n",run->injectionPNorder);
       run->nInjectPar=9;
+	} else if(run->injectionWaveform==9) {
+	  if(run->beVerbose>=1) printf("    - using analytic Likelihood.\n");
+	  run->nInjectPar=1;		
     } else {
       fprintf(stderr,"    - unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->injectionWaveform);
       fprintf(stderr,"        1: Apostolatos, simple precession, 12 parameters\n");
       fprintf(stderr,"        2: LAL, single spin, 12 parameters\n");
       fprintf(stderr,"        3: LAL, double spin, 15 parameters\n");
       fprintf(stderr,"        4: LAL, non-spinning, 9 parameters\n");
+	  fprintf(stderr,"        9: LAL, analytic Likelihood\n");	
       fprintf(stderr,"      Please set injectionWaveform in %s to one of these values.\n\n",run->injectionFilename);
       exit(1);
     }
@@ -857,12 +861,16 @@ void readParameterInputfile(struct runPar *run)
   } else if(run->mcmcWaveform==4) {
     if(run->beVerbose>=1) printf("    - using LAL,%4.1f-pN, non-spinning waveform as the MCMC template.\n",run->mcmcPNorder);
     run->nMCMCpar=9;
+  } else if(run->mcmcWaveform==9) {
+	if(run->beVerbose>=1) printf("    - using analytic Likelihood.\n");
+	run->nMCMCpar=1;			  
   } else {
     fprintf(stderr,"    - unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->mcmcWaveform);
     fprintf(stderr,"        1: Apostolatos, simple precession, 12 parameters\n");
     fprintf(stderr,"        2: LAL, single spin, 12 parameters\n");
     fprintf(stderr,"        3: LAL, double spin, 15 parameters\n");
     fprintf(stderr,"        4: LAL, non-spinnig, 9 parameters\n");
+	fprintf(stderr,"        9: LAL, analytic Likelihood\n");
     fprintf(stderr,"      Please set mcmcWaveform in %s to one of these values.\n\n",run->mcmcFilename);
     exit(1);
   }
@@ -1448,11 +1456,15 @@ void setParameterNames(struct runPar * run)
   strcpy(run->parAbrv[87], "S2z");
   run->parDef[87] = 1;
   
-  
   //Set 09: merger, ringdown
   //strcpy(run->parAbrev[], "");
   //run->parDef[] = 1;
   
+  //Set 10: analytic
+  strcpy(run->parAbrev[99], "x");
+  strcpy(run->parAbrv[99], "x");
+  run->parDef[99] = 1;	
+	
   //Set:
   //strcpy(run->parAbrev[], "");
   //run->parDef[] = 1;

@@ -47,12 +47,15 @@
 // ****************************************************************************************************************************************************  
 double netLogLikelihood(struct parSet *par, int networkSize, struct interferometer *ifo[], int waveformVersion, int injectionWF, struct runPar run)
 {
-  double result = 0.0;
+	  double result = 0.0;
+	if(waveformVersion==9){
+		return result = logLikelihood_nine(par, waveformVersion, injectionWF, run);
+	} else{
   int i;
   for (i=0; i<networkSize; ++i){
     result += IFOlogLikelihood(par, ifo, i, waveformVersion, injectionWF, run);
   }
-  return result;
+	return result;}
 } // End of netLogLikelihood()
 // ****************************************************************************************************************************************************  
 
@@ -351,7 +354,19 @@ double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct int
 // ****************************************************************************************************************************************************  
 
 
+// ****************************************************************************************************************************************************  
+/**
+ * \brief Compute a analytical log(Likelihood)
+ */
+// ****************************************************************************************************************************************************  
 
+double logLikelihood_nine(struct parSet *par, int waveformVersion, int injectionWF, struct runPar run)
+{
+	double result=0.0;
+	result=100*exp(-(par->par[run.parRevID[99]])*(par->par[run.parRevID[99]]));
+	return result;
+} // End of logLikelihood_nine()
+// ****************************************************************************************************************************************************  
 
 
 // ****************************************************************************************************************************************************  

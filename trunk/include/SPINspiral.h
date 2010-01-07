@@ -598,6 +598,7 @@ void LALfreedomNoSpin(CoherentGW *waveform);
 
 double netLogLikelihood(struct parSet *par, int networkSize, struct interferometer *ifo[], int waveformVersion, int injectionWF, struct runPar run);
 double IFOlogLikelihood(struct parSet *par, struct interferometer *ifo[], int i, int waveformVersion, int injectionWF, struct runPar run);
+double logLikelihood_nine(struct parSet *par, int waveformVersion, int injectionWF, struct runPar run);
 double signalToNoiseRatio(struct parSet *par, struct interferometer *ifo[], int i, int waveformVersion, int injectionWF, struct runPar run);
 double parMatch(struct parSet* par1, int waveformVersion1, int injectionWF1, struct parSet* par2, int waveformVersion2, int injectionWF2, struct interferometer *ifo[], int networkSize, struct runPar run);
 double overlapWithData(struct parSet *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run);
