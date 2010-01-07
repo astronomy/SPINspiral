@@ -363,8 +363,20 @@ double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct int
 double logLikelihood_nine(struct parSet *par, int waveformVersion, int injectionWF, struct runPar run)
 {
 	double result=0.0;
-	result=100*exp(-(par->par[run.parRevID[99]])*(par->par[run.parRevID[99]]));
+	double sumsq=0.0;
+	int i=0;
+	double x[20];
+	
+	for(i=0;i<run.nMCMCpar;i++){
+		x[i]= par->par[run.parRevID[85+i]];
+	}
+	
+	for(i=0;i<run.nMCMCpar;i++){
+		sumsq+=x[i]*x[i];
+	}
+    result=100*exp(-sumsq);
 	return result;
+	
 } // End of logLikelihood_nine()
 // ****************************************************************************************************************************************************  
 

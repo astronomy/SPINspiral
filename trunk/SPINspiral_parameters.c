@@ -666,7 +666,7 @@ void readInjectionInputfile(struct runPar *run)
       run->nInjectPar=9;
 	} else if(run->injectionWaveform==9) {
 	  if(run->beVerbose>=1) printf("    - using analytic Likelihood.\n");
-	  run->nInjectPar=1;		
+	  run->nInjectPar=15;		
     } else {
       fprintf(stderr,"    - unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->injectionWaveform);
       fprintf(stderr,"        1: Apostolatos, simple precession, 12 parameters\n");
@@ -863,7 +863,7 @@ void readParameterInputfile(struct runPar *run)
     run->nMCMCpar=9;
   } else if(run->mcmcWaveform==9) {
 	if(run->beVerbose>=1) printf("    - using analytic Likelihood.\n");
-	run->nMCMCpar=1;			  
+	run->nMCMCpar=15;			  
   } else {
     fprintf(stderr,"    - unknown waveform chosen as MCMC template: %d.   Available waveforms are:\n",run->mcmcWaveform);
     fprintf(stderr,"        1: Apostolatos, simple precession, 12 parameters\n");
@@ -1460,10 +1460,52 @@ void setParameterNames(struct runPar * run)
   //strcpy(run->parAbrev[], "");
   //run->parDef[] = 1;
   
-  //Set 10: analytic
-  strcpy(run->parAbrev[99], "x");
-  strcpy(run->parAbrv[99], "x");
-  run->parDef[99] = 1;	
+	//Set 10: analytic
+	strcpy(run->parAbrev[85], "x_1");
+	strcpy(run->parAbrv[85], "x1");
+	run->parDef[85] = 1;		
+	strcpy(run->parAbrev[86], "x_2");
+	strcpy(run->parAbrv[86], "x2");
+    run->parDef[86] = 1;	
+	strcpy(run->parAbrev[87], "x_3");
+	strcpy(run->parAbrv[87], "x3");
+	run->parDef[87] = 1;		
+	strcpy(run->parAbrev[88], "x_4");
+	strcpy(run->parAbrv[88], "x4");
+	run->parDef[88] = 1;	
+	strcpy(run->parAbrev[89], "x_5");
+	strcpy(run->parAbrv[89], "x5");
+	run->parDef[89] = 1;		
+	strcpy(run->parAbrev[90], "x_6");
+	strcpy(run->parAbrv[90], "x6");
+	run->parDef[90] = 1;	
+	strcpy(run->parAbrev[91], "x_7");
+	strcpy(run->parAbrv[91], "x7");
+	run->parDef[91] = 1;		
+	strcpy(run->parAbrev[92], "x_8");
+	strcpy(run->parAbrv[92], "x8");
+	run->parDef[92] = 1;	
+	strcpy(run->parAbrev[93], "x_9");
+	strcpy(run->parAbrv[93], "x9");
+	run->parDef[93] = 1;		
+	strcpy(run->parAbrev[94], "x_10");
+	strcpy(run->parAbrv[94], "x10");
+	run->parDef[94] = 1;	
+	strcpy(run->parAbrev[95], "x_11");
+	strcpy(run->parAbrv[95], "x11");
+	run->parDef[95] = 1;		
+	strcpy(run->parAbrev[96], "x_12");
+	strcpy(run->parAbrv[96], "x12");
+	run->parDef[96] = 1;	
+	strcpy(run->parAbrev[97], "x_13");
+	strcpy(run->parAbrv[97], "x13");
+	run->parDef[97] = 1;		
+	strcpy(run->parAbrev[98], "x_14");
+	strcpy(run->parAbrv[98], "x14");
+	run->parDef[98] = 1;	
+	strcpy(run->parAbrev[99], "x_15");
+	strcpy(run->parAbrv[99], "x15");
+	run->parDef[99] = 1;		
 	
   //Set:
   //strcpy(run->parAbrev[], "");
