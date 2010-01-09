@@ -368,7 +368,7 @@ double logLikelihood_nine(struct parSet *par, int waveformVersion, int injection
 	double x[20];
 	
 	for(i=0;i<run.nMCMCpar;i++){
-		x[i]= par->par[run.parRevID[85+i]];
+		x[i]= par->par[run.parRevID[185+i]];
 	}
 	
 	for(i=0;i<run.nMCMCpar;i++){
