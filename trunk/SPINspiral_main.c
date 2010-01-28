@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
   
   
   //Set up the data for the IFOs in an IFO database you may want to use (H1,L1 + VIRGO by default)
-  run.maxIFOdbaseSize = 4;  //The maximum number of IFOs to read the properties in for from the data input file (SPINspiral.input.data or equivalent)
+  run.maxIFOdbaseSize = 3;  //The maximum number of IFOs to read the properties in for from the data input file (SPINspiral.input.data or equivalent)
   struct interferometer database[run.maxIFOdbaseSize];
   setIFOdata(&run, database);
   

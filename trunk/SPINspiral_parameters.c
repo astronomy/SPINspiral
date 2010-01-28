@@ -559,7 +559,7 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
   
   
   cstatus = fgets(tmpStr,500,fin); cstatus = fgets(tmpStr,500,fin);  //Read the empty and comment lines
-  for(i=0;i<run->networkSize;i++){
+  for(i=0;i<run->maxIFOdbaseSize;i++){
     cstatus = fgets(tmpStr,500,fin); cstatus = fgets(tmpStr,500,fin); cstatus = fgets(tmpStr,500,fin);  //Read the empty and comment lines
     
     cstatus = fgets(tmpStr,500,fin);  sscanf(tmpStr,"%s",ifo[i].name);
