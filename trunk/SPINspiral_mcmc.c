@@ -125,7 +125,7 @@ void MCMC(struct runPar run, struct interferometer *ifo[])
   
   // *** Set up temperature ladder ***
   if(mcmc.nTemps == 1) {
-    mcmc.tempLadder[0] = 1.0;
+  //  mcmc.tempLadder[0] = 1.0; Modified so that by default it uses mcmc.tempLadder[0] specified in SPINspiral.input.mcmc
   } else {
     setTemperatureLadderOld(&mcmc);
     //setTemperatureLadder(&mcmc);
