@@ -2,6 +2,7 @@
 #Use GNU C compiler
 CC = gcc
 CFLAGS = -O3 -I/opt/local/include -I./include -I/opt/lal/include -I/opt/lscsoft/non-lsc/include -I/opt/lscsoft/libframe/include
+#CFLAGS = -O3 -I/opt/local/include -I./include -I/opt/lal/include -I/opt/lscsoft/non-lsc/include -DFR_LONG_LONG -I/opt/lscsoft/libframe/include # ideally, use `pkg-config --cflags libframe` if possible
 
 #Use Intel C compiler
 #CC = icc
