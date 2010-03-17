@@ -1,0 +1,66 @@
+# Compile SPINspiral
+# ***  USE:  "make clean && condor_compile make -j6 SPINspiral" on Fugu  ***
+
+
+#Compiler:
+CC = condor_compile gcc
+
+
+#Compile flags:
+DEF_CFLAGS = -static -O3   \
+	-I/usr/include \
+	-I ./include \
+	-I/opt/lscsoft/libmetaio/include \
+	-I/opt/lscsoft/lal/include \
+	-I/opt/lscsoft/libframe/include \
+	-I/usr/include/gsl
+
+
+#Link flags:
+DEF_LFLAGS = -static \
+	-L/opt/lscsoft/lal/lib64 -llalmetaio -llal \
+	-L/opt/lscsoft/libmetaio/lib64 -lmetaio \
+	-L/opt/lscsoft/libframe/lib64 -lFrame \
+	-lfftw3 -lfftw3f -lgsl -lgslcblas -lz -lm
+#	-L/export/apps/fftw/lib -lfftw3 -lfftw3f \
+	-L/export/apps/gsl/lib -lgsl -lgslcblas \
+
+
+#Objects:
+DEF_OBJ = SPINspiral_main.o SPINspiral_mcmc.o SPINspiral_templates.o SPINspiral_routines.o SPINspiral_data.o \
+	SPINspiral_parameters.o SPINspiral_signal.o SPINspiral_3rdparty.o SPINspiral_lal.o
+
+
+
+
+
+#Can one make this target dependent?
+#%.o: %.c Makefile include/SPINspiral.h
+%.o: %.c include/SPINspiral.h
+	$(CC) $(DEF_CFLAGS) -c $<
+
+
+all: SPINspiral
+
+exit:
+
+
+SPINspiral: $(DEF_OBJ)
+	$(CC) -o SPINspiral $(DEF_OBJ) $(DEF_LFLAGS)
+
+
+
+
+
+
+clean:
+	rm -f *.o 
+
+cleanbin:
+	rm -f SPINspiral
+
+cleanoutput:
+	rm -f SPINspiral.input.* SPINspiral.output.* *-signal*.dat
+
+cleanall: clean cleanbin cleanoutput
+
