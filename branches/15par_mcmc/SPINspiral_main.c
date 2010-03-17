@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
   struct interferometer database[run.maxIFOdbaseSize];
   setIFOdata(&run, database);
 
-	REAL8 AIGOang=0.0;
+	REAL8 AIGOang=45.0;
 	run.Aigo = getLIGOSouth(AIGOang);
 	
   

@@ -1126,7 +1126,7 @@ double LALFpFc(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   if(ifonr==0) *(detector.site) = lalCachedDetectors[LALDetectorIndexLHODIFF]; 
   if(ifonr==1) *(detector.site) = lalCachedDetectors[LALDetectorIndexLLODIFF];
   if(ifonr==2) *(detector.site) = lalCachedDetectors[LALDetectorIndexVIRGODIFF];	
-  if(ifonr==3) *(detector.site) = *(run.Aigo);
+  if(ifonr==3) *(detector.site) = lalCachedDetectors[LALDetectorIndexLHODIFF]; //*(run.Aigo);
 	  
   //site = lalCachedDetectors[LALDetectorIndexLLODIFF];
   
