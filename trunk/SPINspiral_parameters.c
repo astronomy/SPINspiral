@@ -100,7 +100,7 @@ void readCommandLineOptions(int argc, char* argv[], struct runPar *run)
   
   
   int option_index = 0;
-  while( (c = getopt_long(argc, argv, "i:m:e:t:d:n:d:a:",long_options, &option_index)) != -1) {
+  while( (c = getopt_long(argc, argv, "i:m:e:t:d:n:d:a:o:c",long_options, &option_index)) != -1) {
     switch(c) {
       
       
