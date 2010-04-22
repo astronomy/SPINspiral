@@ -1133,6 +1133,9 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networkSize, struct r
     // Fill ifo[i]->FTin with time-domain template:
     injectionWF = 1;                              //Call waveformTemplate with the injection template
     waveformTemplate(&par, ifo, i, run.injectionWaveform, injectionWF, run);
+	// Window template, FTwindow is a Tukey window:
+	for(j=0; j<ifo[ifonr]->samplesize; ++j) 
+		ifo[ifonr]->FTin[j] *= ifo[ifonr]->FTwindow[j];
     // And FFT it
     fftw_execute(ifo[i]->FTplan);
     
