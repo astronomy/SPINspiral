@@ -1019,7 +1019,7 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
   snprintf(injParams.waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),waveformApproximant);
   Approximant injapprox;
   LALGetApproximantFromString(&status,injParams.waveform,&injapprox);
-  if(injapprox!=GeneratePPN) fprintf(stderr,"\n *** Warning:  not using GeneratePPN approximant causes incoherent injections ***\n");
+  if(injapprox!=GeneratePPN) fprintf(stderr,"\n *** Warning:  not using GeneratePPN approximant causes incoherent injections. Used: %s\t%s***\n",waveformApproximant,injParams.waveform);
   
   // Fill injParam with the waveform parameters:
   injParams.mass1 = (float)m1;
