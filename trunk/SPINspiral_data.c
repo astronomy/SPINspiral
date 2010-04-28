@@ -1038,7 +1038,7 @@ void writeDataToFiles(struct interferometer *ifo[], int networkSize, struct runP
       fprintf(dump, "       GPS time (s)         H(t)\n");
     }
     for(j=0; j<ifo[i]->samplesize; ++j)
-      fprintf(dump, "%9.9f %13.6e\n", 
+      fprintf(dump, "%9.9f %13.10e\n", 
               ifo[i]->FTstart+(((double)j)/((double) (ifo[i]->samplerate))), 
               ifo[i]->rawDownsampledWindowedData[j]);
     fclose(dump);
