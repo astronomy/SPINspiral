@@ -2,8 +2,12 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   249: sluys, 25/06/2010
+     - Use different page sizes for manual
+   
    230: sluys, 02/01/2010
      - Trying to conform to GNU build rules
+     - Code builds on Fugu
      
    229: sluys, 21/12/2009
      - Changed some screen output
