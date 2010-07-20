@@ -69,7 +69,8 @@ double netLogLikelihood(struct parSet *par, int networkSize, struct interferomet
 double IFOlogLikelihood(struct parSet *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run)
 {
   int j=0;
-  
+  double overlaphd=0.0;
+  double overlaphh=0.0;
   // Fill ifo[ifonr]->FTin with time-domain template:
   waveformTemplate(par, ifo, ifonr, waveformVersion, injectionWF, run);
   
@@ -81,14 +82,14 @@ double IFOlogLikelihood(struct parSet *par, struct interferometer *ifo[], int if
   fftw_execute(ifo[ifonr]->FTplan);
   
   // Compute the overlap between waveform and data:
-  double overlaphd = vecOverlap(ifo[ifonr]->raw_dataTrafo, 
+  overlaphd = vecOverlap(ifo[ifonr]->raw_dataTrafo, 
                                 ifo[ifonr]->FTout, ifo[ifonr]->noisePSD,
                                 ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
   //correct FFT for sampling rate of waveform
   overlaphd/=((double)ifo[ifonr]->samplerate);  
   
   // Compute the overlap between waveform and itself:
-  double overlaphh = vecOverlap(ifo[ifonr]->FTout,
+  overlaphh = vecOverlap(ifo[ifonr]->FTout,
                                 ifo[ifonr]->FTout, ifo[ifonr]->noisePSD,
                                 ifo[ifonr]->lowIndex, ifo[ifonr]->highIndex, ifo[ifonr]->deltaFT);
   //correct FFT for sampling rate of waveform

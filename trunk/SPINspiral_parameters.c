@@ -664,6 +664,9 @@ void readInjectionInputfile(struct runPar *run)
     } else if(run->injectionWaveform==4) {
       if(run->beVerbose>=1) printf("    - using LAL,%4.1f-pN, non-spinning waveform for the software injection.\n",run->injectionPNorder);
       run->nInjectPar=9;
+	} else if(run->injectionWaveform==5) {
+	  if(run->beVerbose>=1) printf("    - using LAL,%4.1f-pN, 15-parameter PhenSpinTaylorRD waveform for the software injection.\n",run->injectionPNorder);
+	  run->nInjectPar=15;
 	} else if(run->injectionWaveform==9) {
 	  if(run->beVerbose>=1) printf("    - using analytic Likelihood.\n");
 	  run->nInjectPar=15;		
@@ -861,6 +864,9 @@ void readParameterInputfile(struct runPar *run)
   } else if(run->mcmcWaveform==4) {
     if(run->beVerbose>=1) printf("    - using LAL,%4.1f-pN, non-spinning waveform as the MCMC template.\n",run->mcmcPNorder);
     run->nMCMCpar=9;
+  } else if(run->mcmcWaveform==5) {
+	if(run->beVerbose>=1) printf("    - using LAL,%4.1f-pN, 15-parameter PhenSpinTaylorRD waveform as the MCMC template.\n",run->mcmcPNorder);
+	run->nMCMCpar=15;	  
   } else if(run->mcmcWaveform==9) {
 	if(run->beVerbose>=1) printf("    - using analytic Likelihood.\n");
 	run->nMCMCpar=15;			  

@@ -581,6 +581,7 @@ void localPar(struct parSet *par, struct interferometer *ifo[], int networkSize,
 void templateLAL12(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run);
 void templateLAL15old(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run);
 void templateLAL15(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run);
+void templateLALPhenSpinTaylorRD(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run);
 void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], int ifonr, int injectionWF, struct runPar run);
 
 //void LALHpHc(CoherentGW *waveform, double *hplus, double *hcross, int *l, int length, struct parSet *par, struct interferometer *ifo, int ifonr);
@@ -593,6 +594,7 @@ double LALFpFc(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
 void getWaveformApproximant(char* familyName, int length, double PNorder, char* waveformApproximant);
 void LALfreedomSpin(CoherentGW *waveform);
 void LALfreedomNoSpin(CoherentGW *waveform);
+void LALfreedomPhenSpinTaylorRD(CoherentGW *waveform);
 
 //************************************************************************************************************************************************
 
