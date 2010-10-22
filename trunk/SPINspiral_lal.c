@@ -425,9 +425,9 @@ void LALHpHc12(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   //snprintf(waveformApproximant,128,"SpinTayloronePointFivePN"); //Set it manually
   //printf("\n  %s\n\n",waveformApproximant);
   
-  snprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),waveformApproximant);
-  //snprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTayloronePointFivePN");
-  //snprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTaylortwoPN");
+  snprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"%s",waveformApproximant);
+  //snprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"%s","SpinTayloronePointFivePN");
+  //snprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"%s","SpinTaylortwoPN");
   
   /* this is given in Mpc */    
   injParams->distance = (float)exp(pLogDl);//d_L;
@@ -693,13 +693,13 @@ void LALHpHc15(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   //Remember we're in the 15-par routine here
   char* waveformApproximant = (char*)calloc(128,sizeof(char));
   getWaveformApproximant("SpinTaylor",128,PNorder,waveformApproximant);  //Spinning
-  //snprintf(waveformApproximant,128,"SpinTaylorthreePointFivePN"); //Set it manually
+  //snprintf(waveformApproximant,128,"%s","SpinTaylorthreePointFivePN"); //Set it manually
   //printf("\n  %s\n\n",waveformApproximant);
   
-  snprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),waveformApproximant);
-  //snprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTayloronePointFivePN");
-  //snprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTaylortwoPN");
-  //snprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"SpinTaylorthreePointFivePN");
+  snprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"%s",waveformApproximant);
+  //snprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"%s","SpinTayloronePointFivePN");
+  //snprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"%s","SpinTaylortwoPN");
+  //snprintf(injParams->waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"%s","SpinTaylorthreePointFivePN");
   
   // This is given in Mpc:
   injParams->distance = (float)exp(pLogDl); // d_L;
@@ -877,9 +877,9 @@ void templateLAL15(struct parSet *par, struct interferometer *ifo[], int ifonr, 
   // Remember we're in the 15-par routine here:
   char* waveformApproximant = (char*)calloc(128,sizeof(char));
   getWaveformApproximant("SpinTaylor",128,PNorder,waveformApproximant);  //Spinning
-  //snprintf(waveformApproximant,128,"SpinTaylorthreePointFivePN"); //Set it manually
+  //snprintf(waveformApproximant,128,"%s","SpinTaylorthreePointFivePN"); //Set it manually
   
-  snprintf(injParams.waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),waveformApproximant);
+  snprintf(injParams.waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"%s",waveformApproximant);
   
   // This is given in Mpc:
   injParams.distance = (float)exp(pLogDl); // d_L;
@@ -1064,9 +1064,9 @@ void templateLALPhenSpinTaylorRD(struct parSet *par, struct interferometer *ifo[
 	// Remember we're in the 15-par routine here:
 	char* waveformApproximant = (char*)calloc(128,sizeof(char));
 	getWaveformApproximant("PhenSpinTaylorRD",128,PNorder,waveformApproximant);  //Spinning
-	//snprintf(waveformApproximant,128,"SpinTaylorthreePointFivePN"); //Set it manually
+	//snprintf(waveformApproximant,128,"%s","SpinTaylorthreePointFivePN"); //Set it manually
 	
-	snprintf(injParams.waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),waveformApproximant);
+	snprintf(injParams.waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"%s",waveformApproximant);
 	
 	// This is given in Mpc:
 	injParams.distance = (float)exp(pLogDl); // d_L;
@@ -1372,10 +1372,10 @@ void templateLALPhenSpinTaylorRD(struct parSet *par, struct interferometer *ifo[
 	/* simulate the detectors response to the inspiral */
 	LALSCreateVector( &status, &(signal.data), (UINT4)length );
 	XLALGPSSetREAL8( &(signal.epoch), ifo[ifonr]->FTstart);	
-	for ( i = 0; i < signal.data->length; i++ ) {signal.data->data[i]=0.0;}
+	for ( i = 0; i < (int)signal.data->length; i++ ) {signal.data->data[i]=0.0;}
 	LALSSInjectTimeSeries( &status, &signal, ret );
 	
-	for ( i = 0; i < signal.data->length && i < length; i++ ) {ifo[ifonr]->FTin[i] = signal.data->data[i];
+	for ( i = 0; i < (int)signal.data->length && i < length; i++ ) {ifo[ifonr]->FTin[i] = signal.data->data[i];
 																//printf("signal.data->data[%d] = %10.10e\n",i,signal.data->data[i]);
 																}
 	
@@ -1486,7 +1486,7 @@ void templateLALnonSpinning(struct parSet *par, struct interferometer *ifo[], in
   //getWaveformApproximant("SpinTaylor",128,PNorder,waveformApproximant);  //Spinning
   //printf("\n  %s\n\n",waveformApproximant);
   
-  snprintf(injParams.waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),waveformApproximant);
+  snprintf(injParams.waveform,LIGOMETA_WAVEFORM_MAX*sizeof(CHAR),"%s",waveformApproximant);
   Approximant injapprox;
   LALGetApproximantFromString(&status,injParams.waveform,&injapprox);
   if(injapprox!=GeneratePPN) fprintf(stderr,"\n *** Warning:  not using GeneratePPN approximant causes incoherent injections. Used: %s\t%s***\n",waveformApproximant,injParams.waveform);
@@ -1715,7 +1715,7 @@ double LALFpFc(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
   
   //      LALSSInjectTimeSeries(status, &chan, &signal );
   
-  for ( i = 0; i < signal.data->length && i < length; i++ ){
+  for ( i = 0; i < (int)signal.data->length && i < length; i++ ){
     
     //printf("%d\t%10.10e\n", i, chan.data->data[i]);
     
