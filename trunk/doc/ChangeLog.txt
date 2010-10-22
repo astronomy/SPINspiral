@@ -2,6 +2,11 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   252: sluys, 22/10/2010
+     - Fixed some issues:  removed unused variables, added headers, explicit type casting
+     - Some compilers complain if x is defined but never used. Add x=x; at the *end* of the
+       routine; otherwise x is undefined when doing this.
+   
    251: sluys, 22/10/2010
      - Updated Makefile_Fugu
    

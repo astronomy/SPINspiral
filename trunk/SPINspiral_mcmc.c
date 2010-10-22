@@ -906,9 +906,9 @@ void writeMCMCoutput(struct MCMCvariables mcmc, struct interferometer *ifo[])
   if(tempi==0) { //Only for the T=1 chain
     /*ILYA*/
     // if((iIter % (50*thinScreenOutput))==0 || iIter<0) printf("Previous iteration has match of %10g with true signal\n\n", 
-    //  matchBetweenParameterArrayAndTrueParameters(mcmc.param[tempi], ifo, mcmc); //CHECK need support for two different waveforms
-    // While the above is commented out, get rid of 'not used' warnings for the ifo struct:
-//    ifo[0]->index = ifo[0]->index;
+    // matchBetweenParameterArrayAndTrueParameters(mcmc.param[tempi], ifo, mcmc); //CHECK need support for two different waveforms
+    // While the above is commented out, get rid of 'not used' warnings for the ifo struct from icc:
+    ifo[0]->index = ifo[0]->index;
     
     if((iIter % (50*mcmc.thinScreenOutput))==0 || iIter<0) {
       printf("\n%9s%10s","Cycle","logL");

@@ -1,7 +1,7 @@
 
 #No text/space after statements below!
 CC=gcc#  Use GNU C compiler
-CC=icc#  Use Intel C compiler
+#CC=icc#  Use Intel C compiler
 
 
 DEF_MCMCOBJ = SPINspiral_main.o SPINspiral_mcmc.o SPINspiral_templates.o SPINspiral_routines.o SPINspiral_data.o SPINspiral_parameters.o SPINspiral_signal.o SPINspiral_lal.o SPINspiral_3rdparty.o 
@@ -19,7 +19,7 @@ ifeq ($(CC),gcc)
    #CFLAGS += -static
 
    #Debug:
-   CFLAGS = -O0 -Wall
+   CFLAGS = -O0 -Wall -Wextra
    #CFLAGS = -g -O0
 endif
 

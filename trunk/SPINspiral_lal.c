@@ -35,6 +35,7 @@
 #include <lal/GeneratePPNInspiral.h>
 #include <lal/GenerateInspiral.h>
 
+
 //#include <lal/LALConstants.h>
 
 
@@ -76,6 +77,10 @@
 //#include <lal/LIGOLwXMLInspiralRead.h>
 
 
+// For templateLALPhenSpinTaylorRD():
+#include <lal/NRWaveInject.h>
+#include <lal/LIGOMetadataUtils.h>
+#include <lal/Inject.h>
 
 
 
@@ -960,7 +965,7 @@ void templateLALPhenSpinTaylorRD(struct parSet *par, struct interferometer *ifo[
 	// Get the 15 waveform parameters from their array:
 	double pMc=0.0,pEta=0.0,pTc=0.0,pLogDl=0.0,pRA=0.0,pLongi=0.0,pSinDec=0.0,pPhase=0.0,pCosI=0.0,pPsi=0.0;
 	double pSpin1=0.0,pSpCosTh1=0.0,pSpPhi1=0.0,pSpin2=0.0,pSpCosTh2=0.0,pSpPhi2=0.0,PNorder=0.0;
-	REAL8 h1, h2, phi, shift;
+	//REAL8 h1, h2, phi, shift;
 	REAL4TimeSeries *htData = NULL;
 	CHAR ifoname[LIGOMETA_IFO_MAX];
 	INT8 waveformStartTime;
@@ -1218,7 +1223,7 @@ void templateLALPhenSpinTaylorRD(struct parSet *par, struct interferometer *ifo[
 	
 	/* get the detector information */
 	memset( &det, 0, sizeof(LALDetector) );
-	ifoNumber = XLALIFONumber( ifoname );
+	ifoNumber = (InterferometerNumber)XLALIFONumber( ifoname );
 	XLALReturnDetector( &det, ifoNumber );
 	
 	if( ifoNumber == LAL_UNKNOWN_IFO )
@@ -1272,8 +1277,8 @@ void templateLALPhenSpinTaylorRD(struct parSet *par, struct interferometer *ifo[
 	
 	for ( k = 0; k < vecLength; ++k )
 	{
-		htData->data->data[k] = (fplus * waveform.h->data->data[k]  +
-								 fcross * waveform.h->data->data[vecLength + k]) / injParams.distance;
+	  htData->data->data[k] = (float)(fplus * waveform.h->data->data[k]  +
+				   fcross * waveform.h->data->data[vecLength + k]) / injParams.distance;
 	}
 	
 	/*interpolate to given sample rate */
@@ -1337,7 +1342,7 @@ void templateLALPhenSpinTaylorRD(struct parSet *par, struct interferometer *ifo[
 			 r = (x-x1)/(x2-x1) */
 			r = k*deltaTout / deltaTin - lo;
 			
-			ret->data->data[k] = y_2 * r + y_1 * (1 - r);
+			ret->data->data[k] = (float)(y_2 * r + y_1 * (1 - r));
 		}
 		else {
 			ret->data->data[k] = 0.0;

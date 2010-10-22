@@ -329,7 +329,7 @@ void parseCharacterOptionString(char *input, char **strings[], int *n)
     }
     ++i;
   } 
-}// End void parseCharacterOptionString(char *input, char **strings[], int *n)
+}  // End void parseCharacterOptionString(char *input, char **strings[], int *n)
 // ****************************************************************************************************************************************************  
 
 
@@ -349,7 +349,6 @@ void readMainInputfile(struct runPar *run)
   int i=0;
   char tmpStr[500],*cstatus;
   FILE *fin;
-  cstatus = cstatus; //Suppress "variable was set but never used" warnings
   
   if((fin = fopen(run->mainFilename,"r")) == NULL) {
     fprintf(stderr, "\n\n   ERROR opening main input file: %s, aborting.\n\n\n",run->mainFilename);
@@ -381,6 +380,9 @@ void readMainInputfile(struct runPar *run)
   cstatus = fgets(tmpStr,500,fin); sscanf(tmpStr,"%s",run->systemFilename);
   
   fclose(fin);
+  
+  cstatus = cstatus; // Suppress "variable was set but never used" warnings from icc
+  
 }  //End of readMainInputfile
 // ****************************************************************************************************************************************************  
 
@@ -406,8 +408,6 @@ void readMCMCinputfile(struct runPar *run)
   double tmpdbl=0.0;
   char tmpStr[500],*cstatus;
   FILE *fin;
-  istatus = istatus; //Suppress "variable was set but never used" warnings
-  cstatus = cstatus; //Suppress "variable was set but never used" warnings
   
   if((fin = fopen(run->mcmcFilename,"r")) == NULL) {
     fprintf(stderr, "\n\n   ERROR opening MCMC input file: %s, aborting.\n\n\n",run->mcmcFilename);
@@ -477,6 +477,10 @@ void readMCMCinputfile(struct runPar *run)
   for(i=0;i<run->nTemps;i++) istatus = fscanf(fin,"%lf",&run->tempLadder[i]);  //Read the array directly, because sscanf cannot be in a loop...
   
   fclose(fin);
+  
+  istatus = istatus; // Suppress "variable was set but never used" warnings from icc
+  cstatus = cstatus; // Suppress "variable was set but never used" warnings from icc
+  
 } //End of void readMCMCinputfile(struct runPar *run)
 // ****************************************************************************************************************************************************  
 
@@ -503,8 +507,6 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
   char tmpStr[500],*cstatus, subdir[500];
   FILE *fin;
   int dump = 0;
-  istatus = istatus; //Suppress "variable was set but never used" warnings
-  cstatus = cstatus; //Suppress "variable was set but never used" warnings
   
   if((fin = fopen(run->dataFilename,"r")) == NULL) {
     fprintf(stderr, "\n\n   ERROR opening data file: %s, aborting.\n\n\n",run->dataFilename);
@@ -606,6 +608,9 @@ void readDataInputfile(struct runPar *run, struct interferometer ifo[])
   }
   fclose(fin);
   
+  istatus = istatus; // Suppress "variable was set but never used" warnings from icc
+  cstatus = cstatus; // Suppress "variable was set but never used" warnings from icc
+  
 }  //End of readDataInputfile
 // ****************************************************************************************************************************************************  
 
@@ -625,8 +630,6 @@ void readInjectionInputfile(struct runPar *run)
   int i=0,istatus=0;
   char tmpStr[500],*cstatus;
   FILE *fin;
-  istatus = istatus; //Suppress "variable was set but never used" warnings
-  cstatus = cstatus; //Suppress "variable was set but never used" warnings
   
   // Open injection input file:
   if((fin = fopen(run->injectionFilename,"r")) == NULL) {
@@ -801,6 +804,8 @@ void readInjectionInputfile(struct runPar *run)
     }
   }
   
+  istatus = istatus; // Suppress "variable was set but never used" warnings from icc
+  cstatus = cstatus; // Suppress "variable was set but never used" warnings from icc
   
 }  //End of readInjectionInputfile
 // ****************************************************************************************************************************************************  
@@ -829,8 +834,6 @@ void readParameterInputfile(struct runPar *run)
   int i=0,iInj=0,istatus=0;
   char tmpStr[500],*cstatus;
   FILE *fin;
-  istatus = istatus; //Suppress "variable was set but never used" warnings
-  cstatus = cstatus; //Suppress "variable was set but never used" warnings
   
   if((fin = fopen(run->parameterFilename,"r")) == NULL) {
     fprintf(stderr, "\n\n   ERROR opening parameter input file: %s, aborting.\n\n\n",run->parameterFilename);
@@ -1078,6 +1081,9 @@ void readParameterInputfile(struct runPar *run)
     printf("\n");
   }
   
+  istatus = istatus; // Suppress "variable was set but never used" warnings from icc
+  cstatus = cstatus; // Suppress "variable was set but never used" warnings from icc
+  
 }  //End of readParameterInputfile
 // ****************************************************************************************************************************************************  
 
@@ -1098,8 +1104,6 @@ void readSystemInputfile(struct runPar *run)
   int i=0,istatus=0;
   char tmpStr[500],*cstatus;
   FILE *fin;
-  istatus = istatus; //Suppress "variable was set but never used" warnings
-  cstatus = cstatus; //Suppress "variable was set but never used" warnings
   
   if((fin = fopen(run->systemFilename,"r")) == NULL) {
     fprintf(stderr, "\n\n   ERROR opening system file: %s, aborting.\n\n\n",run->systemFilename);
@@ -1117,6 +1121,10 @@ void readSystemInputfile(struct runPar *run)
   istatus = fscanf(fin, "%s",run->dataDir);
   
   fclose(fin);
+  
+  istatus = istatus; // Suppress "variable was set but never used" warnings from icc
+  cstatus = cstatus; // Suppress "variable was set but never used" warnings from icc
+  
 }  //End of readSystemInputfile
 // ****************************************************************************************************************************************************  
 
@@ -1256,7 +1264,6 @@ void readCachefile(struct runPar *run, int ifonr)
   int line=0;
   char tmpStr[2048],*cstatus;
   FILE *fin;
-  cstatus = cstatus; //Suppress "variable was set but never used" warnings
   
   if((fin = fopen(run->cacheFilename[ifonr],"r")) == NULL) {
     fprintf(stderr, "\n\n   ERROR opening cache file: %s, aborting.\n\n\n",run->cacheFilename[ifonr]);
@@ -1299,6 +1306,9 @@ void readCachefile(struct runPar *run, int ifonr)
   }
   
   fclose(fin);
+  
+  cstatus = cstatus; // Suppress "variable was set but never used" warnings from icc
+  
 }  //End of readCachefile
 // ****************************************************************************************************************************************************  
 

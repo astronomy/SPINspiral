@@ -363,27 +363,29 @@ double matchBetweenParameterArrayAndTrueParameters(double * pararray, struct int
 
 double logLikelihood_nine(struct parSet *par, int waveformVersion, int injectionWF, struct runPar run)
 {
-	double result=0.0;
-	double sumsq=0.0;
-	double norm=0.0;
-	int i=0;
-	double x[20];
-	double xmax=0.0;
-	double deltax=0.01;
-	
-	
-	for(i=0;i<run.nMCMCpar;i++){
-		x[i]= par->par[run.parRevID[185+i]];
-	}
-	
-	for(i=0;i<run.nMCMCpar;i++){
-		sumsq+=(x[i]-xmax)*(x[i]-xmax)/(2*deltax);
-		//norm+=-0.91893853320468-log(sqrt(deltax));
-	}
-    //result=log(100*exp(-sumsq));
-	result=15/(2*deltax)-sumsq;
-	return result;
-	
+  double result=0.0;
+  double sumsq=0.0;
+  //double norm=0.0;
+  int i=0;
+  double x[20];
+  double xmax=0.0;
+  double deltax=0.01;
+  
+  waveformVersion = waveformVersion;  // Suppress 'never referenced' warnings from icc
+  injectionWF = injectionWF;          // Suppress 'never referenced' warnings from icc
+  
+  for(i=0;i<run.nMCMCpar;i++){
+    x[i]= par->par[run.parRevID[185+i]];
+  }
+  
+  for(i=0;i<run.nMCMCpar;i++){
+    sumsq+=(x[i]-xmax)*(x[i]-xmax)/(2*deltax);
+    //norm+=-0.91893853320468-log(sqrt(deltax));
+  }
+  //result=log(100*exp(-sumsq));
+  result=15/(2*deltax)-sumsq;
+  return result;
+  
 } // End of logLikelihood_nine()
 // ****************************************************************************************************************************************************  
 
