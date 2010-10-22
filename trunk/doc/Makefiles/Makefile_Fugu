@@ -5,9 +5,8 @@
 #Compiler:
 CC = pathcc
 
-
 #Compile flags:
-DEF_CFLAGS = -static -O3 -ipa   \
+DEF_CFLAGS = -static -O3 -ipa -march=opteron -msse2 \
 	-I/usr/include \
 	-I ./include \
 	-I/export/apps/lsc/metaio/include \
@@ -16,9 +15,9 @@ DEF_CFLAGS = -static -O3 -ipa   \
 	-I/export/apps/fftw/include/ \
 	-I/export/apps/gsl/include
 
-
+#-static -ipa 
 #Link flags:
-DEF_LFLAGS = -ipa -static \
+DEF_LFLAGS = -static -ipa \
 	-L/export/apps/lsc/lal/lib -llalmetaio -llal \
 	-L/export/apps/lsc/metaio/lib -lmetaio \
 	-L/export/apps/lsc/libframe/lib -lFrame \

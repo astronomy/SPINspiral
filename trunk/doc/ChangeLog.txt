@@ -2,6 +2,9 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   251: sluys, 22/10/2010
+     - Updated Makefile_Fugu
+   
    249: sluys, 25/06/2010
      - Use different page sizes for manual
    
