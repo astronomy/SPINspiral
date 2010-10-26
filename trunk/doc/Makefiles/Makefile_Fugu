@@ -6,23 +6,23 @@
 CC = pathcc
 
 #Compile flags:
-DEF_CFLAGS = -static -O3 -ipa -march=opteron -msse2 \
+DEF_CFLAGS = -static -O3 -ipa -march=opteron -msse2 -mmmx \
 	-I/usr/include \
 	-I ./include \
-	-I/export/apps/lsc/metaio/include \
-	-I/export/apps/lsc/lal/include \
-	-I/export/apps/lsc/libframe/include \
-	-I/export/apps/fftw/include/ \
-	-I/export/apps/gsl/include
+	-I/share/apps/lsc/metaio/include \
+	-I/share/apps/lsc/lal/include \
+	-I/share/apps/lsc/libframe/include \
+	-I/share/apps/fftw/include/ \
+	-I/share/apps/gsl/include
 
 #-static -ipa 
 #Link flags:
 DEF_LFLAGS = -static -ipa \
-	-L/export/apps/lsc/lal/lib -llalmetaio -llal \
-	-L/export/apps/lsc/metaio/lib -lmetaio \
-	-L/export/apps/lsc/libframe/lib -lFrame \
-	-L/export/apps/fftw/lib -lfftw3 -lfftw3f \
-	-L/export/apps/gsl/lib -lgsl -lgslcblas \
+	-L/share/apps/lsc/lal/lib -llalmetaio -llal \
+	-L/share/apps/lsc/metaio/lib -lmetaio \
+	-L/share/apps/lsc/libframe/lib -lFrame \
+	-L/share/apps/fftw/lib -lfftw3 -lfftw3f \
+	-L/share/apps/gsl/lib -lgsl -lgslcblas \
 	-lz -lm
 
 

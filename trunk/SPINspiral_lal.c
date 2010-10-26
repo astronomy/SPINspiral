@@ -1249,7 +1249,8 @@ void templateLALPhenSpinTaylorRD(struct parSet *par, struct interferometer *ifo[
 	if (!htData)
 	{
 		printf("hData unassigned\n");
-		ABORTXLAL( &status );
+		//ABORTXLAL( &status );
+		exit(1);
 	}
 	vecLength = waveform.h->data->vectorLength;
 	htData->data = XLALCreateREAL4Vector( vecLength );
@@ -1257,7 +1258,8 @@ void templateLALPhenSpinTaylorRD(struct parSet *par, struct interferometer *ifo[
 	{
 		LALFree( htData );
 		printf("hData->data unassigned\n");
-		ABORTXLAL( &status );
+		//ABORTXLAL( &status );
+		exit(1);
 	}
 	
 	/* store the htData */
@@ -1306,14 +1308,16 @@ void templateLALPhenSpinTaylorRD(struct parSet *par, struct interferometer *ifo[
 	if (!ret)
 	{
 		printf("ret unassigned\n");
-		ABORTXLAL( &status );
+		//ABORTXLAL( &status );
+		exit(1);
 	}
 	
 	ret->data = XLALCreateREAL4Vector( numPoints );
 	if (! ret->data)
 	{
 		printf("ret->data unassigned\n");
-		ABORTXLAL( &status );
+		//ABORTXLAL( &status );
+		exit(1);
 	}
 	
 	ret->deltaT = 1./sampleRate;
@@ -1352,7 +1356,8 @@ void templateLALPhenSpinTaylorRD(struct parSet *par, struct interferometer *ifo[
 	if ( !ret )
 	{
 		printf("ret unassigned\n");
-		ABORTXLAL( &status );
+		//ABORTXLAL( &status );
+		exit(1);
 	}
 	
 	REAL8 offset;

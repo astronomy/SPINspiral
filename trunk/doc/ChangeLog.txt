@@ -2,6 +2,10 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   254: sluys, 26/10/2010
+     - Replaced ABORTXLAL() with exit() since compiler complains (gcc,icc) 
+       or refuses to compile (pathcc).
+   
    253: sluys, 22/10/2010
      - Added formatting string literal for snprintf()
      - Implicitly cast unsigned to signed integers
