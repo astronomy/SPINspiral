@@ -398,6 +398,25 @@ double tukeyWindow(int j, int N, double r)
 // ****************************************************************************************************************************************************  
 
 
+// ****************************************************************************************************************************************************  
+/**
+ * \brief Apply a 'Tukey window' to data 
+ * 
+ * Window data using a Tukey window. r1 for lower frequency windowing, r2 for upper frequency windowing.
+ * For r=0 equal to rectangular window, for r=1 equal to Hann window (0<r<1 denotes the fraction of the window in which it behaves sinusoidal).
+ * j = 0, ..., N-1
+ */
+// ****************************************************************************************************************************************************  
+double modifiedTukeyWindow(int j, int N, double r1, double r2)
+{
+  double win = 1.0;
+  if( ((double)j) < (r1 * (((double)N) / 2.0)) )
+    win = 0.5*(1.0-cos(((2.0*pi)/r1)*(((double)j)/((double)N))));
+  else if( ((double)j) > ( ((double)N)*(1.0-(r2/2.0)) ) )
+    win = 0.5*(1.0-cos(((2.0*pi)/r2)*(((double)j)/((double)N)-1)));; 
+  return win;
+} // End of tukeyWindow()
+// ****************************************************************************************************************************************************  
 
 
 
@@ -1133,9 +1152,11 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networkSize, struct r
     // Fill ifo[i]->FTin with time-domain template:
     injectionWF = 1;                              //Call waveformTemplate with the injection template
     waveformTemplate(&par, ifo, i, run.injectionWaveform, injectionWF, run);
-	// Window template, FTwindow is a Tukey window:
-	for(j=0; j<ifo[i]->samplesize; ++j) 
-		ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
+
+    //printf("tStart: %d\t%13.6e \n tEnd: %d\t%13.6e \n tLength: %d\n", tStart,ifo[i]->FTin[tStart], tEnd, ifo[i]->FTin[tEnd], tLength);
+
+    //for(j=0; j<ifo[i]->samplesize; ++j) 
+    //  ifo[i]->FTin[j] *= ifo[i]->FTwindow[j];
     // And FFT it
     fftw_execute(ifo[i]->FTplan);
     

@@ -1725,7 +1725,7 @@ double LALFpFc(LALStatus *status, CoherentGW *waveform, SimInspiralTable *injPar
     //printf("%d\t%10.10e\n", i, chan.data->data[i]);
     
     wave[i] = signal.data->data[i]; // wave is my array of doubles to send back the waveform to the rest of SPINspiral.
-	//  printf("%d\t%10.10e\n", i, signal.data->data[i]);
+	  //printf("%d\t%10.10e\n", i, signal.data->data[i]);
   }
   //printf("1000\t%10.10e\n",wave[1000]);
   /*********TIME DELAY***********/

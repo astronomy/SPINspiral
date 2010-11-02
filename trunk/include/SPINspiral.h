@@ -560,6 +560,7 @@ double *downsample(double data[], int *datalength, double coef[], int ncoef, str
 void dataFT(struct interferometer *ifo[], int i, int networkSize, struct runPar run);
 double hannWindow(int j, int N);
 double tukeyWindow(int j, int N, double r);
+double modifiedTukeyWindow(int j, int N, double r1, double r2);
 void noisePSDestimate(struct interferometer *ifo[], int ifonr, struct runPar run);
 double logNoisePSD(double f, struct interferometer *ifo);
 double interpolLogNoisePSD(double f, struct interferometer *ifo);

@@ -50,7 +50,9 @@
 // ****************************************************************************************************************************************************  
 void waveformTemplate(struct parSet *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run)
 {
-  
+  int j=0;
+  int tStart, tEnd;     // Start and end of templatea
+  int tLength;          // Template length
   //CHECK: test - remove this
   /*
     int i=0;
@@ -66,8 +68,42 @@ void waveformTemplate(struct parSet *par, struct interferometer *ifo[], int ifon
     templateLAL12(par, ifo, ifonr, injectionWF, run);  // LAL 12-parameter template
   } else if(waveformVersion==3) {
     templateLAL15(par, ifo, ifonr, injectionWF, run);  // LAL 15-parameter template
+
+    // Determine template start and end (exclude 0 padding):
+    j = 0;
+    while( ifo[ifonr]->FTin[j] == 0 )
+      j++;
+    tStart = j;
+
+    j = ifo[ifonr]->samplesize-1;
+    while( ifo[ifonr]->FTin[j] == 0 )
+      j--;
+    tEnd = j;
+    tLength = tEnd - tStart;
+
+    // Window template (not padding):
+    for( j=tStart; j<=tEnd; j++)
+      ifo[ifonr]->FTin[j] *= modifiedTukeyWindow(j-tStart, tLength, 0.15, 0.01);
+
   } else if(waveformVersion==4) {
     templateLALnonSpinning(par, ifo, ifonr, injectionWF, run);  // LAL non-spinning template
+    
+    // Determine template start and end (exclude 0 padding):
+    j = 0;
+    while( ifo[ifonr]->FTin[j] == 0 )
+      j++;
+    tStart = j;
+
+    j = ifo[ifonr]->samplesize-1;
+    while( ifo[ifonr]->FTin[j] == 0 )
+      j--;
+    tEnd = j;
+    tLength = tEnd - tStart;
+
+    // Window template (not padding):
+    for( j=tStart; j<=tEnd; j++)
+      ifo[ifonr]->FTin[j] *= modifiedTukeyWindow(j-tStart, tLength, 0.15, 0.01);
+  
   } else if(waveformVersion==5) {
 	templateLALPhenSpinTaylorRD(par, ifo, ifonr, injectionWF, run);  // LAL PhenSpinTaylorRD template
   } else {
