@@ -68,9 +68,9 @@ double netLogLikelihood(struct parSet *par, int networkSize, struct interferomet
 // ****************************************************************************************************************************************************  
 double IFOlogLikelihood(struct parSet *par, struct interferometer *ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run)
 {
-  int j=0;
-  int tStart, tEnd;     // Start and end of templatea
-  int tLength;          // Template length
+  //int j=0;
+  //int tStart, tEnd;     // Start and end of templatea
+  //int tLength;          // Template length
   double overlaphd=0.0;
   double overlaphh=0.0;
   
@@ -139,9 +139,9 @@ double signalToNoiseRatio(struct parSet *par, struct interferometer *ifo[], int 
 // SNR of signal corresponding to parameter set, w.r.t. i-th interferometer's noise.
 // (see SNR definition in Christensen/Meyer/Libson (2004), p.323)
 {
-  int tStart, tEnd;
-  int tLength;
-  int j=0;
+ // int tStart, tEnd;
+ // int tLength;
+ // int j=0;
   
   // Fill ifo[ifonr]->FTin with time-domain template:
   waveformTemplate(par, ifo, ifonr, waveformVersion, injectionWF, run);
@@ -310,8 +310,8 @@ double vecOverlap(fftw_complex *vec1, fftw_complex *vec2, double * noise, int j_
 // ****************************************************************************************************************************************************  
 void signalFFT(fftw_complex* FFTout, struct parSet* par, struct interferometer* ifo[], int ifonr, int waveformVersion, int injectionWF, struct runPar run)
 {
-  int tStart, tEnd;
-  int tLength;
+  //int tStart, tEnd;
+  //int tLength;
   int j=0;
   if(FFTout==NULL) {
     fprintf(stderr,"\n\n   ERROR: memory should be allocated for FFTout vector before call to signalFFT()\n   Aborting...\n\n");
