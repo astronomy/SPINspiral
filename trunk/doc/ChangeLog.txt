@@ -2,6 +2,9 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   259: sluys, 20/11/2010
+     - Added new mass parameters to manual
+   
    254: sluys, 26/10/2010
      - Replaced ABORTXLAL() with exit() since compiler complains (gcc,icc) 
        or refuses to compile (pathcc).
