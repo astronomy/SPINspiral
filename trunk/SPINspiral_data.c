@@ -307,6 +307,9 @@ double* filter(int *order, int samplerate, double upperlimit, struct runPar run)
             (0.5/(double)run.downsampleFactor - transitionbandwidth));
     fprintf(stderr,"     Aborting!\n\n");
     exit(1);
+  } else {
+    if(run.beVerbose>=1) printf("  Original sampling rate: %i Hz, downsampling %dx, Nyquest frequency: %g Hz.\n",
+				samplerate,run.downsampleFactor, ((double)samplerate)/(double)run.downsampleFactor/2.0);
   }
   
   double endpassband= upperlimit/((double)samplerate) + (0.5/(double)run.downsampleFactor - upperlimit/((double)samplerate) - transitionbandwidth)/2.0;

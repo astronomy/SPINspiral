@@ -407,50 +407,50 @@ void readMainInputfile(struct runPar *run)
   FILE *fin;
   char UNUSED *str;
   
-	if((fin = fopen(run->mainFilename,"r")) == NULL) {
-		fprintf(stderr, "   No main input file: %s, using default values.\n",run->mainFilename);
-		
-		run->doSNR=1;
-		run->doMCMC=1;
-		run->doMatch=0;
-		run->writeSignal=0;
-		run->beVerbose=1;
-		
-		sprintf(run->mcmcFilename, "SPINspiral.input.mcmc");
-		sprintf(run->dataFilename, "SPINspiral.input.data");
-		sprintf(run->injectionFilename, "SPINspiral.input.injection");
-		sprintf(run->parameterFilename, "SPINspiral.input.parameters");
-		sprintf(run->systemFilename, "SPINspiral.input.system");
-		
-		//exit(1);
-		
+  if((fin = fopen(run->mainFilename,"r")) == NULL) {
+    fprintf(stderr, "   No main input file: %s, using default values.\n",run->mainFilename);
+    
+    run->doSNR=1;
+    run->doMCMC=1;
+    run->doMatch=0;
+    run->writeSignal=0;
+    run->beVerbose=1;
+    
+    sprintf(run->mcmcFilename, "SPINspiral.input.mcmc");
+    sprintf(run->dataFilename, "SPINspiral.input.data");
+    sprintf(run->injectionFilename, "SPINspiral.input.injection");
+    sprintf(run->parameterFilename, "SPINspiral.input.parameters");
+    sprintf(run->systemFilename, "SPINspiral.input.system");
+    
+    //exit(1);
+    
   } else {
     printf("   Using main input file: %s.\n",run->mainFilename);
+    
+    
+    //Use and l for floats: %lf, %lg, etc, rather than %f, %g
   
+    for(i=1;i<=3;i++) cstatus = fgets(tmpStr,500,fin);  //Read first 3 lines
+    
+    //Operation and output:
+    cstatus = fgets(tmpStr,500,fin); cstatus = fgets(tmpStr,500,fin);  //Read the empty and comment line
+    cstatus = fgets(tmpStr,500,fin);  sscanf(tmpStr,"%d",&run->doSNR);
+    cstatus = fgets(tmpStr,500,fin);  sscanf(tmpStr,"%d",&run->doMCMC);
+    cstatus = fgets(tmpStr,500,fin);  sscanf(tmpStr,"%d",&run->doMatch);
+    cstatus = fgets(tmpStr,500,fin);  sscanf(tmpStr,"%d",&run->writeSignal);
+    cstatus = fgets(tmpStr,500,fin);  sscanf(tmpStr,"%d",&run->beVerbose);
+    
   
-  //Use and l for floats: %lf, %lg, etc, rather than %f, %g
-  
-  for(i=1;i<=3;i++) cstatus = fgets(tmpStr,500,fin);  //Read first 3 lines
-  
-  //Operation and output:
-  cstatus = fgets(tmpStr,500,fin); cstatus = fgets(tmpStr,500,fin);  //Read the empty and comment line
-  cstatus = fgets(tmpStr,500,fin);  sscanf(tmpStr,"%d",&run->doSNR);
-  cstatus = fgets(tmpStr,500,fin);  sscanf(tmpStr,"%d",&run->doMCMC);
-  cstatus = fgets(tmpStr,500,fin);  sscanf(tmpStr,"%d",&run->doMatch);
-  cstatus = fgets(tmpStr,500,fin);  sscanf(tmpStr,"%d",&run->writeSignal);
-  cstatus = fgets(tmpStr,500,fin);  sscanf(tmpStr,"%d",&run->beVerbose);
-  
-  
-  //Secondary input files:
-  cstatus = fgets(tmpStr,500,fin); cstatus = fgets(tmpStr,500,fin); cstatus = fgets(tmpStr,500,fin); //Read the empty and comment lines
-  cstatus = fgets(tmpStr,500,fin); sscanf(tmpStr,"%s",run->mcmcFilename);
-  cstatus = fgets(tmpStr,500,fin); sscanf(tmpStr,"%s",run->dataFilename);
-  cstatus = fgets(tmpStr,500,fin); sscanf(tmpStr,"%s",run->injectionFilename);
-  cstatus = fgets(tmpStr,500,fin); sscanf(tmpStr,"%s",run->parameterFilename);
-  cstatus = fgets(tmpStr,500,fin); sscanf(tmpStr,"%s",run->systemFilename);
-  
-  fclose(fin);
-	    }
+    //Secondary input files:
+    cstatus = fgets(tmpStr,500,fin); cstatus = fgets(tmpStr,500,fin); cstatus = fgets(tmpStr,500,fin); //Read the empty and comment lines
+    cstatus = fgets(tmpStr,500,fin); sscanf(tmpStr,"%s",run->mcmcFilename);
+    cstatus = fgets(tmpStr,500,fin); sscanf(tmpStr,"%s",run->dataFilename);
+    cstatus = fgets(tmpStr,500,fin); sscanf(tmpStr,"%s",run->injectionFilename);
+    cstatus = fgets(tmpStr,500,fin); sscanf(tmpStr,"%s",run->parameterFilename);
+    cstatus = fgets(tmpStr,500,fin); sscanf(tmpStr,"%s",run->systemFilename);
+    
+    fclose(fin);
+  }
   
   cstatus = cstatus; // Suppress "variable was set but never used" warnings from icc
 

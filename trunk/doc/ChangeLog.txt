@@ -2,8 +2,8 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
-   260: sluys, 20/11/2010
-     - Updated refs in manual
+   261: sluys, 20/11/2010
+     - Added output line on downsampling
      
    259: sluys, 20/11/2010
      - Added new mass parameters to manual
