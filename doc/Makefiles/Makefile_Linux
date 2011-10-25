@@ -6,11 +6,20 @@ CC=gcc#    Use GNU C compiler
 #CC=icc#    Use Intel C compiler
 
 
-DEF_MCMCOBJ = SPINspiral_main.o SPINspiral_mcmc.o SPINspiral_templates.o SPINspiral_routines.o SPINspiral_data.o SPINspiral_parameters.o SPINspiral_signal.o SPINspiral_lal.o SPINspiral_3rdparty.o 
-DEF_CFLAGS = -I./include
+SRCDIR = src
+OBJDIR = obj
+INCDIR = include
+BINDIR = .
+
+DEF_MCMCOBJ =  $(OBJDIR)/SPINspiral_main.o $(OBJDIR)/SPINspiral_mcmc.o $(OBJDIR)/SPINspiral_templates.o $(OBJDIR)/SPINspiral_routines.o $(OBJDIR)/SPINspiral_data.o 
+DEF_MCMCOBJ += $(OBJDIR)/SPINspiral_parameters.o $(OBJDIR)/SPINspiral_signal.o $(OBJDIR)/SPINspiral_lal.o $(OBJDIR)/SPINspiral_3rdparty.o 
+DEF_CFLAGS = -I./$(INCDIR)
 #DEF_LFLAGS = -llalmetaio -llal -lmetaio -lFrame -lfftw3 -lfftw3f -lgsl -lgslcblas -lz -lm   # Seems overkill
 DEF_LFLAGS = -llalmetaio -llalinspiral -llal -llalframe -lfftw3 -lgsl                        # Default; ensure libFrame libfftw3 and libgsl support
 #DEF_LFLAGS = #-llalmetaio -llal                                                             # Sufficient when lal compiled with libFrame, libfftw3 and libgsl support
+
+
+
 
 
 # For the GNU compiler:
@@ -76,26 +85,25 @@ endif
 
 
 
-
 #Targets:
 
-%.o: %.c Makefile include/SPINspiral.h
-	$(CC) $(CFLAGS) $(DEF_CFLAGS) -c $<
+$(OBJDIR)/%.o: $(SRCDIR)/%.c Makefile $(INCDIR)/SPINspiral.h
+	$(CC) $(CFLAGS) $(DEF_CFLAGS) -c $< -o $@
 
 all: SPINspiral
 
 exit:
 
 
-SPINspiral_3rdparty.o: include/remez.h
+$(OBJDIR)/SPINspiral_3rdparty.o: $(INCDIR)/remez.h
 
 
 SPINspiral: $(DEF_MCMCOBJ)
-	$(CC) -o SPINspiral $(DEF_MCMCOBJ) $(DEF_LFLAGS) 
+	$(CC) -o $(BINDIR)/SPINspiral $(DEF_MCMCOBJ) $(DEF_LFLAGS) 
 
 
 clean:
-	rm -f *.o include/*.gch
+	rm -f $(OBJDIR)/*.o $(INCDIR)/*.gch
 
 cleanbin:
 	rm -f SPINspiral

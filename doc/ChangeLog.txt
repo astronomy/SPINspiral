@@ -2,8 +2,22 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   
+  265: sluys, 25/11/2011
+    - Rearranging directory structure:
+      - created directories src/, obj/
+      - moved *.c to src/
+      - updated Makefile_Linux to take these new locations into account
+  
+  264: sluys, 25/11/2011
+    - Moved from Subversion to Bazaar
+    - Moved code from /trunk/ to /
+   
+   
+=========================================================================================   
    This was the last commit to the SVN repository at NU.  This repository will be moved
    to Bazaar at SourceForge: http://spinspiral.sourceforge.net/
+   Note: svn rev.262 = bzr rev.263
    
    262: sluys, 25/11/2011
      - Updated Makefile_Linux for use with lal-6.5:
