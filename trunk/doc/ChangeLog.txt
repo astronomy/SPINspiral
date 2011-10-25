@@ -2,7 +2,17 @@
   ChangeLog for SPINspiral code repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
-   261: sluys, 20/11/2010
+   This was the last commit to the SVN repository at NU.  This repository will be moved
+   to Bazaar at SourceForge: http://spinspiral.sourceforge.net/
+   
+   262: sluys, 25/11/2011
+     - Updated Makefile_Linux for use with lal-6.5:
+       - use the -std=c99 compile flag to compile using the C99 standard (which LAL uses)
+       - link against liblalinspiral
+       - link against liblalframe rather than libFrame
+     - call gettimeofday() according to C99 standard
+     
+   261: sluys, 20/11/2011
      - Added output line on downsampling
      
    259: sluys, 20/11/2010

@@ -1,30 +1,49 @@
+# Dependencies: lal, lalinspiral, lalframe (which needs libframe), lalmetaio (which needs metaio), fftw3, gsl
 
 #No text/space after statements below!
-CC=gcc#  Use GNU C compiler
-#CC=icc#  Use Intel C compiler
+CC=gcc#    Use GNU C compiler
+#CC=clang#  Use Clang/LLVM
+#CC=icc#    Use Intel C compiler
 
 
 DEF_MCMCOBJ = SPINspiral_main.o SPINspiral_mcmc.o SPINspiral_templates.o SPINspiral_routines.o SPINspiral_data.o SPINspiral_parameters.o SPINspiral_signal.o SPINspiral_lal.o SPINspiral_3rdparty.o 
 DEF_CFLAGS = -I./include
-#DEF_LFLAGS = -llalmetaio -llal -lmetaio -lFrame -lfftw3 -lfftw3f -lgsl -lgslcblas -lz -lm   #Seems overkill
-DEF_LFLAGS = -llalmetaio -llal -lFrame -lfftw3 -lgsl                                         #Default; ensure libFrame libfftw3 and libgsl support
-#DEF_LFLAGS = #-llalmetaio -llal                                                             #Sufficient when lal compiled with libFrame, linfftw3 and libgsl support
+#DEF_LFLAGS = -llalmetaio -llal -lmetaio -lFrame -lfftw3 -lfftw3f -lgsl -lgslcblas -lz -lm   # Seems overkill
+DEF_LFLAGS = -llalmetaio -llalinspiral -llal -llalframe -lfftw3 -lgsl                        # Default; ensure libFrame libfftw3 and libgsl support
+#DEF_LFLAGS = #-llalmetaio -llal                                                             # Sufficient when lal compiled with libFrame, libfftw3 and libgsl support
 
 
-#For the GNU compiler:
+# For the GNU compiler:
 ifeq ($(CC),gcc)
    #CFLAGS = -O2 -w
    CFLAGS = -O3 -w
-   #CFLAGS += -march=prescott        #Check the correct setting for your architecture
+   #CFLAGS += -march=prescott        # Check the correct setting for your architecture
    #CFLAGS += -static
 
    #Debug:
-   CFLAGS = -O0 -Wall -Wextra
+   #CFLAGS = -O0 -Wall -Wextra -Werror
    #CFLAGS = -g -O0
+
+   CFLAGS += -std=c99
 endif
 
 
-#For the Intel compiler:
+# For the Clang compiler:
+ifeq ($(CC),clang)
+   CFLAGS = -O2 -w
+   #CFLAGS = -O3 -w
+   #CFLAGS += -march=prescott        # Check the correct setting for your architecture
+   #CFLAGS += -static
+
+   #Debug:
+   #CFLAGS = -O0 -Wall -Wextra
+   #CFLAGS = -g -O0
+
+   CFLAGS += -std=c99
+endif
+
+
+# For the Intel compiler:
 ifeq ($(CC),icc)
    #CFLAGS = -O2
    CFLAGS = -O3
@@ -35,11 +54,11 @@ ifeq ($(CC),icc)
    #CFLAGS += -parallel
    #DEF_LFLAGS += -parallel
 
-   #CFLAGS += -mtune=pentium4 -xP    #Check the correct setting for your architecture
-   #CFLAGS += -xsse4.1               #Check the correct setting for your architecture
+   #CFLAGS += -mtune=pentium4 -xP    # Check the correct setting for your architecture
+   #CFLAGS += -xsse4.1               # Check the correct setting for your architecture
    #CFLAGS += -xhost                 # !!! Use only if you're compiling on the same machine/node as where you'll be running !!!
 
-   #CFLAGS += -prof-gen -prof-dir./  #Don't use -ipo. Run the code thus compiled (a few times) and use -prof-use below (and -ipo if you like) for the final version
+   #CFLAGS += -prof-gen -prof-dir./  # Don't use -ipo. Run the code thus compiled (a few times) and use -prof-use below (and -ipo if you like) for the final version
    #CFLAGS += -prof-use -prof-dir./
 
    CFLAGS += -traceback -vec-report0
@@ -47,8 +66,10 @@ ifeq ($(CC),icc)
    #DEF_LFLAGS += -static
 
    #Debug:
-   CFLAGS = -O0 -traceback -Wcheck -Wall -wd981   #wd: disable: remark #981: operands are evaluated in unspecified order
+   CFLAGS = -O0 -traceback -Wcheck -Wall -wd981   # wd: disable: remark #981: operands are evaluated in unspecified order
    #CFLAGS = -g -O0
+
+   CFLAGS += -std=c99
 endif
 
 

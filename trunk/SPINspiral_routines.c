@@ -405,9 +405,9 @@ void vec2coord(double x[3], double *sinlati, double *longi)
 void setSeed(int *seed)
 {
   struct timeval time_now;
-  struct timezone tz;
+  struct timezone_t *tz=NULL;
   if(*seed==0) {
-    gettimeofday(&time_now, &tz);
+    gettimeofday(&time_now, tz);
     *seed = time_now.tv_usec;
   }
 }
