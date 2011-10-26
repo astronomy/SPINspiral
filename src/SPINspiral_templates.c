@@ -4,7 +4,7 @@
    SPINspiral_templates.c:    waveform templates and related routines
    
    
-   Copyright 2007, 2008, 2009 Marc van der Sluys, Vivien Raymond, Christian Roever, Ilya Mandel
+   Copyright 2007-2011 Marc van der Sluys, Vivien Raymond, Christian Roever, Ilya Mandel
    
    
    This file is part of SPINspiral.

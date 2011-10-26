@@ -3,6 +3,10 @@
   Please log (major) changes here (and add a short comment using bzr commit -m 'Comment').
   
   
+  267: sluys, 26/11/2011
+    - Removed compile flags for libraries
+    - Updated copyright
+    
   266: sluys, 26/11/2011
     - Added CMake files
     

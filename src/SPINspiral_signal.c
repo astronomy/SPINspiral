@@ -4,7 +4,7 @@
    SPINspiral_signal.c:       routines to calculate likelihood, SNR, match, etc.
    
    
-   Copyright 2007, 2008, 2009 Marc van der Sluys, Vivien Raymond, Christian Roever, Ilya Mandel
+   Copyright 2007-2011 Marc van der Sluys, Vivien Raymond, Christian Roever, Ilya Mandel
    
    
    This file is part of SPINspiral.
