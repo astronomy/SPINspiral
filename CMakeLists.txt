@@ -51,10 +51,11 @@ find_package( FFTW3 REQUIRED )
 set( INCLUDE_FLAGS "-I${CMAKE_SOURCE_DIR}/include -I${LibM_INCLUDES} -I${GSL_INCLUDES} -I${FFTW3_INCLUDES}" )  # will be transferred to CompilerFlags
 
 find_package( LAL REQUIRED )
+find_package( LibFrame REQUIRED )
 find_package( LALFrame REQUIRED )
 find_package( LALMetaio REQUIRED )
 find_package( LALInspiral REQUIRED )
-set( INCLUDE_FLAGS "${INCLUDE_FLAGS} -I${LAL_INCLUDES} -I${LALFrame_INCLUDES} -I${LALMetaio_INCLUDES} -I${LALInspiral_INCLUDES}" )  # will be transferred to CompilerFlags
+set( INCLUDE_FLAGS "${INCLUDE_FLAGS} -I${LAL_INCLUDES} -I${LibFrame_INCLUDES} -I${LALFrame_INCLUDES} -I${LALMetaio_INCLUDES} -I${LALInspiral_INCLUDES}" )  # will be transferred to CompilerFlags
 
 
 
@@ -85,7 +86,7 @@ endif( CREATE_VERSION )
 
 # Create executable targets:
 add_executable( SPINspiral ${SPINspiral_src_files} )
-target_link_libraries( SPINspiral ${LibM_LIBRARIES} ${GSL_LIBRARIES} ${FFTW3_LIBRARIES} ${LAL_LIBRARIES} ${LALFrame_LIBRARIES} ${LALMetaio_LIBRARIES} ${LALInspiral_LIBRARIES} )
+target_link_libraries( SPINspiral ${LibM_LIBRARIES} ${GSL_LIBRARIES} ${FFTW3_LIBRARIES} ${LAL_LIBRARIES} ${LibFrame_LIBRARIES} ${LALFrame_LIBRARIES} ${LALMetaio_LIBRARIES} ${LALInspiral_LIBRARIES} )
 
 # Set module directory:
 set_target_properties( SPINspiral PROPERTIES C_MODULE_DIRECTORY ${MODULE_DIRECTORY} )

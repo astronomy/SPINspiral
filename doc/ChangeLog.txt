@@ -3,13 +3,16 @@
   Please log (major) changes here (and add a short comment using bzr commit -m 'Comment').
   
   
+  269: sluys, 27/11/2011
+    - Added CMake FindLibs for libFrame
+    
   268: sluys, 27/11/2011
-    - Added FindLibs for LAL, LALMetaio
+    - Added CMake FindLibs for LAL, LALMetaio
       - explicitly link against these libraries
-    - Added compile flags for clang, icc
+    - Added CMake compile flags for clang, icc
     
   267: sluys, 26/11/2011
-    - Removed compile flags for libraries
+    - Removed CMake compile flags for libraries
     - Updated copyright
     
   266: sluys, 26/11/2011
