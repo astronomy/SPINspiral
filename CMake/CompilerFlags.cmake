@@ -7,7 +7,7 @@ get_filename_component( C_COMPILER_NAME ${CMAKE_C_COMPILER} NAME )
 ######################################################################################################################################################
 #  Specific options per compiler:
 ######################################################################################################################################################
-if( C_COMPILER_NAME MATCHES "gcc" )
+if( C_COMPILER_NAME MATCHES "gcc" OR C_COMPILER_NAME MATCHES "clang" )
   
   set( CMAKE_C_FLAGS_ALL "-std=c99 -pedantic" )
   #set( CMAKE_C_FLAGS_ALL " ${CMAKE_C_FLAGS_ALL} -fwhole-program" )
@@ -57,9 +57,9 @@ if( C_COMPILER_NAME MATCHES "gcc" )
 elseif( C_COMPILER_NAME MATCHES "icc" )
   
   
-  set( CMAKE_C_FLAGS_ALL "-nogen-interfaces -mcmodel=medium" )
-  set( CMAKE_C_FLAGS "-vec-guard-write -fpconstant -funroll-loops -align all -ip" )
-  set( CMAKE_C_FLAGS_RELEASE "-vec-guard-write -fpconstant -funroll-loops -align all -ip" )
+  set( CMAKE_C_FLAGS_ALL "-std=c99 -mcmodel=medium" )
+  set( CMAKE_C_FLAGS "-vec-guard-write -funroll-loops -align -ip" )
+  set( CMAKE_C_FLAGS_RELEASE "-vec-guard-write -funroll-loops -align -ip" )
   set( CMAKE_C_FLAGS_DEBUG "-g -traceback" )
   set( CMAKE_C_FLAGS_PROFILE "-g -gp" )
   
@@ -85,15 +85,20 @@ elseif( C_COMPILER_NAME MATCHES "icc" )
   endif( WANT_STATIC )
   
   if( WANT_CHECKS )
-    set( CHECK_FLAGS "-ftrapuv -check all -check noarg_temp_created -traceback" )
+    set( CHECK_FLAGS "-ftrapuv -check-uninit -traceback" )
     set( OPT_FLAGS "-O0" )
   else( WANT_CHECKS )
     set( OPT_FLAGS "-O2" )
   endif( WANT_CHECKS )
   
   if( WANT_WARNINGS )
-    set( WARN_FLAGS "-warn all -stand f03 -diag-disable 6894,8290" )
+    set( WARN_FLAGS "-Wall -diag-disable 6894,8290" )
+    #set( WARN_FLAGS "${WARN_FLAGS} -Wcheck" )
+    #set( WARN_FLAGS "${WARN_FLAGS} -Wremarks" )
   endif( WANT_WARNINGS )
+  if( STOP_ON_WARNING )
+    set( WARN_FLAGS "${WARN_FLAGS} -Werror" )
+  endif( STOP_ON_WARNING )
   
   if( WANT_LIBRARY )
     set( LIB_FLAGS "-fPIC -g" )
@@ -105,13 +110,15 @@ elseif( C_COMPILER_NAME MATCHES "icc" )
   
   
   ####################################################################################################################################################
-else( C_COMPILER_NAME MATCHES "gcc" )
+else( C_COMPILER_NAME MATCHES "gcc" OR C_COMPILER_NAME MATCHES "clang" )
   
   
-  message( "CMAKE_C_COMPILER full path: " ${CMAKE_C_COMPILER} )
-  message( "C compiler: " ${C_COMPILER_NAME} )
-  message( "No optimized C compiler flags are known, we just try -O2..." )
-  set( CMAKE_C_FLAGS "" )
+  message( STATUS "" )
+  message( STATUS "WARNING: C compiler not recognised, no specific options known for this compiler" )
+  message( STATUS "C compiler: " ${C_COMPILER_NAME} )
+  message( STATUS "CMAKE_C_COMPILER full path: " ${CMAKE_C_COMPILER} )
+  message( STATUS "No optimized C compiler flags are known, we just try -O2..." )
+  #set( CMAKE_C_FLAGS_ALL " -std=c99" )
   set( CMAKE_C_FLAGS_RELEASE "" )
   set( CMAKE_C_FLAGS_DEBUG "-g" )
   set( OPT_FLAGS "-O2" )
@@ -121,7 +128,7 @@ else( C_COMPILER_NAME MATCHES "gcc" )
   set( PACKAGE_FLAGS "" )
   
   
-endif( C_COMPILER_NAME MATCHES "gcc" )
+endif( C_COMPILER_NAME MATCHES "gcc" OR C_COMPILER_NAME MATCHES "clang" )
 ######################################################################################################################################################
 
 

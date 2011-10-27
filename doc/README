@@ -1,0 +1,39 @@
+
+SPINspiral README
+
+
+The SPINspiral package provides a Markov-chain Monte-Carlo code to do parameter
+estimation on LIGO/Virgo data that contain a binary-inspiral signal.
+The program needs to be linked against the gsl, fftw3 and LALSuite 
+(https://www.lsc-group.phys.uwm.edu/daswg/projects/lalsuite.html; in particular
+LAL, LALFrame, LALMetaio, and LALInspiral) libraries.  For compilation
+you can use CMake (available at http://www.cmake.org/).  To download SPINspiral, 
+read the code documentation, or to contact the developers, see: 
+http://spinspiral.sourceforge.net/
+
+
+
+INSTALLATION:
+
+For installation instructions, see doc/INSTALL.
+
+
+
+LICENCE:
+
+Copyright 2007-2011 Marc van der Sluys, Vivien Raymond, Christian Roever, Ilya Mandel
+ 
+This file is part of the SPINspiral package.
+ 
+This is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published
+by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this code (doc/LICENSE).  If not, see 
+<http://www.gnu.org/licenses/>.
+
+
+
+

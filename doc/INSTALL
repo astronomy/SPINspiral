@@ -1,0 +1,22 @@
+
+SPINspiral INSTALL
+
+
+You will need CMake to configure and compile the code.  CMake is open-source
+software, and can be downloaded from http://www.cmake.org/.
+
+
+To compile the code, from the main package directory (the one that contains 
+the file CMakeLists.txt), do:
+
+ $ mkdir build && cd build/
+ $ cmake ..
+ $ make install
+
+
+To force CMake to compile the code with your favourite compiler, prepend the cmake line 
+   with e.g. FC=clang:
+
+ $ FC=clang cmake ..
+
+
