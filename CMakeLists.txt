@@ -63,7 +63,7 @@ set( INCLUDE_FLAGS "${INCLUDE_FLAGS} -I${LAL_INCLUDES} -I${LibFrame_INCLUDES} -I
 include( FileList )
 
 # Set C compiler flags:
-include( CompilerFlags )
+include( CompilerFlags_C )
 
 
 # Create the file code_version.f90, which contains the svn version number and date:
