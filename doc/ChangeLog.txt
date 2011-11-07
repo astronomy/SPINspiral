@@ -3,28 +3,34 @@
   Please log (major) changes here (and add a short comment using bzr commit -m 'Comment').
   
   
-  269: sluys, 27/11/2011
+  271: sluys, 03/11/2011
+    - Update CMakeLists.txt (install), README
+    
+  270: sluys, 27/10/2011
+    - Update CMake files
+    
+  269: sluys, 27/10/2011
     - Added CMake FindLibs for libFrame
     
-  268: sluys, 27/11/2011
+  268: sluys, 27/10/2011
     - Added CMake FindLibs for LAL, LALMetaio
       - explicitly link against these libraries
     - Added CMake compile flags for clang, icc
     
-  267: sluys, 26/11/2011
+  267: sluys, 26/10/2011
     - Removed CMake compile flags for libraries
     - Updated copyright
     
-  266: sluys, 26/11/2011
+  266: sluys, 26/10/2011
     - Added CMake files
     
-  265: sluys, 25/11/2011
+  265: sluys, 25/10/2011
     - Rearranging directory structure:
       - created directories src/, obj/
       - moved *.c to src/
       - updated Makefile_Linux to take these new locations into account
   
-  264: sluys, 25/11/2011
+  264: sluys, 25/10/2011
     - Moved from Subversion to Bazaar
     - Moved code from /trunk/ to /
   
@@ -34,14 +40,14 @@
    to Bazaar at SourceForge: http://spinspiral.sourceforge.net/
    Note: svn rev.262 = bzr rev.263
    
-   262: sluys, 25/11/2011
+   262: sluys, 25/10/2011
      - Updated Makefile_Linux for use with lal-6.5:
        - use the -std=c99 compile flag to compile using the C99 standard (which LAL uses)
        - link against liblalinspiral
        - link against liblalframe rather than libFrame
      - call gettimeofday() according to C99 standard
      
-   261: sluys, 20/11/2011
+   261: sluys, 21/10/2011
      - Added output line on downsampling
      
    259: sluys, 20/11/2010
