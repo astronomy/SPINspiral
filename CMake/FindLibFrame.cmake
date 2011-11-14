@@ -1,6 +1,7 @@
-# Check for the presence of the LibFrame headers and libraries
-# MvdS, 26/10/2011
-#
+## FindLibFrame.cmake
+## Check for the presence of the LibFrame headers and libraries
+## MvdS, 26/10/2011
+
 # This CMake module defines the following variables:
 #  LibFrame_FOUND        =  Libraries and headers found; TRUE/FALSE
 #  LibFrame_INCLUDES     =  Path to the LibFrame header files

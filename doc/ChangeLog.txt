@@ -3,7 +3,10 @@
   Please log (major) changes here (and add a short comment using bzr commit -m 'Comment').
   
   
-  271: sluys, 03/11/2011
+  272: sluys, 14/11/2011  *** release 0.5.1 ***
+    - Update CMake files to CMakeFiles rev.21
+    
+  271: sluys, 03/11/2011  *** release 0.5.0 ***
     - Update CMakeLists.txt (install), README
     
   270: sluys, 27/10/2011

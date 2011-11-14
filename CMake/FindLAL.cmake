@@ -1,6 +1,7 @@
-# Check for the presence of the LAL headers and libraries
-# MvdS, 26/10/2011
-#
+## FindLAL.cmake:
+## Check for the presence of the LAL headers and libraries
+## MvdS, 26/10/2011
+
 # This CMake module defines the following variables:
 #  LAL_FOUND        =  Libraries and headers found; TRUE/FALSE
 #  LAL_INCLUDES     =  Path to the LAL header files

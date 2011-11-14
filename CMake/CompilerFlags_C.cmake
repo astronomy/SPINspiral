@@ -1,4 +1,7 @@
-# Compiler flags for C compilers
+## CompilerFlags_C.cmake
+## Compiler flags for C compilers
+## Currently, specific flags for gcc, clang and icc are provided
+
 
 # Get compiler name:
 get_filename_component( C_COMPILER_NAME ${CMAKE_C_COMPILER} NAME )

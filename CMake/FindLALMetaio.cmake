@@ -1,6 +1,7 @@
-# Check for the presence of the LALMetaio headers and libraries
-# MvdS, 26/10/2011
-#
+## FindLALMetaio.cmake:
+## Check for the presence of the LALMetaio headers and libraries
+## MvdS, 26/10/2011
+
 # This CMake module defines the following variables:
 #  LALMetaio_FOUND        =  Libraries and headers found; TRUE/FALSE
 #  LALMetaio_INCLUDES     =  Path to the LALMetaio header files
