@@ -225,11 +225,11 @@ void IFOinit(struct interferometer **ifo, int networkSize, struct runPar run)
     // 'lowIndex' and 'highIndex' are the indices analogous to 'lowCut' and 'highCut'
     // but can be used to access the respective elements of 'raw_dataTrafo'.
     
-    ifo[ifonr]->noisePSD   = ((double*) malloc(sizeof(double) * ifo[ifonr]->indexRange));
-    ifo[ifonr]->dataTrafo  = ((fftw_complex*) malloc(sizeof(fftw_complex) * ifo[ifonr]->indexRange));
+    ifo[ifonr]->noisePSD  = ((double*) malloc(sizeof(double) * ifo[ifonr]->indexRange));
+    ifo[ifonr]->dataTrafo = ((fftw_complex*) malloc(sizeof(fftw_complex) * ifo[ifonr]->indexRange));
     for(j=0; j<ifo[ifonr]->indexRange; ++j){
       f = (((double)(j+ifo[ifonr]->lowIndex))/((double)ifo[ifonr]->deltaFT));
-      ifo[ifonr]->noisePSD[j]      = interpolLogNoisePSD(f,ifo[ifonr]);
+      ifo[ifonr]->noisePSD[j] = interpolLogNoisePSD(f,ifo[ifonr]);
       
       // Although smoothing was done for log noise, we store real noise on output
       ifo[ifonr]->noisePSD[j] = exp(ifo[ifonr]->noisePSD[j]);
@@ -1056,7 +1056,7 @@ void writeDataToFiles(struct interferometer *ifo[], int networkSize, struct runP
     
     // Get true signal parameters and write them to the header
     if(run.writeSignal==2){
-      printParameterHeaderToFile(dump);
+      printParameterHeaderToFile(dump, ifo[i], run);
       fprintf(dump, "       GPS time (s)         H(t)\n");
     }
     for(j=0; j<ifo[i]->samplesize; ++j)
@@ -1073,7 +1073,7 @@ void writeDataToFiles(struct interferometer *ifo[], int networkSize, struct runP
     
     // Get true signal parameters and write them to the header
     if(run.writeSignal==2){
-      printParameterHeaderToFile(dump1);
+      printParameterHeaderToFile(dump1, ifo[i], run);
       fprintf(dump1, "       f (Hz)    real(H(f))    imag(H(f))\n");
     }
     // Loop over the Fourier frequencies 
@@ -1110,7 +1110,7 @@ void writeNoiseToFiles(struct interferometer *ifo[], int networkSize, struct run
     FILE *dump = fopen(filename,"w");
     
     if(run.writeSignal==2){
-      printParameterHeaderToFile(dump);
+      printParameterHeaderToFile(dump, ifo[i], run);
       fprintf(dump, "       f (Hz)          H(f)\n");
     }
     
@@ -1168,7 +1168,7 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networkSize, struct r
     sprintf(filename, "%s-signal.dat.%6.6d", ifo[i]->name, run.MCMCseed);  // Write in current dir
     FILE *dump = fopen(filename,"w");
     if(run.writeSignal==2){
-      printParameterHeaderToFile(dump);
+      printParameterHeaderToFile(dump, ifo[i], run);
       fprintf(dump, "       GPS time (s)         H(t)\n");
     }
     for(j=0; j<ifo[i]->samplesize; ++j)
@@ -1182,7 +1182,7 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networkSize, struct r
     sprintf(filename, "%s-signalFFT.dat.%6.6d", ifo[i]->name, run.MCMCseed);  // Write in current dir
     FILE *dump2 = fopen(filename,"w");
     if(run.writeSignal==2){
-      printParameterHeaderToFile(dump2);
+      printParameterHeaderToFile(dump2, ifo[i], run);
       fprintf(dump2, "       f (Hz)    real(H(f))    imag(H(f))\n");
     }
     
@@ -1210,13 +1210,41 @@ void writeSignalsToFiles(struct interferometer *ifo[], int networkSize, struct r
  * The header idendtifies the (waveform) parameters.
  */
 // ****************************************************************************************************************************************************  
-void printParameterHeaderToFile(FILE * dump)
+void printParameterHeaderToFile(FILE * dump, struct interferometer *ifo, struct runPar run)
 {
-  struct parSet par;
-  fprintf(dump,"%12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s\n","m1","m2","mc","eta","tc","dl","lat","lon","phase","spin","kappa","thJ0","phJ0","alpha");
-  fprintf(dump,"%12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g %12g\n",
-          //par.m1,par.m2,par.mc,par.eta,par.tc,exp(par.logdl),asin(par.sinlati)*r2d,par.longi*r2d,par.phase,par.spin,par.kappa,par.sinthJ0,par.phiJ0,par.alpha);
-          0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0);  //CHECK: replace with par.par[]
-  freeParset(&par);
+  int i=0;
+  
+  /*
+  // Parameter numbers:
+  for(i=0;i<run.nInjectPar;i++) {
+    if(run.injID[i]>=11 && run.injID[i]<=19) {  //GPS time
+      fprintf(dump, " %19i",run.injID[i]);
+    } else {
+      fprintf(dump, " %11i",run.injID[i]);
+    }
+  }
+  fprintf(dump,"\n");
+  */
+  
+  // Parameter symbols:
+  for(i=0;i<run.nInjectPar;i++) {
+    if(run.injID[i]>=11 && run.injID[i]<=19) {  //GPS time
+      fprintf(dump, " %19s",run.parAbrev[run.injID[i]]);
+    } else {
+      fprintf(dump, " %11s",run.parAbrev[run.injID[i]]);
+    }
+  }
+  fprintf(dump,"%11s\n", "SNR");
+  
+  // Parameter values:
+  for(i=0;i<run.nInjectPar;i++) {
+    if(run.injID[i]>=11 && run.injID[i]<=19) {  //GPS time
+      fprintf(dump, " %19.4f",run.injParVal[i]);
+    } else {
+      fprintf(dump, " %11.4f",run.injParVal[i]);
+    }
+  }
+  fprintf(dump,"%11.6f\n", ifo->snr);
+  
 } // End of printParameterHeaderToFile()
 // ****************************************************************************************************************************************************  

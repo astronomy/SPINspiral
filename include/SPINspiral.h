@@ -573,7 +573,7 @@ double interpolLogNoisePSD(double f, struct interferometer *ifo);
 void writeDataToFiles(struct interferometer *ifo[], int networkSize, struct runPar run);
 void writeNoiseToFiles(struct interferometer *ifo[], int networkSize, struct runPar run);
 void writeSignalsToFiles(struct interferometer *ifo[], int networkSize, struct runPar run);
-void printParameterHeaderToFile(FILE * dump);
+void printParameterHeaderToFile(FILE * dump, struct interferometer *ifo, struct runPar run);
 
 
 //************************************************************************************************************************************************

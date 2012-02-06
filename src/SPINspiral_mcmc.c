@@ -855,7 +855,6 @@ void writeMCMCheader(struct interferometer *ifo[], struct MCMCvariables mcmc, st
       }
       
       //Parameter numbers:
-      fprintf(mcmc.fouts[tempi], "\n\n%31s","");
       for(i=0;i<mcmc.nMCMCpar;i++) {
         if(mcmc.parID[i]>=11 && mcmc.parID[i]<=19) {  //GPS time
           fprintf(mcmc.fouts[tempi], " %17i",mcmc.parID[i]);
@@ -866,7 +865,6 @@ void writeMCMCheader(struct interferometer *ifo[], struct MCMCvariables mcmc, st
       fprintf(mcmc.fouts[tempi],"\n");
       
       //Parameter symbols:
-      fprintf(mcmc.fouts[tempi], "%8s %12s %9s","Cycle","log_Post.","Prior");
       for(i=0;i<mcmc.nMCMCpar;i++) {
         if(mcmc.parID[i]>=11 && mcmc.parID[i]<=19) {  //GPS time
           fprintf(mcmc.fouts[tempi], " %17s",mcmc.parAbrev[mcmc.parID[i]]);
