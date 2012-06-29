@@ -338,7 +338,7 @@ void templateApostolatos(struct parSet *par, struct interferometer *ifo[], int i
         l_L = m1*m2*exp(-c3rd*log(omega_orb*Mtot));
 	
         //GW and orbital phase
-        phi_gw = pPhase - 2.0/pEta * (tau58 + 0.625*c3rd*cst1*tau38 - 0.1875*cst2*tau28);                                   // GW phase at coalescence
+        phi_gw = pPhase - 2.0/pEta * (tau58 + 0.625*c3rd*cst1*tau38 - 0.1875*cst2*tau28);                                   // GW phase at coalescence - CHECK: 2 in 2/pEta = orb -> GW; Should pPhase -> 2*pPhase?  Since we're not doing that, pPhase actualy represents the *GW* phi_0 !
         if(fabs(phi1)<1.e-30) phi1 = phi_gw;   //Save initial phi
         //phi2 = phi_gw;                       //Save final phi
 	
