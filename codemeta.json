@@ -1,0 +1,60 @@
+{
+    "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+    "@type": "SoftwareSourceCode",
+    "license": "https://spdx.org/licenses/GPL-3.0-or-later",
+    "codeRepository": "https://github.com/MarcvdSluys/SPINspiral",
+    "dateCreated": "2006-09-01",
+    "datePublished": "2011-11-07",
+    "dateModified": "2014-02-09",
+    "downloadUrl": "https://sourceforge.net/projects/spinspiral/files/spinspiral-0.5.2.tar.gz/download",
+    "name": "SPINspiral",
+    "version": "0.5.2",
+    "description": "SPINspiral is a Markov-chain Monte-Carlo code to perform parameter estimation on gravitational-wave signals from binary inspirals observed by LIGO and Virgo.",
+    "identifier": "ascl:2209.019",
+    "applicationCategory": "Astronomy, Gravitational waves",
+    "funding": "PHY-0353111",
+    "referencePublication": "https://doi.org/10.1086/595279",
+    "funder": {
+        "@type": "Organization",
+        "name": "NSF"
+    },
+    "keywords": [
+        "gravitational waves",
+        "parameter estimation",
+        "LIGO",
+        "Virgo"
+    ],
+    "programmingLanguage": [
+        "C"
+    ],
+    "operatingSystem": [
+        "Linux",
+        "UNIX",
+        "MacOS",
+        "Windows"
+    ],
+    "softwareRequirements": [
+        "LALSuite: https://lscsoft.docs.ligo.org/lalsuite/",
+        "FFTW3",
+        "GSL",
+        "",
+        ""
+    ],
+    "relatedLink": [
+        "https://spinspiral.sourceforge.net/",
+        "https://analysemcmc.sourceforge.net/"
+    ],
+    "author": [
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0003-1231-0762",
+            "givenName": "Marc",
+            "familyName": "van der Sluys",
+            "email": "sluys@northwestern.edu",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "Northwestern University"
+            }
+        }
+    ]
+}
